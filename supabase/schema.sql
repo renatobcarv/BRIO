@@ -1,0 +1,243 @@
+-- BRIO — schema completo. Rode inteiro no SQL Editor do Supabase.
+-- Toda tabela: id, user_id (default auth.uid()), created_at, RLS com user_id = auth.uid().
+-- Horas sempre em minutos (inteiros).
+
+create extension if not exists pgcrypto;
+
+-- ── Configurações (uma linha por usuário) ─────────────────────────
+create table if not exists settings (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade unique,
+  created_at timestamptz not null default now(),
+  pioneer_goal_minutes int not null default 3000,
+  water_goal_ml int not null default 3000,
+  kcal_goal int not null default 2480,
+  protein_goal_g int not null default 203,
+  weight_start_kg numeric(5,2) not null default 86,
+  weight_goal_kg numeric(5,2) not null default 80,
+  weight_rate_kg_week numeric(4,2) not null default 0.5,
+  checklist jsonb not null default '[]',
+  workout_split jsonb not null default '[]',
+  partner_phrase text,
+  partner_photo_path text,
+  daily_text text,
+  daily_text_date date
+);
+
+create table if not exists daily_checks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null, item_key text not null, done boolean not null default true,
+  unique (user_id, date, item_key)
+);
+
+create table if not exists streaks (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade unique,
+  created_at timestamptz not null default now(),
+  count int not null default 0, best int not null default 0, last_date date,
+  excused_dates date[] not null default '{}'
+);
+
+-- ── Espiritual ───────────────────────────────────────────────────
+create table if not exists study_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null,
+  type text not null check (type in ('biblia','publicacao','meio_semana','sentinela','pesquisa','outro')),
+  material text, minutes int not null default 0 check (minutes >= 0), takeaway text
+);
+
+create table if not exists bible_reading (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  book smallint not null check (book between 1 and 66),
+  chapter smallint not null check (chapter > 0),
+  date_read date not null,
+  unique (user_id, book, chapter)
+);
+
+create table if not exists journal_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null,
+  kind text not null check (kind in ('oracao','gratidao','reflexao')),
+  text text not null
+);
+
+-- ── Pioneiro ─────────────────────────────────────────────────────
+create table if not exists pioneer_entries (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null,
+  category text not null check (category in ('campo','publico','assembleia','obra')),
+  minutes int not null check (minutes > 0)
+);
+
+create table if not exists pioneer_month_goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  month date not null, goal_minutes int not null check (goal_minutes >= 0),
+  unique (user_id, month)
+);
+
+create table if not exists pioneer_week_plan (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade unique,
+  created_at timestamptz not null default now(),
+  minutes_by_day int[] not null default '{0,0,0,0,0,0,0}' check (array_length(minutes_by_day,1) = 7)
+);
+
+-- ── Corpo ────────────────────────────────────────────────────────
+create table if not exists weight_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null, kg numeric(5,2) not null check (kg > 0),
+  unique (user_id, date)
+);
+
+create table if not exists water_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null, ml int not null
+);
+
+create table if not exists meals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null,
+  slot text not null check (slot in ('cafe','almoco','lanche','jantar')),
+  kcal int, protein_g int, done boolean not null default false,
+  unique (user_id, date, slot)
+);
+
+create table if not exists workouts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null, split_label text, notes text
+);
+
+create table if not exists workout_sets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  workout_id uuid not null references workouts on delete cascade,
+  exercise text not null, set_no smallint not null, reps smallint not null, kg numeric(6,2) not null default 0
+);
+
+create table if not exists sleep_logs (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  date date not null, hours numeric(4,2) not null check (hours between 0 and 24),
+  unique (user_id, date)
+);
+
+-- ── Finanças ─────────────────────────────────────────────────────
+create table if not exists finance_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  month date not null,
+  kind text not null check (kind in ('receita','fixo','variavel')),
+  name text not null, amount numeric(12,2) not null default 0
+);
+
+create table if not exists investments (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  name text not null, amount numeric(14,2) not null default 0, rate_aa numeric(6,3) not null default 0
+);
+
+create table if not exists savings_boxes (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  name text not null, target numeric(14,2) not null, monthly numeric(12,2) not null default 0,
+  saved numeric(14,2) not null default 0, color text default '#d9c49a'
+);
+
+create table if not exists net_worth_items (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  month date not null,
+  kind text not null check (kind in ('ativo','passivo')),
+  name text not null, amount numeric(14,2) not null default 0
+);
+
+-- ── Metas e objetivos ────────────────────────────────────────────
+create table if not exists objectives (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  title text not null,
+  area text not null check (area in ('espiritual','financeira','fisica','carreira','pessoal')),
+  description text
+);
+
+create table if not exists goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users on delete cascade,
+  created_at timestamptz not null default now(),
+  objective_id uuid references objectives on delete set null,
+  title text not null,
+  area text not null check (area in ('espiritual','financeira','fisica','carreira','pessoal')),
+  unit text not null default '',
+  target numeric(14,2) not null, current numeric(14,2) not null default 0,
+  start_value numeric(14,2) not null default 0,
+  deadline date,
+  featured boolean not null default false,
+  auto_source text check (auto_source in ('pioneer_month','weight','savings_box','bible_chapters')),
+  auto_ref uuid
+);
+
+-- ── Índices ──────────────────────────────────────────────────────
+create index if not exists daily_checks_user_date on daily_checks (user_id, date);
+create index if not exists study_user_date on study_entries (user_id, date);
+create index if not exists journal_user_date on journal_entries (user_id, date);
+create index if not exists pioneer_user_date on pioneer_entries (user_id, date);
+create index if not exists water_user_date on water_logs (user_id, date);
+create index if not exists meals_user_date on meals (user_id, date);
+create index if not exists workouts_user_date on workouts (user_id, date);
+create index if not exists workout_sets_workout on workout_sets (workout_id);
+create index if not exists finance_user_month on finance_items (user_id, month);
+create index if not exists networth_user_month on net_worth_items (user_id, month);
+create index if not exists goals_user on goals (user_id);
+
+-- ── RLS em TODAS as tabelas ──────────────────────────────────────
+do $$
+declare t text;
+begin
+  foreach t in array array[
+    'settings','daily_checks','streaks','study_entries','bible_reading','journal_entries',
+    'pioneer_entries','pioneer_month_goals','pioneer_week_plan','weight_logs','water_logs','meals',
+    'workouts','workout_sets','sleep_logs','finance_items','investments','savings_boxes',
+    'net_worth_items','objectives','goals'
+  ] loop
+    execute format('alter table %I enable row level security', t);
+    execute format('drop policy if exists "dono" on %I', t);
+    execute format('create policy "dono" on %I for all to authenticated
+                    using (user_id = auth.uid()) with check (user_id = auth.uid())', t);
+  end loop;
+end $$;
+
+-- ── Storage: bucket privado ──────────────────────────────────────
+insert into storage.buckets (id, name, public) values ('privado', 'privado', false)
+on conflict (id) do update set public = false;
+
+drop policy if exists "privado dono" on storage.objects;
+create policy "privado dono" on storage.objects for all to authenticated
+  using (bucket_id = 'privado' and (storage.foldername(name))[1] = auth.uid()::text)
+  with check (bucket_id = 'privado' and (storage.foldername(name))[1] = auth.uid()::text);
