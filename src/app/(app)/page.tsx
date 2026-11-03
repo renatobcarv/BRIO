@@ -27,7 +27,7 @@ export default async function Hoje() {
   const month = monthStart(today);
   const since = addDays(today, -400);
 
-  const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goal] = await Promise.all([
+  const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goal, refl] = await Promise.all([
     getSettings(sb),
     sb.from("daily_checks").select("date,item_key").gte("date", since).eq("done", true),
     sb.from("streaks").select("*").maybeSingle(),
@@ -37,6 +37,7 @@ export default async function Hoje() {
     sb.from("weight_logs").select("kg,date").order("date", { ascending: false }).limit(1).maybeSingle(),
     sb.from("finance_items").select("kind,amount").eq("month", month),
     sb.from("goals").select("title,target,current,start_value,unit").order("featured", { ascending: false }).order("deadline").limit(1).maybeSingle(),
+    sb.from("journal_entries").select("id").eq("date", today).like("text", "Texto do dia:%").limit(1),
   ]);
 
   // Sequência
@@ -69,7 +70,7 @@ export default async function Hoje() {
   return (
     <>
       <PageHeader eyebrow={longDate()} title={`${greeting()}, Renato.`} />
-      <DailyText key={dailyText} initial={dailyText} />
+      <DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} />
       <Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} />
       <Streak count={count} best={best} excusedToday={excused.has(today)} />
 

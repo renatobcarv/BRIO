@@ -47,3 +47,11 @@ export async function saveDailyText(text: string) {
   await sb.from("settings").update({ daily_text: t || null, daily_text_date: todayISO() }).not("id", "is", null);
   revalidatePath("/");
 }
+
+/** Reflexão sobre o texto do dia → vai para o diário espiritual. */
+export async function saveDailyReflection(text: string) {
+  const t = z.string().trim().min(1).max(2000).parse(text);
+  const sb = await createClient();
+  await sb.from("journal_entries").insert({ date: todayISO(), kind: "reflexao", text: `Texto do dia: ${t}` });
+  revalidatePath("/"); revalidatePath("/espiritual");
+}
