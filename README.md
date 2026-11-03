@@ -15,13 +15,13 @@ Next.js 15 · Supabase (Auth, Postgres, Storage) · Tailwind 4 · PWA.
 
 ## Status das fases
 - [x] 1. Auth + layout + navegação + design system + schema completo
-- [ ] 2. Início + checklist + streak
-- [ ] 3. Pioneiro
-- [ ] 4. Corpo
-- [ ] 5. Espiritual
-- [ ] 6. Finanças
-- [ ] 7. Metas e Objetivos
-- [ ] 8. Configurações, export/import, PWA completo
+- [x] 2. Início + checklist + streak
+- [x] 3. Pioneiro
+- [x] 4. Corpo
+- [x] 5. Espiritual
+- [x] 6. Finanças
+- [x] 7. Metas e Objetivos
+- [x] 8. Configurações, export/import, PWA completo
 
 ## Passo a passo de instalação
 
@@ -56,6 +56,10 @@ Localmente: `cp .env.example .env.local` e preencha.
 
 ### 9. Instalar no celular
 Abra a URL no Safari/Chrome → *Compartilhar → Adicionar à Tela de Início*.
+
+## Backup e dados antigos
+- **Exportar/Importar:** Configurações → Backup. O JSON exportado pode ser reimportado a qualquer momento (atualiza por id, nunca apaga).
+- **HTMLs antigos:** abra o HTML antigo no navegador, aperte F12 → Console e cole `scripts/exportar-localstorage.js`. Ele baixa um `legado-*.json` com tudo o que estava salvo. A conversão desse arquivo para o Brio depende do formato de cada HTML e será feita quando os arquivos originais estiverem no repositório.
 
 ## Rodar localmente
 ```bash
