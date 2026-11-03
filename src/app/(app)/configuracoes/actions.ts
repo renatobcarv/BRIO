@@ -58,7 +58,8 @@ export async function importBackup(json: string) {
     if (!rows.length) continue;
     let error: { message: string } | null = null;
     if (SINGLETONS.has(t)) {
-      ({ error } = await sb.from(t).upsert(rows.slice(0, 1).map(({ id: _i, created_at: _c, ...r }) => r), { onConflict: "user_id" }));
+      // A foto mora no Storage do projeto de origem: o caminho não vale aqui.
+      ({ error } = await sb.from(t).upsert(rows.slice(0, 1).map(({ id: _i, created_at: _c, partner_photo_path: _p, ...r }) => r), { onConflict: "user_id" }));
     } else {
       for (let i = 0; i < rows.length && !error; i += 500) ({ error } = await sb.from(t).upsert(rows.slice(i, i + 500), { onConflict: "id" }));
     }
