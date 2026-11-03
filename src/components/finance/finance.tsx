@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { copyPrevMonth, deleteRow, saveRow } from "@/app/(app)/financas/actions";
+import { copyPrevMonth, deleteRow, depositBox, saveRow } from "@/app/(app)/financas/actions";
 import { Card, Empty, Ring } from "@/components/ui";
 import { brl, monthLabel } from "@/lib/date";
 
@@ -128,6 +128,7 @@ export function Boxes({ items }: { items: Box[] }) {
                   </span>
                 </button>
               )}
+              {edit !== b.id && <Deposit id={b.id} monthly={b.monthly} />}
             </Card>
           );
         })}
@@ -200,5 +201,17 @@ export function NetWorth({ month, items, history }: { month: string; items: Row[
         </Card>
       ))}
     </>
+  );
+}
+
+function Deposit({ id, monthly }: { id: string; monthly: number }) {
+  const [pending, start] = useTransition();
+  const [v, setV] = useState("");
+  return (
+    <div className="flex gap-2 mt-4">
+      <input className="field !min-h-10 num" inputMode="decimal" placeholder={`Aporte (ex.: ${fmtIn(monthly)})`} value={v} onChange={(e) => setV(e.target.value)} aria-label="Valor do aporte" />
+      <button className="btn !min-h-10" disabled={pending || !parseMoney(v)} onClick={() => start(async () => { await depositBox(id, parseMoney(v)); setV(""); })}>Aportar</button>
+      <button className="btn !min-h-10 text-muted" disabled={pending || !monthly} title="Aportar o valor mensal" onClick={() => start(() => depositBox(id, monthly))}>+{fmtIn(monthly)}</button>
+    </div>
   );
 }

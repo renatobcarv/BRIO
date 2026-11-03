@@ -45,7 +45,7 @@ export function Stat({ label, value, sub, color, big }: { label: string; value: 
   return (
     <div>
       <p className="label">{label}</p>
-      <p className={`num leading-tight mt-1 ${big ? "text-3xl" : "text-xl"}`} style={{ color }}>{value}</p>
+      <p className={`num leading-tight mt-1 whitespace-nowrap ${big ? "text-3xl" : "text-lg sm:text-xl"}`} style={{ color }}>{value}</p>
       {sub && <p className="text-xs text-muted mt-0.5">{sub}</p>}
     </div>
   );

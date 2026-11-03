@@ -38,3 +38,46 @@ export async function copyPrevMonth(table: "finance_items" | "net_worth_items", 
   else if (table === "finance_items") await sb.from(table).insert({ month: m, kind: "variavel", name: "Ofertas (Congregação)", amount: 0 });
   done();
 }
+
+// ── Lançamentos completos (v2) ──
+const Tx = z.object({
+  kind: z.enum(["receita", "fixo", "variavel"]), name: z.string().trim().min(1).max(120), amount: z.number().min(0).max(1e10),
+  category: z.string().max(40), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), paid: z.boolean(), recurring: z.boolean(), note: z.string().max(500),
+});
+export async function saveTx(input: z.infer<typeof Tx>, id?: string) {
+  const p = Tx.parse(input);
+  const row = { ...p, month: p.date.slice(0, 7) + "-01", note: p.note || null };
+  const sb = await createClient();
+  const { error } = id ? await sb.from("finance_items").update(row).eq("id", z.string().uuid().parse(id)) : await sb.from("finance_items").insert(row);
+  if (error) throw new Error(error.message);
+  done();
+}
+export async function setPaid(id: string, paid: boolean) {
+  const sb = await createClient();
+  await sb.from("finance_items").update({ paid: z.boolean().parse(paid) }).eq("id", z.string().uuid().parse(id)); done();
+}
+/** Traz os lançamentos recorrentes do mês anterior como "a pagar/receber". */
+export async function generateRecurring(month: string) {
+  const m = Iso.parse(month);
+  const sb = await createClient();
+  const prev = addMonths(m, -1);
+  const [{ data: src }, { data: cur }] = await Promise.all([
+    sb.from("finance_items").select("kind,name,amount,category,date,note").eq("month", prev).eq("recurring", true),
+    sb.from("finance_items").select("name").eq("month", m),
+  ]);
+  const have = new Set((cur ?? []).map((r) => r.name.toLowerCase()));
+  const last = Number(addMonths(m, 1).slice(8, 10)) || 28;
+  const rows = (src ?? []).filter((r) => !have.has(r.name.toLowerCase())).map((r) => {
+    const day = Math.min(Number((r.date ?? prev).slice(8, 10)) || 1, last, 28);
+    return { ...r, month: m, date: `${m.slice(0, 8)}${String(day).padStart(2, "0")}`, paid: false, recurring: true };
+  });
+  if (rows.length) await sb.from("finance_items").insert(rows);
+  done();
+  return rows.length;
+}
+export async function depositBox(id: string, amount: number) {
+  const sb = await createClient();
+  const { data } = await sb.from("savings_boxes").select("saved").eq("id", z.string().uuid().parse(id)).single();
+  await sb.from("savings_boxes").update({ saved: Number(data?.saved ?? 0) + z.number().min(-1e9).max(1e9).parse(amount) }).eq("id", id);
+  done();
+}

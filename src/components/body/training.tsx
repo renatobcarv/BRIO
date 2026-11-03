@@ -282,7 +282,7 @@ export function Training({ today, split, plan, workouts }: { today: string; spli
         <div className="grid grid-cols-3 gap-3">
           {plan.prs.map((name) => { const { top, est } = prOf(name); return (
             <button key={name} className="text-left rounded-2xl bg-white/[.03] p-3" onClick={() => setExSel(names.find((x) => x.toLowerCase() === name.toLowerCase()) ?? names.find((x) => new RegExp(name.split(/\s+/)[0].slice(0, 6), "i").test(x)) ?? name)}>
-              <p className="text-xs text-muted truncate">{name}</p>
+              <p className="text-xs text-muted leading-tight min-h-[2lh]">{name}</p>
               <p className="num text-2xl mt-1" style={{ color: G }}>{top ? fmt(top.kg) : "—"}</p>
               {top && <p className="text-[11px] text-muted">{top.reps} reps · {shortDate(top.date)}</p>}
               {est > 0 && <p className="text-[11px] text-faint">1RM est. {fmt(est, 0)}</p>}
@@ -329,7 +329,7 @@ export function Training({ today, split, plan, workouts }: { today: string; spli
           <ul>
             {workouts.slice(0, 30).map((w) => (
               <li key={w.id}><button className="row-hover w-full flex items-center gap-3 min-h-14 px-2 text-left" onClick={() => setSheet(w)}>
-                <span className="w-14 text-sm text-muted">{shortDate(w.date)}</span>
+                <span className="w-16 shrink-0 text-sm text-muted whitespace-nowrap">{shortDate(w.date)}</span>
                 <span className="flex-1 min-w-0"><span className="block truncate">{w.split_label}</span>
                   <span className="text-xs text-muted">{new Set(w.sets.map((s) => s.exercise)).size} exercícios · {w.sets.length} séries{w.duration_min ? ` · ${w.duration_min} min` : ""}</span></span>
                 <span className="num text-sm text-muted">{Math.round(volume(w.sets)).toLocaleString("pt-BR")} kg</span>

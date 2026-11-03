@@ -81,10 +81,10 @@ export default async function Hoje() {
       {/* Relatório financeiro */}
       <Link href="/financas" className="glass rise block p-5" style={{ ["--accent" as string]: "#d9c49a" }}>
         <div className="flex items-center justify-between"><p className="label" style={{ color: "#d9c49a" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
-        <div className="grid grid-cols-3 gap-3 mt-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
           <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#8ac295" }}>{brl(income)}</p></div>
           <div><p className="label">Saiu</p><p className="num text-lg md:text-xl">{brl(spent)}</p></div>
-          <div><p className="label">Sobra</p><p className="num text-lg md:text-xl" style={{ color: left >= 0 ? "#d9c49a" : "#e8a39a" }}>{brl(left)}</p></div>
+          <div className="col-span-2 sm:col-span-1"><p className="label">Sobra</p><p className="num text-2xl md:text-xl" style={{ color: left >= 0 ? "#d9c49a" : "#e8a39a" }}>{brl(left)}</p></div>
         </div>
         <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#e8a39a" : "#d9c49a" }} /></div>
         <div className="flex justify-between text-xs text-muted mt-1.5">
