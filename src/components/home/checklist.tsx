@@ -1,68 +1,99 @@
 "use client";
-import { useOptimistic, useTransition } from "react";
+import { useOptimistic, useState, useTransition } from "react";
 import { toggleCheck } from "@/app/(app)/home-actions";
+import { updateSettings } from "@/app/settings-actions";
 import { Ring } from "@/components/ui";
+import { LinkBtn, Sheet } from "@/components/kit";
 import type { ChecklistItem } from "@/lib/settings";
 
-function Box({ on, color }: { on: boolean; color: string }) {
+const GOLD = "#e0ac53";
+const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 40) || "item";
+const Check = ({ size = 14 }) => <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>;
+
+function Editor({ items, onClose }: { items: ChecklistItem[]; onClose: () => void }) {
+  const [list, setList] = useState(items);
+  const [label, setLabel] = useState("");
+  const [pending, start] = useTransition();
+  const move = (i: number, d: number) => { const n = [...list]; [n[i], n[i + d]] = [n[i + d], n[i]]; setList(n); };
+  const add = () => {
+    if (!label.trim()) return;
+    let key = slug(label); while (list.some((x) => x.key === key)) key += "_";
+    setList([...list, { key, label: label.trim() }]); setLabel("");
+  };
   return (
-    <span className="grid place-items-center h-6 w-6 shrink-0 rounded-lg border transition-colors"
-      style={{ borderColor: on ? color : "rgba(255,255,255,.18)", background: on ? color : "transparent" }}>
-      {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>}
-    </span>
+    <div className="grid gap-3">
+      <ul className="grid gap-1.5">
+        {list.map((it, i) => (
+          <li key={it.key} className="flex items-center gap-1">
+            <input className="field flex-1 !min-h-11" value={it.label} aria-label="Item" onChange={(e) => setList(list.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} />
+            <button className="btn !px-3" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
+            <button className="btn !px-3" aria-label="Descer" disabled={i === list.length - 1} onClick={() => move(i, 1)}>↓</button>
+            <button className="btn !px-3" aria-label="Marcar como prioridade" aria-pressed={!!it.primary} title="Prioridade do dia"
+              style={it.primary ? { color: GOLD, borderColor: GOLD } : undefined} onClick={() => setList(list.map((x, j) => ({ ...x, primary: j === i })))}>★</button>
+            <button className="btn !px-3 text-muted" aria-label="Remover" disabled={list.length === 1} onClick={() => setList(list.filter((_, j) => j !== i))}>✕</button>
+          </li>
+        ))}
+      </ul>
+      <div className="flex gap-2">
+        <input className="field flex-1" placeholder="Novo item (ex.: Ler 10 páginas)" value={label} onChange={(e) => setLabel(e.target.value)} onKeyDown={(e) => e.key === "Enter" && add()} />
+        <button className="btn" onClick={add}>Adicionar</button>
+      </div>
+      <p className="text-xs text-faint">★ define a prioridade do dia, que aparece em destaque no topo.</p>
+      <button className="btn btn-accent" disabled={pending} onClick={() => start(async () => { await updateSettings({ checklist: list }); onClose(); })}>
+        {pending ? "Salvando…" : "Salvar checklist"}</button>
+    </div>
   );
 }
 
 export function Checklist({ date, items, done }: { date: string; items: ChecklistItem[]; done: string[] }) {
   const [, start] = useTransition();
+  const [editing, setEditing] = useState(false);
   const [opt, setOpt] = useOptimistic(new Set(done), (s: Set<string>, a: { key: string; on: boolean }) => {
     const n = new Set(s); if (a.on) n.add(a.key); else n.delete(a.key); return n;
   });
-  const toggle = (key: string) => {
-    const on = !opt.has(key);
-    start(async () => { setOpt({ key, on }); await toggleCheck(date, key, on); });
-  };
+  const toggle = (key: string) => { const on = !opt.has(key); start(async () => { setOpt({ key, on }); await toggleCheck(date, key, on); }); };
   const primary = items.find((i) => i.primary) ?? items[0];
   const rest = items.filter((i) => i !== primary);
-  const pct = items.length ? items.filter((i) => opt.has(i.key)).length / items.length : 0;
+  const doneCount = items.filter((i) => opt.has(i.key)).length;
+  const pct = items.length ? doneCount / items.length : 0;
+  const pOn = primary && opt.has(primary.key);
 
   return (
-    <>
+    <section className="glass rise p-5" style={{ ["--accent" as string]: GOLD }}>
+      <div className="flex items-center gap-5">
+        <Ring value={pct} size={92} stroke={9} color={GOLD}><span className="num text-2xl">{Math.round(pct * 100)}%</span></Ring>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center justify-between"><p className="label">Disciplina de hoje</p><LinkBtn onClick={() => setEditing(true)}>Editar</LinkBtn></div>
+          <p className="font-display text-xl leading-snug">{doneCount} de {items.length} feitos</p>
+          <p className="text-sm text-muted">{pct === 1 ? "Dia completo. Honra cumprida." : "Um item de cada vez."}</p>
+        </div>
+      </div>
+
       {primary && (
-        <button onClick={() => toggle(primary.key)} aria-pressed={opt.has(primary.key)}
-          className="glass rise rise-1 w-full text-left p-6 mt-4 flex items-center gap-5"
-          style={{ borderColor: "rgba(224,172,83,.35)", background: opt.has(primary.key) ? "linear-gradient(180deg, rgba(224,172,83,.16), rgba(224,172,83,.04))" : undefined }}>
-          <span className="grid place-items-center h-14 w-14 rounded-2xl shrink-0 border transition-colors"
-            style={{ borderColor: "#e0ac53", background: opt.has(primary.key) ? "#e0ac53" : "transparent" }}>
-            {opt.has(primary.key)
-              ? <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="2.6" aria-hidden><path d="M5 12l5 5L20 7" /></svg>
-              : <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e0ac53" strokeWidth="1.6" aria-hidden><path d="M12 3v18M7 8h10" /></svg>}
-          </span>
-          <span>
-            <span className="label text-gold block">Jeová em primeiro lugar</span>
-            <span className="font-display text-xl md:text-2xl mt-1 block leading-snug">{primary.label}</span>
-            <span className="text-sm text-muted">{opt.has(primary.key) ? "Feito. Bom começo de dia." : "Toque para marcar"}</span>
-          </span>
+        <button onClick={() => toggle(primary.key)} aria-pressed={pOn}
+          className="w-full mt-4 text-left rounded-2xl p-4 flex items-center gap-4 border transition-colors"
+          style={{ borderColor: "rgba(224,172,83,.35)", background: pOn ? "linear-gradient(180deg, rgba(224,172,83,.18), rgba(224,172,83,.05))" : "rgba(224,172,83,.04)" }}>
+          <span className="grid place-items-center h-11 w-11 rounded-xl shrink-0 border" style={{ borderColor: GOLD, background: pOn ? GOLD : "transparent" }}>
+            {pOn ? <Check size={20} /> : <span className="text-gold">★</span>}</span>
+          <span><span className="label text-gold block">Prioridade</span><span className="font-display text-lg leading-snug">{primary.label}</span></span>
         </button>
       )}
-      <section className="glass rise rise-2 p-5 mt-4">
-        <div className="flex items-center gap-5">
-          <Ring value={pct} size={96} stroke={9}><span className="num text-2xl">{Math.round(pct * 100)}%</span></Ring>
-          <div><p className="label">Disciplina de hoje</p>
-            <p className="font-display italic text-lg mt-1 text-muted">{pct === 1 ? "Dia completo." : "Constância antes de intensidade."}</p></div>
-        </div>
-        <ul className="mt-4 divide-y divide-white/5">
-          {rest.map((it) => (
+
+      <ul className="mt-2">
+        {rest.map((it) => {
+          const on = opt.has(it.key);
+          return (
             <li key={it.key}>
-              <button onClick={() => toggle(it.key)} aria-pressed={opt.has(it.key)}
-                className="w-full flex items-center gap-4 min-h-12 py-2 text-left">
-                <Box on={opt.has(it.key)} color="#e0ac53" />
-                <span className={opt.has(it.key) ? "text-muted line-through decoration-white/20" : ""}>{it.label}</span>
+              <button onClick={() => toggle(it.key)} aria-pressed={on} className="row-hover w-full flex items-center gap-4 min-h-12 px-2 text-left">
+                <span className="grid place-items-center h-6 w-6 shrink-0 rounded-lg border transition-colors"
+                  style={{ borderColor: on ? GOLD : "rgba(255,255,255,.2)", background: on ? GOLD : "transparent" }}>{on && <Check />}</span>
+                <span className={on ? "text-muted line-through decoration-white/20" : ""}>{it.label}</span>
               </button>
             </li>
-          ))}
-        </ul>
-      </section>
-    </>
+          );
+        })}
+      </ul>
+      <Sheet open={editing} onClose={() => setEditing(false)} title="Editar checklist"><Editor items={items} onClose={() => setEditing(false)} /></Sheet>
+    </section>
   );
 }

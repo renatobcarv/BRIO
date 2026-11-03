@@ -17,7 +17,7 @@ export default async function Config() {
       <ChecklistEditor initial={s.checklist} />
       <DefaultsEditor s={s} />
       <SplitEditor initial={s.workout_split} />
-      <PartnerEditor phrase={s.partner_phrase ?? ""} photo={photo} />
+      <div id="maria-luisa" /><PartnerEditor phrase={s.partner_phrase ?? ""} photo={photo} />
       <Backup />
       <Card className="mt-4">
         <form action={signOut}><button className="btn w-full">Sair</button></form>
