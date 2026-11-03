@@ -60,7 +60,7 @@ body {
 }
 
 /* Controles */
-.field { min-height: 44px; width: 100%; border-radius: 12px; background: rgba(255,255,255,.04);
+.field { min-width: 0; min-height: 44px; width: 100%; border-radius: 12px; background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.09); padding: 0 14px; color: var(--color-ink); outline: none; font-size: 15px; }
 .field:focus { border-color: color-mix(in srgb, var(--accent, #e0ac53) 60%, transparent); }
 textarea.field { padding: 10px 14px; min-height: 84px; resize: vertical; }

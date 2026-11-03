@@ -4,12 +4,14 @@ import { BodyToday } from "@/components/body/today";
 import { Nutrition } from "@/components/body/nutrition";
 import { Training } from "@/components/body/training";
 import { Weight } from "@/components/body/weight";
+import { ProgramView } from "@/components/body/program";
+import type { Muscle, Program } from "@/lib/training";
 import { addDays, dow, todayISO } from "@/lib/date";
 import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-const TABS = [["hoje", "Hoje"], ["alimentacao", "Alimentação"], ["treino", "Treino"], ["peso", "Peso"]] as const;
+const TABS = [["hoje", "Hoje"], ["treino", "Treino"], ["programa", "Programa"], ["alimentacao", "Alimentação"], ["peso", "Peso"]] as const;
 const N = (v: unknown) => Number(v) || 0;
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string; d?: string }> }) {
@@ -24,12 +26,33 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   if (tab === "peso") {
     const { data } = await sb.from("weight_logs").select("id,date,kg").order("date");
     content = <Weight today={today} goal={s.weight_goal_kg} startKg={s.weight_start_kg} rate={s.weight_rate_kg_week} logs={(data ?? []).map((l) => ({ ...l, kg: N(l.kg) }))} />;
+  } else if (tab === "programa") {
+    const [progs, ws] = await Promise.all([
+      sb.from("training_programs").select("*").order("created_at", { ascending: false }),
+      sb.from("workouts").select("program_id,week_no").not("program_id", "is", null),
+    ]);
+    const done: Record<string, number> = {};
+    for (const w of ws.data ?? []) { const k = `${w.program_id}:${w.week_no}`; done[k] = (done[k] ?? 0) + 1; }
+    content = progs.error
+      ? <p className="glass p-5 text-sm text-[#e8a39a]">Rode a migração <code>supabase/migrations/20261106000000_periodizacao.sql</code> no SQL Editor do Supabase para usar a periodização.</p>
+      : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
+          overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={done} />;
   } else if (tab === "treino") {
-    const { data } = await sb.from("workouts").select("id,date,split_label,notes,duration_min,workout_sets(exercise,set_no,reps,kg)")
-      .order("date", { ascending: false }).order("created_at", { ascending: false }).limit(400);
-    const workouts = (data ?? []).map((w) => ({ id: w.id, date: w.date, split_label: w.split_label, notes: w.notes, duration_min: w.duration_min,
-      sets: (w.workout_sets ?? []).map((x) => ({ ...x, kg: N(x.kg) })).sort((a, b) => a.exercise.localeCompare(b.exercise) || a.set_no - b.set_no) }));
-    content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} />;
+    const q = (cols: string) => sb.from("workouts").select(cols).order("date", { ascending: false }).order("created_at", { ascending: false }).limit(400);
+    let [res, prog] = await Promise.all([
+      q("id,date,split_label,notes,duration_min,planned,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
+      sb.from("training_programs").select("*").eq("active", true).maybeSingle(),
+    ]);
+    // Sem a migração de periodização: usa as colunas antigas.
+    if (res.error) res = await q("id,date,split_label,notes,duration_min,workout_sets(exercise,set_no,reps,kg)");
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const data = res.data as any[] | null;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const workouts = (data ?? []).map((w: any) => ({ id: w.id, date: w.date, split_label: w.split_label, notes: w.notes, duration_min: w.duration_min,
+      planned: w.planned, week_no: w.week_no, phase: w.phase,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      sets: (w.workout_sets ?? []).map((x: any) => ({ ...x, kg: N(x.kg), rpe: x.rpe != null ? N(x.rpe) : null })).sort((a: any, b: any) => a.exercise.localeCompare(b.exercise) || a.set_no - b.set_no) }));
+    content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} />;
   } else if (tab === "alimentacao") {
     const date = sp.d && /^\d{4}-\d{2}-\d{2}$/.test(sp.d) ? sp.d : today;
     const from = addDays(date, -6);

@@ -6,13 +6,16 @@ import { Empty } from "@/components/ui";
 import { Field, LinkBtn, SectionTitle, Sheet, Stat, fmt, n } from "@/components/kit";
 import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShort } from "@/lib/date";
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
+import { PHASE_KINDS, programPosition, type PlannedEx, type Program } from "@/lib/training";
 
 const G = "#8ac295";
-type DbSet = { exercise: string; set_no: number; reps: number; kg: number };
-export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[] };
-type LSet = { kg: string; reps: string; done: boolean };
-type LEx = { name: string; target?: PlanExercise; sets: LSet[] };
-type Session = { date: string; label: string; exercises: LEx[]; notes: string; startedAt: number | null; editingId?: string };
+type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
+export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
+type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
+type Target = PlanExercise & Partial<Pick<PlannedEx, "kg" | "rpe" | "rir" | "notes">>;
+type LEx = { name: string; target?: Target; sets: LSet[] };
+type Session = { date: string; label: string; exercises: LEx[]; notes: string; startedAt: number | null; editingId?: string;
+  programId?: string | null; weekNo?: number | null; phase?: string | null; planned?: PlannedEx[] | null };
 
 const e1rm = (kg: number, reps: number) => (reps <= 0 ? 0 : reps === 1 ? kg : kg * (1 + Math.min(reps, 12) / 30));
 const volume = (sets: DbSet[]) => sets.reduce((a, s) => a + Number(s.kg) * s.reps, 0);
@@ -25,15 +28,28 @@ function lastFor(workouts: Workout[], name: string, beforeDate: string) {
   return w ? { date: w.date, sets: w.sets.filter((s) => s.exercise.toLowerCase() === name.toLowerCase()) } : null;
 }
 
-function buildSession(date: string, day: SplitDay, plan: PlanExercise[], workouts: Workout[]): Session {
+type Ctx = { programId: string; weekNo: number; phase: string } | null;
+function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null): Session {
   return {
-    date, label: `${day.label} · ${day.focus}`, notes: "", startedAt: null,
+    date, label: ctx ? `${day.label} · ${day.focus} · S${ctx.weekNo}` : `${day.label} · ${day.focus}`, notes: "", startedAt: null,
+    programId: ctx?.programId ?? null, weekNo: ctx?.weekNo ?? null, phase: ctx?.phase ?? null,
+    planned: ctx ? (plan as PlannedEx[]).map((p) => ({ ...p })) : null,
     exercises: plan.map((p) => {
       const last = lastFor(workouts, p.name, date);
+      const kg = p.kg != null ? String(p.kg) : last?.sets[0] ? String(last.sets[0].kg) : "";
       return { name: p.name, target: p, sets: Array.from({ length: p.sets }, (_, i) => ({
-        kg: last?.sets[i] ? String(last.sets[i].kg) : last?.sets.at(-1) ? String(last.sets.at(-1)!.kg) : "", reps: String(firstNum(p.reps) || ""), done: false })) };
+        kg: p.kg != null ? kg : last?.sets[i] ? String(last.sets[i].kg) : last?.sets.at(-1) ? String(last.sets.at(-1)!.kg) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "" })) };
     }),
   };
+}
+/** Plano do dia: fase atual do programa ativo, senão o plano semanal simples. */
+function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string): { list: Target[]; ctx: Ctx } {
+  if (program) {
+    const pos = programPosition(program, today);
+    const ph = program.phases[pos.phaseIndex];
+    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], ctx: { programId: program.id, weekNo: pos.week, phase: ph.name } };
+  }
+  return { list: plan.days[String(d)] ?? [], ctx: null };
 }
 
 /* ───────────── Cronômetro de descanso ───────────── */
@@ -57,8 +73,8 @@ function RestTimer({ until, onDone, onAdd }: { until: number; onDone: () => void
 }
 
 /* ───────────── Registro da sessão ───────────── */
-function Logger({ s, setS, workouts, onSaved, split, plan }: {
-  s: Session; setS: (s: Session | null) => void; workouts: Workout[]; onSaved: () => void; split: SplitDay[]; plan: WorkoutPlan;
+function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
+  s: Session; setS: (s: Session | null) => void; workouts: Workout[]; onSaved: () => void; split: SplitDay[]; plan: WorkoutPlan; program: Program | null;
 }) {
   const [pending, start] = useTransition();
   const [rest, setRest] = useState<number | null>(null);
@@ -78,22 +94,24 @@ function Logger({ s, setS, workouts, onSaved, split, plan }: {
 
   const finish = () => start(async () => {
     const pick = (x: LSet) => (doneSets.length ? x.done : n(x.reps) > 0);
-    const sets = s.exercises.flatMap((e) => e.sets.filter(pick).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)) })));
+    const sets = s.exercises.flatMap((e) => e.sets.filter(pick).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)), rpe: x.rpe && n(x.rpe) ? Math.min(10, Math.max(1, n(x.rpe))) : null })));
     const duration = s.startedAt && !s.editingId ? Math.round((Date.now() - s.startedAt) / 60000) : null;
-    await saveWorkout({ date: s.date, split_label: s.label, notes: s.notes, duration_min: duration, sets }, s.editingId);
+    await saveWorkout({ date: s.date, split_label: s.label, notes: s.notes, duration_min: duration, sets,
+      program_id: s.programId ?? null, week_no: s.weekNo ?? null, phase: s.phase ?? null, planned: s.planned ?? null }, s.editingId);
     onSaved();
   });
 
   const loadDay = (d: number) => {
     const day = split.find((x) => x.dow === d) ?? { dow: d, label: "Treino", focus: "" };
-    setS(buildSession(s.date, day, plan.days[String(d)] ?? [], workouts));
+    const { list, ctx } = dayPlan(d, plan, program, s.date);
+    setS(buildSession(s.date, day, list, workouts, ctx));
   };
 
   return (
     <>
       {!s.editingId && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-          {ORDER.map((d) => { const day = split.find((x) => x.dow === d); const cnt = plan.days[String(d)]?.length ?? 0;
+          {ORDER.map((d) => { const day = split.find((x) => x.dow === d); const cnt = dayPlan(d, plan, program, s.date).list.length;
             return <button key={d} className="chip shrink-0" onClick={() => { if (!doneSets.length || confirm("Trocar o treino? As séries marcadas serão perdidas.")) loadDay(d); }}
               aria-pressed={s.label.startsWith(`${day?.label} ·`) && (day?.dow === dow(s.date) || cnt > 0)}>{weekdayShort[d]} · {day?.label ?? "—"}</button>; })}
         </div>
@@ -118,18 +136,20 @@ function Logger({ s, setS, workouts, onSaved, split, plan }: {
                 <div className="flex-1 min-w-0">
                   <p className="font-medium">{e.name}</p>
                   <p className="text-xs text-muted mt-0.5">
-                    {e.target ? `${e.target.sets}×${e.target.reps}${e.target.rest ? ` · ${mmss(e.target.rest)} desc.` : ""}` : "extra"}
+                    {e.target ? `${e.target.sets}×${e.target.reps}${e.target.kg != null ? ` @ ${fmt(e.target.kg)} kg` : ""}${e.target.rpe ? ` · RPE ${fmt(e.target.rpe)}` : ""}${e.target.rir != null ? ` · RIR ${e.target.rir}` : ""}${e.target.rest ? ` · ${mmss(e.target.rest)}` : ""}` : "extra"}
                     {last && ` · última (${shortDate(last.date)}): ${last.sets.map((x) => `${fmt(Number(x.kg))}×${x.reps}`).join(", ")}`}
                   </p>
                 </div>
                 <button className="btn !min-h-9 !px-3 text-muted" aria-label={`Remover ${e.name}`} onClick={() => set({ exercises: s.exercises.filter((_, i) => i !== ei) })}>✕</button>
               </div>
-              <div className="grid grid-cols-[1.75rem_1fr_1fr_2.75rem] gap-2 items-center mt-3 label"><span>#</span><span>kg</span><span>reps</span><span /></div>
+              {e.target?.notes && <p className="text-xs text-gold mt-1">{e.target.notes}</p>}
+              <div className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-3 label"><span>#</span><span>kg</span><span>reps</span><span>RPE</span><span /></div>
               {e.sets.map((x, si) => (
-                <div key={si} className="grid grid-cols-[1.75rem_1fr_1fr_2.75rem] gap-2 items-center mt-1.5">
+                <div key={si} className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-1.5">
                   <span className="num text-muted">{si + 1}</span>
                   <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label={`Carga série ${si + 1}`} />
                   <input className="field !min-h-11 text-center num" inputMode="numeric" value={x.reps} onChange={(ev) => updSet(ei, si, { reps: ev.target.value })} aria-label={`Repetições série ${si + 1}`} />
+                  <input className="field !min-h-11 !px-1 text-center num text-sm" inputMode="decimal" placeholder="—" value={x.rpe ?? ""} onChange={(ev) => updSet(ei, si, { rpe: ev.target.value })} aria-label={`RPE série ${si + 1}`} />
                   <button aria-pressed={x.done} aria-label={`Concluir série ${si + 1}`} onClick={() => toggle(ei, si)}
                     className="h-11 w-11 grid place-items-center rounded-xl border transition-colors" style={{ borderColor: x.done ? G : "rgba(255,255,255,.15)", background: x.done ? G : "transparent" }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={x.done ? "#120f08" : "#5d5b56"} strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>
@@ -210,13 +230,14 @@ function PlanEditor({ split, plan, onDone }: { split: SplitDay[]; plan: WorkoutP
 }
 
 /* ───────────── Tela ───────────── */
-export function Training({ today, split, plan, workouts }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[] }) {
+export function Training({ today, split, plan, workouts, program = null }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null }) {
   const [pending, start] = useTransition();
   const KEY = "brio-treino-em-andamento";
   const [session, setSessionState] = useState<Session | null>(null);
   const [sheet, setSheet] = useState<null | "plan" | Workout>(null);
   const [exSel, setExSel] = useState(plan.prs[0] ?? "");
   const todayDay = split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
+  const todayPlan = dayPlan(dow(today), plan, program, today);
 
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
   const setSession = (s: Session | null) => { setSessionState(s); try { if (s && !s.editingId) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch {} };
@@ -262,17 +283,19 @@ export function Training({ today, split, plan, workouts }: { today: string; spli
       <section className="glass rise p-5 mt-4">
         <SectionTitle action={<LinkBtn onClick={() => setSheet("plan")}>Editar plano</LinkBtn>}>{session ? "Treino em andamento" : "Treino de hoje"}</SectionTitle>
         {session ? (
-          <Logger s={session} setS={setSession} workouts={workouts} split={split} plan={plan} onSaved={() => setSession(null)} />
+          <Logger s={session} setS={setSession} workouts={workouts} split={split} plan={plan} program={program} onSaved={() => setSession(null)} />
         ) : (
           <>
+            {todayPlan.ctx && <p className="label mb-1" style={{ color: PHASE_KINDS[program!.phases.find((f) => f.name === todayPlan.ctx!.phase)?.kind ?? "outro"].color }}>Semana {todayPlan.ctx.weekNo} · {todayPlan.ctx.phase}</p>}
             <p className="font-display text-2xl">{todayDay.label} · {todayDay.focus}</p>
             <ul className="mt-3 grid gap-1">
-              {(plan.days[String(todayDay.dow)] ?? []).map((x, i) => (
-                <li key={i} className="flex justify-between text-sm py-1.5 border-b border-white/5 last:border-0"><span>{x.name}</span><span className="text-muted num">{x.sets}×{x.reps}</span></li>
+              {todayPlan.list.map((x, i) => (
+                <li key={i} className="flex justify-between gap-3 text-sm py-1.5 border-b border-white/5 last:border-0"><span>{x.name}</span>
+                  <span className="text-muted num text-right">{x.sets}×{x.reps}{x.kg != null ? ` @ ${fmt(x.kg)}` : ""}{x.rpe ? ` · RPE ${fmt(x.rpe)}` : ""}</span></li>
               ))}
             </ul>
-            <button className="btn btn-accent w-full mt-4" onClick={() => setSession(buildSession(today, todayDay, plan.days[String(todayDay.dow)] ?? [], workouts))}>
-              {(plan.days[String(todayDay.dow)] ?? []).length ? "Começar treino" : "Registrar treino extra"}</button>
+            <button className="btn btn-accent w-full mt-4" onClick={() => setSession(buildSession(today, todayDay, todayPlan.list, workouts, todayPlan.ctx))}>
+              {todayPlan.list.length ? "Começar treino" : "Registrar treino extra"}</button>
           </>
         )}
       </section>
@@ -343,16 +366,17 @@ export function Training({ today, split, plan, workouts }: { today: string; spli
       <Sheet accent={G} open={!!viewing} onClose={() => setSheet(null)} title={viewing ? `${shortDate(viewing.date)} · ${viewing.split_label ?? "Treino"}` : ""}>
         {viewing && (
           <div className="grid gap-3">
-            {[...new Set(viewing.sets.map((s) => s.exercise))].map((ex) => (
+            {viewing.week_no != null && <p className="label">Semana {viewing.week_no}{viewing.phase ? ` · ${viewing.phase}` : ""}</p>}
+            {viewing.planned?.length ? <PlanVsDone w={viewing} /> : [...new Set(viewing.sets.map((s) => s.exercise))].map((ex) => (
               <div key={ex}><p className="font-medium">{ex}</p>
-                <p className="text-sm text-muted num">{viewing.sets.filter((s) => s.exercise === ex).map((s) => `${fmt(Number(s.kg))}×${s.reps}`).join("  ·  ")}</p></div>
+                <p className="text-sm text-muted num">{viewing.sets.filter((s) => s.exercise === ex).map((s) => `${fmt(Number(s.kg))}×${s.reps}${s.rpe ? ` @${fmt(Number(s.rpe))}` : ""}`).join("  ·  ")}</p></div>
             ))}
             {viewing.notes && <p className="font-display italic">{viewing.notes}</p>}
             <p className="text-xs text-muted">Volume {Math.round(volume(viewing.sets)).toLocaleString("pt-BR")} kg{viewing.duration_min ? ` · ${viewing.duration_min} min` : ""}</p>
             <div className="flex gap-2 mt-2">
               <button className="btn text-muted" disabled={pending} onClick={() => { if (confirm("Excluir sessão?")) start(async () => { await deleteWorkout(viewing.id); setSheet(null); }); }}>Excluir</button>
               <button className="btn btn-accent flex-1" onClick={() => {
-                const exs = [...new Set(viewing.sets.map((s) => s.exercise))].map((ex) => ({ name: ex, sets: viewing.sets.filter((s) => s.exercise === ex).map((s) => ({ kg: String(Number(s.kg)), reps: String(s.reps), done: true })) }));
+                const exs = [...new Set(viewing.sets.map((s) => s.exercise))].map((ex) => ({ name: ex, sets: viewing.sets.filter((s) => s.exercise === ex).map((s) => ({ kg: String(Number(s.kg)), reps: String(s.reps), done: true, rpe: s.rpe ? String(Number(s.rpe)) : "" })) }));
                 setSession({ date: viewing.date, label: viewing.split_label ?? "Treino", notes: viewing.notes ?? "", startedAt: null, exercises: exs, editingId: viewing.id });
                 setSheet(null); window.scrollTo({ top: 0, behavior: "smooth" });
               }}>Editar sessão</button>
@@ -364,3 +388,36 @@ export function Training({ today, split, plan, workouts }: { today: string; spli
   );
 }
 export { diffDays };
+
+/** Tabela planejado × realizado. O planejado vem congelado da sessão. */
+function PlanVsDone({ w }: { w: Workout }) {
+  const planned = w.planned ?? [];
+  const names = [...new Set([...planned.map((p) => p.name), ...w.sets.map((s) => s.exercise)])];
+  return (
+    <div className="grid gap-3">
+      {names.map((name) => {
+        const p = planned.find((x) => x.name === name), done = w.sets.filter((s) => s.exercise === name);
+        const target = p ? firstNum(p.reps) : 0, top = done.reduce((a, s) => Math.max(a, Number(s.kg)), 0);
+        const status = !p ? "extra" : done.length === 0 ? "não feito" : done.length < p.sets ? "parcial" : "completo";
+        const color = status === "completo" ? G : status === "parcial" ? "#e0ac53" : status === "extra" ? "#84aed4" : "#e8a39a";
+        const rpes = done.filter((s) => s.rpe).map((s) => Number(s.rpe));
+        return (
+          <div key={name} className="rounded-2xl bg-white/[.03] p-3">
+            <div className="flex items-center gap-2"><p className="font-medium flex-1">{name}</p><span className="tag" style={{ color }}>{status}</span></div>
+            <table className="w-full text-sm mt-2 num">
+              <thead><tr className="label text-left"><th className="font-normal py-1"></th><th className="font-normal">Plan.</th><th className="font-normal">Feito</th></tr></thead>
+              <tbody>
+                <tr><td className="text-muted py-0.5">Séries</td><td>{p?.sets ?? "—"}</td><td>{done.length}</td></tr>
+                <tr><td className="text-muted py-0.5">Reps</td><td>{p?.reps ?? "—"}</td><td>{done.map((s) => s.reps).join(", ") || "—"}</td></tr>
+                <tr><td className="text-muted py-0.5">Carga</td><td>{p?.kg != null ? `${fmt(p.kg)} kg` : "—"}</td>
+                  <td style={{ color: p?.kg != null && top ? (top > p.kg ? G : top < p.kg ? "#e8a39a" : undefined) : undefined }}>{done.length ? done.map((s) => fmt(Number(s.kg))).join(", ") : "—"}</td></tr>
+                <tr><td className="text-muted py-0.5">RPE</td><td>{p?.rpe ? fmt(p.rpe) : "—"}</td><td>{rpes.length ? rpes.map((r) => fmt(r)).join(", ") : "—"}</td></tr>
+              </tbody>
+            </table>
+            {p && target > 0 && done.length > 0 && <p className="text-[11px] text-muted mt-1">{done.filter((s) => s.reps >= target).length} de {done.length} séries bateram a meta de repetições</p>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}

@@ -82,17 +82,25 @@ export async function deleteWeight(id: string) {
 }
 
 // ── Treino ──
-const SetS = z.object({ exercise: z.string().trim().min(1).max(80), reps: z.number().int().min(0).max(500), kg: z.number().min(0).max(1500) });
-export async function saveWorkout(input: { date: string; split_label: string; notes: string; duration_min: number | null; sets: z.infer<typeof SetS>[] }, id?: string) {
+const SetS = z.object({ exercise: z.string().trim().min(1).max(80), reps: z.number().int().min(0).max(500), kg: z.number().min(0).max(1500),
+  rpe: z.number().min(1).max(10).nullable().optional(), rir: z.number().int().min(0).max(10).nullable().optional() });
+const Planned = z.array(z.object({ name: z.string().max(80), muscle: z.string().max(30), sets: z.number().int().min(0).max(50), reps: z.string().max(20),
+  kg: z.number().min(0).max(1500).nullable(), rpe: z.number().min(1).max(10).nullable(), rir: z.number().int().min(0).max(10).nullable(), rest: z.number().int().min(0).max(1800), notes: z.string().max(500) })).max(40);
+export async function saveWorkout(input: { date: string; split_label: string; notes: string; duration_min: number | null; sets: z.infer<typeof SetS>[];
+  program_id?: string | null; week_no?: number | null; phase?: string | null; planned?: z.infer<typeof Planned> | null }, id?: string) {
   const p = z.object({ date: Iso, split_label: z.string().max(80), notes: z.string().max(4000),
-    duration_min: z.number().int().min(0).max(600).nullable(), sets: z.array(SetS).max(300) }).parse(input);
+    duration_min: z.number().int().min(0).max(600).nullable(), sets: z.array(SetS).max(300),
+    program_id: z.string().uuid().nullable().optional(), week_no: z.number().int().min(0).max(200).nullable().optional(),
+    phase: z.string().max(60).nullable().optional(), planned: Planned.nullable().optional() }).parse(input);
   const sb = await createClient();
-  const row = { date: p.date, split_label: p.split_label, notes: p.notes || null, duration_min: p.duration_min };
+  const row: Record<string, unknown> = { date: p.date, split_label: p.split_label, notes: p.notes || null, duration_min: p.duration_min };
+  // O planejado só é gravado na criação: editar a sessão nunca reescreve o plano original.
+  if (!id) Object.assign(row, { program_id: p.program_id ?? null, week_no: p.week_no ?? null, phase: p.phase ?? null, planned: p.planned ?? null });
   let wid = id ? Id.parse(id) : null;
   if (wid) { await ok(sb.from("workouts").update(row).eq("id", wid)); await ok(sb.from("workout_sets").delete().eq("workout_id", wid)); }
   else { const { data, error } = await sb.from("workouts").insert(row).select("id").single(); if (error) throw new Error(error.message); wid = data.id; }
   const counter = new Map<string, number>();
-  const rows = p.sets.map((s) => { const k = (counter.get(s.exercise) ?? 0) + 1; counter.set(s.exercise, k); return { workout_id: wid, exercise: s.exercise, set_no: k, reps: s.reps, kg: s.kg }; });
+  const rows = p.sets.map((s) => { const k = (counter.get(s.exercise) ?? 0) + 1; counter.set(s.exercise, k); return { workout_id: wid, exercise: s.exercise, set_no: k, reps: s.reps, kg: s.kg, rpe: s.rpe ?? null, rir: s.rir ?? null }; });
   if (rows.length) await ok(sb.from("workout_sets").insert(rows));
   done();
 }
