@@ -18,6 +18,7 @@ const PATCH = z.object({
   carbs_goal_g: z.number().int().min(0).max(1500), fat_goal_g: z.number().int().min(0).max(500),
   weight_start_kg: z.number().min(20).max(400), weight_goal_kg: z.number().min(20).max(400), weight_rate_kg_week: z.number().min(0).max(3),
   partner_phrase: z.string().max(300),
+  books_goal_year: z.number().int().min(0).max(1000),
 }).partial();
 
 /** Atualiza qualquer configuração (validada). */

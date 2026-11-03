@@ -16,6 +16,7 @@ export type Settings = {
   daily_text: string | null; daily_text_date: string | null;
   meal_slots: MealSlot[]; carbs_goal_g: number; fat_goal_g: number;
   workout_plan: WorkoutPlan; finance_categories: FinCategory[];
+  books_goal_year: number;
 };
 
 export const DEFAULT_MEALS: MealSlot[] = [
@@ -79,7 +80,7 @@ export async function getSettings(sb: SupabaseClient): Promise<Settings> {
   s.weight_start_kg = Number(s.weight_start_kg); s.weight_goal_kg = Number(s.weight_goal_kg);
   s.weight_rate_kg_week = Number(s.weight_rate_kg_week);
   if (!Array.isArray(s.meal_slots) || !s.meal_slots.length) s.meal_slots = DEFAULT_MEALS;
-  s.carbs_goal_g ??= 250; s.fat_goal_g ??= 70;
+  s.carbs_goal_g ??= 250; s.fat_goal_g ??= 70; s.books_goal_year ??= 24;
   if (!s.workout_plan?.days) s.workout_plan = DEFAULT_PLAN;
   s.workout_plan.prs ??= DEFAULT_PLAN.prs;
   if (!Array.isArray(s.finance_categories) || !s.finance_categories.length) s.finance_categories = DEFAULT_CATEGORIES;

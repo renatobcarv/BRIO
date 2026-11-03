@@ -2,6 +2,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 const items = [
   { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#d9c49a" },
+  { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#7fc4bd" },
   { href: "/metas", label: "Metas e objetivos", sub: "Destinos e passos mensuráveis", color: "#ac8fd6" },
   { href: "/configuracoes", label: "Configurações", sub: "Checklist, metas padrão, backup", color: "#9a978f" },
 ];

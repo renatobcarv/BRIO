@@ -22,7 +22,7 @@ const Goal = z.object({
   title: z.string().trim().min(1).max(200), area: Area, unit: z.string().max(20),
   start_value: z.number(), target: z.number(), current: z.number(),
   deadline: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(), objective_id: z.string().uuid().nullable(),
-  featured: z.boolean(), auto_source: z.enum(["pioneer_month", "weight", "savings_box", "bible_chapters"]).nullable(),
+  featured: z.boolean(), auto_source: z.enum(["pioneer_month", "weight", "savings_box", "bible_chapters", "books_year"]).nullable(),
   auto_ref: z.string().uuid().nullable(),
 });
 export async function saveGoal(input: z.infer<typeof Goal>, id?: string) {

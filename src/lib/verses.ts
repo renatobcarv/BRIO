@@ -1,4 +1,4 @@
-export type Area = "inicio" | "espiritual" | "pioneiro" | "corpo" | "financas" | "metas";
+export type Area = "inicio" | "espiritual" | "pioneiro" | "corpo" | "financas" | "metas" | "livros";
 const V: Record<Area, [string, string][]> = {
   inicio: [["O que fizerem, façam de toda a alma, como para Jeová, e não para homens.", "Colossenses 3:23"],
     ["Confie em Jeová de todo o coração.", "Provérbios 3:5"]],
@@ -10,6 +10,8 @@ const V: Record<Area, [string, string][]> = {
   financas: [["Os planos do diligente certamente levam ao êxito.", "Provérbios 21:5"],
     ["Honre a Jeová com as suas coisas valiosas.", "Provérbios 3:9"]],
   metas: [["Entregue a Jeová o que você faz, e seus planos serão bem-sucedidos.", "Provérbios 16:3"]],
+  livros: [["O sábio escutará e absorverá mais instrução.", "Provérbios 1:5"],
+    ["Adquira sabedoria, adquira entendimento.", "Provérbios 4:5"]],
 };
 export function verseFor(area: Area, d = new Date()) {
   const list = V[area];

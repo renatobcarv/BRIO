@@ -13,6 +13,7 @@ export const AUTO = {
   weight: { label: "Peso atual", unit: "kg" },
   savings_box: { label: "Valor de uma caixinha", unit: "R$" },
   bible_chapters: { label: "Capítulos da Bíblia lidos", unit: "capítulos" },
+  books_year: { label: "Livros lidos no ano", unit: "livros" },
 } as const;
 
 export type GoalRow = {
