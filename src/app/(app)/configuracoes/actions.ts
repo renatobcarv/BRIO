@@ -56,9 +56,12 @@ export async function importBackup(json: string) {
   for (const t of TABLES) {
     const rows = (parsed.data[t] ?? []).map(({ user_id: _u, ...r }) => r);
     if (!rows.length) continue;
-    const { error } = SINGLETONS.has(t)
-      ? await sb.from(t).upsert(rows.slice(0, 1).map(({ id: _i, created_at: _c, ...r }) => r), { onConflict: "user_id" })
-      : await sb.from(t).upsert(rows, { onConflict: "id" });
+    let error: { message: string } | null = null;
+    if (SINGLETONS.has(t)) {
+      ({ error } = await sb.from(t).upsert(rows.slice(0, 1).map(({ id: _i, created_at: _c, ...r }) => r), { onConflict: "user_id" }));
+    } else {
+      for (let i = 0; i < rows.length && !error; i += 500) ({ error } = await sb.from(t).upsert(rows.slice(i, i + 500), { onConflict: "id" }));
+    }
     report.push(`${t}: ${error ? "erro – " + error.message : rows.length}`);
   }
   all();
