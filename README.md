@@ -3,6 +3,14 @@ App pessoal de constância: vida espiritual, pioneiro, corpo, finanças e metas 
 
 > "O que fizerem, façam de toda a alma, como para Jeová, e não para homens." — Colossenses 3:23
 
+O brio é um substantivo masculino que significa amor-próprio, honra, dignidade, coragem, altivez e determinação.
+
+Principais Significados e Sentimentos
+
+• Honra e dignidade: É o sentimento que impede uma pessoa de se humilhar ou de aceitar a mediocridade, levando-a a cumprir seus deveres com responsabilidade.
+• Coragem e vigor: Representa a força interior e a intrepidez para enfrentar riscos, obstáculos ou momentos de derrota sem abaixar a cabeça.
+• Persistência: É a energia que você coloca na ação para não se conformar com o superficial e buscar o melhor de si mesmo.
+
 Next.js 15 · Supabase (Auth, Postgres, Storage) · Tailwind 4 · PWA.
 
 ## Status das fases
