@@ -25,7 +25,9 @@ export async function middleware(req: NextRequest) {
         },
       },
     });
-    const { data: { user } } = await supabase.auth.getUser();
+    // getClaims valida o token localmente (sem ida ao servidor de auth a cada página).
+    const { data } = await supabase.auth.getClaims();
+    const user = data?.claims?.sub ?? null;
     if (!user && !isLogin) return NextResponse.redirect(new URL("/login", req.url));
     if (user && isLogin) return NextResponse.redirect(new URL("/", req.url));
     return res;

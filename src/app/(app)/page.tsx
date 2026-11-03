@@ -25,10 +25,10 @@ export default async function Hoje() {
   const sb = await createClient();
   const today = todayISO();
   const month = monthStart(today);
-  const s = await getSettings(sb);
   const since = addDays(today, -400);
 
-  const [checks, streakQ, pioneer, pGoal, water, weight, fin, goal] = await Promise.all([
+  const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goal] = await Promise.all([
+    getSettings(sb),
     sb.from("daily_checks").select("date,item_key").gte("date", since).eq("done", true),
     sb.from("streaks").select("*").maybeSingle(),
     sb.from("pioneer_entries").select("minutes").gte("date", month).lte("date", today),
