@@ -10,11 +10,11 @@ type GItem = { id: string; volumeInfo?: { title?: string; subtitle?: string; aut
   description?: string; pageCount?: number; categories?: string[]; imageLinks?: { thumbnail?: string; smallThumbnail?: string };
   industryIdentifiers?: { type: string; identifier: string }[] } };
 
-async function google(q: string): Promise<SearchHit[]> {
+async function google(q: string, pt: boolean): Promise<SearchHit[]> {
   const isIsbn = /^[\d-]{10,17}$/.test(q.trim());
   const query = isIsbn ? `isbn:${q.replace(/-/g, "")}` : q;
   const key = process.env.GOOGLE_BOOKS_API_KEY ? `&key=${process.env.GOOGLE_BOOKS_API_KEY}` : "";
-  const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20&printType=books${key}`, { next: { revalidate: 3600 } });
+  const r = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}&maxResults=20&printType=books&country=BR${pt ? "&langRestrict=pt" : ""}${key}`, { next: { revalidate: 3600 } });
   if (!r.ok) throw new Error("google " + r.status);
   const j = (await r.json()) as { items?: GItem[] };
   return (j.items ?? []).map((it) => {
@@ -31,7 +31,7 @@ async function google(q: string): Promise<SearchHit[]> {
 
 type ODoc = { key: string; title: string; author_name?: string[]; first_publish_year?: number; number_of_pages_median?: number; isbn?: string[]; cover_i?: number; publisher?: string[]; subject?: string[] };
 async function openLibrary(q: string): Promise<SearchHit[]> {
-  const r = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&limit=20&fields=key,title,author_name,first_publish_year,number_of_pages_median,isbn,cover_i,publisher,subject`, { next: { revalidate: 3600 } });
+  const r = await fetch(`https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&language=por&limit=20&fields=key,title,author_name,first_publish_year,number_of_pages_median,isbn,cover_i,publisher,subject`, { next: { revalidate: 3600 } });
   if (!r.ok) throw new Error("openlibrary " + r.status);
   const j = (await r.json()) as { docs?: ODoc[] };
   return (j.docs ?? []).map((d) => ({
@@ -48,8 +48,11 @@ export async function GET(req: NextRequest) {
   if (!data?.claims) return NextResponse.json({ error: "não autenticado" }, { status: 401 });
   const q = (req.nextUrl.searchParams.get("q") ?? "").trim().slice(0, 200);
   if (q.length < 2) return NextResponse.json({ results: [] });
+  // Português primeiro; completa com outras edições só se faltar resultado.
   let results: SearchHit[] = [];
-  try { results = await google(q); } catch { /* cai para a Open Library */ }
-  if (results.length < 3) { try { const more = await openLibrary(q); results = [...results, ...more.filter((m) => !results.some((r) => r.title.toLowerCase() === m.title.toLowerCase()))]; } catch { /* sem resultados */ } }
+  const add = (more: SearchHit[]) => { results = [...results, ...more.filter((m) => !results.some((r) => r.source_id === m.source_id || (r.title.toLowerCase() === m.title.toLowerCase() && r.authors === m.authors)))]; };
+  try { add(await google(q, true)); } catch { /* segue */ }
+  if (results.length < 5) { try { add(await openLibrary(q)); } catch { /* segue */ } }
+  if (results.length < 5) { try { add(await google(q, false)); } catch { /* segue */ } }
   return NextResponse.json({ results: results.slice(0, 24) });
 }
