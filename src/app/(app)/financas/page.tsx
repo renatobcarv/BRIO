@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { PageHeader, Verse } from "@/components/ui";
-import { Boxes, Investments, NetWorth } from "@/components/finance/finance";
+import { Boxes, NetWorth } from "@/components/finance/finance";
+import { Investments, type Inv, type Move } from "@/components/finance/invest";
+import { todayISO } from "@/lib/date";
 import { Budget, MoneyShell, type Tx } from "@/components/finance/money";
 import { addMonths, isoMonthParam, monthLabel } from "@/lib/date";
 import { getSettings } from "@/lib/settings";
@@ -36,8 +38,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     content = tab === "orcamento" ? <Budget txs={txs} cats={s.finance_categories} />
       : <MoneyShell view={tab} month={month} txs={txs} prevTxs={prevTxs} history={history} cats={s.finance_categories} hasRecurringPrev={(prevRec.data ?? []).length > 0} />;
   } else if (tab === "investimentos") {
-    const { data } = await sb.from("investments").select("id,name,amount,rate_aa").order("created_at");
-    content = <Investments items={(data ?? []).map((r) => num(r, "amount", "rate_aa"))} />;
+    const today = todayISO();
+    const [inv, mv, exp] = await Promise.all([
+      sb.from("investments").select("*").order("created_at"),
+      sb.from("investment_moves").select("id,investment_id,date,kind,amount,balance_after").gte("date", addMonths(today.slice(0, 7) + "-01", -12)),
+      sb.from("finance_items").select("month,kind,amount").gte("month", addMonths(today.slice(0, 7) + "-01", -3)).lt("month", today.slice(0, 7) + "-01").neq("kind", "receita"),
+    ]);
+    const items = (inv.data ?? []).map((r) => ({ ...r, amount: Number(r.amount), invested: Number(r.invested ?? r.amount), rate_aa: Number(r.rate_aa), monthly: Number(r.monthly ?? 0),
+      type: r.type ?? "renda_fixa", liquidity: r.liquidity ?? "diaria", is_reserve: !!r.is_reserve })) as Inv[];
+    const moves = (mv.data ?? []).map((m) => ({ ...m, amount: Number(m.amount), balance_after: Number(m.balance_after) })) as Move[];
+    const expMonths = new Set((exp.data ?? []).map((e) => e.month)).size;
+    const monthlyCost = expMonths ? (exp.data ?? []).reduce((a, e) => a + Number(e.amount), 0) / expMonths : 0;
+    content = <>
+      {mv.error && <p className="glass p-4 mb-4 text-sm text-[#e8a39a]">Para aportes, resgates e histórico, rode a migração <code>supabase/migrations/20261107000000_investimentos.sql</code> no Supabase.</p>}
+      <Investments items={items} moves={moves} monthlyCost={monthlyCost} today={today} />
+    </>;
   } else if (tab === "caixinhas") {
     const { data } = await sb.from("savings_boxes").select("id,name,target,monthly,saved,color").order("created_at");
     content = <Boxes items={(data ?? []).map((r) => num(r, "target", "monthly", "saved"))} />;

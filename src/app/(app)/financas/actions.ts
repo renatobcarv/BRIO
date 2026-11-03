@@ -81,3 +81,40 @@ export async function depositBox(id: string, amount: number) {
   await sb.from("savings_boxes").update({ saved: Number(data?.saved ?? 0) + z.number().min(-1e9).max(1e9).parse(amount) }).eq("id", id);
   done();
 }
+
+// ── Investimentos (v5) ──
+const InvS = z.object({
+  name: z.string().trim().min(1).max(100), type: z.enum(["reserva", "renda_fixa", "tesouro", "acoes", "fiis", "etf", "cripto", "previdencia", "outro"]),
+  institution: z.string().max(80).nullable(), amount: money, invested: money, rate_aa: z.number().min(-100).max(1000), monthly: money,
+  liquidity: z.enum(["diaria", "d30", "vencimento", "variavel"]), maturity: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable(),
+  notes: z.string().max(1000).nullable(), is_reserve: z.boolean(),
+});
+export async function saveInvestment(input: z.infer<typeof InvS>, id?: string) {
+  const p = InvS.parse(input);
+  const sb = await createClient();
+  if (id) { const { error } = await sb.from("investments").update(p).eq("id", z.string().uuid().parse(id)); if (error) throw new Error(error.message); }
+  else {
+    const { data, error } = await sb.from("investments").insert(p).select("id").single();
+    if (error) throw new Error(error.message);
+    if (p.amount > 0) await sb.from("investment_moves").insert({ investment_id: data.id, date: new Date().toISOString().slice(0, 10), kind: "aporte", amount: p.amount, balance_after: p.amount });
+  }
+  done();
+}
+/** Aporte, resgate ou atualização de saldo (rendimento). */
+export async function moveInvestment(id: string, kind: "aporte" | "resgate" | "atualizacao", value: number, date: string) {
+  const p = z.object({ id: z.string().uuid(), kind: z.enum(["aporte", "resgate", "atualizacao"]), value: z.number().min(0).max(1e10), date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }).parse({ id, kind, value, date });
+  const sb = await createClient();
+  const { data: inv, error } = await sb.from("investments").select("amount,invested").eq("id", p.id).single();
+  if (error || !inv) throw new Error("Investimento não encontrado");
+  const amount = Number(inv.amount), invested = Number(inv.invested ?? inv.amount);
+  let newAmount = amount, newInvested = invested, moveAmount = p.value;
+  if (p.kind === "aporte") { newAmount = amount + p.value; newInvested = invested + p.value; }
+  if (p.kind === "resgate") { const v = Math.min(p.value, amount); newAmount = amount - v; newInvested = Math.max(0, invested - (amount ? (invested * v) / amount : 0)); moveAmount = v; }
+  if (p.kind === "atualizacao") { moveAmount = p.value - amount; newAmount = p.value; }
+  await sb.from("investments").update({ amount: newAmount, invested: newInvested }).eq("id", p.id);
+  await sb.from("investment_moves").insert({ investment_id: p.id, date: p.date, kind: p.kind, amount: moveAmount, balance_after: newAmount });
+  done();
+}
+export async function deleteInvestment(id: string) {
+  const sb = await createClient(); await sb.from("investments").delete().eq("id", z.string().uuid().parse(id)); done();
+}
