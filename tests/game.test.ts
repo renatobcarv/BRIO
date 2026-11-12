@@ -1,0 +1,28 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { attrValue, levelOf, rankOf, summarize, xpForLevel, type GameInput } from "../src/lib/game.ts";
+
+const empty: GameInput = { today: "2026-11-12", checks: [], fullDays: [], study: [], chapters: [], pioneer: [], workouts: [], waterDays: [], waterGoal: 3000, sleep: [], readingPages: [], booksFinished: [], finance: [], weights: [] };
+
+test("curva de níveis", () => {
+  assert.equal(xpForLevel(1), 0); assert.equal(xpForLevel(2), 100); assert.equal(xpForLevel(10), 4500);
+  assert.equal(levelOf(0).level, 1); assert.equal(levelOf(99).level, 1); assert.equal(levelOf(100).level, 2); assert.equal(levelOf(4500).level, 10);
+  assert.equal(levelOf(150).into, 50); assert.equal(levelOf(150).need, 200);
+});
+test("patentes e atributos", () => { assert.equal(rankOf(1).name, "Iniciante"); assert.equal(rankOf(12).name, "Firme"); assert.equal(rankOf(60).name, "Lendário"); assert.equal(attrValue(0), 1); assert.equal(attrValue(1000), 10); assert.equal(attrValue(1e9), 99); });
+test("sem registros, nível 1 e nada inventado", () => { const s = summarize(empty); assert.equal(s.total, 0); assert.equal(s.level, 1); assert.ok(s.achievements.every((a) => !a.done)); });
+test("XP por área", () => {
+  const s = summarize({ ...empty,
+    checks: Array.from({ length: 7 }, () => ({ date: "2026-11-12" })), fullDays: ["2026-11-12"],
+    study: [{ date: "2026-11-12", minutes: 30 }], pioneer: [{ date: "2026-11-11", minutes: 120 }],
+    waterDays: [{ date: "2026-11-12", ml: 3200 }],
+  });
+  assert.equal(s.attrXp.disciplina, 120); assert.equal(s.attrXp.sabedoria, 30); assert.equal(s.attrXp.servico, 60); assert.equal(s.attrXp.vigor, 20);
+  assert.equal(s.today, 170); assert.equal(s.total, 230);
+});
+test("recorde só conta quando supera o anterior", () => {
+  const w = (date: string, kg: number) => ({ date, cardio: false, sets: [{ exercise: "Agachamento", kg, reps: 5 }] });
+  const s = summarize({ ...empty, workouts: [w("2026-11-01", 120), w("2026-11-05", 130), w("2026-11-08", 125)] });
+  assert.equal(s.recent.filter((e) => e.label.startsWith("Recorde")).length, 1);
+  assert.ok(s.achievements.find((a) => a.id === "total400")!.progress > 0);
+});

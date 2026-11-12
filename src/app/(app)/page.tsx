@@ -11,6 +11,9 @@ import { computeStreak } from "@/lib/streak";
 import { signedPhoto } from "@/lib/storage";
 import { goalStats, AREAS, type GoalRow } from "@/lib/goals";
 import { createClient } from "@/lib/supabase/server";
+import { loadGame } from "@/lib/game-data";
+import { ATTRS, type Attr } from "@/lib/game";
+import { StatusHud, XpProvider } from "@/components/game/xp";
 
 export const dynamic = "force-dynamic";
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -53,6 +56,13 @@ export default async function Hoje() {
   const count = computeStreak({ today, completeDays: complete, excused, resetDate: st?.last_date ?? null });
   const best = Math.max(st?.best ?? 0, count);
   if (st && best > st.best) await sb.from("streaks").update({ best, count }).eq("id", st.id);
+  // Semana atual (seg → dom) para a faixa da sequência
+  const monday = addDays(today, -((new Date(today + "T12:00:00Z").getUTCDay() + 6) % 7));
+  const week = Array.from({ length: 7 }, (_, i) => {
+    const d = addDays(monday, i), n = byDay.get(d)?.size ?? 0;
+    return { date: d, label: ["S", "T", "Q", "Q", "S", "S", "D"][i], today: d === today,
+      state: (d > today ? "future" : complete.has(d) ? "done" : excused.has(d) ? "excused" : n ? "partial" : "none") as "done" | "excused" | "partial" | "none" | "future" };
+  });
 
   // Finanças do mês
   const items = (fin.data ?? []).map((f) => ({ ...f, amount: Number(f.amount) }));
@@ -73,10 +83,12 @@ export default async function Hoje() {
   const goalList = (goals.data ?? []).map((g) => ({ ...g, target: Number(g.target), current: Number(g.current), start_value: Number(g.start_value) }) as GoalRow);
   const photo = await signedPhoto(sb, s.partner_photo_path);
   const dailyText = s.daily_text_date === today ? s.daily_text ?? "" : "";
+  const game = await loadGame(sb, s, today);
 
   return (
-    <>
+    <XpProvider initialTotal={game.total} initialToday={game.today}>
       <Greeting name="Renato" />
+      <div className="mb-4"><StatusHud attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} /></div>
 
       {/* Relatório financeiro */}
       <Link href="/financas" className="glass rise block p-5" style={{ ["--accent" as string]: "#d9c49a" }}>
@@ -119,7 +131,7 @@ export default async function Hoje() {
       </Link>
 
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} /></div>
-      <Streak count={count} best={best} excusedToday={excused.has(today)} />
+      <Streak count={count} best={best} excusedToday={excused.has(today)} week={week} />
 
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Mini href="/pioneiro" label="Pioneiro" color="#84aed4" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} />
@@ -130,6 +142,6 @@ export default async function Hoje() {
       <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>
       <Partner photo={photo} phrase={s.partner_phrase ?? "Tijolo por tijolinho"} />
       <Verse area="inicio" />
-    </>
+    </XpProvider>
   );
 }

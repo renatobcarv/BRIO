@@ -5,6 +5,7 @@ import { updateSettings } from "@/app/settings-actions";
 import { Ring } from "@/components/ui";
 import { LinkBtn, Sheet } from "@/components/kit";
 import type { ChecklistItem } from "@/lib/settings";
+import { useXp } from "@/components/game/xp";
 
 const GOLD = "#e0ac53";
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 40) || "item";
@@ -51,7 +52,17 @@ export function Checklist({ date, items, done }: { date: string; items: Checklis
   const [opt, setOpt] = useOptimistic(new Set(done), (s: Set<string>, a: { key: string; on: boolean }) => {
     const n = new Set(s); if (a.on) n.add(a.key); else n.delete(a.key); return n;
   });
-  const toggle = (key: string) => { const on = !opt.has(key); start(async () => { setOpt({ key, on }); await toggleCheck(date, key, on); }); };
+  const { gain, celebrate } = useXp();
+  const [popped, setPopped] = useState<string | null>(null);
+  const toggle = (key: string) => {
+    const on = !opt.has(key);
+    const after = items.filter((i) => (i.key === key ? on : opt.has(i.key))).length;
+    const wasFull = items.every((i) => opt.has(i.key));
+    if (on) { setPopped(key); setTimeout(() => setPopped(null), 400); gain(10, items.find((i) => i.key === key)?.label.split(/[+(/]/)[0].trim()); }
+    else gain(wasFull ? -60 : -10);
+    if (on && after === items.length) setTimeout(() => { gain(50, "Dia completo", "#8ac295"); celebrate("Dia completo", "Todas as missões cumpridas · +50 XP"); }, 500);
+    start(async () => { setOpt({ key, on }); await toggleCheck(date, key, on); });
+  };
   const primary = items.find((i) => i.primary) ?? items[0];
   const rest = items.filter((i) => i !== primary);
   const doneCount = items.filter((i) => opt.has(i.key)).length;
@@ -63,9 +74,9 @@ export function Checklist({ date, items, done }: { date: string; items: Checklis
       <div className="flex items-center gap-5">
         <Ring value={pct} size={92} stroke={9} color={GOLD}><span className="num text-2xl">{Math.round(pct * 100)}%</span></Ring>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between"><p className="label">Disciplina de hoje</p><LinkBtn onClick={() => setEditing(true)}>Editar</LinkBtn></div>
-          <p className="font-display text-xl leading-snug">{doneCount} de {items.length} feitos</p>
-          <p className="text-sm text-muted">{pct === 1 ? "Dia completo. Honra cumprida." : "Um item de cada vez."}</p>
+          <div className="flex items-center justify-between"><p className="label">Missões do dia</p><LinkBtn onClick={() => setEditing(true)}>Editar</LinkBtn></div>
+          <p className="font-display text-xl leading-snug">{doneCount} de {items.length} cumpridas</p>
+          <p className="text-sm text-muted">{pct === 1 ? "Dia completo. Honra cumprida." : <>Vale <span className="text-gold num">{(items.length - doneCount) * 10 + 50} XP</span> fechar o dia</>}</p>
         </div>
       </div>
 
@@ -73,9 +84,10 @@ export function Checklist({ date, items, done }: { date: string; items: Checklis
         <button onClick={() => toggle(primary.key)} aria-pressed={pOn}
           className="w-full mt-4 text-left rounded-2xl p-4 flex items-center gap-4 border transition-colors"
           style={{ borderColor: "rgba(224,172,83,.35)", background: pOn ? "linear-gradient(180deg, rgba(224,172,83,.18), rgba(224,172,83,.05))" : "rgba(224,172,83,.04)" }}>
-          <span className="grid place-items-center h-11 w-11 rounded-xl shrink-0 border" style={{ borderColor: GOLD, background: pOn ? GOLD : "transparent" }}>
+          <span className={`grid place-items-center h-11 w-11 rounded-xl shrink-0 border ${popped === primary.key ? "check-pop" : ""}`} style={{ borderColor: GOLD, background: pOn ? GOLD : "transparent" }}>
             {pOn ? <Check size={20} /> : <span className="text-gold">★</span>}</span>
-          <span><span className="label text-gold block">Prioridade</span><span className="font-display text-lg leading-snug">{primary.label}</span></span>
+          <span className="flex-1"><span className="label text-gold block">Missão principal</span><span className="font-display text-lg leading-snug">{primary.label}</span></span>
+          <span className={`tag shrink-0 ${pOn ? "opacity-40" : ""}`} style={{ color: GOLD }}>+10 XP</span>
         </button>
       )}
 
@@ -85,9 +97,10 @@ export function Checklist({ date, items, done }: { date: string; items: Checklis
           return (
             <li key={it.key}>
               <button onClick={() => toggle(it.key)} aria-pressed={on} className="row-hover w-full flex items-center gap-4 min-h-12 px-2 text-left">
-                <span className="grid place-items-center h-6 w-6 shrink-0 rounded-lg border transition-colors"
+                <span className={`grid place-items-center h-6 w-6 shrink-0 rounded-lg border transition-colors ${popped === it.key ? "check-pop" : ""}`}
                   style={{ borderColor: on ? GOLD : "rgba(255,255,255,.2)", background: on ? GOLD : "transparent" }}>{on && <Check />}</span>
-                <span className={on ? "text-muted line-through decoration-white/20" : ""}>{it.label}</span>
+                <span className={`flex-1 ${on ? "text-muted line-through decoration-white/20" : ""}`}>{it.label}</span>
+                <span className={`text-[11px] num transition-opacity ${on ? "opacity-0" : "text-muted"}`}>+10</span>
               </button>
             </li>
           );

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 const items = [
+  { href: "/status", label: "Status", sub: "Nível, atributos e conquistas", color: "#e0ac53" },
   { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#d9c49a" },
   { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#7fc4bd" },
   { href: "/metas", label: "Metas e objetivos", sub: "Destinos e passos mensuráveis", color: "#ac8fd6" },
