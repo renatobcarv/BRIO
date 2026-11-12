@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   title: "Brio",
   description: "Viver com empenho de alma em tudo o que importa.",
   manifest: "/manifest.webmanifest",
-  icons: { icon: "/icon.svg", apple: "/icon.svg" },
+  icons: { icon: "/icon.svg", apple: "/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Brio", statusBarStyle: "black-translucent" },
 };
 export const viewport: Viewport = { themeColor: "#000000", width: "device-width", initialScale: 1, maximumScale: 1, userScalable: false, viewportFit: "cover" };

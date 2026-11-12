@@ -258,3 +258,12 @@ a, button, [role="button"], label, .chip, .tile { touch-action: manipulation; -w
 .war-fire::after { content: ""; position: fixed; inset: auto 0 0 0; height: 38vh; z-index: -1; pointer-events: none;
   background: radial-gradient(70% 90% at 50% 100%, rgba(255,110,30,.35), rgba(171,36,36,.25) 45%, transparent 75%); animation: fireFlicker 1.8s ease-in-out infinite alternate; }
 @media (prefers-reduced-motion: reduce) { .ember, .fire-glow, .event-hot, .war-fire::after { animation: none !important; } .ember { display: none; } }
+
+/* Marca: divisas sobem ao entrar */
+.brio-rise { animation: brio-rise .7s cubic-bezier(.2,.8,.2,1) backwards; }
+@keyframes brio-rise { from { opacity: 0; transform: translateY(24px); } }
+.brio-aura { background: radial-gradient(60% 40% at 50% 16%, rgba(255,255,255,.07), transparent 70%), radial-gradient(30% 22% at 62% 14%, rgba(255,59,48,.14), transparent 70%); }
+@media (prefers-reduced-motion: reduce) { .brio-rise { animation: none; } }
+.brio-ember { animation: brio-ember 2.4s ease-in-out .6s infinite; transform-origin: 372px 122px; }
+@keyframes brio-ember { 50% { opacity: .55; } }
+@media (prefers-reduced-motion: reduce) { .brio-ember { animation: none; } }

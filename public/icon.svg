@@ -1,1 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="112" fill="#07080b"/><circle cx="256" cy="256" r="150" fill="none" stroke="#e0ac53" stroke-opacity=".25" stroke-width="22"/><path d="M256 106a150 150 0 1 1-130 75" fill="none" stroke="#e0ac53" stroke-width="22" stroke-linecap="round"/><text x="256" y="300" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-size="150" fill="#ece8df">B</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="150" y1="100" x2="400" y2="420"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#9a9aa2"/></linearGradient><filter id="f" x="-2" y="-2" width="5" height="5"><feGaussianBlur stdDeviation="10"/></filter></defs>
+<rect width="512" height="512" fill="#050506"/>
+<path d="M176 108v296" stroke="url(#g)" stroke-width="34"/>
+<path d="M210 108h86a68 68 0 0 1 0 136h-86" fill="none" stroke="url(#g)" stroke-width="34"/>
+<path d="M210 268h100a68 68 0 0 1 0 136h-100" fill="none" stroke="url(#g)" stroke-width="34"/>
+<circle cx="372" cy="122" r="22" fill="#ff3b30" filter="url(#f)"/><circle cx="372" cy="122" r="14" fill="#ff5a4e"/></svg>
