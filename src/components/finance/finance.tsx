@@ -1,7 +1,8 @@
 "use client";
+import { Jar } from "@/components/meters";
 import { useState, useTransition } from "react";
 import { copyPrevMonth, deleteRow, depositBox, saveRow } from "@/app/(app)/financas/actions";
-import { Card, Empty, Ring } from "@/components/ui";
+import { Card, Empty } from "@/components/ui";
 import { brl, monthLabel } from "@/lib/date";
 
 const ACC = "#3ee6c1";
@@ -120,7 +121,7 @@ export function Boxes({ items }: { items: Box[] }) {
             <Card key={b.id}>
               {edit === b.id ? <BoxForm box={b} onDone={() => setEdit(null)} /> : (
                 <button className="w-full text-left flex items-center gap-4" onClick={() => setEdit(b.id)}>
-                  <Ring value={b.target ? b.saved / b.target : 0} size={84} stroke={8} color={color}><span className="num text-sm">{b.target ? Math.round((b.saved / b.target) * 100) : 0}%</span></Ring>
+                  <span className="relative shrink-0"><Jar pct={b.target ? b.saved / b.target : 0} size={70} color={color} /><span className="absolute inset-x-0 bottom-3 text-center num text-xs font-semibold text-black/80">{b.target ? Math.round((b.saved / b.target) * 100) : 0}%</span></span>
                   <span className="flex-1">
                     <span className="font-display text-xl block">{b.name}</span>
                     <span className="num block">{brl(b.saved)} <span className="text-muted text-sm">/ {brl(b.target)}</span></span>

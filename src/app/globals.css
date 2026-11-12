@@ -364,3 +364,11 @@ body { background: transparent; }
 .sys-hit { animation: sys-hit .45s ease-out; }
 @keyframes sys-hit { 0% { transform: scale(.98); filter: brightness(1.8); } 100% { transform: scale(1); filter: none; } }
 @media (prefers-reduced-motion: reduce) { .sys-pulse, .sys-hit { animation: none; } }
+/* Medidores visuais */
+.meter-wave { animation: meter-wave 3s linear infinite; }
+@keyframes meter-wave { to { transform: translateX(-50%); } }
+.meter-sand { animation: meter-sand .9s linear infinite; }
+@keyframes meter-sand { 50% { opacity: .4; } }
+.meter-bubble { animation: meter-bubble 2.4s ease-in infinite; }
+@keyframes meter-bubble { from { transform: translateY(0); opacity: .8; } to { transform: translateY(-24px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .meter-wave, .meter-sand, .meter-bubble { animation: none; } }

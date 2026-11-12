@@ -5,6 +5,7 @@ import { addWater, saveSleep, undoWater } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
+import { Flask, Moon, Shaker } from "@/components/meters";
 
 const G = "#30d158";
 const L = (ml: number) => fmt(ml / 1000, 2);
@@ -55,6 +56,10 @@ export function BodyToday(props: {
       <Link href="/corpo?aba=alimentacao" className="glass rise block p-5 mt-4">
         <div className="flex items-center justify-between"><p className="label" style={{ color: G }}>Alimentação</p><span className="text-sm text-muted">abrir ›</span></div>
         <div className="grid grid-cols-2 gap-4 mt-3">
+          <div className="col-span-2 flex justify-around items-end">
+            <span className="flex items-end gap-2"><Flask pct={props.food.kcal / props.food.kcalGoal} size={44} /><span className="text-xs text-muted pb-1">energia<br /><b className="num text-ink text-sm">{Math.round((props.food.kcal / props.food.kcalGoal) * 100) || 0}%</b></span></span>
+            <span className="flex items-end gap-2"><Shaker pct={props.food.protein / props.food.proteinGoal} size={38} /><span className="text-xs text-muted pb-1">proteína<br /><b className="num text-ink text-sm">{Math.round((props.food.protein / props.food.proteinGoal) * 100) || 0}%</b></span></span>
+          </div>
           <div><div className="flex justify-between text-sm"><span>Calorias</span><span className="num">{props.food.kcal}/{props.food.kcalGoal}</span></div><Progress value={props.food.kcal / props.food.kcalGoal} height={6} /></div>
           <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ffb340" height={6} /></div>
         </div>
@@ -88,7 +93,7 @@ export function BodyToday(props: {
       </section>
 
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Sono</SectionTitle>
+        <div className="flex items-center justify-between"><SectionTitle>Sono</SectionTitle><Moon hours={props.sleepHours} size={44} /></div>
         <div className="flex gap-2 items-center">
           <input className="field max-w-24 text-center num text-lg" inputMode="decimal" placeholder="7,5" value={sleep} onChange={(e) => setSleep(e.target.value)} aria-label="Horas dormidas na última noite" />
           <span className="text-muted text-sm">horas na última noite</span>

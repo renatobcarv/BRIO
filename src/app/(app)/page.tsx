@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Hourglass, MiniBottle } from "@/components/meters";
 import { Verse } from "@/components/ui";
 import { Checklist } from "@/components/home/checklist";
 import { DailyText } from "@/components/home/daily-text";
@@ -21,11 +22,11 @@ import { EventCard } from "@/components/events/event-ui";
 export const dynamic = "force-dynamic";
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
-function Mini({ href, label, value, sub, color, pct }: { href: string; label: string; value: string; sub?: string; color: string; pct?: number }) {
+function Mini({ href, label, value, sub, color, pct, meter }: { href: string; label: string; value: string; sub?: string; color: string; pct?: number; meter?: React.ReactNode }) {
   return (
     <Link href={href} className="glass rise p-4 block">
-      <p className="label" style={{ color }}>{label}</p>
-      <p className="num text-2xl mt-2 leading-none">{value}</p>
+      <div className="flex items-start justify-between gap-1"><p className="label" style={{ color }}>{label}</p>{meter && <span className="-mt-1 -mr-1 shrink-0">{meter}</span>}</div>
+      <p className={`num text-2xl leading-none ${meter ? "-mt-3" : "mt-2"}`}>{value}</p>
       {sub && <p className="text-xs text-muted mt-1">{sub}</p>}
       {pct != null && <div className="bar mt-3" style={{ height: 4 }}><i style={{ width: `${Math.min(100, pct * 100)}%`, background: color }} /></div>}
     </Link>
@@ -102,8 +103,8 @@ export default async function Hoje() {
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
       <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} />
       <div className="grid grid-cols-3 gap-3 mt-4">
-        <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} />
-        <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} />
+        <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
+        <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
         <Mini href="/corpo?aba=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
       </div>
 
