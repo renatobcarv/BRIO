@@ -3,7 +3,7 @@ import { useEffect, useId, useRef } from "react";
 import { createPortal } from "react-dom";
 import { haptic } from "@/components/game/xp";
 import type { AngelLook, Beast, BeastId } from "@/lib/bestiary";
-import { AngelArt } from "./angel-art";
+import { CelestialArt } from "./celestial-art";
 
 const STONE = (id: string, a: string, b: string) => <linearGradient id={id} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={a} /><stop offset="1" stopColor={b} /></linearGradient>;
 
@@ -151,8 +151,8 @@ export function BattleIntro({ title, beast, onDone }: { title: string; beast: Be
       ))}
       <div className={`relative flex flex-col items-center px-6 text-center ${t >= 3 ? "intro-quake" : ""}`} style={{ ["--q" as string]: `${t * 1.5}px` } as React.CSSProperties}>
         {beast.angel ? (
-          <svg viewBox="0 0 320 360" className="intro-beast" aria-hidden style={{ width: "min(92vw, 400px)", marginTop: -40 }}>
-            <AngelArt look={beast.angel} c={beast.color} eye={beast.eye} />
+          <svg viewBox="0 0 320 320" className="intro-beast" aria-hidden style={{ width: "min(94vw, 420px)", marginTop: -30 }}>
+            <CelestialArt id={beast.id} c={beast.color} eye={beast.eye} />
           </svg>
         ) : <svg viewBox="0 0 240 240" className="intro-beast intro-breathe" aria-hidden
           style={{ width: 200 + t * 16, ["--shake" as string]: `${2 + t * 2}px`, animationIterationCount: `1, ${1 + t}`, filter: `drop-shadow(0 0 ${t * 8}px ${beast.color}88)` } as React.CSSProperties}>

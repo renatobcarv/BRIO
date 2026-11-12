@@ -331,3 +331,24 @@ body { background: transparent; }
 @keyframes blade { to { opacity: .2; } }
 .angel-veil { animation: angel-open 1.2s .4s cubic-bezier(.2,.9,.2,1) backwards; transform-origin: 160px 200px; }
 @media (prefers-reduced-motion: reduce) { .angel-flap, .angel-pillar, .angel-aura, .angel-face, .angel-weapon, .angel-blade-fire, .angel-veil { animation: none; } }
+/* Seres celestiais */
+.cel-spin { animation: cel-spin 10s linear infinite; }
+.cel-spin-rev { animation: cel-spin 10s linear infinite reverse; }
+@keyframes cel-spin { to { transform: rotate(360deg); } }
+.cel-pulse { animation: cel-pulse 2.8s ease-in-out infinite; }
+@keyframes cel-pulse { 50% { transform: scale(1.12); opacity: .7; } }
+.cel-flicker { animation: cel-flicker 1.4s ease-in-out infinite; }
+@keyframes cel-flicker { 50% { opacity: .35; } }
+.cel-flap { animation: cel-flap 2.6s ease-in-out infinite; }
+.cel-flap-slow { animation: cel-flap 4s ease-in-out infinite; }
+@keyframes cel-flap { 50% { transform: scale(1.06, .92); } }
+.cel-tail { animation: cel-tail 1.8s ease-in-out infinite alternate; transform-origin: 160px 190px; }
+@keyframes cel-tail { to { transform: skewX(8deg); } }
+.cel-float { animation: cel-float 4s ease-in-out infinite; }
+@keyframes cel-float { 50% { transform: translateY(-8px); } }
+.cel-orbit { animation: cel-spin 8s linear infinite; }
+.cel-blade { animation: cel-blade 2s ease-in-out infinite; }
+@keyframes cel-blade { 50% { transform: translateY(6px); opacity: .7; } }
+.cel-rise { animation: cel-rise 2.4s ease-in infinite; }
+@keyframes cel-rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-120px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cel-spin, .cel-spin-rev, .cel-pulse, .cel-flicker, .cel-flap, .cel-flap-slow, .cel-tail, .cel-float, .cel-orbit, .cel-blade, .cel-rise { animation: none; } }

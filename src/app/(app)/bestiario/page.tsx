@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BeastArt } from "@/components/body/battle-intro";
-import { AngelArt } from "@/components/body/angel-art";
+import { CelestialArt } from "@/components/body/celestial-art";
 import { ALL, ANGELS, FERAS, bestiaryRecord, type BeastId } from "@/lib/bestiary";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,7 +23,7 @@ export default async function Bestiario() {
       <div className="rounded-3xl p-3 border text-center relative overflow-hidden"
         style={{ borderColor: open ? b.color + "66" : "rgba(255,255,255,.07)", background: open ? `radial-gradient(90% 70% at 50% 25%, ${b.color}30, #0b0b0d 70%)` : "#0b0b0d" }}>
         <div className="mx-auto w-28 h-28" style={{ filter: open ? `drop-shadow(0 0 12px ${b.color}88)` : "grayscale(1) brightness(.18)" }}>
-          {b.angel ? <svg viewBox="0 0 320 360" className="w-full h-full" aria-hidden><AngelArt look={b.angel} c={b.color} eye={b.eye} /></svg> : <svg viewBox="0 0 240 240" className="w-full h-full" aria-hidden><BeastArt id={id} c={b.color} eye={b.eye} look={b.angel} /></svg>}
+          {b.angel ? <svg viewBox="0 0 320 320" className="w-full h-full" aria-hidden><CelestialArt id={id} c={b.color} eye={b.eye} /></svg> : <svg viewBox="0 0 240 240" className="w-full h-full" aria-hidden><BeastArt id={id} c={b.color} eye={b.eye} look={b.angel} /></svg>}
         </div>
         <p className="text-[13px] font-bold uppercase leading-tight mt-2 break-words">{open || r.met ? b.name : "???"}</p>
         <p className="text-[10px] text-muted mt-0.5 leading-tight">{open || r.met ? (b.angel ? `${b.virtue} · ${b.epithet}` : b.epithet) : "Ainda não encontrado"}</p>
