@@ -8,6 +8,7 @@ import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShor
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, dayShort, dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
+import { BattleIntro } from "./battle-intro";
 import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
 import { totalWeeks } from "@/lib/training";
@@ -46,7 +47,7 @@ export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
 type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
 function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null): Session {
   return {
-    date, label: ctx ? `${day.label} · ${day.focus} · S${ctx.weekNo}` : `${day.label} · ${day.focus}`, notes: "", startedAt: null,
+    date, label: [day.label, day.focus, ctx ? `S${ctx.weekNo}` : ""].filter(Boolean).join(" · "), notes: "", startedAt: null,
     programId: ctx?.programId ?? null, weekNo: ctx?.weekNo ?? null, phase: ctx?.phase ?? null,
     planned: ctx ? (plan as PlannedEx[]).map((p) => ({ ...p })) : null,
     exercises: plan.map((p) => {
@@ -270,6 +271,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
   const setSession = (s: Session | null) => { setSessionState(s); try { if (s && !s.editingId) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch {} };
 
+  const [intro, setIntro] = useState<Session | null>(null);
   // Estatísticas
   const m = monthStart(today), dim = daysInMonth(m);
   const monthW = workouts.filter((w) => w.date >= m);
@@ -304,7 +306,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(171,36,36,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #ab2424" }}>
           {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
             <>
-              <div className="flex items-center justify-between"><p className="text-sm font-semibold">{program.name}</p><span className="text-xs text-muted">ver campanha ›</span></div>
+              <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold truncate min-w-0">{program.name}</p><span className="text-xs text-muted whitespace-nowrap shrink-0">ver ›</span></div>
               <p className="text-xs mt-0.5" style={{ color: ph ? PHASE_KINDS[ph.kind].color : "#8e8e93" }}>{pos.status === "andamento" ? `Semana ${pos.week} de ${pos.total} · ${ph?.name}` : pos.status === "futuro" ? `Começa em ${pos.startsIn} dias` : "Programa concluído"}</p>
               <div className="mt-3"><Timeline p={program} today={today} /></div>
             </>); })() : (
@@ -312,11 +314,12 @@ export function Training({ today, split, plan, workouts, program = null, program
           )}
         </button>
       )}
+      {intro && <BattleIntro title={intro.label.split(" · ")[0]} onDone={() => { setMode("guiado"); setSession(intro); setIntro(null); }} />}
       <section className="glass rise p-5">
         <div className="grid grid-cols-3 gap-3">
-          <Stat big label="Semana" value={`${weekW.length}/${planned}`} sub="treinos" />
+          <Stat big label="Semana" value={`${new Set(weekW.map((w) => w.date)).size}/${program ? weekDays.filter((w) => w.dp.list.length).length : planned}`} sub="treinos" />
           <Stat big label="Mês" value={monthW.length} sub="sessões" />
-          <Stat big label="Volume sem." value={`${fmt(weekW.reduce((a, w) => a + volume(w.sets), 0) / 1000)} t`} sub="kg × reps" />
+          {(() => { const v = weekW.reduce((a, w) => a + volume(w.sets), 0); return <Stat big label="Volume" value={v >= 1000 ? `${fmt(v / 1000)} t` : `${Math.round(v)} kg`} sub="na semana" />; })()}
         </div>
       </section>
 
@@ -385,7 +388,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                   ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
                   {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
                     <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 12px 34px -10px #e0393e" }}
-                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; setSession(buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx)); }}>
+                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ ...ns, startedAt: Date.now() }); } else setSession(ns); }}>
                       {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
                   )}
                 </div>
@@ -450,10 +453,10 @@ export function Training({ today, split, plan, workouts, program = null, program
           <ul>
             {workouts.slice(0, 30).map((w) => (
               <li key={w.id}><button className="row-hover w-full flex items-center gap-3 min-h-14 px-2 text-left" onClick={() => setSheet(w)}>
-                <span className="w-16 shrink-0 text-sm text-muted whitespace-nowrap">{shortDate(w.date)}</span>
-                <span className="flex-1 min-w-0"><span className="block truncate">{w.split_label}</span>
-                  <span className="text-xs text-muted">{new Set(w.sets.map((s) => s.exercise)).size} exercícios · {w.sets.length} séries{w.duration_min ? ` · ${w.duration_min} min` : ""}</span></span>
-                <span className="num text-sm text-muted">{Math.round(volume(w.sets)).toLocaleString("pt-BR")} kg</span>
+                <span className="w-11 shrink-0 text-center leading-tight"><span className="block num text-lg">{w.date.slice(8)}</span><span className="block text-[10px] text-muted uppercase">{shortDate(w.date).split(" ").pop()}</span></span>
+                <span className="flex-1 min-w-0"><span className="block truncate font-medium">{w.split_label}</span>
+                  <span className="block text-xs text-muted truncate">{new Set(w.sets.map((s) => s.exercise)).size} exerc. · {w.sets.length} séries{w.duration_min ? ` · ${w.duration_min} min` : ""}</span></span>
+                {volume(w.sets) > 0 && <span className="num text-sm text-muted shrink-0">{volume(w.sets) >= 1000 ? `${fmt(volume(w.sets) / 1000)} t` : `${Math.round(volume(w.sets))} kg`}</span>}
               </button></li>
             ))}
           </ul>

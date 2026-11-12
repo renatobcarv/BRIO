@@ -131,7 +131,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         value={phase.dayNames?.[day] ?? ""} onChange={(e) => setPhase({ dayNames: { ...(phase.dayNames ?? {}), [day]: e.target.value } })} aria-label="Nome do treino do dia" />
       {!phase.dayNames?.[day] && list.length > 0 && <p className="text-[11px] text-faint mt-1">Sem nome, aparece como “{dayTitle(phase, day)}”.</p>}
       {/* Exercícios do dia */}
-      <div key={`${phase.id}-${day}`} className="grid gap-2 mt-3">
+      <div key={`${phase.id}-${day}`} className="grid grid-cols-1 gap-2 mt-3 [&>*]:min-w-0">
         {list.length === 0 && <p className="text-center text-muted text-sm py-4">Dia de descanso. Adicione exercícios se houver treino.</p>}
         {list.map((e, i) => {
           const isOpen = open === i, cardio = e.muscle === "cardio";
@@ -141,10 +141,10 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
               style={{ background: String(cur) === String(v) ? R : "#1a0909", color: String(cur) === String(v) ? "#fff" : undefined, borderColor: String(cur) === String(v) ? R : "rgba(224,57,62,.25)", boxShadow: String(cur) === String(v) ? `0 0 14px -4px ${R}` : "none" }}>{fmtv(v)}</button>)}</div>
           );
           return (
-            <div key={i} className="rounded-2xl border step-in-right" style={{ borderColor: isOpen ? R : "rgba(224,57,62,.18)", background: "#140808", boxShadow: isOpen ? `0 0 22px -10px ${R}` : "none", animationDelay: `${i * 30}ms` }}>
+            <div key={i} className="rounded-2xl border step-in-right min-w-0 overflow-hidden" style={{ borderColor: isOpen ? R : "rgba(224,57,62,.18)", background: "#140808", boxShadow: isOpen ? `0 0 22px -10px ${R}` : "none", animationDelay: `${i * 30}ms` }}>
               <button className="w-full flex items-center gap-3 p-3 text-left" onClick={() => { setOpen(isOpen ? null : i); haptic(6); }} aria-expanded={isOpen}>
                 <span className="num text-xs text-faint w-4">{i + 1}</span>
-                <span className="flex-1 min-w-0"><span className="block font-semibold truncate">{e.name || "Novo exercício"}</span>
+                <span className="flex-1 min-w-0"><span className="block font-semibold leading-snug line-clamp-2 break-words">{e.name || "Novo exercício"}</span>
                   <span className="block text-xs text-muted truncate">{MUSCLES[e.muscle]}{rest && !cardio ? ` · ${rest}` : ""}{e.notes ? ` · ${e.notes}` : ""}</span></span>
                 <span className="num text-sm shrink-0" style={{ color: R }}>{cardio ? e.reps : `${e.sets}×${e.reps}`}{e.rpe ? ` @${String(e.rpe).replace(".", ",")}` : ""}</span>
                 <span className="text-muted text-xs">{isOpen ? "▴" : "▾"}</span>

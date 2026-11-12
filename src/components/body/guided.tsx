@@ -58,6 +58,10 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const [cur, setCur] = useState(firstOpen() ?? { e: 0, k: 0 });
   const [rest, setRest] = useState<number | null>(null);
   const [finished, setFinished] = useState<null | { sets: number; vol: number; prs: string[]; xp: number; min: number }>(null);
+  const [clock, setClock] = useState(0);
+  const top = useRef<HTMLDivElement>(null);
+  useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, []);
+  useEffect(() => { const id = setInterval(() => setClock(s.startedAt ? Date.now() - s.startedAt : 0), 1000); return () => clearInterval(id); }, [s.startedAt]);
   const ex = s.exercises[cur.e], set = ex?.sets[cur.k];
   const timed = ex ? isTimed(ex.name, (ex.target as { muscle?: string } | undefined)?.muscle) : false;
   const totalSets = s.exercises.reduce((a, e) => a + e.sets.length, 0), doneSets = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
@@ -78,6 +82,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min${kg ? ` · ${fmt(kg)} km` : ""}` : `${ex.name} ${fmt(kg)}×${reps}`, G);
     const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
     if (old > 0 && now > old) setTimeout(() => celebrate("Novo recorde!", `${ex.name}: ${fmt(kg)} kg × ${reps}`), 300);
+    else if (next.exercises[cur.e].sets.every((x) => x.done)) { setTimeout(() => { gain(15, `${ex.name} conquistado`, "#ffd27a"); haptic([30, 30, 80]); }, 450); }
     let nx: { e: number; k: number } | null = null;
     for (let e = cur.e; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
     if (!nx) for (let e = 0; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
@@ -115,6 +120,10 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   if (!ex) return <p className="text-muted">Adicione exercícios para começar.</p>;
   return (
     <div>
+      <div ref={top} className="flex items-center justify-between mb-3 scroll-mt-24">
+        <span className="flex items-center gap-2 text-xs text-muted"><span className="h-2 w-2 rounded-full war-pulse" style={{ background: "#e0393e" }} />EM COMBATE</span>
+        <span className="num text-2xl tabular-nums" aria-label="Tempo de treino">{s.startedAt ? `${Math.floor(clock / 3600000) ? Math.floor(clock / 3600000) + ":" : ""}${String(Math.floor(clock / 60000) % 60).padStart(2, "0")}:${String(Math.floor(clock / 1000) % 60).padStart(2, "0")}` : "00:00"}</span>
+      </div>
       <div className="flex gap-1 mb-4" aria-label={`${doneSets} de ${totalSets} séries`}>
         {s.exercises.flatMap((e, i) => e.sets.map((x, j) => <i key={`${i}-${j}`} className="h-1.5 flex-1 rounded-full transition-all duration-500" style={{ background: x.done ? G : i === cur.e && j === cur.k ? "rgba(48,209,88,.4)" : "rgba(255,255,255,.08)", boxShadow: x.done ? `0 0 8px ${G}` : "none" }} />))}
       </div>
