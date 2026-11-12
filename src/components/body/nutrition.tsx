@@ -35,6 +35,10 @@ const PRESETS: Preset[] = [
   { cat: "Salgados", e: "🥪", name: "Misto quente", kcal: 320, p: 16, c: 30, g: 15 },
   { cat: "Salgados", e: "🧆", name: "Quibe frito", kcal: 230, p: 10, c: 18, g: 13 },
   { cat: "Salgados", e: "🥓", name: "Pão com linguiça", kcal: 420, p: 16, c: 34, g: 24 },
+  { cat: "Salgados", e: "🍳", name: "Pão com ovo (pão francês + 1 ovo)", kcal: 260, p: 11, c: 29, g: 11 },
+  { cat: "Salgados", e: "🍳", name: "Pão com 2 ovos", kcal: 340, p: 17, c: 29, g: 17 },
+  { cat: "Salgados", e: "🍳", name: "Pão com ovo e queijo", kcal: 340, p: 16, c: 29, g: 17 },
+  { cat: "Salgados", e: "🥖", name: "Pão na chapa com manteiga", kcal: 220, p: 5, c: 29, g: 9 },
   // Lanches
   { cat: "Lanches", e: "🍔", name: "Hambúrguer artesanal", kcal: 650, p: 32, c: 42, g: 38 },
   { cat: "Lanches", e: "🍔", name: "X-tudo", kcal: 850, p: 40, c: 55, g: 50 },
