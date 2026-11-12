@@ -20,28 +20,109 @@ const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,
 /** Fora do plano: slot "extra|comida|14:30" ou "extra|bebida|22:10" (sem migração). */
 export const isExtra = (slot: string) => slot.startsWith("extra|");
 const extraInfo = (slot: string) => { const [, kind, time] = slot.split("|"); return { kind: kind === "bebida" ? "bebida" : "comida", time: time ?? "" }; };
-const PRESETS: { kind: "comida" | "bebida"; e: string; name: string; kcal: number; p: number; c: number; g: number }[] = [
-  { kind: "comida", e: "🍕", name: "Pizza (1 fatia)", kcal: 285, p: 12, c: 36, g: 10 },
-  { kind: "comida", e: "🍔", name: "Hambúrguer", kcal: 500, p: 25, c: 40, g: 26 },
-  { kind: "comida", e: "🥟", name: "Salgado", kcal: 250, p: 7, c: 28, g: 12 },
-  { kind: "comida", e: "🧀", name: "Pão de queijo (3 un.)", kcal: 240, p: 6, c: 30, g: 11 },
-  { kind: "comida", e: "🍫", name: "Chocolate (barra 25 g)", kcal: 135, p: 2, c: 15, g: 8 },
-  { kind: "comida", e: "🍦", name: "Sorvete (1 bola)", kcal: 140, p: 2, c: 18, g: 7 },
-  { kind: "comida", e: "🍟", name: "Batata frita (porção média)", kcal: 340, p: 4, c: 44, g: 17 },
-  { kind: "comida", e: "🫐", name: "Açaí (300 ml)", kcal: 400, p: 4, c: 60, g: 15 },
-  { kind: "comida", e: "🍰", name: "Bolo (1 fatia)", kcal: 300, p: 4, c: 45, g: 12 },
-  { kind: "bebida", e: "🥤", name: "Refrigerante (lata)", kcal: 140, p: 0, c: 35, g: 0 },
-  { kind: "bebida", e: "🧃", name: "Suco de caixinha (200 ml)", kcal: 100, p: 0, c: 24, g: 0 },
-  { kind: "bebida", e: "☕", name: "Café com açúcar", kcal: 40, p: 0, c: 10, g: 0 },
-  { kind: "bebida", e: "🥛", name: "Milkshake (400 ml)", kcal: 520, p: 12, c: 70, g: 20 },
-  { kind: "bebida", e: "🧋", name: "Cappuccino", kcal: 150, p: 5, c: 20, g: 5 },
-  { kind: "bebida", e: "⚡", name: "Energético (lata)", kcal: 110, p: 0, c: 27, g: 0 },
+type Preset = { cat: string; e: string; name: string; kcal: number; p: number; c: number; g: number };
+/** Valores médios aproximados por porção comum (referências de tabelas brasileiras e rótulos). */
+const PRESETS: Preset[] = [
+  // Salgados
+  { cat: "Salgados", e: "🥟", name: "Coxinha (média)", kcal: 260, p: 9, c: 28, g: 12 },
+  { cat: "Salgados", e: "🥟", name: "Pastel de carne", kcal: 280, p: 9, c: 25, g: 16 },
+  { cat: "Salgados", e: "🥟", name: "Pastel de queijo", kcal: 300, p: 10, c: 24, g: 18 },
+  { cat: "Salgados", e: "🥐", name: "Esfiha de carne", kcal: 220, p: 9, c: 28, g: 8 },
+  { cat: "Salgados", e: "🥐", name: "Enroladinho de salsicha", kcal: 250, p: 7, c: 27, g: 13 },
+  { cat: "Salgados", e: "🥟", name: "Risole / bolinha de queijo", kcal: 230, p: 7, c: 22, g: 13 },
+  { cat: "Salgados", e: "🥧", name: "Empada de frango", kcal: 270, p: 7, c: 24, g: 16 },
+  { cat: "Salgados", e: "🥖", name: "Pão de queijo (3 un.)", kcal: 240, p: 6, c: 30, g: 11 },
+  { cat: "Salgados", e: "🥪", name: "Misto quente", kcal: 320, p: 16, c: 30, g: 15 },
+  { cat: "Salgados", e: "🧆", name: "Quibe frito", kcal: 230, p: 10, c: 18, g: 13 },
+  { cat: "Salgados", e: "🥓", name: "Pão com linguiça", kcal: 420, p: 16, c: 34, g: 24 },
+  // Lanches
+  { cat: "Lanches", e: "🍔", name: "Hambúrguer artesanal", kcal: 650, p: 32, c: 42, g: 38 },
+  { cat: "Lanches", e: "🍔", name: "X-tudo", kcal: 850, p: 40, c: 55, g: 50 },
+  { cat: "Lanches", e: "🍔", name: "Cheeseburger (fast-food)", kcal: 300, p: 15, c: 32, g: 13 },
+  { cat: "Lanches", e: "🌭", name: "Cachorro-quente completo", kcal: 450, p: 15, c: 45, g: 23 },
+  { cat: "Lanches", e: "🍕", name: "Pizza (1 fatia)", kcal: 285, p: 12, c: 36, g: 10 },
+  { cat: "Lanches", e: "🍟", name: "Batata frita (porção média)", kcal: 340, p: 4, c: 44, g: 17 },
+  { cat: "Lanches", e: "🌯", name: "Wrap / burrito", kcal: 500, p: 22, c: 55, g: 20 },
+  { cat: "Lanches", e: "🥙", name: "Tapioca com queijo", kcal: 300, p: 10, c: 45, g: 9 },
+  { cat: "Lanches", e: "🍗", name: "Frango frito (2 pedaços)", kcal: 480, p: 34, c: 18, g: 30 },
+  // Pratos e churrasco
+  { cat: "Pratos", e: "🍛", name: "Prato feito (arroz, feijão, carne)", kcal: 750, p: 38, c: 90, g: 24 },
+  { cat: "Pratos", e: "🍝", name: "Macarrão à bolonhesa", kcal: 600, p: 26, c: 80, g: 18 },
+  { cat: "Pratos", e: "🥩", name: "Picanha (200 g)", kcal: 560, p: 44, c: 0, g: 42 },
+  { cat: "Pratos", e: "🌭", name: "Linguiça de churrasco (1 gomo)", kcal: 260, p: 12, c: 1, g: 23 },
+  { cat: "Pratos", e: "🍢", name: "Espetinho de carne", kcal: 170, p: 18, c: 2, g: 10 },
+  { cat: "Pratos", e: "🧀", name: "Queijo coalho (espeto)", kcal: 180, p: 12, c: 1, g: 14 },
+  { cat: "Pratos", e: "🍲", name: "Feijoada (prato)", kcal: 650, p: 35, c: 50, g: 33 },
+  { cat: "Pratos", e: "🍣", name: "Sushi (10 peças)", kcal: 450, p: 18, c: 70, g: 10 },
+  { cat: "Pratos", e: "🥗", name: "Farofa (3 colheres)", kcal: 220, p: 2, c: 22, g: 14 },
+  // Petiscos
+  { cat: "Petiscos", e: "🥜", name: "Amendoim (punhado 30 g)", kcal: 170, p: 8, c: 5, g: 14 },
+  { cat: "Petiscos", e: "🥔", name: "Batata chips (pacote 50 g)", kcal: 270, p: 3, c: 26, g: 17 },
+  { cat: "Petiscos", e: "🍤", name: "Isca de peixe/frango (porção)", kcal: 450, p: 30, c: 25, g: 25 },
+  { cat: "Petiscos", e: "🧅", name: "Anéis de cebola (porção)", kcal: 400, p: 5, c: 45, g: 22 },
+  { cat: "Petiscos", e: "🍿", name: "Pipoca (saco médio)", kcal: 300, p: 5, c: 35, g: 16 },
+  // Doces
+  { cat: "Doces", e: "🍫", name: "Chocolate (barra 25 g)", kcal: 135, p: 2, c: 15, g: 8 },
+  { cat: "Doces", e: "🍫", name: "Brigadeiro (1 un.)", kcal: 90, p: 1, c: 13, g: 4 },
+  { cat: "Doces", e: "🍦", name: "Sorvete (1 bola)", kcal: 140, p: 2, c: 18, g: 7 },
+  { cat: "Doces", e: "🫐", name: "Açaí (300 ml)", kcal: 400, p: 4, c: 60, g: 15 },
+  { cat: "Doces", e: "🍰", name: "Bolo (1 fatia)", kcal: 300, p: 4, c: 45, g: 12 },
+  { cat: "Doces", e: "🍩", name: "Sonho / donut", kcal: 280, p: 5, c: 35, g: 14 },
+  { cat: "Doces", e: "🍮", name: "Pudim (1 fatia)", kcal: 250, p: 6, c: 38, g: 8 },
+  { cat: "Doces", e: "🍪", name: "Biscoito recheado (4 un.)", kcal: 190, p: 2, c: 28, g: 8 },
+  { cat: "Doces", e: "🥞", name: "Churros", kcal: 300, p: 4, c: 40, g: 14 },
+  // Frutas (unidade ou porção média)
+  { cat: "Frutas", e: "🍌", name: "Banana (1 média)", kcal: 90, p: 1, c: 23, g: 0 },
+  { cat: "Frutas", e: "🍎", name: "Maçã (1 média)", kcal: 80, p: 0, c: 21, g: 0 },
+  { cat: "Frutas", e: "🍊", name: "Laranja (1 média)", kcal: 65, p: 1, c: 16, g: 0 },
+  { cat: "Frutas", e: "🍊", name: "Tangerina / mexerica", kcal: 50, p: 1, c: 13, g: 0 },
+  { cat: "Frutas", e: "🥭", name: "Manga (1 média)", kcal: 130, p: 1, c: 34, g: 1 },
+  { cat: "Frutas", e: "🍍", name: "Abacaxi (2 fatias)", kcal: 70, p: 1, c: 18, g: 0 },
+  { cat: "Frutas", e: "🍉", name: "Melancia (1 fatia grande)", kcal: 85, p: 2, c: 21, g: 0 },
+  { cat: "Frutas", e: "🍈", name: "Melão (1 fatia)", kcal: 40, p: 1, c: 9, g: 0 },
+  { cat: "Frutas", e: "🍐", name: "Pera (1 média)", kcal: 95, p: 1, c: 25, g: 0 },
+  { cat: "Frutas", e: "🍇", name: "Uva (1 cacho pequeno)", kcal: 100, p: 1, c: 26, g: 0 },
+  { cat: "Frutas", e: "🍓", name: "Morango (10 un.)", kcal: 40, p: 1, c: 9, g: 0 },
+  { cat: "Frutas", e: "🥝", name: "Kiwi (1 un.)", kcal: 45, p: 1, c: 11, g: 0 },
+  { cat: "Frutas", e: "🥑", name: "Abacate (meio)", kcal: 160, p: 2, c: 9, g: 15 },
+  { cat: "Frutas", e: "🧡", name: "Mamão papaia (meio)", kcal: 70, p: 1, c: 17, g: 0 },
+  { cat: "Frutas", e: "🍑", name: "Pêssego (1 médio)", kcal: 60, p: 1, c: 15, g: 0 },
+  { cat: "Frutas", e: "🫐", name: "Goiaba (1 média)", kcal: 70, p: 1, c: 15, g: 1 },
+  { cat: "Frutas", e: "🥥", name: "Coco seco (pedaço 40 g)", kcal: 140, p: 1, c: 6, g: 13 },
+  { cat: "Frutas", e: "🍇", name: "Uva-passa (2 colheres)", kcal: 85, p: 1, c: 22, g: 0 },
+  { cat: "Frutas", e: "🥗", name: "Salada de frutas (tigela)", kcal: 150, p: 2, c: 37, g: 0 },
+  // Bebidas
+  { cat: "Bebidas", e: "🥤", name: "Refrigerante (lata)", kcal: 140, p: 0, c: 35, g: 0 },
+  { cat: "Bebidas", e: "🥤", name: "Refrigerante (copo 300 ml)", kcal: 125, p: 0, c: 31, g: 0 },
+  { cat: "Bebidas", e: "🧃", name: "Suco de caixinha (200 ml)", kcal: 100, p: 0, c: 24, g: 0 },
+  { cat: "Bebidas", e: "🍊", name: "Suco natural com açúcar (300 ml)", kcal: 160, p: 1, c: 38, g: 0 },
+  { cat: "Bebidas", e: "☕", name: "Café com açúcar", kcal: 40, p: 0, c: 10, g: 0 },
+  { cat: "Bebidas", e: "🧋", name: "Cappuccino", kcal: 150, p: 5, c: 20, g: 5 },
+  { cat: "Bebidas", e: "🥛", name: "Milkshake (400 ml)", kcal: 520, p: 12, c: 70, g: 20 },
+  { cat: "Bebidas", e: "⚡", name: "Energético (lata)", kcal: 110, p: 0, c: 27, g: 0 },
+  { cat: "Bebidas", e: "🥥", name: "Água de coco (300 ml)", kcal: 60, p: 1, c: 14, g: 0 },
+  { cat: "Bebidas", e: "🍵", name: "Chá gelado (lata)", kcal: 90, p: 0, c: 22, g: 0 },
+  // Cervejas e outras
+  { cat: "Cervejas", e: "🍺", name: "Cerveja (lata 350 ml)", kcal: 150, p: 1, c: 13, g: 0 },
+  { cat: "Cervejas", e: "🍺", name: "Cerveja long neck (355 ml)", kcal: 150, p: 1, c: 13, g: 0 },
+  { cat: "Cervejas", e: "🍺", name: "Cerveja garrafa (600 ml)", kcal: 260, p: 2, c: 22, g: 0 },
+  { cat: "Cervejas", e: "🍻", name: "Chopp (300 ml)", kcal: 130, p: 1, c: 11, g: 0 },
+  { cat: "Cervejas", e: "🍺", name: "Cerveja artesanal IPA (350 ml)", kcal: 210, p: 2, c: 18, g: 0 },
+  { cat: "Cervejas", e: "🍺", name: "Cerveja sem álcool (lata)", kcal: 70, p: 1, c: 15, g: 0 },
+  { cat: "Cervejas", e: "🍷", name: "Vinho (taça 150 ml)", kcal: 125, p: 0, c: 4, g: 0 },
+  { cat: "Cervejas", e: "🍹", name: "Caipirinha", kcal: 240, p: 0, c: 25, g: 0 },
+  { cat: "Cervejas", e: "🥃", name: "Destilado (dose 50 ml)", kcal: 115, p: 0, c: 0, g: 0 },
 ];
+const CATS = ["Salgados", "Lanches", "Pratos", "Petiscos", "Doces", "Frutas", "Bebidas", "Cervejas"] as const;
+const DRINK_CATS = new Set(["Bebidas", "Cervejas"]);
 const nowHM = () => { const d = new Date(Date.now() - 3 * 36e5); return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
 
 function OffPlanForm({ date, onDone }: { date: string; onDone: () => void }) {
   const [pending, start] = useTransition();
   const [kind, setKind] = useState<"comida" | "bebida">("comida");
+  const [cat, setCat] = useState<string>("Salgados");
+  const [q, setQ] = useState("");
+  const shown = PRESETS.filter((x) => (q ? x.name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").includes(q.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")) : x.cat === cat));
   const [time, setTime] = useState(nowHM());
   const [f, setF] = useState({ name: "", kcal: "", p: "", c: "", g: "", qty: "1" });
   const mult = n(f.qty) || 1;
@@ -52,15 +133,19 @@ function OffPlanForm({ date, onDone }: { date: string; onDone: () => void }) {
   });
   return (
     <div className="grid gap-3">
-      <div className="grid grid-cols-2 gap-2">
-        {(["comida", "bebida"] as const).map((k) => <button key={k} className="chip justify-center !min-h-11" aria-pressed={kind === k} onClick={() => setKind(k)}>{k === "comida" ? "🍽️ Comida" : "🥤 Bebida"}</button>)}
+      <input className="field" placeholder="Buscar: coxinha, cerveja, pizza…" value={q} onChange={(e) => setQ(e.target.value)} />
+      {!q && <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1">
+        {CATS.map((c) => <button key={c} className="chip shrink-0 !min-h-9 text-xs" aria-pressed={cat === c} onClick={() => setCat(c)}>{PRESETS.find((x) => x.cat === c)?.e} {c}</button>)}
+      </div>}
+      <div className="flex flex-wrap gap-1.5 max-h-48 overflow-y-auto">
+        {shown.map((x) => (
+          <button key={x.name} className="chip" aria-pressed={f.name === x.name} onClick={() => { setKind(DRINK_CATS.has(x.cat) ? "bebida" : "comida"); setF({ ...f, name: x.name, kcal: String(x.kcal), p: String(x.p), c: String(x.c), g: String(x.g) }); }}>
+            {x.e} {x.name}<span className="ml-1 text-faint">{x.kcal}</span></button>))}
+        {shown.length === 0 && <p className="text-xs text-muted">Nada encontrado. Digite abaixo e preencha as calorias.</p>}
       </div>
-      <div>
-        <p className="label mb-1.5">Atalhos (valores aproximados, ajuste se quiser)</p>
-        <div className="flex flex-wrap gap-1.5">
-          {PRESETS.filter((x) => x.kind === kind).map((x) => (
-            <button key={x.name} className="chip" aria-pressed={f.name === x.name} onClick={() => setF({ ...f, name: x.name, kcal: String(x.kcal), p: String(x.p), c: String(x.c), g: String(x.g) })}>{x.e} {x.name.split(" (")[0]}</button>))}
-        </div>
+      <p className="text-[11px] text-faint -mt-1">Valores médios aproximados por porção. Ajuste se souber o exato.</p>
+      <div className="grid grid-cols-2 gap-2">
+        {(["comida", "bebida"] as const).map((k) => <button key={k} className="chip justify-center !min-h-10" aria-pressed={kind === k} onClick={() => setKind(k)}>{k === "comida" ? "🍽️ Comida" : "🥤 Bebida"}</button>)}
       </div>
       <Field label={kind === "bebida" ? "Bebida" : "Comida"}><input className="field" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder={kind === "bebida" ? "Ex.: Refrigerante, suco" : "Ex.: Pizza, doce, salgado"} /></Field>
       <div className="grid grid-cols-4 gap-2">
