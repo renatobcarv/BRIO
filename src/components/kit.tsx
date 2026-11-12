@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 /** Painel que sobe de baixo no celular e vira modal centralizado no desktop. */
 export function Sheet({ open, onClose, title, children, accent = "#ffb340" }:
@@ -14,9 +15,11 @@ export function Sheet({ open, onClose, title, children, accent = "#ffb340" }:
     ref.current?.querySelector<HTMLElement>("input,textarea,select,button")?.focus();
     return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", esc); };
   }, [open, onClose]);
-  if (!open) return null;
-  return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" role="dialog" aria-modal="true" aria-label={title}>
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!open || !mounted) return null;
+  return createPortal(
+    <div className="fixed inset-0 z-[70] flex items-end md:items-center justify-center" role="dialog" aria-modal="true" aria-label={title}>
       <button className="absolute inset-0 bg-black/60 backdrop-blur-sm sheet-fade" aria-label="Fechar" onClick={onClose} />
       <div ref={ref} style={{ ["--accent" as string]: accent }}
         className="sheet-up relative w-full md:max-w-lg max-h-[92dvh] overflow-y-auto overflow-x-hidden rounded-t-[28px] md:rounded-[28px] border border-white/10 bg-[#111113]/95 backdrop-blur-xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))]">
@@ -27,7 +30,8 @@ export function Sheet({ open, onClose, title, children, accent = "#ffb340" }:
         </div>
         {children}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

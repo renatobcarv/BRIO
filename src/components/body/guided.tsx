@@ -4,7 +4,7 @@ import { saveWorkout } from "@/app/(app)/corpo/actions";
 import { useXp, haptic } from "@/components/game/xp";
 import { CountUp } from "@/components/count-up";
 import { fmt, n } from "@/components/kit";
-import { e1rm, lastFor, mmss, type Session, type Workout } from "./training";
+import { e1rm, isTimed, lastFor, mmss, type Session, type Workout } from "./training";
 
 const G = "#30d158";
 
@@ -59,6 +59,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const [rest, setRest] = useState<number | null>(null);
   const [finished, setFinished] = useState<null | { sets: number; vol: number; prs: string[]; xp: number; min: number }>(null);
   const ex = s.exercises[cur.e], set = ex?.sets[cur.k];
+  const timed = ex ? isTimed(ex.name, (ex.target as { muscle?: string } | undefined)?.muscle) : false;
   const totalSets = s.exercises.reduce((a, e) => a + e.sets.length, 0), doneSets = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
   const vol = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
   const last = useMemo(() => (ex ? lastFor(workouts, ex.name, s.date) : null), [ex, workouts, s.date]);
@@ -74,8 +75,8 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     // Próxima série ainda não feita; se o exercício terminou, pré-preenche a próxima com a mesma carga.
     if (ex.sets[cur.k + 1] && !ex.sets[cur.k + 1].kg) next.exercises[cur.e].sets[cur.k + 1].kg = set.kg;
     setS(next);
-    gain(Math.max(1, Math.round((kg * reps) / 100)), `${ex.name} ${fmt(kg)}×${reps}`, G);
-    const old = bestBefore(ex.name), now = e1rm(kg, reps);
+    gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min` : `${ex.name} ${fmt(kg)}×${reps}`, G);
+    const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
     if (old > 0 && now > old) setTimeout(() => celebrate("Novo recorde!", `${ex.name}: ${fmt(kg)} kg × ${reps}`), 300);
     let nx: { e: number; k: number } | null = null;
     for (let e = cur.e; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
@@ -122,19 +123,23 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
         <div key={`${cur.e}-${cur.k}`} className="step-in-right">
           <p className="text-sm text-muted">Exercício {cur.e + 1} de {s.exercises.length}</p>
           <p className="font-display text-[28px] leading-tight mt-0.5">{ex.name}</p>
-          <p className="text-sm mt-1" style={{ color: G }}>Série {cur.k + 1} de {ex.sets.length}{ex.target ? ` · meta ${ex.target.reps} reps${ex.target.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}` : ""}</p>
-          {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => `${fmt(Number(x.kg))}×${x.reps}`).join(" · ")}</p>}
+          <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `Série ${cur.k + 1} de ${ex.sets.length}${ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
+          {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}
-          <div className="grid grid-cols-2 gap-2.5 mt-4">
-            <Big label="Carga" value={set.kg} onChange={(v) => upd({ kg: v })} step={2.5} unit="kg" />
-            <Big label="Repetições" value={set.reps} onChange={(v) => upd({ reps: v })} step={1} unit="reps" />
-          </div>
+          {timed ? (
+            <div className="mt-4"><Big label="Duração" value={set.reps} onChange={(v) => upd({ reps: v, kg: "0" })} step={5} unit="minutos" /></div>
+          ) : (
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              <Big label="Carga" value={set.kg} onChange={(v) => upd({ kg: v })} step={2.5} unit="kg" />
+              <Big label="Repetições" value={set.reps} onChange={(v) => upd({ reps: v })} step={1} unit="reps" />
+            </div>
+          )}
           <div className="mt-3">
             <p className="label mb-1.5">Esforço (RPE)</p>
             <div className="flex gap-1.5">{["6", "7", "8", "9", "10"].map((r) => <button key={r} className="chip flex-1 justify-center !min-h-11" aria-pressed={set.rpe === r} onClick={() => upd({ rpe: set.rpe === r ? "" : r })}>{r}</button>)}</div>
           </div>
           <button className="btn w-full mt-4 !min-h-16 text-lg font-semibold text-black" style={{ background: G, boxShadow: `0 10px 30px -10px ${G}` }} disabled={!n(set.reps)} onClick={complete}>
-            Série feita <span className="opacity-60 text-sm ml-1">+{Math.max(1, Math.round((n(set.kg) * n(set.reps)) / 100))} XP</span></button>
+            {timed ? "Concluído" : "Série feita"} <span className="opacity-60 text-sm ml-1">+{timed ? Math.min(30, Math.max(5, Math.round(n(set.reps)))) : Math.max(1, Math.round((n(set.kg) * n(set.reps)) / 100))} XP</span></button>
         </div>
       )}
 

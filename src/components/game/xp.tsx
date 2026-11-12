@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { levelOf, rankOf } from "@/lib/game";
 import { CountUp } from "@/components/count-up";
 
@@ -46,6 +47,7 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
   return (
     <XpCtx.Provider value={{ total, today, gain, celebrate }}>
       {children}
+      {typeof document !== "undefined" && createPortal(<>
       <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.5rem)] z-50 flex flex-col items-center gap-2" aria-live="polite">
         {floats.map((f) => <span key={f.id} className="xp-float rounded-full px-4 py-1.5 text-sm font-semibold backdrop-blur-md border" style={{ color: f.color, borderColor: f.color + "55", background: "rgba(14,16,21,.85)" }}>{f.text}</span>)}
       </div>
@@ -67,6 +69,7 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
           </div>
         </div>
       )}
+      </>, document.body)}
     </XpCtx.Provider>
   );
 }

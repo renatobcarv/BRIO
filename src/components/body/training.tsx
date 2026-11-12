@@ -22,6 +22,8 @@ export type Session = { date: string; label: string; exercises: LEx[]; notes: st
 export const e1rm = (kg: number, reps: number) => (reps <= 0 ? 0 : reps === 1 ? kg : kg * (1 + Math.min(reps, 12) / 30));
 const volume = (sets: DbSet[]) => sets.reduce((a, s) => a + Number(s.kg) * s.reps, 0);
 export const firstNum = (s: string) => Number((s.match(/\d+/) ?? ["0"])[0]);
+/** Exercícios medidos em tempo (cardio, mobilidade): o campo "reps" guarda minutos. */
+export const isTimed = (name: string, muscle?: string) => muscle === "cardio" || /cardio|bike|bicicleta|caminhada|corrida|esteira|el[ií]ptico|mobilidade|alongamento|remo erg|escada/i.test(name);
 export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -149,8 +151,10 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
               {e.sets.map((x, si) => (
                 <div key={si} className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-1.5">
                   <span className="num text-muted">{si + 1}</span>
-                  <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label={`Carga série ${si + 1}`} />
-                  <input className="field !min-h-11 text-center num" inputMode="numeric" value={x.reps} onChange={(ev) => updSet(ei, si, { reps: ev.target.value })} aria-label={`Repetições série ${si + 1}`} />
+                  {isTimed(e.name, e.target && "muscle" in e.target ? String((e.target as { muscle?: string }).muscle) : undefined)
+                    ? <span className="text-xs text-muted text-center">tempo</span>
+                    : <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label={`Carga série ${si + 1}`} />}
+                  <input className="field !min-h-11 text-center num" inputMode="numeric" value={x.reps} placeholder={isTimed(e.name) ? "min" : ""} onChange={(ev) => updSet(ei, si, { reps: ev.target.value })} aria-label={isTimed(e.name) ? "Minutos" : `Repetições série ${si + 1}`} />
                   <input className="field !min-h-11 !px-1 text-center num text-sm" inputMode="decimal" placeholder="—" value={x.rpe ?? ""} onChange={(ev) => updSet(ei, si, { rpe: ev.target.value })} aria-label={`RPE série ${si + 1}`} />
                   <button aria-pressed={x.done} aria-label={`Concluir série ${si + 1}`} onClick={() => toggle(ei, si)}
                     className="h-11 w-11 grid place-items-center rounded-xl border transition-colors" style={{ borderColor: x.done ? G : "rgba(255,255,255,.15)", background: x.done ? G : "transparent" }}>
@@ -394,7 +398,7 @@ export function Training({ today, split, plan, workouts, program = null, program
             {viewing.week_no != null && <p className="label">Semana {viewing.week_no}{viewing.phase ? ` · ${viewing.phase}` : ""}</p>}
             {viewing.planned?.length ? <PlanVsDone w={viewing} /> : [...new Set(viewing.sets.map((s) => s.exercise))].map((ex) => (
               <div key={ex}><p className="font-medium">{ex}</p>
-                <p className="text-sm text-muted num">{viewing.sets.filter((s) => s.exercise === ex).map((s) => `${fmt(Number(s.kg))}×${s.reps}${s.rpe ? ` @${fmt(Number(s.rpe))}` : ""}`).join("  ·  ")}</p></div>
+                <p className="text-sm text-muted num">{viewing.sets.filter((s) => s.exercise === ex).map((s) => (isTimed(ex) ? `${s.reps} min` : `${fmt(Number(s.kg))}×${s.reps}`) + (s.rpe ? ` @${fmt(Number(s.rpe))}` : "")).join("  ·  ")}</p></div>
             ))}
             {viewing.notes && <p className="font-display italic">{viewing.notes}</p>}
             <p className="text-xs text-muted">Volume {Math.round(volume(viewing.sets)).toLocaleString("pt-BR")} kg{viewing.duration_min ? ` · ${viewing.duration_min} min` : ""}</p>
@@ -426,20 +430,21 @@ function PlanVsDone({ w }: { w: Workout }) {
         const status = !p ? "extra" : done.length === 0 ? "não feito" : done.length < p.sets ? "parcial" : "completo";
         const color = status === "completo" ? G : status === "parcial" ? "#ffb340" : status === "extra" ? "#0a84ff" : "#ff453a";
         const rpes = done.filter((s) => s.rpe).map((s) => Number(s.rpe));
+        const timed = isTimed(name, p?.muscle);
         return (
           <div key={name} className="rounded-2xl bg-white/[.03] p-3">
             <div className="flex items-center gap-2"><p className="font-medium flex-1">{name}</p><span className="tag" style={{ color }}>{status}</span></div>
             <table className="w-full text-sm mt-2 num">
               <thead><tr className="label text-left"><th className="font-normal py-1"></th><th className="font-normal">Plan.</th><th className="font-normal">Feito</th></tr></thead>
               <tbody>
-                <tr><td className="text-muted py-0.5">Séries</td><td>{p?.sets ?? "—"}</td><td>{done.length}</td></tr>
-                <tr><td className="text-muted py-0.5">Reps</td><td>{p?.reps ?? "—"}</td><td>{done.map((s) => s.reps).join(", ") || "—"}</td></tr>
-                <tr><td className="text-muted py-0.5">Carga</td><td>{p?.kg != null ? `${fmt(p.kg)} kg` : "—"}</td>
-                  <td style={{ color: p?.kg != null && top ? (top > p.kg ? G : top < p.kg ? "#ff453a" : undefined) : undefined }}>{done.length ? done.map((s) => fmt(Number(s.kg))).join(", ") : "—"}</td></tr>
+                {!timed && <tr><td className="text-muted py-0.5">Séries</td><td>{p?.sets ?? "—"}</td><td>{done.length}</td></tr>}
+                <tr><td className="text-muted py-0.5">{timed ? "Duração" : "Reps"}</td><td>{p ? (timed ? `${firstNum(p.reps)} min` : p.reps) : "—"}</td><td>{done.map((s) => (timed ? `${s.reps} min` : s.reps)).join(", ") || "—"}</td></tr>
+                {!timed && <tr><td className="text-muted py-0.5">Carga</td><td>{p?.kg != null ? `${fmt(p.kg)} kg` : "—"}</td>
+                  <td style={{ color: p?.kg != null && top ? (top > p.kg ? G : top < p.kg ? "#ff453a" : undefined) : undefined }}>{done.length ? done.map((s) => fmt(Number(s.kg))).join(", ") : "—"}</td></tr>}
                 <tr><td className="text-muted py-0.5">RPE</td><td>{p?.rpe ? fmt(p.rpe) : "—"}</td><td>{rpes.length ? rpes.map((r) => fmt(r)).join(", ") : "—"}</td></tr>
               </tbody>
             </table>
-            {p && target > 0 && done.length > 0 && <p className="text-[11px] text-muted mt-1">{done.filter((s) => s.reps >= target).length} de {done.length} séries bateram a meta de repetições</p>}
+            {p && target > 0 && done.length > 0 && <p className="text-[11px] text-muted mt-1">{timed ? (done.reduce((a, s) => a + s.reps, 0) >= target ? "Tempo planejado cumprido" : `Faltaram ${target - done.reduce((a, s) => a + s.reps, 0)} min do planejado`) : `${done.filter((s) => s.reps >= target).length} de ${done.length} séries bateram a meta de repetições`}</p>}
           </div>
         );
       })}
