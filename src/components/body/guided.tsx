@@ -59,8 +59,11 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const [rest, setRest] = useState<number | null>(null);
   const [finished, setFinished] = useState<null | { sets: number; vol: number; prs: string[]; xp: number; min: number }>(null);
   const [clock, setClock] = useState(0);
+  const [err, setErr] = useState<string | null>(null);
   const top = useRef<HTMLDivElement>(null);
   useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, []);
+  // Sessão aberta sem horário (restaurada ou iniciada por outro caminho): o cronômetro começa agora.
+  useEffect(() => { if (!s.startedAt && !s.editingId) setS({ ...s, startedAt: Date.now() }); }, [s.startedAt]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const id = setInterval(() => setClock(s.startedAt ? Date.now() - s.startedAt : 0), 1000); return () => clearInterval(id); }, [s.startedAt]);
   const ex = s.exercises[cur.e], set = ex?.sets[cur.k];
   const timed = ex ? isTimed(ex.name, (ex.target as { muscle?: string } | undefined)?.muscle) : false;
@@ -93,8 +96,11 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     const sets = s.exercises.flatMap((e) => e.sets.filter((x) => x.done).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)), rpe: x.rpe && n(x.rpe) ? Math.min(10, Math.max(1, n(x.rpe))) : null })));
     const min = s.startedAt ? Math.round((Date.now() - s.startedAt) / 60000) : 0;
     const prs = s.exercises.filter((e) => !isTimed(e.name)).filter((e) => { const b = bestBefore(e.name); const top = Math.max(0, ...e.sets.filter((x) => x.done).map((x) => e1rm(n(x.kg), n(x.reps)))); return b > 0 && top > b; }).map((e) => e.name);
-    await saveWorkout({ date: s.date, split_label: s.label, notes: s.notes, duration_min: s.editingId ? null : min || null, sets,
-      program_id: s.programId ?? null, week_no: s.weekNo ?? null, phase: s.phase ?? null, planned: s.planned ?? null }, s.editingId);
+    try {
+      await saveWorkout({ date: s.date, split_label: s.label.slice(0, 80), notes: s.notes, duration_min: s.editingId ? null : min || null, sets,
+        program_id: s.programId ?? null, week_no: s.weekNo ?? null, phase: s.phase ?? null, planned: s.planned ?? null }, s.editingId);
+    } catch (err) { setErr(err instanceof Error ? err.message : "Não foi possível salvar. Tente de novo."); return; }
+    setErr(null);
     const xp = Math.min(300, Math.round(vol / 100)) + prs.length * 100;
     setFinished({ sets: sets.length, vol, prs, xp, min });
     celebrate("Treino concluído", `${sets.length} séries · ${Math.round(vol).toLocaleString("pt-BR")} kg`);
@@ -157,7 +163,9 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
 
       <div className="flex items-center justify-between mt-5 text-sm">
         <span className="text-muted">{doneSets}/{totalSets} séries · {Math.round(vol).toLocaleString("pt-BR")} kg</span>
-        <button className="btn !min-h-10 text-sm" disabled={pending || doneSets === 0} onClick={finish}>{pending ? "Salvando…" : "Finalizar treino"}</button>
+        {doneSets === 0
+          ? <button className="btn !min-h-10 text-sm" onClick={() => { if (confirm("Cancelar este treino? Nada será salvo.")) setS(null); }}>Cancelar treino</button>
+          : <button className="btn !min-h-10 text-sm font-semibold" style={{ borderColor: G, color: G }} disabled={pending} onClick={finish}>{pending ? "Salvando…" : "Finalizar treino"}</button>}
       </div>
       <details className="mt-3">
         <summary className="text-sm text-muted cursor-pointer min-h-10 flex items-center">Ir para outro exercício</summary>
@@ -170,6 +178,8 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           })}
         </ul>
       </details>
+      {err && <p role="alert" className="text-sm text-[#ff6961] mt-2">Erro ao salvar: {err}</p>}
+      {doneSets > 0 && <button className="text-xs text-muted underline underline-offset-4 mt-2 min-h-10" onClick={() => { if (confirm("Descartar este treino? As séries marcadas serão perdidas.")) setS(null); }}>Descartar treino</button>}
     </div>
   );
 }
