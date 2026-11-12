@@ -1,7 +1,8 @@
 // Google Agenda (OAuth 2.0 + Calendar API v3) via fetch. Só no servidor: usa GOOGLE_CLIENT_SECRET.
 import "server-only";
 
-const ID = process.env.GOOGLE_CLIENT_ID ?? "", SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
+// Client ID é público (aparece na tela do Google); o secret fica só na Vercel.
+const ID = process.env.GOOGLE_CLIENT_ID || "920681950911-jmt9nkeknua47ckgfv0a942im5r3q47g.apps.googleusercontent.com", SECRET = process.env.GOOGLE_CLIENT_SECRET ?? "";
 export const googleReady = () => !!ID && !!SECRET;
 export const SCOPES = "openid email https://www.googleapis.com/auth/calendar.events";
 
