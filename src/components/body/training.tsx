@@ -6,7 +6,7 @@ import { Empty } from "@/components/ui";
 import { Field, LinkBtn, SectionTitle, Sheet, Stat, fmt, n } from "@/components/kit";
 import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShort } from "@/lib/date";
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
-import { PHASE_KINDS, programPosition, type PlannedEx, type Program } from "@/lib/training";
+import { PHASE_KINDS, dayShort, dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
 import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
@@ -59,11 +59,11 @@ function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Wor
   };
 }
 /** Plano do dia: fase atual do programa ativo, senão o plano semanal simples. */
-function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string): { list: Target[]; ctx: Ctx } {
+function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string): { list: Target[]; ctx: Ctx; title?: string } {
   if (program) {
     const pos = programPosition(program, today);
     const ph = program.phases[pos.phaseIndex];
-    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
+    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
   }
   return { list: plan.days[String(d)] ?? [], ctx: null };
 }
@@ -262,7 +262,7 @@ export function Training({ today, split, plan, workouts, program = null, program
     const date = addDays(monday, i), d = dow(date), dp = dayPlan(d, plan, program, date), sd = split.find((x) => x.dow === d);
     const done = workouts.some((w) => w.date === date);
     const status: "done" | "today" | "missed" | "rest" | "next" = done ? "done" : date === today ? "today" : !dp.list.length ? "rest" : date < today ? "missed" : "next";
-    return { date, d, dp, label: sd?.label ?? "—", focus: sd?.focus ?? "", status };
+    return { date, d, dp, label: dp.title ? dayShort(dp.title) : sd?.label ?? "—", focus: dp.title ?? sd?.focus ?? "", title: dp.title, status };
   });
   const [selDate, setSelDate] = useState(today);
   const sel = weekDays.find((w) => w.date === selDate) ?? weekDays.find((w) => w.date === today)!;
@@ -304,11 +304,11 @@ export function Training({ today, split, plan, workouts, program = null, program
         <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(171,36,36,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #ab2424" }}>
           {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
             <>
-              <div className="flex items-center justify-between"><p className="text-sm font-semibold">{program.name}</p><span className="text-xs text-muted">ver programa ›</span></div>
+              <div className="flex items-center justify-between"><p className="text-sm font-semibold">{program.name}</p><span className="text-xs text-muted">ver campanha ›</span></div>
               <p className="text-xs mt-0.5" style={{ color: ph ? PHASE_KINDS[ph.kind].color : "#8e8e93" }}>{pos.status === "andamento" ? `Semana ${pos.week} de ${pos.total} · ${ph?.name}` : pos.status === "futuro" ? `Começa em ${pos.startsIn} dias` : "Programa concluído"}</p>
               <div className="mt-3"><Timeline p={program} today={today} /></div>
             </>); })() : (
-            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Monte seu programa</p><p className="text-xs text-muted mt-0.5">Fases, semanas e progressão de carga</p></div><span className="text-xs text-muted">criar ›</span></div>
+            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Monte sua campanha</p><p className="text-xs text-muted mt-0.5">Fases, semanas e progressão de carga</p></div><span className="text-xs text-muted">criar ›</span></div>
           )}
         </button>
       )}
@@ -321,7 +321,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       </section>
 
       <section className="glass rise p-5 mt-4">
-        <SectionTitle action={<LinkBtn onClick={() => setSheet(program ? "program" : "plan")}>{program ? "Editar programa" : "Editar plano"}</LinkBtn>}>{session ? "Missão em andamento" : "Esta semana"}</SectionTitle>
+        <SectionTitle action={<LinkBtn onClick={() => setSheet(program ? "program" : "plan")}>{program ? "Editar campanha" : "Editar plano"}</LinkBtn>}>{session ? "Missão em andamento" : "Esta semana"}</SectionTitle>
         {session ? (
           <>
             {!session.editingId && (
@@ -358,7 +358,7 @@ export function Training({ today, split, plan, workouts, program = null, program
               return (
                 <div key={sel.date} className="step-in-right">
                   <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "ACTIVE MISSION" : sel.date < today ? "MISSÃO ANTERIOR" : "PRÓXIMA MISSÃO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
-                  <p className="font-display text-[26px] leading-tight mt-1">{sel.label} · {sel.focus || "Descanso"}</p>
+                  <p className="font-display text-[26px] leading-tight mt-1">{sel.title ?? `${sel.label} · ${sel.focus || "Descanso"}`}</p>
                   {ctx && <p className="text-xs mt-0.5" style={{ color: ctx.deload ? "#30d158" : G }}>{ctx.phase}{ctx.deload ? " · recuperação: cargas reduzidas" : ""}</p>}
                   {list.length > 0 ? (
                     <>
@@ -385,7 +385,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                   ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
                   {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
                     <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 12px 34px -10px #e0393e" }}
-                      onClick={() => { const day = split.find((x) => x.dow === sel.d) ?? todayDay; setSession(buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx)); }}>
+                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; setSession(buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx)); }}>
                       {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
                   )}
                 </div>
@@ -461,7 +461,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       </section>
 
       <Sheet tone="war" accent={G} open={sheet === "plan"} onClose={() => setSheet(null)} title="Plano semanal"><PlanEditor split={split} plan={plan} onDone={() => setSheet(null)} /></Sheet>
-      <Sheet tone="war" accent={G} open={sheet === "program"} onClose={() => setSheet(null)} title="Programa">{programSlot}</Sheet>
+      <Sheet tone="war" accent={G} open={sheet === "program"} onClose={() => setSheet(null)} title="Campanha">{programSlot}</Sheet>
       <Sheet tone="war" accent={G} open={!!viewing} onClose={() => setSheet(null)} title={viewing ? `${shortDate(viewing.date)} · ${viewing.split_label ?? "Treino"}` : ""}>
         {viewing && (
           <div className="grid gap-3">

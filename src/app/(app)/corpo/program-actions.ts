@@ -18,6 +18,7 @@ const PhaseS = z.object({
   id: z.string().min(1).max(40), name: z.string().trim().min(1).max(60), kind: z.enum(Object.keys(PHASE_KINDS) as [string, ...string[]]),
   weeks: z.number().int().min(1).max(52), notes: z.string().max(1000),
   days: z.record(z.string().regex(/^[0-6]$/), z.array(Ex).max(25)),
+  dayNames: z.record(z.string().regex(/^[0-6]$/), z.string().max(40)).optional(),
 });
 const ProgramS = z.object({
   name: z.string().trim().min(1).max(100), goal: z.enum(Object.keys(GOALS) as [string, ...string[]]),

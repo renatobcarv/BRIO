@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { activateProgram, archiveProgram, deleteProgram, saveProgram } from "@/app/(app)/corpo/program-actions";
 import { Empty } from "@/components/ui";
+import { ProgramBuilder } from "./program-builder";
 import { Field, LinkBtn, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort } from "@/lib/date";
 import {
@@ -14,7 +15,7 @@ const ORDER = ["1", "2", "3", "4", "5", "6", "0"];
 const blankEx = (): PlannedEx => ({ name: "", muscle: "outro", sets: 3, reps: "8-12", kg: null, rpe: 7, rir: 2, rest: 90, notes: "" });
 
 /** Biblioteca rápida: um toque adiciona o exercício já configurado para a fase. */
-const LIBRARY: [string, string[]][] = [
+export const LIBRARY: [string, string[]][] = [
   ["Peito", ["Supino", "Supino inclinado halteres", "Crucifixo", "Crossover", "Flexão de braço"]],
   ["Costas", ["Puxada frontal", "Barra fixa", "Remada curvada", "Remada baixa", "Remada unilateral"]],
   ["Ombros", ["Desenvolvimento militar", "Elevação lateral", "Face pull", "Crucifixo invertido"]],
@@ -23,7 +24,7 @@ const LIBRARY: [string, string[]][] = [
   ["Core", ["Prancha", "Abdominal", "Abdominal infra"]],
   ["Cardio", ["Bicicleta", "Caminhada inclinada", "Corrida", "Elíptico", "Mobilidade quadril e tornozelo"]],
 ];
-function fromLibrary(name: string, kind: PhaseKind, overrides: Record<string, Muscle>): PlannedEx {
+export function fromLibrary(name: string, kind: PhaseKind, overrides: Record<string, Muscle>): PlannedEx {
   const muscle = guessMuscle(name, overrides);
   if (muscle === "cardio" || /mobilidade/i.test(name)) return { name, muscle: "cardio", sets: 1, reps: /mobilidade/i.test(name) ? "10 min" : "25 min", kg: null, rpe: kind === "deload" ? 4 : 6, rir: null, rest: 0, notes: "" };
   const main = /^(supino|agachamento|levantamento terra)$/i.test(name);
@@ -212,57 +213,15 @@ export function ProgramView({ programs, today, planDays, overrides, sessionsDone
 
   return (
     <div style={{ ["--accent" as string]: G }}>
-      {active ? (() => {
-        const pos = programPosition(active, today), ph = active.phases[pos.phaseIndex], ranges = phaseRanges(active);
-        const planned = ph ? Object.values(ph.days).filter((l) => l.length).length : 0;
-        const done = sessionsDone[`${active.id}:${pos.week}`] ?? 0;
-        return (
+      {active ? (
           <>
-            <section className="glass rise p-5">
-              <div className="flex items-start justify-between gap-2">
-                <div><p className="label" style={{ color: G }}>Programa ativo · {GOALS[active.goal]}</p><p className="font-display text-2xl mt-1">{active.name}</p></div>
-                <LinkBtn onClick={() => setForm({ ...active })}>Editar</LinkBtn>
-              </div>
-              <div className="grid grid-cols-3 gap-3 mt-4">
-                <div><p className="label">Semana</p><p className="num text-3xl">{pos.status === "futuro" ? "—" : `${pos.week}`}<span className="text-muted text-lg">/{pos.total}</span></p></div>
-                <div><p className="label">Fase</p><p className="text-lg leading-tight mt-1" style={{ color: ph ? PHASE_KINDS[ph.kind].color : undefined }}>{pos.status === "futuro" ? `começa em ${pos.startsIn} d` : pos.status === "concluido" ? "Concluído" : ph?.name}</p>
-                  {pos.status === "andamento" && <p className="text-xs text-muted">sem. {pos.weekInPhase} de {ph?.weeks}</p>}</div>
-                <div><p className="label">Esta semana</p><p className="num text-3xl">{done}<span className="text-muted text-lg">/{planned}</span></p><p className="text-xs text-muted">treinos</p></div>
-              </div>
-              <div className="mt-5"><Timeline p={active} today={today} /></div>
-              {ph && pos.status === "andamento" && <p className="text-sm text-muted mt-2 font-display italic">{ph.notes || PHASE_KINDS[ph.kind].hint}</p>}
-            </section>
-
-            <section className="glass rise p-5 mt-4">
-              <SectionTitle>Fases</SectionTitle>
-              <ul className="grid gap-3">
-                {active.phases.map((f, i) => {
-                  const vol = plannedSetsByMuscle(f), cur = i === pos.phaseIndex && pos.status === "andamento";
-                  return (
-                    <li key={f.id} className={`rounded-2xl p-4 border ${cur ? "border-white/20 bg-white/[.04]" : "border-white/[.06]"}`}>
-                      <div className="flex items-center gap-2">
-                        <i className="h-3 w-3 rounded-full" style={{ background: PHASE_KINDS[f.kind].color }} />
-                        <p className="font-medium flex-1">{f.name}{cur && <span className="tag ml-2">atual</span>}</p>
-                        <p className="text-xs text-muted">{shortDate(ranges[i].start)} – {shortDate(ranges[i].end)}</p>
-                      </div>
-                      <p className="text-xs text-muted mt-1">{PHASE_KINDS[f.kind].label} · {f.weeks} {f.weeks === 1 ? "semana" : "semanas"} · {Object.values(f.days).filter((l) => l.length).length} treinos/sem.</p>
-                      <div className="flex flex-wrap gap-1.5 mt-2">
-                        {Object.entries(vol).filter(([, v]) => v).sort((a, b) => b[1]! - a[1]!).slice(0, 8).map(([m, v]) => <span key={m} className="tag">{MUSCLES[m as Muscle]} {v}</span>)}
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-              <p className="text-[11px] text-faint mt-3">Números = séries diretas planejadas por semana.</p>
-            </section>
-
-            <div className="flex gap-2 mt-4">
+            <ProgramBuilder key={active.id} program={active} today={today} overrides={overrides} />
+            <div className="flex gap-2 mt-5">
               <button className="btn flex-1" disabled={pending} onClick={() => { if (confirm("Arquivar este programa? O histórico fica guardado.")) start(() => archiveProgram(active.id)); }}>Arquivar</button>
               <button className="btn flex-1" onClick={fromPlan}>Novo programa</button>
             </div>
           </>
-        );
-      })() : (
+      ) : (
         <section className="glass rise p-5">
           <p className="font-display text-2xl">Periodização</p>
           <p className="text-muted mt-1">Organize o treino em fases com objetivo claro. O app compara o planejado com o realizado e guarda os dois.</p>

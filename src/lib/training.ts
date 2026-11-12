@@ -27,7 +27,21 @@ export type PlannedEx = {
   name: string; muscle: Muscle; sets: number; reps: string;
   kg: number | null; rpe: number | null; rir: number | null; rest: number; notes: string;
 };
-export type Phase = { id: string; name: string; kind: PhaseKind; weeks: number; notes: string; days: Record<string, PlannedEx[]> };
+export type Phase = { id: string; name: string; kind: PhaseKind; weeks: number; notes: string; days: Record<string, PlannedEx[]>; dayNames?: Record<string, string> };
+
+/** Nome do dia: o definido na fase ou, sem nome, os dois grupos musculares com mais séries. */
+export function dayTitle(phase: Pick<Phase, "days" | "dayNames">, d: string) {
+  const own = phase.dayNames?.[d]?.trim();
+  if (own) return own;
+  const l = phase.days[d] ?? [];
+  if (!l.length) return "Descanso";
+  if (l.every((e) => e.muscle === "cardio")) return "Cardio";
+  const c: Record<string, number> = {};
+  for (const e of l) if (e.muscle !== "cardio" && e.muscle !== "outro") c[MUSCLES[e.muscle]] = (c[MUSCLES[e.muscle]] ?? 0) + e.sets;
+  return Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 2).map(([m]) => m).join(" · ") || "Treino";
+}
+/** Abreviação curta para a faixa da semana. */
+export const dayShort = (title: string) => title === "Descanso" ? "–" : title.split(/[\s·/]+/).filter(Boolean).map((w) => w[0]).join("").slice(0, 3).toUpperCase();
 export type Program = {
   id: string; created_at?: string; name: string; goal: Goal; start_date: string; phases: Phase[];
   notes: string | null; active: boolean; archived: boolean;
