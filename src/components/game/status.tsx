@@ -133,7 +133,7 @@ export function StatusSheet({ g }: { g: Game }) {
           <li><b className="text-ink">Sabedoria:</b> 1 por minuto de estudo · 15 por capítulo da Bíblia · 1 a cada 2 páginas · 150 por livro concluído</li>
           <li><b className="text-ink">Serviço:</b> 1 a cada 2 minutos de campo (30 por hora)</li>
           <li><b className="text-ink">Força:</b> 1 a cada 100 kg de volume (até 300 por sessão) · 100 por recorde em agachamento, supino ou terra</li>
-          <li><b className="text-ink">Vigor:</b> 20 por meta de água · 15 por noite de 7h+ · 30 por cardio</li>
+          <li><b className="text-ink">Vigor:</b> 20 por meta de água · 15 por noite de 7h+ · 30 por cardio · 10 por refeição registrada · 25 por meta de proteína</li>
           <li><b className="text-ink">Ordem:</b> 5 por lançamento (até 150/mês) · 150 por mês fechado com 10%+ de sobra</li>
         </ul>
         <p className="text-xs text-faint mt-3">Tudo vem dos seus registros reais. Não há XP de graça: o nível mede o que você fez.</p>

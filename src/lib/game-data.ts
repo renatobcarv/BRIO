@@ -6,7 +6,7 @@ import type { Settings } from "./settings";
 /** Junta os registros reais de todas as áreas e calcula o progresso. Tabelas ausentes contam como vazias. */
 export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const q = async <T,>(p: PromiseLike<{ data: T[] | null; error: unknown }>) => { const r = await p; return r.error ? [] : r.data ?? []; };
-  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal] = await Promise.all([
+  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal, mealRows] = await Promise.all([
     q<{ date: string; item_key: string }>(sb.from("daily_checks").select("date,item_key").eq("done", true).limit(20000)),
     q<{ date: string; minutes: number }>(sb.from("study_entries").select("date,minutes").limit(10000)),
     q<{ date_read: string }>(sb.from("bible_reading").select("date_read").limit(2000)),
@@ -21,6 +21,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     q<{ date: string; kind: string }>(sb.from("clean_marks").select("date,kind").limit(5000)),
     q<{ date: string; item_key: string; created_at: string }>(sb.from("daily_checks").select("date,item_key,created_at").eq("done", true).limit(20000)),
     q<{ id: string }>(sb.from("journal_entries").select("id").limit(5000)),
+    q<{ date: string; slot: string; protein_g: number }>(sb.from("meal_items").select("date,slot,protein_g").limit(20000)),
   ]);
 
   const keys = s.checklist.map((c) => c.key);
@@ -52,6 +53,8 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
       .filter((c) => { const h = (new Date(c.created_at).getUTCHours() + 21) % 24; return h >= 3 && h < 7; }).map((c) => c.date),
     journalCount: journal.length,
     weightGoal: s.weight_goal_kg,
+    meals: (() => { const m = new Map<string, { slots: Set<string>; protein: number }>(); for (const r of mealRows) { const x = m.get(r.date) ?? { slots: new Set(), protein: 0 }; x.slots.add(r.slot); x.protein += Number(r.protein_g); m.set(r.date, x); } return [...m].map(([date, v]) => ({ date, slots: v.slots.size, protein: v.protein })); })(),
+    proteinGoal: s.protein_goal_g,
   };
   return summarize(input);
 }

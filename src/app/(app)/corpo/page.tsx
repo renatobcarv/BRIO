@@ -11,12 +11,13 @@ import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-const TABS = [["hoje", "Hoje"], ["treino", "Treino"], ["programa", "Programa"], ["alimentacao", "Alimentação"], ["peso", "Peso"]] as const;
+const TABS = [["hoje", "Hoje"], ["treino", "Treino"], ["alimentacao", "Dieta"], ["peso", "Peso"]] as const;
 const N = (v: unknown) => Number(v) || 0;
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string; d?: string }> }) {
   const sp = await searchParams;
-  const tab = sp.aba ?? "hoje";
+  const openProgram = sp.aba === "programa";
+  const tab = openProgram ? "treino" : sp.aba ?? "hoje";
   const sb = await createClient();
   const today = todayISO();
   const s = await getSettings(sb);
@@ -26,17 +27,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   if (tab === "peso") {
     const { data } = await sb.from("weight_logs").select("id,date,kg").order("date");
     content = <Weight today={today} goal={s.weight_goal_kg} startKg={s.weight_start_kg} rate={s.weight_rate_kg_week} logs={(data ?? []).map((l) => ({ ...l, kg: N(l.kg) }))} />;
-  } else if (tab === "programa") {
-    const [progs, ws] = await Promise.all([
-      sb.from("training_programs").select("*").order("created_at", { ascending: false }),
-      sb.from("workouts").select("program_id,week_no").not("program_id", "is", null),
-    ]);
-    const done: Record<string, number> = {};
-    for (const w of ws.data ?? []) { const k = `${w.program_id}:${w.week_no}`; done[k] = (done[k] ?? 0) + 1; }
-    content = progs.error
-      ? <p className="glass p-5 text-sm text-[#ff453a]">Rode a migração <code>supabase/migrations/20261106000000_periodizacao.sql</code> no SQL Editor do Supabase para usar a periodização.</p>
-      : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
-          overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={done} />;
   } else if (tab === "treino") {
     const q = (cols: string) => sb.from("workouts").select(cols).order("date", { ascending: false }).order("created_at", { ascending: false }).limit(400);
     let [res, prog] = await Promise.all([
@@ -52,7 +42,17 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       planned: w.planned, week_no: w.week_no, phase: w.phase,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sets: (w.workout_sets ?? []).map((x: any) => ({ ...x, kg: N(x.kg), rpe: x.rpe != null ? N(x.rpe) : null })).sort((a: any, b: any) => a.exercise.localeCompare(b.exercise) || a.set_no - b.set_no) }));
-    content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} />;
+    const [progs, wsP] = await Promise.all([
+      sb.from("training_programs").select("*").order("created_at", { ascending: false }),
+      sb.from("workouts").select("program_id,week_no").not("program_id", "is", null),
+    ]);
+    const doneMap: Record<string, number> = {};
+    for (const w of wsP.data ?? []) { const k = `${w.program_id}:${w.week_no}`; doneMap[k] = (doneMap[k] ?? 0) + 1; }
+    const programSlot = progs.error
+      ? <p className="text-sm text-[#ff453a]">Rode a migração supabase/migrations/20261106000000_periodizacao.sql no Supabase para usar programas.</p>
+      : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
+          overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={doneMap} />;
+    content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} />;
   } else if (tab === "alimentacao") {
     const date = sp.d && /^\d{4}-\d{2}-\d{2}$/.test(sp.d) ? sp.d : today;
     const from = addDays(date, -6);
@@ -88,7 +88,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
 
   return (
     <>
-      <PageHeader eyebrow="Corpo" title="Treino, dieta e saúde" color="#30d158" />
+      <PageHeader eyebrow="Corpo" title="Treino e dieta" color="#30d158" />
       <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
         <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 max-w-full overflow-x-auto" role="tablist">
           {TABS.map(([k, l]) => (

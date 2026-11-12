@@ -7,23 +7,25 @@ import { Field, LinkBtn, SectionTitle, Sheet, Stat, fmt, n } from "@/components/
 import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShort } from "@/lib/date";
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, programPosition, type PlannedEx, type Program } from "@/lib/training";
+import { GuidedLogger } from "./guided";
+import { Timeline } from "./program";
 
 const G = "#30d158";
 type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
 export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
-type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
-type Target = PlanExercise & Partial<Pick<PlannedEx, "kg" | "rpe" | "rir" | "notes">>;
-type LEx = { name: string; target?: Target; sets: LSet[] };
-type Session = { date: string; label: string; exercises: LEx[]; notes: string; startedAt: number | null; editingId?: string;
+export type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
+export type Target = PlanExercise & Partial<Pick<PlannedEx, "kg" | "rpe" | "rir" | "notes">>;
+export type LEx = { name: string; target?: Target; sets: LSet[] };
+export type Session = { date: string; label: string; exercises: LEx[]; notes: string; startedAt: number | null; editingId?: string;
   programId?: string | null; weekNo?: number | null; phase?: string | null; planned?: PlannedEx[] | null };
 
-const e1rm = (kg: number, reps: number) => (reps <= 0 ? 0 : reps === 1 ? kg : kg * (1 + Math.min(reps, 12) / 30));
+export const e1rm = (kg: number, reps: number) => (reps <= 0 ? 0 : reps === 1 ? kg : kg * (1 + Math.min(reps, 12) / 30));
 const volume = (sets: DbSet[]) => sets.reduce((a, s) => a + Number(s.kg) * s.reps, 0);
-const firstNum = (s: string) => Number((s.match(/\d+/) ?? ["0"])[0]);
-const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+export const firstNum = (s: string) => Number((s.match(/\d+/) ?? ["0"])[0]);
+export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
-function lastFor(workouts: Workout[], name: string, beforeDate: string) {
+export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
   const w = workouts.find((w) => w.date <= beforeDate && w.sets.some((s) => s.exercise.toLowerCase() === name.toLowerCase()));
   return w ? { date: w.date, sets: w.sets.filter((s) => s.exercise.toLowerCase() === name.toLowerCase()) } : null;
 }
@@ -230,11 +232,12 @@ function PlanEditor({ split, plan, onDone }: { split: SplitDay[]; plan: WorkoutP
 }
 
 /* ───────────── Tela ───────────── */
-export function Training({ today, split, plan, workouts, program = null }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null }) {
+export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean }) {
   const [pending, start] = useTransition();
   const KEY = "brio-treino-em-andamento";
   const [session, setSessionState] = useState<Session | null>(null);
-  const [sheet, setSheet] = useState<null | "plan" | Workout>(null);
+  const [sheet, setSheet] = useState<null | "plan" | "program" | Workout>(openProgram ? "program" : null);
+  const [mode, setMode] = useState<"guiado" | "lista">("guiado");
   const [exSel, setExSel] = useState(plan.prs[0] ?? "");
   const todayDay = split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
   const todayPlan = dayPlan(dow(today), plan, program, today);
@@ -272,6 +275,18 @@ export function Training({ today, split, plan, workouts, program = null }: { tod
 
   return (
     <div style={{ ["--accent" as string]: G }}>
+      {programSlot && (
+        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(48,209,88,.3)", background: "linear-gradient(160deg, rgba(48,209,88,.14), #0f0f11 70%)" }}>
+          {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
+            <>
+              <div className="flex items-center justify-between"><p className="text-sm font-semibold">{program.name}</p><span className="text-xs text-muted">ver programa ›</span></div>
+              <p className="text-xs mt-0.5" style={{ color: ph ? PHASE_KINDS[ph.kind].color : "#8e8e93" }}>{pos.status === "andamento" ? `Semana ${pos.week} de ${pos.total} · ${ph?.name}` : pos.status === "futuro" ? `Começa em ${pos.startsIn} dias` : "Programa concluído"}</p>
+              <div className="mt-3"><Timeline p={program} today={today} /></div>
+            </>); })() : (
+            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Monte seu programa</p><p className="text-xs text-muted mt-0.5">Fases, semanas e progressão de carga</p></div><span className="text-xs text-muted">criar ›</span></div>
+          )}
+        </button>
+      )}
       <section className="glass rise p-5">
         <div className="grid grid-cols-3 gap-3">
           <Stat big label="Semana" value={`${weekW.length}/${planned}`} sub="treinos" />
@@ -283,7 +298,16 @@ export function Training({ today, split, plan, workouts, program = null }: { tod
       <section className="glass rise p-5 mt-4">
         <SectionTitle action={<LinkBtn onClick={() => setSheet("plan")}>Editar plano</LinkBtn>}>{session ? "Treino em andamento" : "Treino de hoje"}</SectionTitle>
         {session ? (
-          <Logger s={session} setS={setSession} workouts={workouts} split={split} plan={plan} program={program} onSaved={() => setSession(null)} />
+          <>
+            {!session.editingId && (
+              <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 mb-4">
+                {(["guiado", "lista"] as const).map((m) => <button key={m} onClick={() => setMode(m)} className={`min-h-9 px-4 rounded-xl text-sm ${mode === m ? "bg-white/[.1] text-ink" : "text-muted"}`}>{m === "guiado" ? "Guiado" : "Lista completa"}</button>)}
+              </div>
+            )}
+            {mode === "guiado" && !session.editingId
+              ? <GuidedLogger s={session} setS={setSession} workouts={workouts} onSaved={() => setSession(null)} />
+              : <Logger s={session} setS={setSession} workouts={workouts} split={split} plan={plan} program={program} onSaved={() => setSession(null)} />}
+          </>
         ) : (
           <>
             {todayPlan.ctx && <p className="label mb-1" style={{ color: PHASE_KINDS[program!.phases.find((f) => f.name === todayPlan.ctx!.phase)?.kind ?? "outro"].color }}>Semana {todayPlan.ctx.weekNo} · {todayPlan.ctx.phase}</p>}
@@ -363,6 +387,7 @@ export function Training({ today, split, plan, workouts, program = null }: { tod
       </section>
 
       <Sheet accent={G} open={sheet === "plan"} onClose={() => setSheet(null)} title="Plano semanal"><PlanEditor split={split} plan={plan} onDone={() => setSheet(null)} /></Sheet>
+      <Sheet accent={G} open={sheet === "program"} onClose={() => setSheet(null)} title="Programa">{programSlot}</Sheet>
       <Sheet accent={G} open={!!viewing} onClose={() => setSheet(null)} title={viewing ? `${shortDate(viewing.date)} · ${viewing.split_label ?? "Treino"}` : ""}>
         {viewing && (
           <div className="grid gap-3">

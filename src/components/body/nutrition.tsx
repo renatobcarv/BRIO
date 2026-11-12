@@ -7,6 +7,7 @@ import { Ring } from "@/components/ui";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { addDays, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
+import { MealQuiz } from "@/components/quiz/meal-quiz";
 
 const G = "#30d158", P = "#ffb340", C = "#0a84ff", F = "#bf5af2";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
@@ -149,7 +150,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   date: string; today: string; slots: MealSlot[]; items: Item[]; doneSlots: string[]; foods: Food[]; goals: Goals; week: { date: string; kcal: number; protein: number }[];
 }) {
   const [pending, start] = useTransition();
-  const [sheet, setSheet] = useState<null | { kind: "add"; slot: string } | { kind: "edit"; item: Item } | { kind: "foods" | "slots" | "goals" }>(null);
+  const [sheet, setSheet] = useState<null | { kind: "add"; slot: string } | { kind: "edit"; item: Item } | { kind: "foods" | "slots" | "goals" | "quiz" }>(null);
   const close = () => setSheet(null);
   const kcal = sum(items, "kcal"), prot = sum(items, "protein_g"), carb = sum(items, "carbs_g"), fat = sum(items, "fat_g");
   const remaining = goals.kcal - kcal;
@@ -165,6 +166,11 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         <Link className="btn" href={`/corpo?aba=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
       </nav>
 
+      <button onClick={() => setSheet({ kind: "quiz" })} className="press w-full rounded-[22px] p-4 mb-4 flex items-center gap-4 text-left border" style={{ borderColor: G + "55", background: `linear-gradient(160deg, ${G}26, #0f0f11 70%)` }}>
+        <span className="h-12 w-12 rounded-2xl grid place-items-center glow shrink-0" style={{ background: G, ["--glow" as string]: G } as React.CSSProperties}>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg></span>
+        <span className="flex-1"><span className="block font-semibold text-[16px]">Registrar refeição</span><span className="text-sm text-muted">{doneSlots.length}/{slots.length} refeições · +10 XP cada</span></span>
+      </button>
       <section className="glass rise p-5">
         <SectionTitle action={<LinkBtn onClick={() => setSheet({ kind: "goals" })}>Metas</LinkBtn>}>Resumo do dia</SectionTitle>
         <div className="flex items-center gap-6">
@@ -238,6 +244,9 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         title={sheet?.kind === "edit" ? "Editar alimento" : `Adicionar · ${slots.find((s) => sheet?.kind === "add" && s.key === sheet.slot)?.label ?? ""}`}>
         {sheet?.kind === "add" && <ItemForm key={"a" + sheet.slot} date={date} slot={sheet.slot} foods={foods} onDone={close} />}
         {sheet?.kind === "edit" && <ItemForm key={sheet.item.id} date={date} slot={sheet.item.slot} item={sheet.item} foods={foods} onDone={close} />}
+      </Sheet>
+      <Sheet accent={G} open={sheet?.kind === "quiz"} onClose={close} title="Refeição">
+        {sheet?.kind === "quiz" && <MealQuiz date={date} slots={slots} foods={foods} doneSlots={doneSlots} proteinSoFar={prot} proteinGoal={goals.protein} onClose={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "foods"} onClose={close} title="Alimentos favoritos"><FoodsManager foods={foods} /></Sheet>
       <Sheet accent={G} open={sheet?.kind === "slots"} onClose={close} title="Refeições do dia"><SlotsEditor slots={slots} onDone={close} /></Sheet>
