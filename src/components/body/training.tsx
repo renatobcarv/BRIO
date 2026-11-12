@@ -9,10 +9,11 @@ import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
 import { TrainingSystem } from "./training-system";
+import { suggestLoad, type Suggestion } from "@/lib/progression";
 import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 
-const G = "#30d158";
+const G = "#e0393e";
 type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
 export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
 export type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
@@ -29,12 +30,20 @@ export const isTimed = (name: string, muscle?: string) => muscle === "cardio" ||
 export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 const ORDER = [1, 2, 3, 4, 5, 6, 0];
 
+/** Histórico de um exercício (séries de força) para a sugestão de carga. */
+export function historyOf(workouts: Workout[], name: string, beforeDate: string) {
+  return workouts.filter((w) => w.date <= beforeDate).flatMap((w) => w.sets.filter((x) => x.exercise.toLowerCase() === name.toLowerCase()).map((x) => ({ date: w.date, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })));
+}
+export function suggestionFor(workouts: Workout[], t: Target, date: string, deload: boolean): Suggestion | null {
+  if (isTimed(t.name, (t as { muscle?: string }).muscle)) return null;
+  return suggestLoad(historyOf(workouts, t.name, date), { reps: t.reps, rpe: t.rpe ?? null }, { deload });
+}
 export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
   const w = workouts.find((w) => w.date <= beforeDate && w.sets.some((s) => s.exercise.toLowerCase() === name.toLowerCase()));
   return w ? { date: w.date, sets: w.sets.filter((s) => s.exercise.toLowerCase() === name.toLowerCase()) } : null;
 }
 
-type Ctx = { programId: string; weekNo: number; phase: string } | null;
+type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
 function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null): Session {
   return {
     date, label: ctx ? `${day.label} · ${day.focus} · S${ctx.weekNo}` : `${day.label} · ${day.focus}`, notes: "", startedAt: null,
@@ -42,9 +51,10 @@ function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Wor
     planned: ctx ? (plan as PlannedEx[]).map((p) => ({ ...p })) : null,
     exercises: plan.map((p) => {
       const last = lastFor(workouts, p.name, date);
-      const kg = p.kg != null ? String(p.kg) : last?.sets[0] ? String(last.sets[0].kg) : "";
+      const sug = p.kg == null ? suggestionFor(workouts, p, date, !!ctx?.deload) : null;
+      const kg = p.kg != null ? String(p.kg) : sug ? String(sug.kg) : last?.sets[0] ? String(last.sets[0].kg) : "";
       return { name: p.name, target: p, sets: Array.from({ length: p.sets }, (_, i) => ({
-        kg: p.kg != null ? kg : last?.sets[i] ? String(last.sets[i].kg) : last?.sets.at(-1) ? String(last.sets.at(-1)!.kg) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "" })) };
+        kg: p.kg != null || sug ? kg : last?.sets[i] ? String(last.sets[i].kg) : last?.sets.at(-1) ? String(last.sets.at(-1)!.kg) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "" })) };
     }),
   };
 }
@@ -53,7 +63,7 @@ function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: s
   if (program) {
     const pos = programPosition(program, today);
     const ph = program.phases[pos.phaseIndex];
-    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], ctx: { programId: program.id, weekNo: pos.week, phase: ph.name } };
+    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
   }
   return { list: plan.days[String(d)] ?? [], ctx: null };
 }
@@ -247,6 +257,15 @@ export function Training({ today, split, plan, workouts, program = null, program
   const [exSel, setExSel] = useState(plan.prs[0] ?? "");
   const todayDay = split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
   const todayPlan = dayPlan(dow(today), plan, program, today);
+  const monday = addDays(today, -((dow(today) + 6) % 7));
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(monday, i), d = dow(date), dp = dayPlan(d, plan, program, date), sd = split.find((x) => x.dow === d);
+    const done = workouts.some((w) => w.date === date);
+    const status: "done" | "today" | "missed" | "rest" | "next" = done ? "done" : date === today ? "today" : !dp.list.length ? "rest" : date < today ? "missed" : "next";
+    return { date, d, dp, label: sd?.label ?? "—", focus: sd?.focus ?? "", status };
+  });
+  const [selDate, setSelDate] = useState(today);
+  const sel = weekDays.find((w) => w.date === selDate) ?? weekDays.find((w) => w.date === today)!;
 
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
   const setSession = (s: Session | null) => { setSessionState(s); try { if (s && !s.editingId) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch {} };
@@ -282,7 +301,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   return (
     <div style={{ ["--accent" as string]: G }}>
       {programSlot && (
-        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(48,209,88,.3)", background: "linear-gradient(160deg, rgba(48,209,88,.14), #0f0f11 70%)" }}>
+        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(171,36,36,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #ab2424" }}>
           {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
             <>
               <div className="flex items-center justify-between"><p className="text-sm font-semibold">{program.name}</p><span className="text-xs text-muted">ver programa ›</span></div>
@@ -302,7 +321,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       </section>
 
       <section className="glass rise p-5 mt-4">
-        <SectionTitle action={<LinkBtn onClick={() => setSheet("plan")}>Editar plano</LinkBtn>}>{session ? "Treino em andamento" : "Treino de hoje"}</SectionTitle>
+        <SectionTitle action={<LinkBtn onClick={() => setSheet(program ? "program" : "plan")}>{program ? "Editar programa" : "Editar plano"}</LinkBtn>}>{session ? "Missão em andamento" : "Esta semana"}</SectionTitle>
         {session ? (
           <>
             {!session.editingId && (
@@ -316,24 +335,62 @@ export function Training({ today, split, plan, workouts, program = null, program
           </>
         ) : (
           <>
-            {todayPlan.list.length > 0 && (() => { const sets = todayPlan.list.reduce((a, x) => a + x.sets, 0); const min = Math.round(todayPlan.list.reduce((a, x) => a + x.sets * ((x.rest || 60) + 45), 0) / 60); return (
-              <div className="mb-3">
-                <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>ACTIVE MISSION</p>
-                <div className="grid grid-cols-3 gap-2 mt-2">
-                  {[[todayPlan.list.length, "exercícios"], [sets, "séries"], [min, "minutos"]].map(([v, l]) => <div key={String(l)} className="rounded-xl bg-white/[.04] py-2 text-center"><p className="num text-2xl">{v}</p><p className="text-[10px] text-muted">{l}</p></div>)}
+            <div className="grid grid-cols-7 gap-1.5 mb-4">
+              {weekDays.map((w) => {
+                const on = w.date === sel.date;
+                const c = w.status === "done" ? G : w.status === "missed" ? "#5a1414" : w.status === "rest" ? "rgba(255,255,255,.06)" : "rgba(224,57,62,.18)";
+                return (
+                  <button key={w.date} onClick={() => setSelDate(w.date)} aria-pressed={on} aria-label={`${weekdayShort[w.d]} ${w.label}`}
+                    className="press flex flex-col items-center gap-1 rounded-2xl py-2 border transition-all"
+                    style={{ borderColor: on ? G : "rgba(255,255,255,.06)", background: on ? "rgba(224,57,62,.14)" : "transparent", boxShadow: on ? `0 0 18px -6px ${G}` : "none" }}>
+                    <span className={`text-[10px] ${w.date === today ? "text-ink font-semibold" : "text-muted"}`}>{weekdayShort[w.d]}</span>
+                    <span className="h-8 w-8 rounded-full grid place-items-center text-[10px] font-bold"
+                      style={{ background: c, color: w.status === "done" ? "#fff" : "#f5f5f7", boxShadow: w.status === "done" ? `0 0 12px ${G}` : "none" }}>
+                      {w.status === "done" ? "✓" : w.status === "rest" ? "–" : w.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {(() => {
+              const list = sel.dp.list, ctx = sel.dp.ctx, sets = list.reduce((a, x) => a + x.sets, 0);
+              const min = Math.round(list.reduce((a, x) => a + x.sets * ((x.rest || 60) + 45), 0) / 60);
+              const doneW = workouts.find((w) => w.date === sel.date);
+              return (
+                <div key={sel.date} className="step-in-right">
+                  <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "ACTIVE MISSION" : sel.date < today ? "MISSÃO ANTERIOR" : "PRÓXIMA MISSÃO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
+                  <p className="font-display text-[26px] leading-tight mt-1">{sel.label} · {sel.focus || "Descanso"}</p>
+                  {ctx && <p className="text-xs mt-0.5" style={{ color: ctx.deload ? "#30d158" : G }}>{ctx.phase}{ctx.deload ? " · recuperação: cargas reduzidas" : ""}</p>}
+                  {list.length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-3 gap-2 mt-3">
+                        {[[list.length, "exercícios"], [sets, "séries"], [min, "minutos"]].map(([v, l]) => <div key={String(l)} className="rounded-xl bg-white/[.04] py-2 text-center"><p className="num text-2xl">{v}</p><p className="text-[10px] text-muted">{l}</p></div>)}
+                      </div>
+                      <ul className="mt-3 grid gap-1.5">
+                        {list.map((x, i) => {
+                          const sg = x.kg == null ? suggestionFor(workouts, x, sel.date < today ? sel.date : today, !!ctx?.deload) : null;
+                          const timed = isTimed(x.name, (x as { muscle?: string }).muscle);
+                          return (
+                            <li key={i} className="rounded-xl bg-white/[.03] px-3 py-2.5">
+                              <div className="flex justify-between gap-3 text-sm"><span className="font-medium">{x.name}</span>
+                                <span className="num text-muted shrink-0">{timed ? x.reps : `${x.sets}×${x.reps}`}{x.rpe ? ` @${fmt(x.rpe)}` : ""}</span></div>
+                              {!timed && (x.kg != null || sg) && (
+                                <p className="text-xs mt-1"><span className="num font-semibold" style={{ color: G }}>{fmt(x.kg ?? sg!.kg)} kg</span>
+                                  <span className="text-faint"> · {x.kg != null ? "carga do plano" : `sugerido: ${sg!.reason}`}</span></p>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    </>
+                  ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
+                  {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
+                    <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 12px 34px -10px #e0393e" }}
+                      onClick={() => { const day = split.find((x) => x.dow === sel.d) ?? todayDay; setSession(buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx)); }}>
+                      {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
+                  )}
                 </div>
-                <p className="text-xs text-muted mt-2">Objetivo: concluir o treino respeitando as cargas, repetições e a intensidade planejadas. Recompensa: XP de Força e progresso nas medalhas.</p>
-              </div>); })()}
-            {todayPlan.ctx && <p className="label mb-1" style={{ color: PHASE_KINDS[program!.phases.find((f) => f.name === todayPlan.ctx!.phase)?.kind ?? "outro"].color }}>Semana {todayPlan.ctx.weekNo} · {todayPlan.ctx.phase}</p>}
-            <p className="font-display text-2xl">{todayDay.label} · {todayDay.focus}</p>
-            <ul className="mt-3 grid gap-1">
-              {todayPlan.list.map((x, i) => (
-                <li key={i} className="flex justify-between gap-3 text-sm py-1.5 border-b border-white/5 last:border-0"><span>{x.name}</span>
-                  <span className="text-muted num text-right">{x.sets}×{x.reps}{x.kg != null ? ` @ ${fmt(x.kg)}` : ""}{x.rpe ? ` · RPE ${fmt(x.rpe)}` : ""}</span></li>
-              ))}
-            </ul>
-            <button className="btn btn-accent w-full mt-4" onClick={() => setSession(buildSession(today, todayDay, todayPlan.list, workouts, todayPlan.ctx))}>
-              {todayPlan.list.length ? "Começar treino" : "Registrar treino extra"}</button>
+              );
+            })()}
           </>
         )}
       </section>

@@ -9,7 +9,7 @@ import {
   type Goal, type Muscle, type Phase, type PhaseKind, type PlannedEx, type Program,
 } from "@/lib/training";
 
-const G = "#30d158";
+const G = "#e0393e";
 const ORDER = ["1", "2", "3", "4", "5", "6", "0"];
 const blankEx = (): PlannedEx => ({ name: "", muscle: "outro", sets: 3, reps: "8-12", kg: null, rpe: 7, rir: 2, rest: 90, notes: "" });
 const numOrNull = (s: string) => (s.trim() === "" ? null : n(s));

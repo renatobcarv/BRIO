@@ -89,7 +89,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
 
   return (
     <>
-      <PageHeader eyebrow="Corpo" title="Treino e dieta" color="#30d158" />
+      <div className={tab === "treino" ? "war" : undefined}>
+      {tab === "treino"
+        ? <header className="rise mb-6"><p className="text-[11px] font-semibold tracking-[.32em] flex items-center gap-2" style={{ color: "#e0393e" }}><span className="h-1.5 w-1.5 rounded-full war-pulse" style={{ background: "#e0393e", boxShadow: "0 0 10px #e0393e" }} />ASCENSION · TREINO</p><h1 className="font-display text-5xl mt-2 leading-none tracking-tight uppercase">War Room</h1><p className="text-sm text-muted mt-2">Disciplina conquista o impulso.</p></header>
+        : <PageHeader eyebrow="Corpo" title="Treino e dieta" color="#30d158" />}
       <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
         <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 max-w-full overflow-x-auto" role="tablist">
           {TABS.map(([k, l]) => (
@@ -100,6 +103,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       </div>
       {content}
       <Verse area="corpo" />
+      </div>
     </>
   );
 }

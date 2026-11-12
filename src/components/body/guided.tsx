@@ -6,7 +6,7 @@ import { CountUp } from "@/components/count-up";
 import { fmt, n } from "@/components/kit";
 import { e1rm, isTimed, lastFor, mmss, type Session, type Workout } from "./training";
 
-const G = "#30d158";
+const G = "#e0393e";
 
 function Rest({ total, onDone }: { total: number; onDone: () => void }) {
   const [left, setLeft] = useState(total);
