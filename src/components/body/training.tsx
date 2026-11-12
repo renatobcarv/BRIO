@@ -20,7 +20,7 @@ export type Session = { date: string; label: string; exercises: LEx[]; notes: st
   programId?: string | null; weekNo?: number | null; phase?: string | null; planned?: PlannedEx[] | null };
 
 export const e1rm = (kg: number, reps: number) => (reps <= 0 ? 0 : reps === 1 ? kg : kg * (1 + Math.min(reps, 12) / 30));
-const volume = (sets: DbSet[]) => sets.reduce((a, s) => a + Number(s.kg) * s.reps, 0);
+const volume = (sets: DbSet[]) => sets.filter((s) => !isTimed(s.exercise)).reduce((a, s) => a + Number(s.kg) * s.reps, 0);
 export const firstNum = (s: string) => Number((s.match(/\d+/) ?? ["0"])[0]);
 /** Exercícios medidos em tempo (cardio, mobilidade): o campo "reps" guarda minutos. */
 export const isTimed = (name: string, muscle?: string) => muscle === "cardio" || /cardio|bike|bicicleta|caminhada|corrida|esteira|el[ií]ptico|mobilidade|alongamento|remo erg|escada/i.test(name);
@@ -152,7 +152,7 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                 <div key={si} className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-1.5">
                   <span className="num text-muted">{si + 1}</span>
                   {isTimed(e.name, e.target && "muscle" in e.target ? String((e.target as { muscle?: string }).muscle) : undefined)
-                    ? <span className="text-xs text-muted text-center">tempo</span>
+                    ? <input className="field !min-h-11 text-center num" inputMode="decimal" placeholder="km" value={x.kg === "0" ? "" : x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label="Distância em km (opcional)" />
                     : <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label={`Carga série ${si + 1}`} />}
                   <input className="field !min-h-11 text-center num" inputMode="numeric" value={x.reps} placeholder={isTimed(e.name) ? "min" : ""} onChange={(ev) => updSet(ei, si, { reps: ev.target.value })} aria-label={isTimed(e.name) ? "Minutos" : `Repetições série ${si + 1}`} />
                   <input className="field !min-h-11 !px-1 text-center num text-sm" inputMode="decimal" placeholder="—" value={x.rpe ?? ""} onChange={(ev) => updSet(ei, si, { rpe: ev.target.value })} aria-label={`RPE série ${si + 1}`} />
@@ -256,7 +256,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   const weekW = workouts.filter((w) => w.date >= weekStart);
   const planned = ORDER.filter((d) => (plan.days[String(d)] ?? []).some((x) => x.name.toLowerCase() !== "cardio")).length;
   const trained = new Set(workouts.map((w) => w.date));
-  const all = workouts.flatMap((w) => w.sets.map((s) => ({ ...s, kg: Number(s.kg), date: w.date })));
+  const all = workouts.flatMap((w) => w.sets.filter((s) => !isTimed(s.exercise)).map((s) => ({ ...s, kg: Number(s.kg), date: w.date })));
   const names = [...new Set(all.map((s) => s.exercise))].sort((a, b) => a.localeCompare(b));
   const prOf = (name: string) => {
     const re = new RegExp(name.split(/\s+/)[0].slice(0, 6), "i");
@@ -398,7 +398,7 @@ export function Training({ today, split, plan, workouts, program = null, program
             {viewing.week_no != null && <p className="label">Semana {viewing.week_no}{viewing.phase ? ` · ${viewing.phase}` : ""}</p>}
             {viewing.planned?.length ? <PlanVsDone w={viewing} /> : [...new Set(viewing.sets.map((s) => s.exercise))].map((ex) => (
               <div key={ex}><p className="font-medium">{ex}</p>
-                <p className="text-sm text-muted num">{viewing.sets.filter((s) => s.exercise === ex).map((s) => (isTimed(ex) ? `${s.reps} min` : `${fmt(Number(s.kg))}×${s.reps}`) + (s.rpe ? ` @${fmt(Number(s.rpe))}` : "")).join("  ·  ")}</p></div>
+                <p className="text-sm text-muted num">{viewing.sets.filter((s) => s.exercise === ex).map((s) => (isTimed(ex) ? `${s.reps} min${Number(s.kg) ? ` · ${fmt(Number(s.kg))} km` : ""}` : `${fmt(Number(s.kg))}×${s.reps}`) + (s.rpe ? ` @${fmt(Number(s.rpe))}` : "")).join("  ·  ")}</p></div>
             ))}
             {viewing.notes && <p className="font-display italic">{viewing.notes}</p>}
             <p className="text-xs text-muted">Volume {Math.round(volume(viewing.sets)).toLocaleString("pt-BR")} kg{viewing.duration_min ? ` · ${viewing.duration_min} min` : ""}</p>
@@ -439,6 +439,7 @@ function PlanVsDone({ w }: { w: Workout }) {
               <tbody>
                 {!timed && <tr><td className="text-muted py-0.5">Séries</td><td>{p?.sets ?? "—"}</td><td>{done.length}</td></tr>}
                 <tr><td className="text-muted py-0.5">{timed ? "Duração" : "Reps"}</td><td>{p ? (timed ? `${firstNum(p.reps)} min` : p.reps) : "—"}</td><td>{done.map((s) => (timed ? `${s.reps} min` : s.reps)).join(", ") || "—"}</td></tr>
+                {timed && done.some((s) => Number(s.kg) > 0) && <tr><td className="text-muted py-0.5">Distância</td><td>—</td><td>{done.map((s) => `${fmt(Number(s.kg))} km`).join(", ")}</td></tr>}
                 {!timed && <tr><td className="text-muted py-0.5">Carga</td><td>{p?.kg != null ? `${fmt(p.kg)} kg` : "—"}</td>
                   <td style={{ color: p?.kg != null && top ? (top > p.kg ? G : top < p.kg ? "#ff453a" : undefined) : undefined }}>{done.length ? done.map((s) => fmt(Number(s.kg))).join(", ") : "—"}</td></tr>}
                 <tr><td className="text-muted py-0.5">RPE</td><td>{p?.rpe ? fmt(p.rpe) : "—"}</td><td>{rpes.length ? rpes.map((r) => fmt(r)).join(", ") : "—"}</td></tr>

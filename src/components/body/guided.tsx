@@ -61,7 +61,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const ex = s.exercises[cur.e], set = ex?.sets[cur.k];
   const timed = ex ? isTimed(ex.name, (ex.target as { muscle?: string } | undefined)?.muscle) : false;
   const totalSets = s.exercises.reduce((a, e) => a + e.sets.length, 0), doneSets = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
-  const vol = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
+  const vol = s.exercises.filter((e) => !isTimed(e.name)).reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
   const last = useMemo(() => (ex ? lastFor(workouts, ex.name, s.date) : null), [ex, workouts, s.date]);
   const bestBefore = (name: string) => Math.max(0, ...workouts.flatMap((w) => w.sets).filter((x) => x.exercise.toLowerCase() === name.toLowerCase()).map((x) => e1rm(Number(x.kg), x.reps)));
 
@@ -75,7 +75,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     // Próxima série ainda não feita; se o exercício terminou, pré-preenche a próxima com a mesma carga.
     if (ex.sets[cur.k + 1] && !ex.sets[cur.k + 1].kg) next.exercises[cur.e].sets[cur.k + 1].kg = set.kg;
     setS(next);
-    gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min` : `${ex.name} ${fmt(kg)}×${reps}`, G);
+    gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min${kg ? ` · ${fmt(kg)} km` : ""}` : `${ex.name} ${fmt(kg)}×${reps}`, G);
     const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
     if (old > 0 && now > old) setTimeout(() => celebrate("Novo recorde!", `${ex.name}: ${fmt(kg)} kg × ${reps}`), 300);
     let nx: { e: number; k: number } | null = null;
@@ -87,7 +87,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const finish = () => start(async () => {
     const sets = s.exercises.flatMap((e) => e.sets.filter((x) => x.done).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)), rpe: x.rpe && n(x.rpe) ? Math.min(10, Math.max(1, n(x.rpe))) : null })));
     const min = s.startedAt ? Math.round((Date.now() - s.startedAt) / 60000) : 0;
-    const prs = s.exercises.filter((e) => { const b = bestBefore(e.name); const top = Math.max(0, ...e.sets.filter((x) => x.done).map((x) => e1rm(n(x.kg), n(x.reps)))); return b > 0 && top > b; }).map((e) => e.name);
+    const prs = s.exercises.filter((e) => !isTimed(e.name)).filter((e) => { const b = bestBefore(e.name); const top = Math.max(0, ...e.sets.filter((x) => x.done).map((x) => e1rm(n(x.kg), n(x.reps)))); return b > 0 && top > b; }).map((e) => e.name);
     await saveWorkout({ date: s.date, split_label: s.label, notes: s.notes, duration_min: s.editingId ? null : min || null, sets,
       program_id: s.programId ?? null, week_no: s.weekNo ?? null, phase: s.phase ?? null, planned: s.planned ?? null }, s.editingId);
     const xp = Math.min(300, Math.round(vol / 100)) + prs.length * 100;
@@ -124,10 +124,13 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           <p className="text-sm text-muted">Exercício {cur.e + 1} de {s.exercises.length}</p>
           <p className="font-display text-[28px] leading-tight mt-0.5">{ex.name}</p>
           <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `Série ${cur.k + 1} de ${ex.sets.length}${ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
-          {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
+          {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min${Number(x.kg) ? ` · ${fmt(Number(x.kg))} km` : ""}` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}
           {timed ? (
-            <div className="mt-4"><Big label="Duração" value={set.reps} onChange={(v) => upd({ reps: v, kg: "0" })} step={5} unit="minutos" /></div>
+            <div className="grid grid-cols-2 gap-2.5 mt-4">
+              <Big label="Duração" value={set.reps} onChange={(v) => upd({ reps: v })} step={5} unit="minutos" />
+              <Big label="Distância" value={set.kg} onChange={(v) => upd({ kg: v })} step={0.5} unit="km · opcional" />
+            </div>
           ) : (
             <div className="grid grid-cols-2 gap-2.5 mt-4">
               <Big label="Carga" value={set.kg} onChange={(v) => upd({ kg: v })} step={2.5} unit="kg" />

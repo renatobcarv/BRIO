@@ -1,23 +1,8 @@
-import { ATTRS, RANKS, RARITY, type Attr } from "@/lib/game";
+import { ASCENSION_CREED, ATTRS, RANKS, RARITY, TITLES, rankIndex, type Attr } from "@/lib/game";
+import { Insignia, TitleBadge } from "./insignia";
 import type { Game } from "@/lib/game-data";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
 import { CountUp } from "@/components/count-up";
-
-/** Emblema da patente: hexágono com brilho da cor dela. */
-function Emblem({ color, level }: { color: string; level: number }) {
-  const hex = "M60 6l47 27v54l-47 27-47-27V33z";
-  return (
-    <div className="relative mx-auto w-[150px] h-[150px] grid place-items-center">
-      <div className="absolute inset-4 rounded-full blur-2xl breathe" style={{ background: color, opacity: .35 }} aria-hidden />
-      <svg viewBox="0 0 120 120" className="absolute inset-0 w-full h-full emblem-spin" aria-hidden>
-        <defs><linearGradient id="emb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={color} /><stop offset="1" stopColor="#ffffff" stopOpacity=".7" /></linearGradient></defs>
-        <path d={hex} fill="#111113" stroke="url(#emb)" strokeWidth="2.5" />
-        <path d="M60 18l37 21v42l-37 21-37-21V39z" fill="none" stroke={color} strokeOpacity=".35" strokeWidth="1" />
-      </svg>
-      <div className="relative text-center"><p className="text-[11px] text-muted">Nível</p><CountUp value={level} duration={1400} className="num text-5xl leading-none text-glow" style={{ ["--glow" as string]: color } as React.CSSProperties} /></div>
-    </div>
-  );
-}
 
 const KEYS = Object.keys(ATTRS) as Attr[];
 
@@ -45,8 +30,11 @@ export function StatusSheet({ g }: { g: Game }) {
   return (
     <>
       <section className="glass rise p-6 relative overflow-hidden text-center">
-        <Emblem color={g.rank.color} level={g.level} />
-        <p className="text-lg font-semibold mt-3 text-glow" style={{ color: g.rank.color, ["--glow" as string]: g.rank.color } as React.CSSProperties}>{g.rank.name}</p>
+        <p className="text-[10px] font-semibold tracking-[.32em] text-muted relative">ASCENSION · THE PATH OF MASTERY</p>
+        <div className="relative mx-auto w-fit mt-3 emblem-spin"><Insignia index={rankIndex(g.level)} size={150} /></div>
+        <p className="text-3xl font-bold tracking-[.08em] uppercase mt-3 text-glow relative" style={{ color: g.rank.color, ["--glow" as string]: g.rank.color } as React.CSSProperties}>{g.rank.name}</p>
+        <p className="text-sm text-ink/80 relative">{g.rank.pt} · nível <CountUp value={g.level} /></p>
+        <p className="text-sm italic text-muted mt-2 relative">“{g.rank.motto}”</p>
         <div className="mt-5 h-3 rounded-full bg-white/[.07] overflow-hidden relative">
           <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(2, g.progress * 100)}%`, background: `linear-gradient(90deg, ${g.rank.color}, #ffd27a)`, boxShadow: `0 0 16px ${g.rank.color}` }} />
         </div>
@@ -54,6 +42,59 @@ export function StatusSheet({ g }: { g: Game }) {
           <span><CountUp value={g.into} /> / {g.need.toLocaleString("pt-BR")} XP</span><span><CountUp value={g.total} duration={1400} /> XP no total</span>
         </div>
         {nextRank && <p className="text-sm text-muted mt-3 relative">Próxima patente: <span style={{ color: nextRank.color }}>{nextRank.name}</span> no nível {nextRank.min}</p>}
+      </section>
+
+      <section className="rise mt-4 rounded-[24px] p-5 text-center border border-white/[.06]" style={{ background: "linear-gradient(160deg, #1a0b0b, #0d0d0d 70%)" }}>
+        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#c6a15b" }}>O CREDO</p>
+        <p className="font-display text-xl mt-2 leading-snug">{ASCENSION_CREED}</p>
+        <p className="text-xs text-muted mt-2">Você não compete com ninguém. Está construindo alguém que possa respeitar.</p>
+      </section>
+
+      <section className="glass rise p-5 mt-4">
+        <p className="label mb-4">A jornada · 10 patentes</p>
+        <ol className="grid gap-2.5">
+          {RANKS.map((r, i) => {
+            const cur = i === rankIndex(g.level), got = g.level >= r.min, nextMin = RANKS[i + 1]?.min;
+            return (
+              <li key={r.name} className={`relative flex gap-4 rounded-2xl p-3.5 border transition-all ${got ? "" : "opacity-55"}`}
+                style={{ borderColor: cur ? r.color : "rgba(255,255,255,.06)", background: cur ? `linear-gradient(160deg, ${r.color}24, #0f0f11 70%)` : "#0f0f11", boxShadow: cur ? `0 0 30px -12px ${r.color}` : undefined }}>
+                <div className="shrink-0"><Insignia index={i} size={58} locked={!got} glow={cur} /></div>
+                <div className="min-w-0">
+                  <div className="flex items-baseline gap-2 flex-wrap">
+                    <span className="text-[11px] num text-faint">{String(i + 1).padStart(2, "0")}</span>
+                    <span className="font-bold tracking-[.08em] uppercase" style={{ color: got ? r.color : undefined }}>{r.name}</span>
+                    <span className="text-xs text-muted">— {r.pt}</span>
+                    {cur && <span className="tag" style={{ color: r.color }}>você</span>}
+                  </div>
+                  <p className="text-[13px] text-muted mt-1 leading-snug">{r.meaning}</p>
+                  <p className="text-xs italic mt-1.5" style={{ color: got ? r.color : "#5a5a5f" }}>“{r.motto}”</p>
+                  <p className="text-[10px] text-faint mt-1 num">Nível {r.min}{nextMin ? `–${nextMin - 1}` : "+"}</p>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
+      </section>
+
+      <section className="glass rise p-5 mt-4">
+        <p className="label mb-1">Títulos extraordinários</p>
+        <p className="text-xs text-faint mb-4">Distinções raras, além da patente.</p>
+        <div className="grid gap-3">
+          {TITLES.map((t) => {
+            const earned = g.titles?.find((x) => x.id === t.id)?.earned ?? false;
+            return (
+              <div key={t.id} className={`flex items-center gap-4 rounded-2xl p-3.5 border ${earned ? "achv-shine relative overflow-hidden" : ""}`}
+                style={{ borderColor: earned ? t.color : "rgba(255,255,255,.06)", background: earned ? `linear-gradient(160deg, ${t.color}26, #0f0f11 70%)` : "#0f0f11" }}>
+                <TitleBadge id={t.id} size={58} locked={!earned} />
+                <div className="min-w-0">
+                  <p className="font-bold tracking-[.12em] uppercase" style={{ color: earned ? t.color : "#8e8e93" }}>{t.name}</p>
+                  <p className="text-[13px] text-muted leading-snug mt-0.5">{t.meaning}</p>
+                  <p className="text-[11px] mt-1" style={{ color: earned ? "#30d158" : "#5a5a5f" }}>{earned ? "Conquistado" : t.rule}</p>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </section>
 
       <section className="glass rise p-5 mt-4">

@@ -9,7 +9,7 @@ test("curva de níveis", () => {
   assert.equal(levelOf(0).level, 1); assert.equal(levelOf(99).level, 1); assert.equal(levelOf(100).level, 2); assert.equal(levelOf(4500).level, 10);
   assert.equal(levelOf(150).into, 50); assert.equal(levelOf(150).need, 200);
 });
-test("patentes e atributos", () => { assert.equal(rankOf(1).name, "Iniciante"); assert.equal(rankOf(12).name, "Firme"); assert.equal(rankOf(60).name, "Lendário"); assert.equal(attrValue(0), 1); assert.equal(attrValue(1000), 10); assert.equal(attrValue(1e9), 99); });
+test("patentes e atributos", () => { assert.equal(rankOf(1).name, "Initiate"); assert.equal(rankOf(2).name, "Initiate"); assert.equal(rankOf(3).name, "Awakened"); assert.equal(rankOf(12).name, "Warrior"); assert.equal(rankOf(55).name, "Apex"); assert.equal(rankOf(99).name, "Apex"); assert.equal(attrValue(0), 1); assert.equal(attrValue(1000), 10); assert.equal(attrValue(1e9), 99); });
 test("sem registros, nível 1 e nada inventado", () => { const s = summarize(empty); assert.equal(s.total, 0); assert.equal(s.level, 1); assert.ok(s.achievements.every((a) => !a.done)); });
 test("XP por área", () => {
   const s = summarize({ ...empty,
@@ -33,4 +33,9 @@ test("nunca falhe duas vezes", () => {
   // falha um dia isolado: não quebra; dois seguidos: quebra
   assert.equal(neverTwiceRun(["2026-11-01", "2026-11-02", "2026-11-04", "2026-11-05"], "2026-11-05"), 5);
   assert.equal(neverTwiceRun(["2026-11-01", "2026-11-04", "2026-11-05"], "2026-11-05"), 2);
+});
+
+test("cardio com km não vira volume de força", () => {
+  const s = summarize({ ...empty, workouts: [{ date: "2026-11-01", cardio: true, sets: [{ exercise: "Bicicleta", kg: 12, reps: 40 }] }] });
+  assert.equal(s.attrXp.forca, 0); assert.equal(s.attrXp.vigor, 30);
 });

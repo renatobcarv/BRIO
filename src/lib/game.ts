@@ -10,10 +10,28 @@ export const ATTRS = {
 } as const;
 export type Attr = keyof typeof ATTRS;
 
+/** ASCENSION — The Path of Mastery. Mesmos níveis e XP; só a identidade das faixas. */
 export const RANKS = [
-  { min: 1, name: "Iniciante", color: "#9a978f" }, { min: 5, name: "Constante", color: "#0a84ff" },
-  { min: 10, name: "Firme", color: "#30d158" }, { min: 20, name: "Forte", color: "#ffb340" },
-  { min: 35, name: "Inabalável", color: "#ff453a" }, { min: 50, name: "Lendário", color: "#ffd27a" },
+  { min: 1, name: "Initiate", pt: "O despertar", color: "#9ea3aa", metal: "silver", meaning: "Aquele que decidiu começar. Rompe a inércia e assume a decisão de mudar sua trajetória.", motto: "Everything begins with a decision." },
+  { min: 3, name: "Awakened", pt: "A consciência", color: "#bfc3c9", metal: "silver", meaning: "Despertou para o próprio potencial e compreendeu que suas escolhas moldam seu futuro.", motto: "Awareness precedes transformation." },
+  { min: 6, name: "Vanguard", pt: "A iniciativa", color: "#d6d9de", metal: "silver", meaning: "Avança primeiro. Não espera condições perfeitas e aprende a agir diante da incerteza.", motto: "Advance when others hesitate." },
+  { min: 10, name: "Warrior", pt: "A resistência", color: "#c93a3a", metal: "red", meaning: "Desenvolveu disciplina, resiliência e autocontrole. Vencer a si mesmo é uma das maiores conquistas.", motto: "Discipline conquers impulse." },
+  { min: 15, name: "Elite", pt: "A excelência", color: "#d24545", metal: "red", meaning: "Transformou consistência em padrão. Não depende de motivação para cumprir suas responsabilidades.", motto: "Excellence is never an accident." },
+  { min: 21, name: "Sentinel", pt: "A proteção", color: "#e05252", metal: "red", meaning: "Protege o que construiu: seus princípios, sua saúde, seus relacionamentos e suas responsabilidades.", motto: "Protect what matters." },
+  { min: 28, name: "Commander", pt: "O domínio", color: "#c6a15b", metal: "gold", meaning: "Aprendeu a comandar a si mesmo. Visão estratégica, responsabilidade e liderança pessoal.", motto: "First, master yourself." },
+  { min: 36, name: "Sovereign", pt: "A soberania", color: "#d4af6a", metal: "gold", meaning: "Governa a própria existência. Constrói autonomia e não vive refém de impulsos ou de aprovação externa.", motto: "Be sovereign over your choices." },
+  { min: 45, name: "Ascendant", pt: "A transcendência", color: "#e0bd78", metal: "gold", meaning: "Ultrapassa os próprios limites, supera suas versões anteriores e amplia sua capacidade de contribuir.", motto: "Rise beyond who you were." },
+  { min: 55, name: "Apex", pt: "O ápice", color: "#f0cf86", metal: "gold", meaning: "A integração entre capacidade, caráter, disciplina e propósito. Não é perfeição nem o fim da evolução: é o nível mais alto conquistado até aqui.", motto: "Build something greater than yourself." },
+] as const;
+export type Rank = (typeof RANKS)[number];
+export const rankIndex = (level: number) => RANKS.reduce((i, r, k) => (level >= r.min ? k : i), 0);
+export const ASCENSION_CREED = "You are not competing against others. You are building someone you can respect.";
+
+/** Títulos extraordinários: concedidos por conquistas que já existem. */
+export const TITLES = [
+  { id: "phoenix", name: "Phoenix", color: "#e2572b", meaning: "Reconstrução e renascimento: transformar uma queda em recomeço.", requires: ["assuma"], rule: "Chegue a 30 dias limpos depois de um recomeço honesto." },
+  { id: "titan", name: "Titan", color: "#bfc3c9", meaning: "Força monumental e capacidade de sustentar grandes responsabilidades. Inspirado nos Titãs da mitologia grega.", requires: ["total600", "treino200"], rule: "Some 600 kg nos três levantamentos ou registre 200 treinos." },
+  { id: "archon", name: "Archon", color: "#c6a15b", meaning: "Liderança, sabedoria e autoridade. Do grego árkhōn, aquele que governa.", requires: ["biblia", "livro50"], rule: "Leia a Bíblia inteira ou conclua 50 livros." },
 ] as const;
 
 /** XP total para chegar ao nível n (nível 1 = 0). Cresce de forma quadrática. */
@@ -23,7 +41,7 @@ export function levelOf(xp: number) {
   const base = xpForLevel(n), next = xpForLevel(n + 1);
   return { level: n, into: xp - base, need: next - base, progress: (xp - base) / (next - base) };
 }
-export const rankOf = (level: number) => [...RANKS].reverse().find((r) => level >= r.min)!;
+export const rankOf = (level: number): Rank => RANKS[rankIndex(level)];
 /** Valor do atributo (1–99) a partir do XP dele. */
 export const attrValue = (xp: number) => Math.min(99, Math.max(1, Math.floor(Math.sqrt(xp / 10))));
 
@@ -51,6 +69,7 @@ export type GameInput = {
 };
 export type XpEvent = { date: string; attr: Attr; xp: number; label: string };
 
+const TIMED = /cardio|bike|bicicleta|caminhada|corrida|esteira|el[ií]ptico|mobilidade|alongamento|remo erg|escada/i;
 const MAIN = [{ key: "agachamento", re: /agach|squat/i }, { key: "supino", re: /^supino(?! incl| decl)|bench/i }, { key: "terra", re: /terra|deadlift/i }];
 
 /** Converte registros em eventos de XP (regras simples e transparentes). */
@@ -69,7 +88,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
   // Força: volume (1 XP a cada 100 kg movimentados, até 300 por sessão) + recordes nos levantamentos principais.
   const best: Record<string, number> = {};
   for (const w of [...g.workouts].sort((a, b) => a.date.localeCompare(b.date))) {
-    const vol = w.sets.reduce((a, s) => a + s.kg * s.reps, 0);
+    const vol = w.sets.filter((s) => !TIMED.test(s.exercise)).reduce((a, s) => a + s.kg * s.reps, 0);
     if (vol > 0) ev.push({ date: w.date, attr: "forca", xp: Math.min(300, Math.round(vol / 100)), label: `Treino · ${Math.round(vol).toLocaleString("pt-BR")} kg de volume` });
     if (w.cardio) ev.push({ date: w.date, attr: "vigor", xp: 30, label: "Cardio" });
     for (const m of MAIN) {
@@ -120,7 +139,7 @@ export function achievements(g: GameInput): Achievement[] {
   const top = (re: RegExp) => Math.max(0, ...sets.filter((s) => re.test(s.exercise) && !/stiff|romeno|halter|incl/i.test(s.exercise) && s.reps > 0).map((s) => s.kg));
   const total = top(/agach|squat/i) + top(/^supino|bench/i) + top(/terra|deadlift/i);
   const prs = xpEvents(g).filter((e) => e.label.startsWith("Recorde")).length;
-  const vols = g.workouts.map((w) => w.sets.reduce((a, s) => a + s.kg * s.reps, 0)).filter((v) => v > 0);
+  const vols = g.workouts.map((w) => w.sets.filter((s) => !TIMED.test(s.exercise)).reduce((a, s) => a + s.kg * s.reps, 0)).filter((v) => v > 0);
   const avgVol = vols.length ? vols.reduce((a, b) => a + b, 0) / vols.length : 0;
   const beastSessions = vols.length >= 5 ? vols.filter((v) => v >= avgVol * 1.5).length : 0;
   const fullRun = longestRun(g.fullDays);
@@ -200,5 +219,6 @@ export function summarize(g: GameInput) {
   const today = ev.filter((e) => e.date === g.today).reduce((s, e) => s + e.xp, 0);
   const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.parse(g.today) - (6 - i) * 864e5).toISOString().slice(0, 10); return { date: d, xp: ev.filter((e) => e.date === d).reduce((s, e) => s + e.xp, 0) }; });
   return { total, ...lv, rank: rankOf(lv.level), attrXp, attrs: Object.fromEntries((Object.keys(attrXp) as Attr[]).map((k) => [k, attrValue(attrXp[k])])) as Record<Attr, number>,
-    today, week, recent: [...ev].sort((a, b) => b.date.localeCompare(a.date) || b.xp - a.xp).slice(0, 12), achievements: achievements(g) };
+    today, week, recent: [...ev].sort((a, b) => b.date.localeCompare(a.date) || b.xp - a.xp).slice(0, 12), achievements: achievements(g),
+    titles: (() => { const done = new Set(achievements(g).filter((a) => a.done).map((a) => a.id)); return TITLES.map((t) => ({ id: t.id, earned: t.requires.some((r) => done.has(r)) })); })() };
 }

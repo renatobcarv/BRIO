@@ -2,11 +2,12 @@
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { levelOf, rankOf } from "@/lib/game";
+import { levelOf, rankOf, rankIndex } from "@/lib/game";
+import { Insignia } from "@/components/game/insignia";
 import { CountUp } from "@/components/count-up";
 
 type Float = { id: number; text: string; color: string };
-type Ctx = { total: number; today: number; gain: (xp: number, label?: string, color?: string) => void; celebrate: (title: string, sub?: string) => void };
+type Ctx = { total: number; today: number; gain: (xp: number, label?: string, color?: string) => void; celebrate: (title: string, sub?: string, insignia?: number) => void };
 const XpCtx = createContext<Ctx>({ total: 0, today: 0, gain: () => {}, celebrate: () => {} });
 export const useXp = () => useContext(XpCtx);
 
@@ -19,20 +20,24 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
   const [total, setTotal] = useState(initialTotal);
   const [today, setToday] = useState(initialToday);
   const [floats, setFloats] = useState<Float[]>([]);
-  const [banner, setBanner] = useState<{ title: string; sub?: string; key: number } | null>(null);
+  const [banner, setBanner] = useState<{ title: string; sub?: string; key: number; insignia?: number } | null>(null);
   const id = useRef(0);
   useEffect(() => { setTotal(initialTotal); setToday(initialToday); }, [initialTotal, initialToday]);
 
-  const celebrate = useCallback((title: string, sub?: string) => {
-    haptic([30, 60, 30, 60, 80]);
-    setBanner({ title, sub, key: ++id.current });
-    setTimeout(() => setBanner(null), 2600);
+  const celebrate = useCallback((title: string, sub?: string, insignia?: number) => {
+    haptic(insignia != null ? [40, 60, 40, 60, 40, 60, 160] : [30, 60, 30, 60, 80]);
+    setBanner({ title, sub, key: ++id.current, insignia });
+    setTimeout(() => setBanner(null), insignia != null ? 3600 : 2600);
   }, []);
 
   const gain = useCallback((xp: number, label?: string, color = "#ffb340") => {
     setTotal((t) => {
       const next = Math.max(0, t + xp);
-      if (trackLevel && xp > 0 && levelOf(next).level > levelOf(t).level) setTimeout(() => celebrate(`Nível ${levelOf(next).level}`, rankOf(levelOf(next).level).name), 450);
+      if (trackLevel && xp > 0 && levelOf(next).level > levelOf(t).level) {
+        const a = levelOf(t).level, b = levelOf(next).level;
+        if (rankIndex(b) > rankIndex(a)) { const r = rankOf(b); setTimeout(() => celebrate(r.name.toUpperCase(), `${r.pt} · “${r.motto}”`, rankIndex(b)), 450); }
+        else setTimeout(() => celebrate(`Nível ${b}`, rankOf(b).name), 450);
+      }
       return next;
     });
     setToday((t) => Math.max(0, t + xp));
@@ -61,8 +66,9 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
           <div className="absolute inset-0 bg-black/60 sheet-fade" />
           <div className="relative grid place-items-center">
             <div className="absolute h-[420px] w-[420px] rays" aria-hidden />
-            <div className="level-pop relative text-center rounded-[32px] px-10 py-8 border border-[#ffb340]/40 bg-[#111113]" style={{ boxShadow: "0 0 0 1px rgba(255,179,64,.15), 0 0 90px -10px rgba(255,179,64,.65)" }}>
-              <p className="label" style={{ color: "#ffb340" }}>Conquista</p>
+            <div className="level-pop relative text-center rounded-[32px] px-10 py-8 border border-[#ffb340]/40 bg-[#111113]" style={{ animationDuration: banner.insignia != null ? "3.6s" : undefined, boxShadow: "0 0 0 1px rgba(255,179,64,.15), 0 0 90px -10px rgba(255,179,64,.65)" }}>
+              {banner.insignia != null && <div className="mx-auto w-fit emblem-spin mb-2"><Insignia index={banner.insignia} size={120} /></div>}
+              <p className="label" style={{ color: "#ffb340" }}>{banner.insignia != null ? "Nova patente · Ascension" : "Conquista"}</p>
               <p className="font-display text-6xl mt-2 text-glow" style={{ ["--glow" as string]: "#ffb340" }}>{banner.title}</p>
               {banner.sub && <p className="text-muted mt-2">{banner.sub}</p>}
             </div>

@@ -7,7 +7,8 @@ import { Sheet } from "@/components/kit";
 import { StudyQuiz } from "@/components/quiz/study-quiz";
 import { FieldQuiz, FIELD_ICON } from "@/components/quiz/field-quiz";
 import { addWater } from "@/app/(app)/corpo/actions";
-import { levelOf, rankOf, RANKS } from "@/lib/game";
+import { levelOf, rankOf, rankIndex, RANKS } from "@/lib/game";
+import { Insignia } from "@/components/game/insignia";
 
 type AttrChip = { key: string; label: string; color: string; value: number };
 
@@ -15,26 +16,24 @@ type AttrChip = { key: string; label: string; color: string; value: number };
 export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
   const { total, today } = useXp();
   const lv = levelOf(total), rank = rankOf(lv.level), next = RANKS.find((r) => r.min > lv.level);
-  const hex = "M60 6l47 27v54l-47 27-47-27V33z";
   return (
     <Link href="/status" className="press block relative overflow-hidden rounded-[30px] p-5 border" aria-label={`Nível ${lv.level}, ${rank.name}`}
       style={{ borderColor: rank.color + "40", background: `radial-gradient(130% 90% at 15% 0%, ${rank.color}30, #0f0f11 60%)`, boxShadow: `0 20px 50px -30px ${rank.color}` }}>
-      <div className="flex items-center gap-5">
-        <div className="relative h-[112px] w-[112px] shrink-0 grid place-items-center">
-          <div className="absolute inset-3 rounded-full blur-2xl breathe" style={{ background: rank.color, opacity: .4 }} aria-hidden />
-          <svg viewBox="0 0 120 120" className="absolute inset-0 w-full h-full emblem-spin" aria-hidden>
-            <path d={hex} fill="#0d0d0f" stroke={rank.color} strokeWidth="3" style={{ filter: `drop-shadow(0 0 8px ${rank.color})` }} />
-            <path d="M60 18l37 21v42l-37 21-37-21V39z" fill="none" stroke={rank.color} strokeOpacity=".3" />
-          </svg>
-          <div className="relative text-center"><p className="text-[10px] text-muted -mb-0.5">Nível</p>
-            <CountUp value={lv.level} duration={1300} className="num text-[44px] leading-none text-glow" style={{ ["--glow" as string]: rank.color } as React.CSSProperties} /></div>
+      <p className="text-[10px] font-semibold tracking-[.32em] text-muted">ASCENSION</p>
+      <div className="flex items-center gap-4 mt-2">
+        <div className="relative shrink-0 emblem-spin">
+          <Insignia index={rankIndex(lv.level)} size={104} />
+          <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[11px] font-bold num border" style={{ background: "#0d0d0d", borderColor: rank.color, color: rank.color, boxShadow: `0 0 12px -2px ${rank.color}` }}>
+            NV <CountUp value={lv.level} duration={1300} />
+          </span>
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xl font-semibold text-glow" style={{ color: rank.color, ["--glow" as string]: rank.color } as React.CSSProperties}>{rank.name}</p>
-          <p className="text-sm text-muted mt-0.5">{next ? `${next.name} no nível ${next.min}` : "Patente máxima"}</p>
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold"
-            style={{ background: today ? "#30d15822" : "rgba(255,255,255,.06)", color: today ? "#30d158" : "#8e8e93", boxShadow: today ? "0 0 18px -6px #30d158" : "none" }}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg>+<CountUp value={today} /> XP hoje
+          <p className="text-[26px] leading-none font-bold tracking-[.06em] uppercase text-glow" style={{ color: rank.color, ["--glow" as string]: rank.color } as React.CSSProperties}>{rank.name}</p>
+          <p className="text-sm text-ink/80 mt-1">{rank.pt}</p>
+          <p className="text-xs italic text-muted mt-1.5 leading-snug">“{rank.motto}”</p>
+          <div className="mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold"
+            style={{ background: today ? "#30d15822" : "rgba(255,255,255,.06)", color: today ? "#30d158" : "#8e8e93" }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" aria-hidden><path d="M13 2L4 14h7l-1 8 9-12h-7z" /></svg>+<CountUp value={today} /> XP hoje
           </div>
         </div>
       </div>
@@ -43,7 +42,7 @@ export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
           <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd27a)`, boxShadow: `0 0 16px ${rank.color}` }} />
         </div>
         <div className="flex justify-between text-xs mt-1.5"><span className="text-muted num"><CountUp value={lv.into} /> / {lv.need.toLocaleString("pt-BR")} XP</span>
-          <span className="font-medium" style={{ color: rank.color }}>faltam {(lv.need - lv.into).toLocaleString("pt-BR")} para o {lv.level + 1}</span></div>
+          <span className="font-medium" style={{ color: rank.color }}>{next && next.min === lv.level + 1 ? `próximo: ${next.name}` : `faltam ${(lv.need - lv.into).toLocaleString("pt-BR")} para o ${lv.level + 1}`}</span></div>
       </div>
       <div className="grid grid-cols-6 gap-1.5 mt-4">
         {attrs.map((a) => (
