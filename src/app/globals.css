@@ -244,3 +244,17 @@ a, button, [role="button"], label, .chip, .tile { touch-action: manipulation; -w
   text-shadow: none; filter: drop-shadow(0 0 22px rgba(224,57,62,.35)); }
 @keyframes warPulse { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
 .war-pulse { animation: warPulse 2.4s ease-in-out infinite; }
+
+/* ═══════════ Fogo dos eventos ═══════════ */
+.fire-glow { position: absolute; left: -10%; right: -10%; bottom: -40px; height: 46%;
+  background: radial-gradient(60% 70% at 50% 100%, rgba(255,120,40,.55), rgba(224,57,62,.35) 40%, transparent 72%);
+  filter: blur(14px); animation: fireFlicker 1.6s ease-in-out infinite alternate; }
+@keyframes fireFlicker { 0% { opacity: .65; transform: scaleY(.92); } 50% { opacity: .9; transform: scaleY(1.05); } 100% { opacity: .75; transform: scaleY(.97) translateX(6px); } }
+.ember { position: absolute; bottom: -10px; width: 4px; height: 4px; border-radius: 50%; background: #ffb347; box-shadow: 0 0 8px 2px rgba(255,140,40,.9);
+  animation: emberRise linear infinite; opacity: 0; }
+@keyframes emberRise { 0% { transform: translate(0, 0) scale(1); opacity: 0; } 10% { opacity: 1; } 80% { opacity: .8; } 100% { transform: translate(var(--drift), -70vh) scale(.3); opacity: 0; } }
+.event-hot { animation: hotPulse 2.4s ease-in-out infinite; }
+@keyframes hotPulse { 0%, 100% { box-shadow: 0 20px 60px -24px #ab2424; } 50% { box-shadow: 0 20px 80px -14px #e0393e; } }
+.war-fire::after { content: ""; position: fixed; inset: auto 0 0 0; height: 38vh; z-index: -1; pointer-events: none;
+  background: radial-gradient(70% 90% at 50% 100%, rgba(255,110,30,.35), rgba(171,36,36,.25) 45%, transparent 75%); animation: fireFlicker 1.8s ease-in-out infinite alternate; }
+@media (prefers-reduced-motion: reduce) { .ember, .fire-glow, .event-hot, .war-fire::after { animation: none !important; } .ember { display: none; } }

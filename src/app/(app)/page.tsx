@@ -16,6 +16,7 @@ import { loadGame } from "@/lib/game-data";
 import { ATTRS, type Attr } from "@/lib/game";
 import { XpProvider } from "@/components/game/xp";
 import { HeroPlayer, QuickActions } from "@/components/home/hero";
+import { EventCard } from "@/components/events/event-ui";
 
 export const dynamic = "force-dynamic";
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -96,6 +97,7 @@ export default async function Hoje() {
       <div className="stagger">
       <Greeting name="Renato" />
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
+      {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
       <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} />

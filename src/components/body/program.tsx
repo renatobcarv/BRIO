@@ -12,6 +12,24 @@ import {
 const G = "#e0393e";
 const ORDER = ["1", "2", "3", "4", "5", "6", "0"];
 const blankEx = (): PlannedEx => ({ name: "", muscle: "outro", sets: 3, reps: "8-12", kg: null, rpe: 7, rir: 2, rest: 90, notes: "" });
+
+/** Biblioteca rápida: um toque adiciona o exercício já configurado para a fase. */
+const LIBRARY: [string, string[]][] = [
+  ["Peito", ["Supino", "Supino inclinado halteres", "Crucifixo", "Crossover", "Flexão de braço"]],
+  ["Costas", ["Puxada frontal", "Barra fixa", "Remada curvada", "Remada baixa", "Remada unilateral"]],
+  ["Ombros", ["Desenvolvimento militar", "Elevação lateral", "Face pull", "Crucifixo invertido"]],
+  ["Pernas", ["Agachamento", "Levantamento terra", "Leg press", "Cadeira extensora", "Mesa flexora", "Stiff", "Afundo", "Hip thrust", "Panturrilha"]],
+  ["Braços", ["Rosca direta", "Rosca martelo", "Tríceps corda", "Tríceps testa", "Mergulho"]],
+  ["Core", ["Prancha", "Abdominal", "Abdominal infra"]],
+  ["Cardio", ["Bicicleta", "Caminhada inclinada", "Corrida", "Elíptico", "Mobilidade quadril e tornozelo"]],
+];
+function fromLibrary(name: string, kind: PhaseKind, overrides: Record<string, Muscle>): PlannedEx {
+  const muscle = guessMuscle(name, overrides);
+  if (muscle === "cardio" || /mobilidade/i.test(name)) return { name, muscle: "cardio", sets: 1, reps: /mobilidade/i.test(name) ? "10 min" : "25 min", kg: null, rpe: kind === "deload" ? 4 : 6, rir: null, rest: 0, notes: "" };
+  const main = /^(supino|agachamento|levantamento terra)$/i.test(name);
+  const reps = kind === "intensificacao" ? (main ? "3-5" : "6-10") : kind === "realizacao" ? (main ? "1-3" : "6-8") : main ? "5-6" : "8-12";
+  return { name, muscle, sets: kind === "deload" ? 2 : main ? 4 : 3, reps, kg: null, rpe: kind === "deload" ? 6 : kind === "intensificacao" ? 8 : kind === "realizacao" ? 8.5 : 7, rir: kind === "deload" ? 4 : 2, rest: main ? 180 : 90, notes: "" };
+}
 const numOrNull = (s: string) => (s.trim() === "" ? null : n(s));
 
 /* ───────── Linha do tempo ───────── */
@@ -44,6 +62,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
   const upd = (i: number, p: Partial<PlannedEx>) => setList(list.map((e, j) => (j === i ? { ...e, ...p } : e)));
   const move = (i: number, d: number) => { const l = [...list]; [l[i], l[i + d]] = [l[i + d], l[i]]; setList(l); };
   const vol = plannedSetsByMuscle(f);
+  const [lib, setLib] = useState<string | null>(null);
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-4">
@@ -68,7 +87,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         {list.length === 0 && <p className="font-display italic text-muted">Dia de descanso. Adicione exercícios se houver treino.</p>}
         {list.map((e, i) => (
-          <div key={i} className="rounded-2xl border border-white/[.07] bg-white/[.02] p-3 grid grid-cols-[minmax(0,1fr)] gap-2">
+          <div key={`${day}-${i}`} className="rounded-2xl border p-3 grid grid-cols-[minmax(0,1fr)] gap-2 step-in-right" style={{ borderColor: "rgba(224,57,62,.18)", background: "#120808" }}>
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,8.5rem)] gap-2">
               <input className="field !min-h-11" placeholder="Exercício" value={e.name} aria-label="Exercício"
                 onChange={(ev) => upd(i, { name: ev.target.value, muscle: e.muscle === "outro" || e.muscle === guessMuscle(e.name, overrides) ? guessMuscle(ev.target.value, overrides) : e.muscle })} />
@@ -92,7 +111,23 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
             </div>
           </div>
         ))}
-        <button className="btn" onClick={() => setList([...list, blankEx()])}>+ Exercício</button>
+        <div className="rounded-2xl border p-3" style={{ borderColor: "rgba(224,57,62,.25)", background: "#120707" }}>
+          <p className="text-[10px] font-semibold tracking-[.25em]" style={{ color: G }}>BIBLIOTECA · TOQUE PARA ADICIONAR</p>
+          <div className="flex gap-1.5 overflow-x-auto mt-2 pb-1">
+            {LIBRARY.map(([g]) => <button key={g} className="chip shrink-0" aria-pressed={lib === g} onClick={() => setLib(lib === g ? null : g)}>{g}</button>)}
+          </div>
+          {lib && (
+            <div key={lib} className="flex flex-wrap gap-1.5 mt-2 step-in-right">
+              {LIBRARY.find(([g]) => g === lib)![1].map((name) => {
+                const has = list.some((e) => e.name.toLowerCase() === name.toLowerCase());
+                return <button key={name} disabled={has} className="press rounded-xl px-3 min-h-10 text-sm border disabled:opacity-35"
+                  style={{ borderColor: "rgba(224,57,62,.35)", background: "#1a0909" }}
+                  onClick={() => setList([...list, fromLibrary(name, f.kind, overrides)])}>{has ? "✓ " : "+ "}{name}</button>;
+              })}
+            </div>
+          )}
+          <button className="btn w-full mt-2 !min-h-10 text-sm" onClick={() => setList([...list, blankEx()])}>+ Exercício personalizado</button>
+        </div>
       </div>
 
       <div className="rounded-2xl bg-white/[.03] p-3">
@@ -255,7 +290,7 @@ export function ProgramView({ programs, today, planDays, overrides, sessionsDone
       )}
       {!active && others.length === 0 && null}
 
-      <Sheet accent={G} open={!!form} onClose={() => setForm(null)} title={form?.id ? "Editar programa" : "Novo programa"}>
+      <Sheet tone="war" accent={G} open={!!form} onClose={() => setForm(null)} title={form?.id ? "Editar programa" : "Novo programa"}>
         {form && <ProgramForm key={form.id ?? "novo"} initial={form} today={today} overrides={overrides} onDone={() => setForm(null)} />}
       </Sheet>
     </div>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 const items = [
+  { href: "/eventos", label: "Event Center", sub: "Hell Week, desafios e insígnias", color: "#e0393e" },
   { href: "/status", label: "Status", sub: "Nível, atributos e conquistas", color: "#ffb340" },
   { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#3ee6c1" },
   { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#ff9f0a" },

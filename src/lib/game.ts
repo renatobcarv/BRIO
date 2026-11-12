@@ -66,6 +66,7 @@ export type GameInput = {
   weightGoal?: number;
   meals?: { date: string; slots: number; protein: number }[];
   proteinGoal?: number;
+  eventBonus?: { date: string; xp: number; label: string; attr: Attr }[];
 };
 export type XpEvent = { date: string; attr: Attr; xp: number; label: string };
 
@@ -102,6 +103,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
     if (m.slots > 0) ev.push({ date: m.date, attr: "vigor", xp: Math.min(5, m.slots) * 10, label: `${m.slots} refeições registradas` });
     if (g.proteinGoal && m.protein >= g.proteinGoal) ev.push({ date: m.date, attr: "vigor", xp: 25, label: "Meta de proteína" });
   }
+  for (const b of g.eventBonus ?? []) ev.push({ date: b.date, attr: b.attr, xp: b.xp, label: b.label });
   for (const s of g.sleep) if (s.hours >= 7) ev.push({ date: s.date, attr: "vigor", xp: 15, label: `${s.hours}h de sono` });
   for (const f of g.finance) {
     if (f.logged > 0) ev.push({ date: f.month, attr: "ordem", xp: Math.min(150, f.logged * 5), label: `${f.logged} lançamentos no mês` });

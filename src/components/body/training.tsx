@@ -460,9 +460,9 @@ export function Training({ today, split, plan, workouts, program = null, program
         )}
       </section>
 
-      <Sheet accent={G} open={sheet === "plan"} onClose={() => setSheet(null)} title="Plano semanal"><PlanEditor split={split} plan={plan} onDone={() => setSheet(null)} /></Sheet>
-      <Sheet accent={G} open={sheet === "program"} onClose={() => setSheet(null)} title="Programa">{programSlot}</Sheet>
-      <Sheet accent={G} open={!!viewing} onClose={() => setSheet(null)} title={viewing ? `${shortDate(viewing.date)} · ${viewing.split_label ?? "Treino"}` : ""}>
+      <Sheet tone="war" accent={G} open={sheet === "plan"} onClose={() => setSheet(null)} title="Plano semanal"><PlanEditor split={split} plan={plan} onDone={() => setSheet(null)} /></Sheet>
+      <Sheet tone="war" accent={G} open={sheet === "program"} onClose={() => setSheet(null)} title="Programa">{programSlot}</Sheet>
+      <Sheet tone="war" accent={G} open={!!viewing} onClose={() => setSheet(null)} title={viewing ? `${shortDate(viewing.date)} · ${viewing.split_label ?? "Treino"}` : ""}>
         {viewing && (
           <div className="grid gap-3">
             {viewing.week_no != null && <p className="label">Semana {viewing.week_no}{viewing.phase ? ` · ${viewing.phase}` : ""}</p>}

@@ -6,6 +6,8 @@ import { Training } from "@/components/body/training";
 import { Weight } from "@/components/body/weight";
 import { ProgramView } from "@/components/body/program";
 import type { Muscle, Program } from "@/lib/training";
+import { computeEvents } from "@/lib/events";
+import { FireLayer, EventCard } from "@/components/events/event-ui";
 import { addDays, dow, todayISO } from "@/lib/date";
 import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +25,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const s = await getSettings(sb);
   const todaySplit = s.workout_split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
   let content: React.ReactNode;
+  let onFire = false;
+  let warEvent: React.ReactNode = null;
 
   if (tab === "peso") {
     const { data } = await sb.from("weight_logs").select("id,date,kg").order("date");
@@ -53,6 +57,11 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       ? <p className="text-sm text-[#ff453a]">Rode a migração supabase/migrations/20261106000000_periodizacao.sql no Supabase para usar programas.</p>
       : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
           overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={doneMap} />;
+    const evs = computeEvents({ today, programs: (progs.error ? [] : progs.data ?? []) as Program[], proteinGoal: s.protein_goal_g, meals: [], sleep: [],
+      workouts: workouts.map((w: { date: string; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] }) => ({ date: w.date, sets: w.sets })) });
+    const hot = evs.find((e) => (e.stage === "ativo" || e.stage === "contagem") && (e.type === "hell_week" || e.type === "judgment" || e.type === "genesis"));
+    onFire = !!evs.find((e) => e.type === "hell_week" && (e.stage === "ativo" || e.stage === "contagem"));
+    if (hot) warEvent = <Link href="/eventos" className="block mb-4"><EventCard e={hot} compact /></Link>;
     content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} />;
   } else if (tab === "alimentacao") {
     const date = sp.d && /^\d{4}-\d{2}-\d{2}$/.test(sp.d) ? sp.d : today;
@@ -89,7 +98,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
 
   return (
     <>
-      <div className={tab === "treino" ? "war" : undefined}>
+      <div className={tab === "treino" ? `war ${onFire ? "war-fire" : ""}` : undefined}>
+      {tab === "treino" && onFire && <FireLayer />}
       {tab === "treino"
         ? <header className="rise mb-6"><p className="text-[11px] font-semibold tracking-[.32em] flex items-center gap-2" style={{ color: "#e0393e" }}><span className="h-1.5 w-1.5 rounded-full war-pulse" style={{ background: "#e0393e", boxShadow: "0 0 10px #e0393e" }} />ASCENSION · TREINO</p><h1 className="font-display text-5xl mt-2 leading-none tracking-tight uppercase">War Room</h1><p className="text-sm text-muted mt-2">Disciplina conquista o impulso.</p></header>
         : <PageHeader eyebrow="Corpo" title="Treino e dieta" color="#30d158" />}
@@ -101,6 +111,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           ))}
         </div>
       </div>
+      {tab === "treino" && warEvent}
       {content}
       <Verse area="corpo" />
       </div>
