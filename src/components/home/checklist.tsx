@@ -84,19 +84,30 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const doneCount = items.filter((i) => opt.has(i.key)).length;
   const pct = items.length ? doneCount / items.length : 0, full = pct === 1;
   const left = useCountdown();
-  const SYS = full ? "#ffd27a" : "#5ab0ff", ALT = full ? "#ff9f0a" : "#9d8cff";
+  // Paleta pela sequência de dias 100%: luz limpa → aurora → chama → fogueira → inferno → fogo de guerra.
+  const run = streak + (full ? 0 : 0);
+  const T = run >= 30 ? { n: "FOGO DE GUERRA", a: "#ff2d2d", b: "#ffd27a", bg: "#2a0606", heat: 5 }
+    : run >= 14 ? { n: "INFERNO", a: "#ff3b30", b: "#ff9f0a", bg: "#240707", heat: 4 }
+    : run >= 7 ? { n: "FOGUEIRA", a: "#ff6a1a", b: "#ffb340", bg: "#221005", heat: 3 }
+    : run >= 3 ? { n: "CHAMA", a: "#ff9f0a", b: "#ffd27a", bg: "#1d1406", heat: 2 }
+    : run >= 1 ? { n: "AURORA", a: "#ffd27a", b: "#fff3d6", bg: "#17140c", heat: 1 }
+    : { n: "LUZ", a: "#f5f7ff", b: "#cfd8ea", bg: "#111318", heat: 0 };
+  const SYS = T.a, ALT = T.b;
 
   return (
     <section className="relative rise rounded-[22px] p-[1px] overflow-hidden" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
-      <div className="relative rounded-[21px] p-4 sys-scan" style={{ background: full ? "radial-gradient(90% 60% at 50% 0%, #2a2108, #0d0a04 60%, #070604)" : "radial-gradient(90% 55% at 15% 0%, #12234a, transparent 60%), radial-gradient(70% 50% at 100% 100%, #1d1640, transparent 65%), #060a16" }}>
+      <div className="relative isolate rounded-[21px] p-4 sys-scan" style={{ background: `radial-gradient(90% 55% at 50% 0%, ${T.bg}, transparent 65%), radial-gradient(${60 + T.heat * 10}% ${30 + T.heat * 8}% at 50% 105%, ${SYS}${["10", "1c", "2a", "3a", "4d", "66"][T.heat]}, transparent 70%), #08080a` }}>
+        {T.heat > 0 && <div aria-hidden className="pointer-events-none absolute -z-10 inset-x-0 bottom-0 h-1/3 overflow-hidden rounded-b-[21px]">
+          {Array.from({ length: T.heat * 4 }, (_, i) => <span key={i} className="absolute bottom-2 rounded-full fire-ember" style={{ left: `${((i + 0.5) / (T.heat * 4)) * 100}%`, width: 2 + (i % 2), height: 2 + (i % 2), background: i % 2 ? SYS : ALT, animationDelay: `${(i % 7) * 0.3}s` }} />)}
+        </div>}
         {/* cantos */}
         {["left-2 top-2 border-l-2 border-t-2", "right-2 top-2 border-r-2 border-t-2", "left-2 bottom-2 border-l-2 border-b-2", "right-2 bottom-2 border-r-2 border-b-2"].map((c) =>
           <span key={c} className={`absolute h-3 w-3 ${c}`} style={{ borderColor: ALT }} />)}
 
         <div className="flex items-start gap-3">
-          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border-2 font-black text-lg sys-pulse" style={{ borderColor: SYS, color: SYS, boxShadow: `0 0 16px -2px ${SYS}, inset 0 0 12px ${ALT}55`, background: `linear-gradient(140deg, ${SYS}22, ${ALT}22)` }}>{full ? "✓" : "!"}</span>
+          <StreakFlame n={streak} a={SYS} b={ALT} heat={T.heat} />
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: SYS }}>{full ? "MISSÃO CONCLUÍDA" : "MISSÃO DIÁRIA"}</p>
+            <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: SYS }}>{full ? "MISSÃO CONCLUÍDA" : "MISSÃO DIÁRIA"} · <span style={{ color: ALT }}>{T.n}</span></p>
             <p className="text-[15px] font-semibold mt-0.5">{full ? "O sistema registrou sua constância." : "Treinamento para se tornar mais forte"}</p>
           </div>
           <button onClick={() => setEditing(true)} className="text-[11px] text-white/50 underline underline-offset-4 shrink-0 mt-1">editar</button>
@@ -106,11 +117,11 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
           {[[streak, streak === 1 ? "dia 100%" : "dias 100%", SYS], [best, "recorde", ALT], [doneCount, `de ${items.length} hoje`, "#ffd27a"]].map(([v, l, c]) => (
             <div key={String(l)} className="rounded-xl px-2 py-2 text-center border" style={{ borderColor: `${c}33`, background: `${c}0f` }}>
               <p className="num text-2xl leading-none" style={{ color: String(c), textShadow: `0 0 12px ${c}` }}>{v}</p>
-              <p className="text-[10px] text-[#8fa6c8] mt-1">{l}</p>
+              <p className="text-[10px] text-[#b3a99a] mt-1">{l}</p>
             </div>))}
         </div>
         <div className="flex items-center justify-between mt-3 text-[11px] font-mono">
-          <span className="text-[#8fa6c8]">⏳ {full ? "Concluída hoje" : `restam ${left}`}</span>
+          <span className="text-[#b3a99a]">⏳ {full ? "Concluída hoje" : `restam ${left}`}</span>
           <span style={{ color: SYS }}>{Math.round(pct * 100)}%</span>
         </div>
         <div className="h-1.5 rounded-full bg-white/[.06] mt-1.5 overflow-hidden">
@@ -125,15 +136,15 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
               <li key={it.key}>
                 <button onClick={() => toggle(it.key)} aria-pressed={on}
                   className={`press w-full flex items-center gap-3 text-left rounded-xl px-3 min-h-[52px] py-2 border transition-all duration-300 ${popped === it.key ? "sys-hit" : ""}`}
-                  style={{ borderColor: on ? `${SYS}55` : main ? `${ALT}55` : "rgba(140,170,255,.10)", background: on ? `linear-gradient(90deg, ${SYS}24, ${ALT}0d 70%)` : main ? `linear-gradient(90deg, ${ALT}1a, transparent 80%)` : "rgba(120,150,255,.035)" }}>
+                  style={{ borderColor: on ? `${SYS}55` : main ? `${ALT}55` : "rgba(255,255,255,.08)", background: on ? `linear-gradient(90deg, ${SYS}24, ${ALT}0d 70%)` : main ? `linear-gradient(90deg, ${ALT}1a, transparent 80%)` : "rgba(255,255,255,.03)" }}>
                   <span className="grid place-items-center h-8 w-8 shrink-0 rounded-lg" style={{ background: on ? `linear-gradient(140deg, ${SYS}, ${ALT})` : `${m.color}1f`, border: `1px solid ${on ? "transparent" : m.color + "44"}`, boxShadow: on ? `0 0 14px -2px ${SYS}` : "none" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#061023" : m.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#140a03" : m.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
                   </span>
                   <span className="flex-1 min-w-0">
-                    {main && <span className="block text-[9px] font-bold tracking-[.25em]" style={{ color: on ? "#5a6a8a" : ALT }}>PRINCIPAL</span>}
-                    <span className={`block text-[14px] leading-snug ${on ? "text-[#8fa6c8] line-through decoration-1" : "text-[#eef3ff]"}`}>{it.label}</span>
+                    {main && <span className="block text-[9px] font-bold tracking-[.25em]" style={{ color: on ? "#7a6a5a" : ALT }}>PRINCIPAL</span>}
+                    <span className={`block text-[14px] leading-snug ${on ? "text-[#b3a99a] line-through decoration-1" : "text-[#fbf6ee]"}`}>{it.label}</span>
                   </span>
-                  <span className="font-mono text-[12px] shrink-0 tabular-nums" style={{ color: on ? SYS : "rgba(170,190,230,.5)", textShadow: on ? `0 0 8px ${SYS}` : "none" }}>[{on ? 1 : 0}/1]</span>
+                  <span className="font-mono text-[12px] shrink-0 tabular-nums" style={{ color: on ? SYS : "rgba(235,225,205,.5)", textShadow: on ? `0 0 8px ${SYS}` : "none" }}>[{on ? 1 : 0}/1]</span>
                 </button>
               </li>
             );
@@ -165,4 +176,23 @@ function useCountdown() {
   const sp = new Date(now - 3 * 36e5), end = Date.UTC(sp.getUTCFullYear(), sp.getUTCMonth(), sp.getUTCDate() + 1) + 3 * 36e5;
   const ms = Math.max(0, end - now), h = Math.floor(ms / 36e5), m = Math.floor(ms / 6e4) % 60, sec = Math.floor(ms / 1e3) % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
+}
+
+/** Chama estilo cartoon (arredondada, gordinha, quica). Cresce e esquenta com a sequência. */
+function StreakFlame({ n, a, b, heat }: { n: number; a: string; b: string; heat: number }) {
+  const size = 44 + heat * 4, lit = heat > 0;
+  return (
+    <span className="relative shrink-0 grid place-items-center" style={{ width: size, height: size * 1.15 }}>
+      {lit && <span className="absolute inset-0 rounded-full fire-aura" style={{ background: `radial-gradient(50% 50% at 50% 60%, ${a}66, transparent 70%)` }} />}
+      <svg viewBox="0 0 40 46" className={`relative w-full h-full overflow-visible ${lit ? "duo-flame" : ""}`} aria-hidden style={lit ? { filter: `drop-shadow(0 3px 8px ${a}88)` } : undefined}>
+        <defs>
+          <linearGradient id={`duo${heat}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={lit ? b : "#3a3a3c"} /><stop offset="1" stopColor={lit ? a : "#2c2c2e"} /></linearGradient>
+        </defs>
+        <path d="M21 2c2 6 8 10 11 15 3 5 5 9 5 13a17 17 0 0 1-34 0c0-6 3-11 7-15 1 3 2 5 4 6 0-7 3-13 7-19z" fill={`url(#duo${heat})`} stroke={lit ? "rgba(255,255,255,.25)" : "rgba(255,255,255,.18)"} strokeWidth="1" />
+        <path d="M20 21c3 3 7 7 7 11a7 7 0 0 1-14 0c0-3 2-6 4-8 0 2 1 3 2 3 0-2 0-4 1-6z" fill={lit ? "#fff7e0" : "#48484a"} opacity={lit ? 0.92 : 1} />
+        <path d="M10 25c1-4 3-7 5-9" stroke="rgba(255,255,255,.55)" strokeWidth="2.2" strokeLinecap="round" fill="none" />
+        <text x="20" y="38" textAnchor="middle" fontSize="11" fontWeight="800" fill={lit ? "#5a1e00" : "#8e8e93"} style={{ fontFamily: "var(--font-sans)" }}>{n}</text>
+      </svg>
+    </span>
+  );
 }

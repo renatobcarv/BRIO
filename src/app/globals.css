@@ -358,7 +358,7 @@ body { background: transparent; }
 @media (prefers-reduced-motion: reduce) { .fire-aura, .fire-ember { animation: none; } }
 /* Janela de sistema (missões do dia) */
 .sys-scan::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: repeating-linear-gradient(180deg, rgba(120,160,255,.03) 0 1px, transparent 1px 3px); }
+  background: repeating-linear-gradient(180deg, rgba(255,210,160,.025) 0 1px, transparent 1px 3px); }
 .sys-pulse { animation: sys-pulse 2.4s ease-in-out infinite; }
 @keyframes sys-pulse { 50% { box-shadow: 0 0 26px 0 currentColor; } }
 .sys-hit { animation: sys-hit .45s ease-out; }
@@ -372,3 +372,7 @@ body { background: transparent; }
 .meter-bubble { animation: meter-bubble 2.4s ease-in infinite; }
 @keyframes meter-bubble { from { transform: translateY(0); opacity: .8; } to { transform: translateY(-24px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .meter-wave, .meter-sand, .meter-bubble { animation: none; } }
+/* Chama cartoon: quica e balança */
+.duo-flame { transform-origin: 50% 100%; animation: duo-bounce 1.6s cubic-bezier(.3,1.6,.5,1) infinite; }
+@keyframes duo-bounce { 0%, 100% { transform: scale(1, 1) rotate(0deg); } 30% { transform: scale(1.06, .94) rotate(-2deg); } 60% { transform: scale(.96, 1.06) rotate(2deg); } }
+@media (prefers-reduced-motion: reduce) { .duo-flame { animation: none; } }
