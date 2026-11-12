@@ -8,6 +8,8 @@ import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShor
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
+import { TrainingSystem } from "./training-system";
+import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 
 const G = "#30d158";
@@ -236,7 +238,7 @@ function PlanEditor({ split, plan, onDone }: { split: SplitDay[]; plan: WorkoutP
 }
 
 /* ───────────── Tela ───────────── */
-export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean }) {
+export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false, bodyweight = null }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean; bodyweight?: number | null }) {
   const [pending, start] = useTransition();
   const KEY = "brio-treino-em-andamento";
   const [session, setSessionState] = useState<Session | null>(null);
@@ -314,6 +316,14 @@ export function Training({ today, split, plan, workouts, program = null, program
           </>
         ) : (
           <>
+            {todayPlan.list.length > 0 && (() => { const sets = todayPlan.list.reduce((a, x) => a + x.sets, 0); const min = Math.round(todayPlan.list.reduce((a, x) => a + x.sets * ((x.rest || 60) + 45), 0) / 60); return (
+              <div className="mb-3">
+                <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>ACTIVE MISSION</p>
+                <div className="grid grid-cols-3 gap-2 mt-2">
+                  {[[todayPlan.list.length, "exercícios"], [sets, "séries"], [min, "minutos"]].map(([v, l]) => <div key={String(l)} className="rounded-xl bg-white/[.04] py-2 text-center"><p className="num text-2xl">{v}</p><p className="text-[10px] text-muted">{l}</p></div>)}
+                </div>
+                <p className="text-xs text-muted mt-2">Objetivo: concluir o treino respeitando as cargas, repetições e a intensidade planejadas. Recompensa: XP de Força e progresso nas medalhas.</p>
+              </div>); })()}
             {todayPlan.ctx && <p className="label mb-1" style={{ color: PHASE_KINDS[program!.phases.find((f) => f.name === todayPlan.ctx!.phase)?.kind ?? "outro"].color }}>Semana {todayPlan.ctx.weekNo} · {todayPlan.ctx.phase}</p>}
             <p className="font-display text-2xl">{todayDay.label} · {todayDay.focus}</p>
             <ul className="mt-3 grid gap-1">
@@ -328,6 +338,9 @@ export function Training({ today, split, plan, workouts, program = null, program
         )}
       </section>
 
+      <TrainingSystem today={today} bodyweight={bodyweight} plannedPerWeek={planned}
+        sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
+        program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
       <section className="glass rise p-5 mt-4">
         <SectionTitle>Recordes pessoais</SectionTitle>
         <div className="grid grid-cols-3 gap-3">
