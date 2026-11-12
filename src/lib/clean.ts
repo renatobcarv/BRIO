@@ -15,3 +15,31 @@ export function cleanStats(marks: Mark[], today: string) {
   const next = MILESTONES.find((m) => m > count) ?? count + 30;
   return { count, best: Math.max(best, count), todayDone: clean.has(today), relapsedToday: relapse.has(today), total: clean.size, next };
 }
+
+/** XP de um dia limpo pelo tamanho da sequência: começa em 10, cresce rápido e estabiliza em 30. */
+export const cleanXp = (day: number) => Math.round(10 + 20 * (1 - Math.exp(-(Math.max(1, day) - 1) / 7)));
+
+/** XP de cada dia limpo, contando a posição dele na sequência (lacuna ou recaída reiniciam). */
+export function cleanXpByDay(days: string[], relapses: string[] = []) {
+  const rel = new Set(relapses), out: { date: string; xp: number; day: number }[] = [];
+  let run = 0, last = "";
+  for (const d of [...new Set(days)].sort()) {
+    run = last && prev(d) === last && !rel.has(d) ? run + 1 : 1;
+    out.push({ date: d, xp: cleanXp(run), day: run }); last = d;
+  }
+  return out;
+}
+
+export type FireTier = { name: string; from: number; color: string; core: string; scale: number; flames: number; embers: number };
+/** Força do fogo pela sequência. */
+export const FIRE: FireTier[] = [
+  { name: "Apagado", from: 0, color: "#2c2c2e", core: "#3a3a3c", scale: 0.8, flames: 0, embers: 0 },
+  { name: "Brasa", from: 1, color: "#ff9f0a", core: "#ffd27a", scale: 0.85, flames: 0, embers: 2 },
+  { name: "Chama", from: 3, color: "#ff7a1a", core: "#ffe08a", scale: 1, flames: 1, embers: 4 },
+  { name: "Fogueira", from: 7, color: "#ff5a1f", core: "#fff1a8", scale: 1.12, flames: 2, embers: 7 },
+  { name: "Inferno", from: 14, color: "#ff3b30", core: "#ffd27a", scale: 1.24, flames: 3, embers: 11 },
+  { name: "Chama azul", from: 30, color: "#0a84ff", core: "#bfe9ff", scale: 1.34, flames: 3, embers: 14 },
+  { name: "Fogo branco", from: 90, color: "#c7d2fe", core: "#ffffff", scale: 1.44, flames: 4, embers: 18 },
+];
+export const fireTier = (n: number) => [...FIRE].reverse().find((t) => n >= t.from) ?? FIRE[0];
+export const nextFire = (n: number) => FIRE.find((t) => t.from > n) ?? null;

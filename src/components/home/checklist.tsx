@@ -1,11 +1,10 @@
 "use client";
-import { useOptimistic, useState, useTransition } from "react";
+import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { toggleCheck } from "@/app/(app)/home-actions";
 import { updateSettings } from "@/app/settings-actions";
-import { LinkBtn, Sheet } from "@/components/kit";
+import { Sheet } from "@/components/kit";
 import type { ChecklistItem } from "@/lib/settings";
 import { useXp } from "@/components/game/xp";
-import { CountUp } from "@/components/count-up";
 
 const GOLD = "#ffb340";
 
@@ -77,57 +76,86 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
     const wasFull = items.every((i) => opt.has(i.key));
     if (on) { setPopped(key); setTimeout(() => setPopped(null), 400); gain(10, items.find((i) => i.key === key)?.label.split(/[+(/]/)[0].trim()); }
     else gain(wasFull ? -60 : -10);
-    if (on && after === items.length) setTimeout(() => { gain(50, "Dia completo", "#30d158"); celebrate("Dia completo", "Todas as missões cumpridas · +50 XP"); }, 500);
+    if (on && after === items.length) setTimeout(() => { gain(50, "Dia completo", "#30d158"); celebrate("MISSÃO DIÁRIA CONCLUÍDA", "Todos os objetivos cumpridos · +50 XP de bônus"); }, 500);
     start(async () => { setOpt({ key, on }); await toggleCheck(date, key, on); });
   };
   const primary = items.find((i) => i.primary) ?? items[0];
   const ordered = primary ? [primary, ...items.filter((i) => i !== primary)] : items;
   const doneCount = items.filter((i) => opt.has(i.key)).length;
-  const pct = items.length ? doneCount / items.length : 0;
+  const pct = items.length ? doneCount / items.length : 0, full = pct === 1;
+  const left = useCountdown();
+  const SYS = full ? "#ffd60a" : "#3ad1ff";
 
   return (
-    <section className="glass rise p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="label">Missões do dia</p>
-          <p className="mt-1"><CountUp value={doneCount} duration={500} className="num text-3xl" /><span className="num text-xl text-faint">/{items.length}</span></p>
-        </div>
-        <div className="text-right">
-          <LinkBtn onClick={() => setEditing(true)}>Editar</LinkBtn>
-          <p className="text-xs mt-0.5" style={{ color: pct === 1 ? "#30d158" : "#8e8e93" }}>{pct === 1 ? "Dia completo ✓" : `+${(items.length - doneCount) * 10 + 50} XP disponíveis`}</p>
-        </div>
-      </div>
-      <div className="flex gap-1 mt-3" aria-hidden>
-        {ordered.map((it) => { const m = missionStyle(it.label); return <i key={it.key} className="h-1.5 flex-1 rounded-full transition-all duration-500" style={{ background: opt.has(it.key) ? m.color : "rgba(255,255,255,.08)", boxShadow: opt.has(it.key) ? `0 0 10px ${m.color}` : "none" }} />; })}
-      </div>
-      <p className="text-xs text-faint mt-2">{streak ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Recorde de dias 100%: ${best}`}</p>
+    <section className="relative rise rounded-[22px] p-[1px] overflow-hidden" style={{ background: `linear-gradient(160deg, ${SYS}aa, ${SYS}22 40%, ${SYS}66)`, boxShadow: `0 0 40px -14px ${SYS}, inset 0 0 0 1px ${SYS}33` }}>
+      <div className="relative rounded-[21px] p-4 sys-scan" style={{ background: "linear-gradient(180deg, #06101f 0%, #040a14 60%, #03070e 100%)" }}>
+        {/* cantos */}
+        {["left-2 top-2 border-l-2 border-t-2", "right-2 top-2 border-r-2 border-t-2", "left-2 bottom-2 border-l-2 border-b-2", "right-2 bottom-2 border-r-2 border-b-2"].map((c) =>
+          <span key={c} className={`absolute h-3 w-3 ${c}`} style={{ borderColor: SYS }} />)}
 
-      <ul className="mt-4 grid gap-2">
-        {ordered.map((it) => {
-          const on = opt.has(it.key), m = missionStyle(it.label), main = it === primary;
-          return (
-            <li key={it.key}>
-              <button onClick={() => toggle(it.key)} aria-pressed={on}
-                className={`w-full flex items-center gap-3 text-left rounded-2xl px-3 transition-colors ${main ? "min-h-[68px] py-3" : "min-h-14 py-2"}`}
-                style={{ background: on ? "rgba(255,255,255,.025)" : main ? "rgba(255,179,64,.07)" : "#151517", border: `1px solid ${main && !on ? "rgba(255,179,64,.25)" : "rgba(255,255,255,.05)"}` }}>
-                <span className={`grid place-items-center shrink-0 rounded-[10px] transition-all duration-500 ${main ? "h-10 w-10" : "h-8 w-8"} ${on ? "opacity-50 saturate-50" : ""}`} style={{ background: m.color, boxShadow: on ? "none" : `0 4px 14px -4px ${m.color}` }}>
-                  <svg width={main ? 20 : 17} height={main ? 20 : 17} viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
-                </span>
-                <span className="flex-1 min-w-0">
-                  {main && <span className="block text-[11px] font-medium" style={{ color: on ? "#5a5a5f" : "#ffb340" }}>Missão principal</span>}
-                  <span className={`block leading-snug transition-colors ${main ? "text-[16px] font-semibold" : "text-[15px]"} ${on ? "text-faint" : "text-ink"}`}>{it.label}</span>
-                </span>
-                {!on && <span className="text-[11px] font-medium text-muted shrink-0">+10</span>}
-                <span className={`grid place-items-center h-7 w-7 shrink-0 rounded-full border-2 transition-all duration-300 ${popped === it.key ? "check-pop" : ""}`}
-                  style={{ borderColor: on ? m.color : "rgba(255,255,255,.22)", background: on ? m.color : "transparent", boxShadow: on ? `0 0 16px ${m.color}` : "none" }}>
-                  {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" className="check-draw" /></svg>}
-                </span>
-              </button>
-            </li>
-          );
-        })}
-      </ul>
+        <div className="flex items-start gap-3">
+          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border-2 font-black text-lg sys-pulse" style={{ borderColor: SYS, color: SYS, boxShadow: `0 0 16px -2px ${SYS}`, background: `${SYS}14` }}>{full ? "✓" : "!"}</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: SYS }}>{full ? "MISSÃO CONCLUÍDA" : "MISSÃO DIÁRIA"}</p>
+            <p className="text-[15px] font-semibold mt-0.5">{full ? "O sistema registrou sua constância." : "Treinamento para se tornar mais forte"}</p>
+          </div>
+          <button onClick={() => setEditing(true)} className="text-[11px] text-white/50 underline underline-offset-4 shrink-0 mt-1">editar</button>
+        </div>
+
+        <div className="flex items-center justify-between mt-3 text-[11px] font-mono">
+          <span className="text-white/55">⏳ {full ? "Concluída hoje" : `restam ${left}`}</span>
+          <span style={{ color: SYS }}>{Math.round(pct * 100)}%</span>
+        </div>
+        <div className="h-1.5 rounded-full bg-white/[.06] mt-1.5 overflow-hidden">
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(3, pct * 100)}%`, background: `linear-gradient(90deg, ${SYS}88, ${SYS})`, boxShadow: `0 0 12px ${SYS}` }} />
+        </div>
+
+        <p className="text-[10px] font-bold tracking-[.3em] text-white/40 mt-4 mb-1.5">OBJETIVOS</p>
+        <ul className="grid gap-1.5">
+          {ordered.map((it) => {
+            const on = opt.has(it.key), m = missionStyle(it.label), main = it === primary;
+            return (
+              <li key={it.key}>
+                <button onClick={() => toggle(it.key)} aria-pressed={on}
+                  className={`press w-full flex items-center gap-3 text-left rounded-xl px-3 min-h-[52px] py-2 border transition-all duration-300 ${popped === it.key ? "sys-hit" : ""}`}
+                  style={{ borderColor: on ? `${m.color}55` : main ? `${SYS}44` : "rgba(255,255,255,.06)", background: on ? `linear-gradient(90deg, ${m.color}1f, transparent 70%)` : main ? `${SYS}0d` : "rgba(255,255,255,.02)" }}>
+                  <span className="grid place-items-center h-8 w-8 shrink-0 rounded-lg" style={{ background: on ? m.color : `${m.color}22`, boxShadow: on ? `0 0 14px -2px ${m.color}` : "none" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#000" : m.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
+                  </span>
+                  <span className="flex-1 min-w-0">
+                    {main && <span className="block text-[9px] font-bold tracking-[.25em]" style={{ color: on ? "#5a6a7a" : SYS }}>PRINCIPAL</span>}
+                    <span className={`block text-[14px] leading-snug ${on ? "text-white/45 line-through decoration-1" : "text-white"}`}>{it.label}</span>
+                  </span>
+                  <span className="font-mono text-[12px] shrink-0 tabular-nums" style={{ color: on ? "#30d158" : "rgba(255,255,255,.45)" }}>[{on ? 1 : 0}/1]</span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+
+        <div className="grid grid-cols-2 gap-2 mt-4">
+          <div className="rounded-xl border p-2.5" style={{ borderColor: `${SYS}33`, background: `${SYS}0a` }}>
+            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: SYS }}>RECOMPENSAS</p>
+            <p className="text-[12px] text-white/85 mt-1 leading-snug">+10 XP por objetivo<br />+50 XP ao completar tudo</p>
+          </div>
+          <div className="rounded-xl border p-2.5" style={{ borderColor: full ? "rgba(48,209,88,.35)" : "rgba(255,69,58,.3)", background: full ? "rgba(48,209,88,.06)" : "rgba(255,69,58,.05)" }}>
+            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: full ? "#30d158" : "#ff6961" }}>{full ? "SEQUÊNCIA" : "PENALIDADE"}</p>
+            <p className="text-[12px] text-white/85 mt-1 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} 100% zera.`}</p>
+          </div>
+        </div>
+        {!full && <p className="text-center text-[11px] font-mono mt-3" style={{ color: SYS }}>+{(items.length - doneCount) * 10 + 50} XP disponíveis</p>}
+      </div>
       <Sheet open={editing} onClose={() => setEditing(false)} title="Editar missões"><Editor items={items} onClose={() => setEditing(false)} /></Sheet>
     </section>
   );
+}
+
+/** Tempo até a meia-noite de São Paulo. */
+function useCountdown() {
+  const [now, setNow] = useState<number | null>(null);
+  useEffect(() => { setNow(Date.now()); const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
+  if (now == null) return "--:--:--";
+  const sp = new Date(now - 3 * 36e5), end = Date.UTC(sp.getUTCFullYear(), sp.getUTCMonth(), sp.getUTCDate() + 1) + 3 * 36e5;
+  const ms = Math.max(0, end - now), h = Math.floor(ms / 36e5), m = Math.floor(ms / 6e4) % 60, sec = Math.floor(ms / 1e3) % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }

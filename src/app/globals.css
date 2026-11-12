@@ -352,3 +352,15 @@ body { background: transparent; }
 .cel-rise { animation: cel-rise 2.4s ease-in infinite; }
 @keyframes cel-rise { from { transform: translateY(0); opacity: 1; } to { transform: translateY(-120px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .cel-spin, .cel-spin-rev, .cel-pulse, .cel-flicker, .cel-flap, .cel-flap-slow, .cel-tail, .cel-float, .cel-orbit, .cel-blade, .cel-rise { animation: none; } }
+.fire-aura { animation: cel-pulse 2.2s ease-in-out infinite; }
+.fire-ember { animation: ember-up-s 1.8s ease-in infinite; opacity: 0; }
+@keyframes ember-up-s { 0% { opacity: 0; transform: translateY(0); } 20% { opacity: 1; } 100% { opacity: 0; transform: translate(6px, -70px); } }
+@media (prefers-reduced-motion: reduce) { .fire-aura, .fire-ember { animation: none; } }
+/* Janela de sistema (missões do dia) */
+.sys-scan::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: repeating-linear-gradient(180deg, rgba(58,209,255,.035) 0 1px, transparent 1px 3px); }
+.sys-pulse { animation: sys-pulse 2.4s ease-in-out infinite; }
+@keyframes sys-pulse { 50% { box-shadow: 0 0 26px 0 currentColor; } }
+.sys-hit { animation: sys-hit .45s ease-out; }
+@keyframes sys-hit { 0% { transform: scale(.98); filter: brightness(1.8); } 100% { transform: scale(1); filter: none; } }
+@media (prefers-reduced-motion: reduce) { .sys-pulse, .sys-hit { animation: none; } }

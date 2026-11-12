@@ -1,3 +1,4 @@
+import { cleanXpByDay } from "./clean.ts";
 // Progressão do BRIO: XP e conquistas calculados só a partir de registros reais. Sem dependências.
 
 export const ATTRS = {
@@ -79,7 +80,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
   const byDate = new Map<string, number>();
   for (const c of g.checks) byDate.set(c.date, (byDate.get(c.date) ?? 0) + 1);
   for (const [date, n] of byDate) ev.push({ date, attr: "disciplina", xp: n * 10, label: `${n} itens do checklist` });
-  for (const d of g.cleanDays ?? []) ev.push({ date: d, attr: "disciplina", xp: 20, label: "Dia limpo" });
+  for (const c of cleanXpByDay(g.cleanDays ?? [], g.relapses ?? [])) ev.push({ date: c.date, attr: "disciplina", xp: c.xp, label: `Dia limpo · ${c.day}º seguido` });
   for (const d of g.fullDays) ev.push({ date: d, attr: "disciplina", xp: 50, label: "Dia 100% completo" });
   for (const s of g.study) if (s.minutes > 0) ev.push({ date: s.date, attr: "sabedoria", xp: Math.min(s.minutes, 180), label: `${s.minutes} min de estudo` });
   for (const c of g.chapters) ev.push({ date: c.date, attr: "sabedoria", xp: 15, label: "Capítulo da Bíblia" });
