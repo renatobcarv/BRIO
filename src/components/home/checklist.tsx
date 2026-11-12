@@ -5,6 +5,7 @@ import { updateSettings } from "@/app/settings-actions";
 import { LinkBtn, Sheet } from "@/components/kit";
 import type { ChecklistItem } from "@/lib/settings";
 import { useXp } from "@/components/game/xp";
+import { CountUp } from "@/components/count-up";
 
 const GOLD = "#ffb340";
 
@@ -89,7 +90,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="label">Missões do dia</p>
-          <p className="mt-1"><span className="num text-3xl">{doneCount}</span><span className="num text-xl text-faint">/{items.length}</span></p>
+          <p className="mt-1"><CountUp value={doneCount} duration={500} className="num text-3xl" /><span className="num text-xl text-faint">/{items.length}</span></p>
         </div>
         <div className="text-right">
           <LinkBtn onClick={() => setEditing(true)}>Editar</LinkBtn>
@@ -97,7 +98,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
         </div>
       </div>
       <div className="flex gap-1 mt-3" aria-hidden>
-        {ordered.map((it) => { const m = missionStyle(it.label); return <i key={it.key} className="h-1.5 flex-1 rounded-full transition-colors duration-500" style={{ background: opt.has(it.key) ? m.color : "rgba(255,255,255,.08)" }} />; })}
+        {ordered.map((it) => { const m = missionStyle(it.label); return <i key={it.key} className="h-1.5 flex-1 rounded-full transition-all duration-500" style={{ background: opt.has(it.key) ? m.color : "rgba(255,255,255,.08)", boxShadow: opt.has(it.key) ? `0 0 10px ${m.color}` : "none" }} />; })}
       </div>
       <p className="text-xs text-faint mt-2">{streak ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Recorde de dias 100%: ${best}`}</p>
 
@@ -109,7 +110,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
               <button onClick={() => toggle(it.key)} aria-pressed={on}
                 className={`w-full flex items-center gap-3 text-left rounded-2xl px-3 transition-colors ${main ? "min-h-[68px] py-3" : "min-h-14 py-2"}`}
                 style={{ background: on ? "rgba(255,255,255,.025)" : main ? "rgba(255,179,64,.07)" : "#151517", border: `1px solid ${main && !on ? "rgba(255,179,64,.25)" : "rgba(255,255,255,.05)"}` }}>
-                <span className={`grid place-items-center shrink-0 rounded-[10px] transition-opacity ${main ? "h-10 w-10" : "h-8 w-8"} ${on ? "opacity-45" : ""}`} style={{ background: m.color }}>
+                <span className={`grid place-items-center shrink-0 rounded-[10px] transition-all duration-500 ${main ? "h-10 w-10" : "h-8 w-8"} ${on ? "opacity-50 saturate-50" : ""}`} style={{ background: m.color, boxShadow: on ? "none" : `0 4px 14px -4px ${m.color}` }}>
                   <svg width={main ? 20 : 17} height={main ? 20 : 17} viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
                 </span>
                 <span className="flex-1 min-w-0">
@@ -118,7 +119,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
                 </span>
                 {!on && <span className="text-[11px] font-medium text-muted shrink-0">+10</span>}
                 <span className={`grid place-items-center h-7 w-7 shrink-0 rounded-full border-2 transition-all duration-300 ${popped === it.key ? "check-pop" : ""}`}
-                  style={{ borderColor: on ? m.color : "rgba(255,255,255,.22)", background: on ? m.color : "transparent" }}>
+                  style={{ borderColor: on ? m.color : "rgba(255,255,255,.22)", background: on ? m.color : "transparent", boxShadow: on ? `0 0 16px ${m.color}` : "none" }}>
                   {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" className="check-draw" /></svg>}
                 </span>
               </button>

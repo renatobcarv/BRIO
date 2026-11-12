@@ -59,7 +59,7 @@ export function Nav() {
             return (
               <li key={it.href} className={on ? "flex-[1.6]" : "flex-1"} style={{ transition: "flex .35s cubic-bezier(.34,1.56,.64,1)" }}>
                 <Link href={it.href} aria-current={on ? "page" : undefined} aria-label={it.label}
-                  className={`flex items-center justify-center gap-2 h-12 rounded-full transition-colors ${on ? "bg-[#f5f5f7] text-black" : "text-muted hover:text-ink"}`}>
+                  className={`flex items-center justify-center gap-2 h-12 rounded-full transition-colors ${on ? "bg-[#f5f5f7] text-black shadow-[0_0_24px_-4px_rgba(255,255,255,.55)]" : "text-muted hover:text-ink"}`}>
                   {it.icon}
                   {on && <span className="text-[12px] font-semibold nav-label">{it.label}</span>}
                 </Link>

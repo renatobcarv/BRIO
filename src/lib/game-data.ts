@@ -6,7 +6,7 @@ import type { Settings } from "./settings";
 /** Junta os registros reais de todas as áreas e calcula o progresso. Tabelas ausentes contam como vazias. */
 export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const q = async <T,>(p: PromiseLike<{ data: T[] | null; error: unknown }>) => { const r = await p; return r.error ? [] : r.data ?? []; };
-  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays] = await Promise.all([
+  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal] = await Promise.all([
     q<{ date: string; item_key: string }>(sb.from("daily_checks").select("date,item_key").eq("done", true).limit(20000)),
     q<{ date: string; minutes: number }>(sb.from("study_entries").select("date,minutes").limit(10000)),
     q<{ date_read: string }>(sb.from("bible_reading").select("date_read").limit(2000)),
@@ -18,7 +18,9 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     q<{ title: string; finished_at: string | null }>(sb.from("books").select("title,finished_at").eq("status", "lido").limit(2000)),
     q<{ month: string; kind: string; amount: number }>(sb.from("finance_items").select("month,kind,amount").limit(20000)),
     q<{ date: string; kg: number }>(sb.from("weight_logs").select("date,kg").order("date").limit(2000)),
-    q<{ date: string }>(sb.from("clean_marks").select("date").eq("kind", "limpo").limit(5000)),
+    q<{ date: string; kind: string }>(sb.from("clean_marks").select("date,kind").limit(5000)),
+    q<{ date: string; item_key: string; created_at: string }>(sb.from("daily_checks").select("date,item_key,created_at").eq("done", true).limit(20000)),
+    q<{ id: string }>(sb.from("journal_entries").select("id").limit(5000)),
   ]);
 
   const keys = s.checklist.map((c) => c.key);
@@ -43,7 +45,13 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     booksFinished: books.filter((b) => b.finished_at).map((b) => ({ date: b.finished_at!, title: b.title })),
     finance: [...finByMonth].map(([month, v]) => ({ month, ...v })),
     weights: weights.map((w) => ({ date: w.date, kg: Number(w.kg) })),
-    cleanDays: cleanDays.map((c) => c.date),
+    cleanDays: cleanDays.filter((c) => c.kind === "limpo").map((c) => c.date),
+    relapses: cleanDays.filter((c) => c.kind === "recaida").map((c) => c.date),
+    // Hora local de São Paulo (UTC−3) em que a missão principal foi marcada
+    morningDays: timed.filter((c) => c.item_key === (s.checklist.find((x) => x.primary) ?? s.checklist[0])?.key)
+      .filter((c) => { const h = (new Date(c.created_at).getUTCHours() + 21) % 24; return h >= 3 && h < 7; }).map((c) => c.date),
+    journalCount: journal.length,
+    weightGoal: s.weight_goal_kg,
   };
   return summarize(input);
 }

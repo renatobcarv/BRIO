@@ -25,8 +25,8 @@ export function Ring({ value, size = 120, stroke = 10, color = "#ffb340", childr
       <svg width={size} height={size} className="-rotate-90" aria-hidden>
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,.07)" strokeWidth={stroke} />
         <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={stroke} strokeLinecap="round"
-          strokeDasharray={c} strokeDashoffset={c * (1 - v)}
-          style={{ transition: "stroke-dashoffset 900ms cubic-bezier(.34,1.56,.64,1)" }} />
+          strokeDasharray={c} strokeDashoffset={c * (1 - v)} className="ring-anim"
+          style={{ ["--c" as string]: c, transition: "stroke-dashoffset 900ms cubic-bezier(.34,1.56,.64,1)", filter: v > 0 ? `drop-shadow(0 0 6px ${color}88)` : undefined }} />
       </svg>
       <div className="absolute inset-0 grid place-items-center text-center">{children}</div>
     </div>

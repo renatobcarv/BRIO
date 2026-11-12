@@ -1,6 +1,23 @@
-import { ATTRS, RANKS, type Attr } from "@/lib/game";
+import { ATTRS, RANKS, RARITY, type Attr } from "@/lib/game";
 import type { Game } from "@/lib/game-data";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
+import { CountUp } from "@/components/count-up";
+
+/** Emblema da patente: hexágono com brilho da cor dela. */
+function Emblem({ color, level }: { color: string; level: number }) {
+  const hex = "M60 6l47 27v54l-47 27-47-27V33z";
+  return (
+    <div className="relative mx-auto w-[150px] h-[150px] grid place-items-center">
+      <div className="absolute inset-4 rounded-full blur-2xl breathe" style={{ background: color, opacity: .35 }} aria-hidden />
+      <svg viewBox="0 0 120 120" className="absolute inset-0 w-full h-full emblem-spin" aria-hidden>
+        <defs><linearGradient id="emb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={color} /><stop offset="1" stopColor="#ffffff" stopOpacity=".7" /></linearGradient></defs>
+        <path d={hex} fill="#111113" stroke="url(#emb)" strokeWidth="2.5" />
+        <path d="M60 18l37 21v42l-37 21-37-21V39z" fill="none" stroke={color} strokeOpacity=".35" strokeWidth="1" />
+      </svg>
+      <div className="relative text-center"><p className="text-[11px] text-muted">Nível</p><CountUp value={level} duration={1400} className="num text-5xl leading-none text-glow" style={{ ["--glow" as string]: color } as React.CSSProperties} /></div>
+    </div>
+  );
+}
 
 const KEYS = Object.keys(ATTRS) as Attr[];
 
@@ -28,14 +45,13 @@ export function StatusSheet({ g }: { g: Game }) {
   return (
     <>
       <section className="glass rise p-6 relative overflow-hidden text-center">
-        <p className="label relative" style={{ color: g.rank.color }}>Patente · {g.rank.name}</p>
-        <p className="font-display text-7xl mt-2 relative leading-none">{g.level}</p>
-        <p className="label mt-1 relative">nível</p>
+        <Emblem color={g.rank.color} level={g.level} />
+        <p className="text-lg font-semibold mt-3 text-glow" style={{ color: g.rank.color, ["--glow" as string]: g.rank.color } as React.CSSProperties}>{g.rank.name}</p>
         <div className="mt-5 h-3 rounded-full bg-white/[.07] overflow-hidden relative">
-          <div className="h-full rounded-full xp-shine" style={{ width: `${g.progress * 100}%`, background: `linear-gradient(90deg, ${g.rank.color}, #ffd27a)` }} />
+          <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(2, g.progress * 100)}%`, background: `linear-gradient(90deg, ${g.rank.color}, #ffd27a)`, boxShadow: `0 0 16px ${g.rank.color}` }} />
         </div>
         <div className="flex justify-between text-xs text-muted mt-1.5 num relative">
-          <span>{g.into.toLocaleString("pt-BR")} / {g.need.toLocaleString("pt-BR")} XP</span><span>{g.total.toLocaleString("pt-BR")} XP no total</span>
+          <span><CountUp value={g.into} /> / {g.need.toLocaleString("pt-BR")} XP</span><span><CountUp value={g.total} duration={1400} /> XP no total</span>
         </div>
         {nextRank && <p className="text-sm text-muted mt-3 relative">Próxima patente: <span style={{ color: nextRank.color }}>{nextRank.name}</span> no nível {nextRank.min}</p>}
       </section>
@@ -43,11 +59,11 @@ export function StatusSheet({ g }: { g: Game }) {
       <section className="glass rise p-5 mt-4">
         <p className="label mb-2">Atributos</p>
         <Radar values={g.attrs} />
-        <ul className="grid gap-3 mt-2">
+        <ul className="grid gap-3 mt-2 stagger">
           {KEYS.map((k) => (
             <li key={k}>
               <div className="flex items-baseline gap-2 text-sm"><span style={{ color: ATTRS[k].color }}>{ATTRS[k].label}</span><span className="text-faint text-xs flex-1">{ATTRS[k].hint}</span><span className="num">{g.attrs[k]}</span></div>
-              <div className="h-1.5 rounded-full bg-white/[.06] mt-1 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${g.attrs[k]}%`, background: ATTRS[k].color }} /></div>
+              <div className="h-1.5 rounded-full bg-white/[.06] mt-1 overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${Math.max(3, g.attrs[k])}%`, background: ATTRS[k].color, boxShadow: `0 0 10px ${ATTRS[k].color}` }} /></div>
             </li>
           ))}
         </ul>
@@ -59,7 +75,7 @@ export function StatusSheet({ g }: { g: Game }) {
           {g.week.map((w) => (
             <div key={w.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
               {w.xp > 0 && <span className="text-[10px] num text-muted">{w.xp}</span>}
-              <div className="w-full rounded-md" style={{ height: `${(w.xp / maxWeek) * 80}%`, minHeight: 3, background: w.date === g.week.at(-1)!.date ? "linear-gradient(180deg,#ffd27a,#ffb340)" : "rgba(255,179,64,.35)" }} />
+              <div className="w-full rounded-md grow-up" style={{ height: `${(w.xp / maxWeek) * 80}%`, minHeight: 3, background: w.date === g.week.at(-1)!.date ? "linear-gradient(180deg,#ffd27a,#ffb340)" : "rgba(255,179,64,.35)" }} />
               <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
             </div>
           ))}
@@ -68,17 +84,29 @@ export function StatusSheet({ g }: { g: Game }) {
 
       <section className="glass rise p-5 mt-4">
         <div className="flex justify-between items-baseline mb-3"><p className="label">Conquistas</p><p className="text-sm num text-muted">{done}/{g.achievements.length}</p></div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {g.achievements.map((a) => (
-            <div key={a.id} className={`rounded-2xl p-3 border ${a.done ? "" : "opacity-60"}`} style={{ borderColor: a.done ? ATTRS[a.attr].color + "66" : "rgba(255,255,255,.06)", background: a.done ? `linear-gradient(160deg, ${ATTRS[a.attr].color}22, transparent)` : "rgba(255,255,255,.02)" }}>
-              <div className="flex items-center gap-2">
-                <span className="h-7 w-7 rounded-full grid place-items-center text-sm shrink-0" style={{ background: a.done ? ATTRS[a.attr].color : "rgba(255,255,255,.06)", color: a.done ? "#120f08" : "#5d5b56" }}>{a.done ? "★" : "☆"}</span>
-                <p className="text-sm font-medium leading-tight">{a.title}</p>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 stagger">
+          {[...g.achievements].sort((x, y) => Number(y.done) - Number(x.done) || (["lendaria", "epica", "rara", "comum"].indexOf(x.rarity) - ["lendaria", "epica", "rara", "comum"].indexOf(y.rarity)) || y.progress - x.progress).map((a) => {
+            const r = RARITY[a.rarity];
+            return (
+              <div key={a.id} className={`relative overflow-hidden rounded-2xl p-3 border ${a.done ? "achv-shine" : ""}`}
+                style={{ borderColor: a.done ? r.color + "88" : "rgba(255,255,255,.06)", background: a.done ? `linear-gradient(160deg, ${r.color}26, #111113 70%)` : "#111113", boxShadow: a.done && a.rarity !== "comum" ? `0 8px 26px -12px ${r.color}` : undefined }}>
+                <div className="flex items-center gap-2">
+                  <span className="h-8 w-8 rounded-[10px] grid place-items-center text-sm shrink-0"
+                    style={{ background: a.done ? r.color : "rgba(255,255,255,.05)", color: a.done ? "#000" : "#5a5a5f", boxShadow: a.done ? `0 0 16px ${r.color}` : undefined }}>{a.done ? "★" : "☆"}</span>
+                  <div className="min-w-0"><p className={`text-sm font-semibold leading-tight ${a.done ? "" : "text-muted"}`}>{a.title}</p>
+                    <p className="text-[10px] font-medium mt-0.5" style={{ color: r.color }}>{r.label}</p></div>
+                </div>
+                <p className="text-[11px] text-muted mt-2 leading-snug">{a.desc}</p>
+                {a.source && <p className="text-[10px] text-faint mt-1 italic">{a.source}</p>}
+                {!a.done && (
+                  <>
+                    <div className="h-1 rounded-full bg-white/[.06] mt-2 overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${Math.max(2, a.progress * 100)}%`, background: ATTRS[a.attr].color }} /></div>
+                    <p className="text-[10px] text-faint mt-1 num">{Math.floor(a.value).toLocaleString("pt-BR")} / {a.target.toLocaleString("pt-BR")}</p>
+                  </>
+                )}
               </div>
-              <p className="text-[11px] text-muted mt-1.5 leading-snug">{a.desc}</p>
-              {!a.done && <div className="h-1 rounded-full bg-white/[.06] mt-2 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${a.progress * 100}%`, background: ATTRS[a.attr].color }} /></div>}
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
 

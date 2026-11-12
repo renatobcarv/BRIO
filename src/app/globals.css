@@ -160,3 +160,54 @@ h1.font-display { font-weight: 700; letter-spacing: -0.04em; }
 .row-hover:hover { background: rgba(255,255,255,.04); }
 @keyframes drawCheck { from { stroke-dasharray: 24; stroke-dashoffset: 24; } to { stroke-dasharray: 24; stroke-dashoffset: 0; } }
 .check-draw { animation: drawCheck .35s ease-out both; }
+
+/* ═══════════ Movimento v3: fluido, com mola, glow só como resposta ═══════════ */
+:root { --spring: cubic-bezier(.34,1.56,.64,1); --ease-out: cubic-bezier(.16,1,.3,1); }
+
+/* Entrada de tela + cartões em sequência */
+@keyframes pageIn { from { opacity: 0; transform: translateY(14px); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+.page-in { animation: pageIn .55s var(--ease-out) both; }
+.stagger > * { animation: pageIn .6s var(--ease-out) both; }
+.stagger > *:nth-child(1) { animation-delay: .02s } .stagger > *:nth-child(2) { animation-delay: .07s }
+.stagger > *:nth-child(3) { animation-delay: .12s } .stagger > *:nth-child(4) { animation-delay: .17s }
+.stagger > *:nth-child(5) { animation-delay: .22s } .stagger > *:nth-child(6) { animation-delay: .27s }
+.stagger > *:nth-child(7) { animation-delay: .32s } .stagger > *:nth-child(n+8) { animation-delay: .36s }
+.rise { animation: pageIn .6s var(--ease-out) both; }
+
+/* Anéis e barras se desenham do zero */
+@keyframes ringIn { from { stroke-dashoffset: var(--c); } }
+.ring-anim { animation: ringIn 1.2s var(--spring) both; animation-delay: .15s; }
+@keyframes barIn { from { width: 0; } }
+.bar > i { animation: barIn 1s var(--spring) both; animation-delay: .2s; }
+@keyframes growUp { from { transform: scaleY(0); } }
+.grow-up { transform-origin: bottom; animation: growUp .9s var(--spring) both; }
+
+/* Toque com resposta física */
+.btn, .chip, .tile, a.glass, button.glass, .press { transition: transform .25s var(--spring), background .2s, box-shadow .3s, opacity .2s; }
+.btn:active, .chip:active, .tile:active, a.glass:active, button.glass:active, .press:active { transform: scale(.97); }
+.btn-accent { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
+.btn-accent:hover { box-shadow: 0 8px 30px -8px rgba(255,255,255,.35); }
+
+/* Glow como resposta a uma conquista */
+.glow { box-shadow: 0 0 0 1px color-mix(in srgb, var(--glow) 40%, transparent), 0 8px 28px -6px color-mix(in srgb, var(--glow) 70%, transparent); }
+.glow-soft { box-shadow: 0 6px 22px -8px color-mix(in srgb, var(--glow) 80%, transparent); }
+.text-glow { text-shadow: 0 0 24px color-mix(in srgb, var(--glow) 60%, transparent); }
+@keyframes breathe { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+.breathe { animation: breathe 3.2s ease-in-out infinite; }
+.xp-shine { box-shadow: 0 0 18px -2px rgba(255,179,64,.55); }
+
+/* Carregamento com brilho deslizando */
+@keyframes shimmer { from { background-position: -400px 0; } to { background-position: 400px 0; } }
+.skeleton { background: linear-gradient(90deg, #121214 0%, #1c1c1f 40%, #121214 80%) #121214; background-size: 800px 100%; animation: shimmer 1.4s linear infinite; }
+
+@media (prefers-reduced-motion: reduce) { .stagger > *, .page-in, .ring-anim, .bar > i, .grow-up { animation: none !important; } }
+@keyframes barGrow { from { width: 0; } }
+.bar-grow { animation: barGrow 1.1s var(--spring) both; animation-delay: .25s; }
+@keyframes rays { to { transform: rotate(360deg); } }
+.rays { background: repeating-conic-gradient(from 0deg, rgba(255,179,64,.22) 0deg 8deg, transparent 8deg 24deg); border-radius: 50%;
+  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%); mask: radial-gradient(circle, #000 18%, transparent 68%); animation: rays 9s linear infinite; }
+@keyframes emblemIn { from { transform: rotate(-90deg) scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+.emblem-spin { animation: emblemIn 1.1s var(--spring) both; }
+@keyframes achvShine { 0% { transform: translateX(-120%) skewX(-20deg); } 60%, 100% { transform: translateX(220%) skewX(-20deg); } }
+.achv-shine::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); animation: achvShine 3.6s ease-in-out infinite; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .bar-grow, .rays, .emblem-spin, .achv-shine::after { animation: none !important; } }

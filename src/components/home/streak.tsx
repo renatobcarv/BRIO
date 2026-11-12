@@ -3,6 +3,7 @@ import { useState, useTransition } from "react";
 import { markClean, relapse } from "@/app/(app)/home-actions";
 import { useXp } from "@/components/game/xp";
 import { MILESTONES } from "@/lib/clean";
+import { CountUp } from "@/components/count-up";
 
 export type DayState = { date: string; label: string; state: "done" | "relapse" | "none" | "future"; today: boolean };
 
@@ -48,7 +49,7 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
         <Flame lit={lit} />
         <div className="flex-1">
           <p className="label">Dias limpos</p>
-          <p className="num text-6xl leading-none mt-1" style={{ color: lit ? "#ffd27a" : undefined }}>{count}</p>
+          <p className="mt-1"><CountUp value={count} duration={1100} className={`num text-6xl leading-none ${lit ? "text-glow" : ""}`} style={{ color: lit ? "#ffd27a" : undefined, ["--glow" as string]: "#ff9f0a" } as React.CSSProperties} /></p>
           <p className="text-sm text-muted mt-1">{count === 0 ? "Hoje é o dia 1." : `Próximo marco: ${next} dias`}</p>
         </div>
         <div className="text-right"><p className="label">Recorde</p><p className="num text-2xl mt-1">{Math.max(best, count)}</p></div>
@@ -59,7 +60,7 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
           <div key={d.date} className="flex flex-col items-center gap-1.5">
             <span className={`text-[11px] ${d.today ? "text-ink font-semibold" : "text-faint"}`}>{d.label}</span>
             <span className={`h-9 w-9 rounded-full grid place-items-center border ${d.today ? "ring-2 ring-white/40 ring-offset-2 ring-offset-[#0f0f11]" : ""}`}
-              style={{ background: d.state === "done" ? "linear-gradient(160deg,#ffd27a,#ff7a1a)" : d.state === "relapse" ? "rgba(255,69,58,.18)" : "transparent",
+              style={{ boxShadow: d.state === "done" ? "0 0 14px -2px #ff9f0a" : undefined, background: d.state === "done" ? "linear-gradient(160deg,#ffd27a,#ff7a1a)" : d.state === "relapse" ? "rgba(255,69,58,.18)" : "transparent",
                 borderColor: d.state === "done" ? "transparent" : d.state === "relapse" ? "#ff453a66" : "rgba(255,255,255,.12)" }}>
               {d.state === "done" && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1a0d00" strokeWidth="3.2" aria-hidden><path d="M5 12l5 5L20 7" /></svg>}
             </span>

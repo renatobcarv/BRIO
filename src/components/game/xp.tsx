@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { levelOf, rankOf } from "@/lib/game";
+import { CountUp } from "@/components/count-up";
 
 type Float = { id: number; text: string; color: string };
 type Ctx = { total: number; today: number; gain: (xp: number, label?: string, color?: string) => void; celebrate: (title: string, sub?: string) => void };
@@ -55,10 +56,14 @@ export function XpProvider({ initialTotal, initialToday, children }: { initialTo
               <i key={i} className="confetti" style={{ left: `${(i * 37) % 100}%`, background: CONFETTI[i % CONFETTI.length], animationDelay: `${(i % 9) * 0.05}s`, ["--dx" as string]: `${((i * 53) % 120) - 60}px`, ["--rot" as string]: `${(i * 97) % 360}deg` }} />
             ))}
           </div>
-          <div className="level-pop text-center rounded-[28px] px-10 py-7 border border-[#ffb340]/40" style={{ background: "radial-gradient(120% 120% at 50% 0%, rgba(255,179,64,.28), rgba(14,16,21,.95) 60%)", boxShadow: "0 0 80px -10px rgba(255,179,64,.55)" }}>
-            <p className="label text-gold">Conquista</p>
-            <p className="font-display text-5xl mt-1">{banner.title}</p>
-            {banner.sub && <p className="text-muted mt-1">{banner.sub}</p>}
+          <div className="absolute inset-0 bg-black/60 sheet-fade" />
+          <div className="relative grid place-items-center">
+            <div className="absolute h-[420px] w-[420px] rays" aria-hidden />
+            <div className="level-pop relative text-center rounded-[32px] px-10 py-8 border border-[#ffb340]/40 bg-[#111113]" style={{ boxShadow: "0 0 0 1px rgba(255,179,64,.15), 0 0 90px -10px rgba(255,179,64,.65)" }}>
+              <p className="label" style={{ color: "#ffb340" }}>Conquista</p>
+              <p className="font-display text-6xl mt-2 text-glow" style={{ ["--glow" as string]: "#ffb340" }}>{banner.title}</p>
+              {banner.sub && <p className="text-muted mt-2">{banner.sub}</p>}
+            </div>
           </div>
         </div>
       )}
@@ -77,23 +82,25 @@ export function StatusHud({ attrs }: { attrs: { key: string; label: string; colo
         <div className="relative h-[76px] w-[76px] shrink-0">
           <svg width="76" height="76" className="-rotate-90" aria-hidden>
             <circle cx="38" cy="38" r={r} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="6" />
-            <circle cx="38" cy="38" r={r} fill="none" stroke={rank.color} strokeWidth="6" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - lv.progress)} style={{ transition: "stroke-dashoffset .9s cubic-bezier(.34,1.56,.64,1)" }} />
+            <circle cx="38" cy="38" r={r} fill="none" stroke={rank.color} strokeWidth="6" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - lv.progress)} className="ring-anim"
+              style={{ ["--c" as string]: c, transition: "stroke-dashoffset .9s cubic-bezier(.34,1.56,.64,1)", filter: `drop-shadow(0 0 6px ${rank.color})` }} />
           </svg>
-          <div className="absolute inset-0 grid place-items-center text-center"><span><span className="label text-[9px] block">Nível</span><span className="num text-2xl leading-none">{lv.level}</span></span></div>
+          <div className="absolute inset-1.5 rounded-full breathe" style={{ boxShadow: `inset 0 0 22px -6px ${rank.color}` }} aria-hidden />
+          <div className="absolute inset-0 grid place-items-center text-center"><span><span className="label text-[10px] block">Nível</span><CountUp value={lv.level} className="num text-2xl leading-none" /></span></div>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold uppercase tracking-[.18em]" style={{ color: rank.color }}>{rank.name}</span>
-            <span className="ml-auto text-xs num" style={{ color: today ? "#30d158" : "#5d5b56" }}>{today ? `+${today} XP hoje` : "0 XP hoje"}</span>
+            <span className="text-sm font-semibold text-glow" style={{ color: rank.color, ["--glow" as string]: rank.color }}>{rank.name}</span>
+            <span className="ml-auto text-xs num" style={{ color: today ? "#30d158" : "#5a5a5f" }}>+<CountUp value={today} /> XP hoje</span>
           </div>
           <div className="mt-2 h-2.5 rounded-full bg-white/[.07] overflow-hidden">
-            <div className="h-full rounded-full xp-shine" style={{ width: `${lv.progress * 100}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd27a)`, transition: "width .9s cubic-bezier(.34,1.56,.64,1)" }} />
+            <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd27a)`, boxShadow: `0 0 14px -1px ${rank.color}`, transition: "width .9s cubic-bezier(.34,1.56,.64,1)" }} />
           </div>
           <p className="text-[11px] text-muted mt-1 num">{lv.into.toLocaleString("pt-BR")} / {lv.need.toLocaleString("pt-BR")} XP para o nível {lv.level + 1}</p>
           <div className="grid grid-cols-6 gap-1.5 mt-2">
             {attrs.map((a) => (
               <div key={a.key} title={`${a.label} ${a.value}`}>
-                <div className="h-1 rounded-full bg-white/[.07] overflow-hidden"><div className="h-full rounded-full" style={{ width: `${a.value}%`, background: a.color }} /></div>
+                <div className="h-1 rounded-full bg-white/[.07] overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${Math.max(4, a.value)}%`, background: a.color, boxShadow: `0 0 8px ${a.color}` }} /></div>
                 <p className="text-[9px] text-faint mt-0.5 truncate">{a.label.slice(0, 3)} <span className="text-muted">{a.value}</span></p>
               </div>
             ))}

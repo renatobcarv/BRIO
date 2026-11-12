@@ -91,6 +91,7 @@ export default async function Hoje() {
 
   return (
     <XpProvider initialTotal={game.total} initialToday={game.today}>
+      <div className="stagger">
       <Greeting name="Renato" />
       <div className="mb-4"><StatusHud attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} /></div>
 
@@ -146,6 +147,7 @@ export default async function Hoje() {
       <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>
       <Partner photo={photo} phrase={s.partner_phrase ?? "Tijolo por tijolinho"} />
       <Verse area="inicio" />
+      </div>
     </XpProvider>
   );
 }

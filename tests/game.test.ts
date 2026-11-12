@@ -26,3 +26,11 @@ test("recorde só conta quando supera o anterior", () => {
   assert.equal(s.recent.filter((e) => e.label.startsWith("Recorde")).length, 1);
   assert.ok(s.achievements.find((a) => a.id === "total400")!.progress > 0);
 });
+
+import { longestRun, neverTwiceRun } from "../src/lib/game.ts";
+test("maior sequência de dias", () => { assert.equal(longestRun(["2026-11-01", "2026-11-02", "2026-11-04", "2026-11-05", "2026-11-06"]), 3); assert.equal(longestRun([]), 0); });
+test("nunca falhe duas vezes", () => {
+  // falha um dia isolado: não quebra; dois seguidos: quebra
+  assert.equal(neverTwiceRun(["2026-11-01", "2026-11-02", "2026-11-04", "2026-11-05"], "2026-11-05"), 5);
+  assert.equal(neverTwiceRun(["2026-11-01", "2026-11-04", "2026-11-05"], "2026-11-05"), 2);
+});
