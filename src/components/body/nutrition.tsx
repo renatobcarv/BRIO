@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { copyMeals, deleteFood, deleteMealItem, saveFood, saveMealItem, setMealDone } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Ring } from "@/components/ui";
+import { Avocado, Bread, Drumstick, EnergyFlame } from "@/components/meters";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { addDays, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
@@ -187,6 +188,15 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
           </div>
         </div>
         <p className="text-xs text-muted mt-3">{kcal.toLocaleString("pt-BR")} de {goals.kcal.toLocaleString("pt-BR")} kcal consumidas</p>
+        <div className="grid grid-cols-4 gap-1 mt-4 pt-4 border-t border-white/[.06]">
+          {([["Energia", <EnergyFlame key="f" pct={kcal / goals.kcal} size={40} />, kcal / goals.kcal], ["Proteína", <Drumstick key="s" pct={prot / goals.protein} size={46} />, prot / goals.protein],
+            ["Carbo", <Bread key="g" pct={carb / goals.carbs} size={48} />, carb / goals.carbs], ["Gordura", <Avocado key="d" pct={fat / goals.fat} size={38} />, fat / goals.fat]] as const).map(([l, m, v]) => (
+            <div key={l} className="flex flex-col items-center justify-end gap-1">
+              <div className="h-[56px] flex items-end">{m}</div>
+              <p className="num text-sm leading-none">{Math.round(v * 100) || 0}%</p>
+              <p className="text-[10px] text-muted">{l}</p>
+            </div>))}
+        </div>
       </section>
 
       {items.length === 0 && (

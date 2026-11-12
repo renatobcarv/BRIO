@@ -1,4 +1,5 @@
 "use client";
+import { Scale } from "@/components/meters";
 import { useState, useTransition } from "react";
 import { deleteWeight, saveWeight } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -55,7 +56,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
           <Stat big label="Meta" value={fmt(goal)} sub={`início ${fmt(startKg)} kg`} />
           <Stat big label="Falta" value={fmt(Math.abs(left))} color={G} sub={left === 0 ? "chegou!" : "kg"} />
         </div>
-        <div className="mt-4"><Progress value={progress} /></div>
+        <div className="mt-4 flex items-center gap-3"><Scale pct={progress} size={56} /><div className="flex-1"><Progress value={progress} /></div></div>
         <div className="flex justify-between text-xs text-muted mt-1.5">
           <span>{Math.round(Math.max(0, progress) * 100)}% do caminho · {losing ? "perdeu" : "ganhou"} {fmt(Math.abs(lost))} kg</span>
           <span>plano: {fmt(rate, 2)} kg/sem</span>

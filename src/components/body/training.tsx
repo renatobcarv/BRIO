@@ -9,6 +9,7 @@ import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, dayShort, dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
 import { BattleIntro } from "./battle-intro";
+import { Barbell, Forge } from "@/components/meters";
 import { beastFor, type Beast } from "@/lib/bestiary";
 import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
@@ -317,6 +318,22 @@ export function Training({ today, split, plan, workouts, program = null, program
       )}
       {intro && <BattleIntro title={intro.s.label.split(" · ")[0]} beast={intro.beast} onDone={() => { setMode("guiado"); setSession(intro.s); setIntro(null); }} />}
       <section className="glass rise p-5">
+        {(() => {
+          const total = program ? weekDays.filter((w) => w.dp.list.length).length : planned, done = new Set(weekW.map((w) => w.date)).size;
+          const prevStart = addDays(weekStart, -7), lastVol = workouts.filter((w) => w.date >= prevStart && w.date < weekStart).reduce((a, w) => a + volume(w.sets), 0);
+          const vol = weekW.reduce((a, w) => a + volume(w.sets), 0);
+          return (
+            <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-white/[.06]">
+              <div className="min-w-0">
+                <Barbell done={done} total={total} width={150} />
+                <p className="text-[11px] text-muted mt-1">{done >= total && total ? "Barra cheia: semana cumprida 🔥" : `${Math.max(0, total - done)} ${total - done === 1 ? "sessão" : "sessões"} para carregar a barra`}</p>
+              </div>
+              <div className="flex flex-col items-center shrink-0">
+                <Forge pct={lastVol ? vol / lastVol : vol ? 1 : 0} size={48} />
+                <p className="text-[10px] text-muted mt-1 text-center leading-tight">{lastVol ? `${Math.round((vol / lastVol) * 100)}% da` : "volume"}<br />{lastVol ? "semana passada" : "da semana"}</p>
+              </div>
+            </div>);
+        })()}
         <div className="grid grid-cols-3 gap-3">
           <Stat big label="Semana" value={`${new Set(weekW.map((w) => w.date)).size}/${program ? weekDays.filter((w) => w.dp.list.length).length : planned}`} sub="treinos" />
           <Stat big label="Mês" value={monthW.length} sub="sessões" />

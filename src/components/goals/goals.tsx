@@ -1,4 +1,5 @@
 "use client";
+import { Trophy } from "@/components/meters";
 import { useState, useTransition } from "react";
 import { deleteGoal, deleteObjective, saveGoal, saveObjective, setGoalCurrent } from "@/app/(app)/metas/actions";
 import { Card, Empty } from "@/components/ui";
@@ -24,7 +25,7 @@ function GoalCard({ g, today, objectives, boxes }: { g: GoalRow; today: string; 
         </div>
         <button className="btn !min-h-9 !px-3 text-muted text-xs" onClick={() => setEditing(true)}>Editar</button>
       </div>
-      <div className="bar mt-3"><i style={{ width: `${s.pct * 100}%` }} /></div>
+      <div className="flex items-center gap-3 mt-3"><Trophy pct={s.pct} size={34} color={color} /><div className="bar flex-1"><i style={{ width: `${s.pct * 100}%` }} /></div></div>
       <div className="flex justify-between text-sm mt-1">
         <span className="num">{Math.round(s.pct * 100)}% · {fmt(g.current)} / {fmt(g.target)} {g.unit}</span>
         {s.left > 0 && <span className="text-muted">faltam {fmt(s.left)} {g.unit}</span>}

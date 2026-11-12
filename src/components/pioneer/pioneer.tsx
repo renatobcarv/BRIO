@@ -1,8 +1,9 @@
 "use client";
+import { Hourglass } from "@/components/meters";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { addPioneerEntry, deletePioneerEntry, saveWeekPlan, setMonthGoal } from "@/app/(app)/pioneiro/actions";
-import { Card, Empty, Ring } from "@/components/ui";
+import { Card, Empty } from "@/components/ui";
 import { addDays, addMonths, daysInMonth, diffDays, dow, fromHMM, monthEnd, monthLabel, shortDate, toHMM, weekdayShort } from "@/lib/date";
 import { CATEGORIES, PRESETS, scalePreset, type Category } from "@/lib/pioneer";
 
@@ -60,9 +61,10 @@ export function Pioneer(props: {
 
       <Card>
         <div className="flex items-center gap-6 flex-wrap">
-          <Ring value={goal ? total / goal : 0} size={140} stroke={11} color={ACC}>
-            <span><span className="num text-3xl block">{toHMM(total)}</span><span className="label">de {toHMM(goal)}</span></span>
-          </Ring>
+          <div className="flex items-center gap-3">
+            <Hourglass pct={goal ? total / goal : 0} size={62} color={ACC} />
+            <span><span className="num text-3xl block">{toHMM(total)}</span><span className="label">de {toHMM(goal)}</span><span className="block text-xs mt-1" style={{ color: ACC }}>{goal ? Math.round((total / goal) * 100) : 0}% do mês</span></span>
+          </div>
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 flex-1 min-w-48">
             <div><dt className="label">Restam</dt><dd className="num text-2xl">{toHMM(left)}</dd></div>
             <div><dt className="label">Dias</dt><dd className="num text-2xl">{daysLeft}</dd></div>

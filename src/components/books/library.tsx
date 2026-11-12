@@ -1,4 +1,5 @@
 "use client";
+import { BookStack } from "@/components/meters";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
 import { logReading } from "@/app/(app)/livros/actions";
@@ -105,7 +106,7 @@ export function Library({ books, sessions, notes, goal, today }: { books: Book[]
       {view === "lendo" && (
         <>
           <section className="glass rise p-5 flex items-center gap-5">
-            <Ring value={goal ? readYear.length / goal : 0} size={96} stroke={9} color={B}><span className="num text-2xl">{readYear.length}</span></Ring>
+            <span className="flex flex-col items-center shrink-0"><BookStack done={readYear.length} total={goal} size={72} color={B} /><span className="num text-lg mt-1">{readYear.length}/{goal}</span></span>
             <div className="flex-1">
               <div className="flex justify-between"><p className="label">Meta de {year}</p><LinkBtn onClick={() => setGoalSheet(true)}>Editar</LinkBtn></div>
               <p className="font-display text-xl">{readYear.length} de {goal} livros</p>

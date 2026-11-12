@@ -1,4 +1,5 @@
 "use client";
+import { Candle, Scroll } from "@/components/meters";
 import { useOptimistic, useState, useTransition } from "react";
 import { addJournal, addStudy, deleteJournal, deleteStudy, toggleChapter } from "@/app/(app)/espiritual/actions";
 import { Card, Empty } from "@/components/ui";
@@ -17,6 +18,15 @@ export function StudyTab({ today, studies }: { today: string; studies: Study[] }
   const [f, setF] = useState({ date: today, type: "publicacao" as keyof typeof STUDY_TYPES, material: "", minutes: "30", takeaway: "" });
   return (
     <>
+      {(() => { const from = new Date(Date.parse(today + "T12:00:00Z") - 6 * 864e5).toISOString().slice(0, 10), wk = studies.filter((s) => s.date >= from).reduce((a, s) => a + s.minutes, 0), target = 210; return (
+        <Card className="mb-4">
+          <div className="flex items-center gap-4">
+            <Candle pct={wk / target} size={40} />
+            <div className="flex-1"><p className="label">Estudo nos últimos 7 dias</p>
+              <p className="mt-1"><span className="num text-3xl">{Math.floor(wk / 60)}h{String(wk % 60).padStart(2, "0")}</span> <span className="text-muted text-sm">de 3h30</span></p>
+              <p className="text-xs text-muted mt-0.5">{wk >= target ? "A vela está alta. Constância é luz." : "Cada estudo alimenta a chama."}</p></div>
+          </div>
+        </Card>); })()}
       <Card>
         <p className="label mb-3">Registrar estudo</p>
         <div className="flex flex-wrap gap-2">
@@ -65,7 +75,7 @@ export function BibleTab({ read, streak }: { read: { book: number; chapter: numb
       <Card>
         <div className="flex items-end justify-between">
           <div><p className="label">Bíblia inteira</p><p className="mt-1"><span className="num text-4xl">{total}</span> <span className="text-muted">/ {TOTAL_CHAPTERS} capítulos</span></p></div>
-          <div className="text-right"><p className="label">Sequência</p><p className="num text-2xl text-gold">{streak} d</p></div>
+          <div className="text-right"><Scroll pct={total / TOTAL_CHAPTERS} size={70} /><p className="label mt-1">Sequência <span className="num text-gold">{streak} d</span></p></div>
         </div>
         <div className="bar mt-3"><i style={{ width: `${(total / TOTAL_CHAPTERS) * 100}%` }} /></div>
         <p className="text-xs text-muted mt-1">{((total / TOTAL_CHAPTERS) * 100).toFixed(1).replace(".", ",")}%</p>

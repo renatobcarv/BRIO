@@ -5,7 +5,7 @@ import { addWater, saveSleep, undoWater } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
-import { Flask, Moon, Shaker } from "@/components/meters";
+import { Drumstick, EnergyFlame, Moon } from "@/components/meters";
 
 const G = "#30d158";
 const L = (ml: number) => fmt(ml / 1000, 2);
@@ -57,8 +57,8 @@ export function BodyToday(props: {
         <div className="flex items-center justify-between"><p className="label" style={{ color: G }}>Alimentação</p><span className="text-sm text-muted">abrir ›</span></div>
         <div className="grid grid-cols-2 gap-4 mt-3">
           <div className="col-span-2 flex justify-around items-end">
-            <span className="flex items-end gap-2"><Flask pct={props.food.kcal / props.food.kcalGoal} size={44} /><span className="text-xs text-muted pb-1">energia<br /><b className="num text-ink text-sm">{Math.round((props.food.kcal / props.food.kcalGoal) * 100) || 0}%</b></span></span>
-            <span className="flex items-end gap-2"><Shaker pct={props.food.protein / props.food.proteinGoal} size={38} /><span className="text-xs text-muted pb-1">proteína<br /><b className="num text-ink text-sm">{Math.round((props.food.protein / props.food.proteinGoal) * 100) || 0}%</b></span></span>
+            <span className="flex items-end gap-2"><EnergyFlame pct={props.food.kcal / props.food.kcalGoal} size={38} /><span className="text-xs text-muted pb-1">energia<br /><b className="num text-ink text-sm">{Math.round((props.food.kcal / props.food.kcalGoal) * 100) || 0}%</b></span></span>
+            <span className="flex items-end gap-2"><Drumstick pct={props.food.protein / props.food.proteinGoal} size={44} /><span className="text-xs text-muted pb-1">proteína<br /><b className="num text-ink text-sm">{Math.round((props.food.protein / props.food.proteinGoal) * 100) || 0}%</b></span></span>
           </div>
           <div><div className="flex justify-between text-sm"><span>Calorias</span><span className="num">{props.food.kcal}/{props.food.kcalGoal}</span></div><Progress value={props.food.kcal / props.food.kcalGoal} height={6} /></div>
           <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ffb340" height={6} /></div>
