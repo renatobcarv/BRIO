@@ -9,6 +9,7 @@ import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, dayShort, dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
 import { BattleIntro } from "./battle-intro";
+import { beastFor, type Beast } from "@/lib/bestiary";
 import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
 import { totalWeeks } from "@/lib/training";
@@ -44,7 +45,7 @@ export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
   return w ? { date: w.date, sets: w.sets.filter((s) => s.exercise.toLowerCase() === name.toLowerCase()) } : null;
 }
 
-type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
+type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean; kind?: string; weekInPhase?: number; lastPhase?: boolean } | null;
 function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null): Session {
   return {
     date, label: [day.label, day.focus, ctx ? `S${ctx.weekNo}` : ""].filter(Boolean).join(" · "), notes: "", startedAt: null,
@@ -64,7 +65,7 @@ function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: s
   if (program) {
     const pos = programPosition(program, today);
     const ph = program.phases[pos.phaseIndex];
-    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
+    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload", kind: ph.kind, weekInPhase: pos.weekInPhase, lastPhase: pos.phaseIndex === program.phases.length - 1 } };
   }
   return { list: plan.days[String(d)] ?? [], ctx: null };
 }
@@ -271,7 +272,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
   const setSession = (s: Session | null) => { setSessionState(s); try { if (s && !s.editingId) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch {} };
 
-  const [intro, setIntro] = useState<Session | null>(null);
+  const [intro, setIntro] = useState<{ s: Session; beast: Beast } | null>(null);
   // Estatísticas
   const m = monthStart(today), dim = daysInMonth(m);
   const monthW = workouts.filter((w) => w.date >= m);
@@ -314,7 +315,7 @@ export function Training({ today, split, plan, workouts, program = null, program
           )}
         </button>
       )}
-      {intro && <BattleIntro title={intro.label.split(" · ")[0]} onDone={() => { setMode("guiado"); setSession(intro); setIntro(null); }} />}
+      {intro && <BattleIntro title={intro.s.label.split(" · ")[0]} beast={intro.beast} onDone={() => { setMode("guiado"); setSession(intro.s); setIntro(null); }} />}
       <section className="glass rise p-5">
         <div className="grid grid-cols-3 gap-3">
           <Stat big label="Semana" value={`${new Set(weekW.map((w) => w.date)).size}/${program ? weekDays.filter((w) => w.dp.list.length).length : planned}`} sub="treinos" />
@@ -362,6 +363,11 @@ export function Training({ today, split, plan, workouts, program = null, program
                 <div key={sel.date} className="step-in-right">
                   <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "ACTIVE MISSION" : sel.date < today ? "MISSÃO ANTERIOR" : "PRÓXIMA MISSÃO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
                   <p className="font-display text-[26px] leading-tight mt-1">{sel.title ?? `${sel.label} · ${sel.focus || "Descanso"}`}</p>
+                  {ctx && list.length > 0 && (() => { const b = beastFor(ctx.kind, ctx.weekInPhase ?? 1, { hell: ctx.kind === "intensificacao" && ctx.weekInPhase === 1, last: ctx.lastPhase }); return (
+                    <div className="flex items-center gap-2 mt-2 text-xs rounded-full px-3 py-1.5 w-fit border" style={{ borderColor: b.color + "55", background: b.color + "14" }}>
+                      <span style={{ color: b.color }}>⚔ {b.name}</span>
+                      <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-1.5 w-2.5 rounded-sm" style={{ background: i <= b.threat ? b.color : "rgba(255,255,255,.12)" }} />)}</span>
+                    </div>); })()}
                   {ctx && <p className="text-xs mt-0.5" style={{ color: ctx.deload ? "#30d158" : G }}>{ctx.phase}{ctx.deload ? " · recuperação: cargas reduzidas" : ""}</p>}
                   {list.length > 0 ? (
                     <>
@@ -388,7 +394,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                   ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
                   {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
                     <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 12px 34px -10px #e0393e" }}
-                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ ...ns, startedAt: Date.now() }); } else setSession(ns); }}>
+                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: beastFor(ctx?.kind, ctx?.weekInPhase ?? 1, { hell: ctx?.kind === "intensificacao" && ctx?.weekInPhase === 1, last: ctx?.lastPhase }) }); } else setSession(ns); }}>
                       {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
                   )}
                 </div>
