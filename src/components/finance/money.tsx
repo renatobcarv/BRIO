@@ -7,10 +7,10 @@ import { Field, Progress, SectionTitle, Segmented, Sheet, Stat, LinkBtn, n } fro
 import { brl, monthLabel, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { FinCategory } from "@/lib/settings";
 
-const A = "#d9c49a", IN = "#8ac295", OUT = "#e8a39a";
+const A = "#3ee6c1", IN = "#3ee6c1", OUT = "#ff453a", GREY = "#8e8e93";
 export type Tx = { id: string; kind: "receita" | "fixo" | "variavel"; name: string; amount: number; category: string | null; date: string | null; paid: boolean; recurring: boolean; note: string | null; month: string };
 const isOut = (t: Tx) => t.kind !== "receita";
-const COLORS = ["#8ac295", "#84aed4", "#e0ac53", "#d9c49a", "#ac8fd6", "#e8a39a", "#6f9cc4", "#c7a8e6", "#a8d4b1", "#9a978f"];
+const COLORS = ["#30d158", "#0a84ff", "#ffb340", "#3ee6c1", "#bf5af2", "#ff453a", "#3a7bd5", "#d49bff", "#7ee2a0", "#9a978f"];
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 30) || "cat";
 
 function useCats(cats: FinCategory[]) {
@@ -59,7 +59,7 @@ export function TxForm({ tx, month, cats, onDone }: { tx?: Tx; month: string; ca
           <Segmented value={f.paid ? "s" : "n"} onChange={(v) => setF({ ...f, paid: v === "s" })} options={[["s", type === "receita" ? "Recebido" : "Pago"], ["n", type === "receita" ? "A receber" : "A pagar"]]} />
         </Field>
       </div>
-      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#d9c49a]" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} />
+      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#3ee6c1]" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} />
         <span>Repete todo mês <span className="text-faint text-sm">(entra automaticamente nos próximos meses)</span></span></label>
       <Field label="Observação"><input className="field" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="Opcional" /></Field>
       <div className="flex gap-2">
@@ -108,11 +108,11 @@ export function Overview({ month, txs, prevTxs, history, cats, onAdd, onOpen }: 
     <>
       <section className="glass rise p-5">
         <p className="label">Saldo do mês</p>
-        <p className="num text-4xl md:text-5xl mt-1" style={{ color: left >= 0 ? A : OUT }}>{brl(left)}</p>
+        <p className="num text-[44px] md:text-5xl mt-1 leading-none" style={{ color: left >= 0 ? "#f5f5f7" : OUT }}>{brl(left)}</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-4 mt-4">
           <Stat label="Receitas" value={brl(inc)} color={IN} sub={pendIn ? `${brl(pendIn)} a receber` : "tudo recebido"} />
           <Stat label="Despesas" value={brl(out)} sub={delta == null ? "—" : `${delta > 0 ? "▲" : "▼"} ${Math.abs(Math.round(delta * 100))}% vs mês ant.`} />
-          <Stat label="Poupança" value={`${inc ? Math.round((left / inc) * 100) : 0}%`} color={A} sub="da renda" />
+          <Stat label="Poupança" value={`${inc ? Math.round((left / inc) * 100) : 0}%`} sub="da renda" />
         </div>
         <div className="mt-4">
           <div className="flex justify-between text-xs text-muted mb-1"><span>Pago {brl(paidOut)}</span><span>A pagar {brl(pendOut)}</span></div>
@@ -148,13 +148,13 @@ export function Overview({ month, txs, prevTxs, history, cats, onAdd, onOpen }: 
             <div key={h.month} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={`Receitas ${brl(h.income)} · Despesas ${brl(h.expense)}`}>
               <div className="flex items-end gap-1 w-full h-full">
                 <div className="flex-1 rounded-t-md" style={{ height: `${(h.income / maxH) * 100}%`, minHeight: 2, background: h.month === month ? IN : IN + "55" }} />
-                <div className="flex-1 rounded-t-md" style={{ height: `${(h.expense / maxH) * 100}%`, minHeight: 2, background: h.month === month ? OUT : OUT + "55" }} />
+                <div className="flex-1 rounded-t-md" style={{ height: `${(h.expense / maxH) * 100}%`, minHeight: 2, background: h.month === month ? "#e5e5ea" : GREY + "55" }} />
               </div>
               <span className="text-[10px] text-muted capitalize">{monthLabel(h.month).slice(0, 3)}</span>
             </div>
           ))}
         </div>
-        <div className="flex gap-4 text-xs text-muted mt-2"><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: IN }} />Receitas</span><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: OUT }} />Despesas</span></div>
+        <div className="flex gap-4 text-xs text-muted mt-2"><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: IN }} />Receitas</span><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: "#e5e5ea" }} />Despesas</span></div>
       </section>
 
       {upcoming.length > 0 && (
@@ -235,7 +235,7 @@ export function Transactions({ month, txs, cats, hasRecurringPrev, onAdd, onOpen
         ))}
       </section>
       <button onClick={onAdd} aria-label="Novo lançamento"
-        className="fixed right-5 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-8 md:right-8 z-30 h-14 w-14 rounded-full grid place-items-center text-3xl shadow-2xl"
+        className="fixed right-5 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-8 md:right-8 z-30 h-14 w-14 rounded-full grid place-items-center text-3xl shadow-2xl"
         style={{ background: A, color: "#120f08" }}>+</button>
     </>
   );

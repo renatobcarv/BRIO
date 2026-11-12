@@ -53,7 +53,7 @@ export function Partner({ photo, phrase }: { photo: string | null; phrase: strin
         )}
         {picker}
       </figure>
-      {err && <p role="alert" className="text-sm text-[#e8a39a] mt-2">{err}</p>}
+      {err && <p role="alert" className="text-sm text-[#ff453a] mt-2">{err}</p>}
       <Sheet open={editing} onClose={() => setEditing(false)} title="Frase dela">
         <textarea className="field font-display italic text-lg" value={text} onChange={(e) => setText(e.target.value)} maxLength={300} />
         <button className="btn btn-accent w-full mt-3" disabled={pending || !text.trim()} onClick={savePhrase}>{pending ? "Salvando…" : "Salvar"}</button>

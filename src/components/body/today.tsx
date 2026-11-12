@@ -6,7 +6,7 @@ import { updateSettings } from "@/app/settings-actions";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
 
-const G = "#8ac295";
+const G = "#30d158";
 const L = (ml: number) => fmt(ml / 1000, 2);
 
 function Bottle({ pct }: { pct: number }) {
@@ -15,7 +15,7 @@ function Bottle({ pct }: { pct: number }) {
     <svg width="88" height={h + 10} viewBox={`0 0 88 ${h + 10}`} aria-hidden>
       <defs>
         <clipPath id="bt"><path d="M30 6h28v14c0 6 13 10 13 23v106a11 11 0 0 1-11 11H28a11 11 0 0 1-11-11V43c0-13 13-17 13-23z" /></clipPath>
-        <linearGradient id="wg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#a6dbb2" /><stop offset="1" stopColor="#5f9e6d" /></linearGradient>
+        <linearGradient id="wg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#7ee8a2" /><stop offset="1" stopColor="#1f9d48" /></linearGradient>
       </defs>
       <g clipPath="url(#bt)">
         <rect width="88" height={h + 10} fill="rgba(255,255,255,.04)" />
@@ -56,7 +56,7 @@ export function BodyToday(props: {
         <div className="flex items-center justify-between"><p className="label" style={{ color: G }}>Alimentação</p><span className="text-sm text-muted">abrir ›</span></div>
         <div className="grid grid-cols-2 gap-4 mt-3">
           <div><div className="flex justify-between text-sm"><span>Calorias</span><span className="num">{props.food.kcal}/{props.food.kcalGoal}</span></div><Progress value={props.food.kcal / props.food.kcalGoal} height={6} /></div>
-          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#e0ac53" height={6} /></div>
+          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ffb340" height={6} /></div>
         </div>
       </Link>
 
@@ -97,7 +97,7 @@ export function BodyToday(props: {
         <div className="flex items-end gap-2 h-16 mt-4">
           {props.sleep7.map((s) => (
             <div key={s.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={s.hours != null ? `${fmt(s.hours)} h` : "sem registro"}>
-              <div className="w-full rounded-md" style={{ height: `${((s.hours ?? 0) / 10) * 100}%`, minHeight: 2, background: (s.hours ?? 0) >= 7 ? "#84aed4" : "#84aed455" }} />
+              <div className="w-full rounded-md" style={{ height: `${((s.hours ?? 0) / 10) * 100}%`, minHeight: 2, background: (s.hours ?? 0) >= 7 ? "#0a84ff" : "#0a84ff55" }} />
               <span className="text-[10px] text-muted">{weekdayShort[dow(s.date)]}</span>
             </div>
           ))}

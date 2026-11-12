@@ -4,7 +4,7 @@ import { copyPrevMonth, deleteRow, depositBox, saveRow } from "@/app/(app)/finan
 import { Card, Empty, Ring } from "@/components/ui";
 import { brl, monthLabel } from "@/lib/date";
 
-const ACC = "#d9c49a";
+const ACC = "#3ee6c1";
 type Row = { id: string; name: string; amount: number; kind?: string };
 const parseMoney = (s: string) => Number(s.replace(/[^\d,.-]/g, "").replace(/\./g, "").replace(",", ".")) || 0;
 const fmtIn = (n: number) => n.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -45,16 +45,16 @@ export function Flow({ month, items }: { month: string; items: Row[] }) {
   const [pending, start] = useTransition();
   const sum = (k: string) => items.filter((i) => i.kind === k).reduce((a, i) => a + i.amount, 0);
   const inc = sum("receita"), fix = sum("fixo"), varr = sum("variavel"), left = inc - fix - varr;
-  const groups = [["receita", "Receitas", "#8ac295"], ["fixo", "Custos fixos", "#84aed4"], ["variavel", "Custos variáveis", "#ac8fd6"]] as const;
+  const groups = [["receita", "Receitas", "#30d158"], ["fixo", "Custos fixos", "#0a84ff"], ["variavel", "Custos variáveis", "#bf5af2"]] as const;
   return (
     <>
       <Card>
         <div className="flex items-center gap-6 flex-wrap">
-          <Donut parts={[{ label: "Fixos", value: fix, color: "#84aed4" }, { label: "Variáveis", value: varr, color: "#ac8fd6" }, { label: "Sobra", value: left, color: ACC }]} />
+          <Donut parts={[{ label: "Fixos", value: fix, color: "#0a84ff" }, { label: "Variáveis", value: varr, color: "#bf5af2" }, { label: "Sobra", value: left, color: ACC }]} />
           <dl className="grid grid-cols-2 gap-x-6 gap-y-3 flex-1 min-w-48">
             <div><dt className="label">Receitas</dt><dd className="num text-xl">{brl(inc)}</dd></div>
             <div><dt className="label">Custos</dt><dd className="num text-xl">{brl(fix + varr)}</dd></div>
-            <div><dt className="label">Sobra</dt><dd className="num text-2xl" style={{ color: left >= 0 ? ACC : "#e8a39a" }}>{brl(left)}</dd></div>
+            <div><dt className="label">Sobra</dt><dd className="num text-2xl" style={{ color: left >= 0 ? ACC : "#ff453a" }}>{brl(left)}</dd></div>
             <div><dt className="label">Poupança</dt><dd className="num text-2xl">{inc ? Math.round((left / inc) * 100) : 0}%</dd></div>
           </dl>
         </div>
@@ -151,7 +151,7 @@ function BoxForm({ box, onDone }: { box: Box; onDone: () => void }) {
       <input className="field" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} aria-label="Objetivo" />
       <div className="grid grid-cols-3 gap-2">{fld("target", "Total")}{fld("monthly", "Aporte/mês")}{fld("saved", "Acumulado")}</div>
       <div className="flex gap-2 items-center">
-        {[ACC, "#e0ac53", "#84aed4", "#8ac295", "#ac8fd6"].map((c) => <button key={c} aria-label={`Cor ${c}`} aria-pressed={f.color === c} onClick={() => setF({ ...f, color: c })}
+        {[ACC, "#ffb340", "#0a84ff", "#30d158", "#bf5af2"].map((c) => <button key={c} aria-label={`Cor ${c}`} aria-pressed={f.color === c} onClick={() => setF({ ...f, color: c })}
           className="h-9 w-9 rounded-full border-2" style={{ background: c, borderColor: f.color === c ? "#fff" : "transparent" }} />)}
       </div>
       <div className="flex gap-2 justify-end mt-1">
@@ -193,7 +193,7 @@ export function NetWorth({ month, items, history }: { month: string; items: Row[
         <Card className="mt-4"><Empty>Nenhum item neste mês.</Empty>
           <button className="btn w-full" disabled={pending} onClick={() => start(() => copyPrevMonth("net_worth_items", month))}>Copiar do mês anterior</button></Card>
       )}
-      {([["ativo", "Ativos", "#8ac295"], ["passivo", "Passivos", "#e8a39a"]] as const).map(([k, label, color]) => (
+      {([["ativo", "Ativos", "#30d158"], ["passivo", "Passivos", "#ff453a"]] as const).map(([k, label, color]) => (
         <Card key={k} className="mt-4">
           <div className="flex justify-between mb-2"><p className="label" style={{ color }}>{label}</p><p className="num">{brl(sum(k))}</p></div>
           <ul>{items.filter((i) => i.kind === k).map((r) => <MoneyRow key={r.id} row={r} table="net_worth_items" />)}</ul>

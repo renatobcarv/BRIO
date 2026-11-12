@@ -8,6 +8,7 @@ import { Streak } from "@/components/home/streak";
 import { addDays, brl, monthLabel, monthStart, todayISO, toHMM } from "@/lib/date";
 import { getSettings } from "@/lib/settings";
 import { computeStreak } from "@/lib/streak";
+import { cleanStats, type Mark } from "@/lib/clean";
 import { signedPhoto } from "@/lib/storage";
 import { goalStats, AREAS, type GoalRow } from "@/lib/goals";
 import { createClient } from "@/lib/supabase/server";
@@ -33,7 +34,7 @@ export default async function Hoje() {
   const sb = await createClient();
   const today = todayISO();
   const month = monthStart(today);
-  const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goals, refl] = await Promise.all([
+  const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goals, refl, cleanQ] = await Promise.all([
     getSettings(sb),
     sb.from("daily_checks").select("date,item_key").gte("date", addDays(today, -400)).eq("done", true),
     sb.from("streaks").select("*").maybeSingle(),
@@ -44,6 +45,7 @@ export default async function Hoje() {
     sb.from("finance_items").select("kind,amount,category,paid").eq("month", month),
     sb.from("goals").select("*").order("featured", { ascending: false }).order("deadline", { nullsFirst: false }).limit(3),
     sb.from("journal_entries").select("id").eq("date", today).like("text", "Texto do dia:%").limit(1),
+    sb.from("clean_marks").select("date,kind").gte("date", addDays(today, -800)),
   ]);
 
   // Sequência
@@ -56,12 +58,14 @@ export default async function Hoje() {
   const count = computeStreak({ today, completeDays: complete, excused, resetDate: st?.last_date ?? null });
   const best = Math.max(st?.best ?? 0, count);
   if (st && best > st.best) await sb.from("streaks").update({ best, count }).eq("id", st.id);
-  // Semana atual (seg → dom) para a faixa da sequência
+  // Dias limpos + semana atual (seg → dom)
+  const marks = (cleanQ.error ? [] : cleanQ.data ?? []) as Mark[];
+  const clean = cleanStats(marks, today);
   const monday = addDays(today, -((new Date(today + "T12:00:00Z").getUTCDay() + 6) % 7));
   const week = Array.from({ length: 7 }, (_, i) => {
-    const d = addDays(monday, i), n = byDay.get(d)?.size ?? 0;
+    const d = addDays(monday, i), m = marks.find((x) => x.date === d);
     return { date: d, label: ["S", "T", "Q", "Q", "S", "S", "D"][i], today: d === today,
-      state: (d > today ? "future" : complete.has(d) ? "done" : excused.has(d) ? "excused" : n ? "partial" : "none") as "done" | "excused" | "partial" | "none" | "future" };
+      state: (d > today ? "future" : m?.kind === "limpo" ? "done" : m?.kind === "recaida" ? "relapse" : "none") as "done" | "relapse" | "none" | "future" };
   });
 
   // Finanças do mês
@@ -91,14 +95,14 @@ export default async function Hoje() {
       <div className="mb-4"><StatusHud attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} /></div>
 
       {/* Relatório financeiro */}
-      <Link href="/financas" className="glass rise block p-5" style={{ ["--accent" as string]: "#d9c49a" }}>
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#d9c49a" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
+      <Link href="/financas" className="glass rise block p-5" style={{ ["--accent" as string]: "#3ee6c1" }}>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#3ee6c1" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
-          <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#8ac295" }}>{brl(income)}</p></div>
+          <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#30d158" }}>{brl(income)}</p></div>
           <div><p className="label">Saiu</p><p className="num text-lg md:text-xl">{brl(spent)}</p></div>
-          <div className="col-span-2 sm:col-span-1"><p className="label">Sobra</p><p className="num text-2xl md:text-xl" style={{ color: left >= 0 ? "#d9c49a" : "#e8a39a" }}>{brl(left)}</p></div>
+          <div className="col-span-2 sm:col-span-1"><p className="label">Sobra</p><p className="num text-2xl md:text-xl" style={{ color: left >= 0 ? "#f5f5f7" : "#ff453a" }}>{brl(left)}</p></div>
         </div>
-        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#e8a39a" : "#d9c49a" }} /></div>
+        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#3ee6c1" }} /></div>
         <div className="flex justify-between text-xs text-muted mt-1.5">
           <span>{income ? `${Math.round((spent / income) * 100)}% da renda usada` : "Sem receitas lançadas"}</span>
           <span>Poupança {income ? Math.round((left / income) * 100) : 0}%</span>
@@ -106,18 +110,18 @@ export default async function Hoje() {
         {(topCats.length > 0 || pending > 0) && (
           <div className="flex flex-wrap gap-2 mt-3">
             {topCats.map(([k, v]) => <span key={k} className="tag"><i className="h-2 w-2 rounded-full" style={{ background: catMap.get(k)?.color ?? "#9a978f" }} />{catMap.get(k)?.label ?? k} {brl(v)}</span>)}
-            {pending > 0 && <span className="tag" style={{ color: "#e8a39a" }}>A pagar {brl(pending)}</span>}
+            {pending > 0 && <span className="tag" style={{ color: "#ff453a" }}>A pagar {brl(pending)}</span>}
           </div>
         )}
       </Link>
 
       {/* Metas */}
       <Link href="/metas" className="glass rise block p-5 mt-4">
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ac8fd6" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#bf5af2" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
         {goalList.length === 0 ? <p className="font-display italic text-muted text-lg mt-2">Defina sua primeira meta.</p> : (
           <ul className="grid gap-4 mt-3">
             {goalList.map((g) => {
-              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#ac8fd6";
+              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#bf5af2";
               return (
                 <li key={g.id}>
                   <div className="flex justify-between gap-3 text-sm"><span className="truncate">{g.title}</span><span className="num shrink-0" style={{ color: c }}>{Math.round(st.pct * 100)}%</span></div>
@@ -130,13 +134,13 @@ export default async function Hoje() {
         )}
       </Link>
 
-      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} /></div>
-      <Streak count={count} best={best} excusedToday={excused.has(today)} week={week} />
+      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
+      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} />
 
       <div className="grid grid-cols-3 gap-3 mt-4">
-        <Mini href="/pioneiro" label="Pioneiro" color="#84aed4" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} />
-        <Mini href="/corpo" label="Água" color="#8ac295" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} />
-        <Mini href="/corpo?aba=peso" label="Peso" color="#8ac295" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
+        <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} />
+        <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} />
+        <Mini href="/corpo?aba=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
       </div>
 
       <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>

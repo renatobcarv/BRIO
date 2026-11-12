@@ -55,3 +55,18 @@ export async function saveDailyReflection(text: string) {
   await sb.from("journal_entries").insert({ date: todayISO(), kind: "reflexao", text: `Texto do dia: ${t}` });
   revalidatePath("/"); revalidatePath("/espiritual");
 }
+
+// ── Dias limpos ──
+export async function markClean(on: boolean) {
+  const sb = await createClient();
+  const date = todayISO();
+  if (on) await sb.from("clean_marks").upsert({ date, kind: "limpo" }, { onConflict: "user_id,date" });
+  else await sb.from("clean_marks").delete().eq("date", date).eq("kind", "limpo");
+  revalidatePath("/"); revalidatePath("/status");
+}
+/** Recomeço honesto: registra a queda de hoje; a sequência volta a zero e o recorde fica. */
+export async function relapse() {
+  const sb = await createClient();
+  await sb.from("clean_marks").upsert({ date: todayISO(), kind: "recaida" }, { onConflict: "user_id,date" });
+  revalidatePath("/"); revalidatePath("/status");
+}

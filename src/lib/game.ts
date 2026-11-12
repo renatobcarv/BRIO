@@ -1,19 +1,19 @@
 // Progressão do BRIO: XP e conquistas calculados só a partir de registros reais. Sem dependências.
 
 export const ATTRS = {
-  forca: { label: "Força", color: "#8ac295", hint: "Volume de treino e recordes" },
-  vigor: { label: "Vigor", color: "#84aed4", hint: "Água, sono e cardio" },
-  sabedoria: { label: "Sabedoria", color: "#e0ac53", hint: "Estudo, Bíblia e livros" },
-  servico: { label: "Serviço", color: "#7fb3e0", hint: "Horas de pioneiro" },
-  disciplina: { label: "Disciplina", color: "#ac8fd6", hint: "Checklist e dias completos" },
-  ordem: { label: "Ordem", color: "#d9c49a", hint: "Finanças em dia" },
+  forca: { label: "Força", color: "#30d158", hint: "Volume de treino e recordes" },
+  vigor: { label: "Vigor", color: "#0a84ff", hint: "Água, sono e cardio" },
+  sabedoria: { label: "Sabedoria", color: "#ffb340", hint: "Estudo, Bíblia e livros" },
+  servico: { label: "Serviço", color: "#409cff", hint: "Horas de pioneiro" },
+  disciplina: { label: "Disciplina", color: "#bf5af2", hint: "Checklist e dias completos" },
+  ordem: { label: "Ordem", color: "#3ee6c1", hint: "Finanças em dia" },
 } as const;
 export type Attr = keyof typeof ATTRS;
 
 export const RANKS = [
-  { min: 1, name: "Iniciante", color: "#9a978f" }, { min: 5, name: "Constante", color: "#84aed4" },
-  { min: 10, name: "Firme", color: "#8ac295" }, { min: 20, name: "Forte", color: "#e0ac53" },
-  { min: 35, name: "Inabalável", color: "#e8a39a" }, { min: 50, name: "Lendário", color: "#f3d48a" },
+  { min: 1, name: "Iniciante", color: "#9a978f" }, { min: 5, name: "Constante", color: "#0a84ff" },
+  { min: 10, name: "Firme", color: "#30d158" }, { min: 20, name: "Forte", color: "#ffb340" },
+  { min: 35, name: "Inabalável", color: "#ff453a" }, { min: 50, name: "Lendário", color: "#ffd27a" },
 ] as const;
 
 /** XP total para chegar ao nível n (nível 1 = 0). Cresce de forma quadrática. */
@@ -41,6 +41,7 @@ export type GameInput = {
   booksFinished: { date: string; title: string }[];
   finance: { month: string; logged: number; income: number; expenses: number }[];
   weights: { date: string; kg: number }[];
+  cleanDays?: string[];
 };
 export type XpEvent = { date: string; attr: Attr; xp: number; label: string };
 
@@ -52,6 +53,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
   const byDate = new Map<string, number>();
   for (const c of g.checks) byDate.set(c.date, (byDate.get(c.date) ?? 0) + 1);
   for (const [date, n] of byDate) ev.push({ date, attr: "disciplina", xp: n * 10, label: `${n} itens do checklist` });
+  for (const d of g.cleanDays ?? []) ev.push({ date: d, attr: "disciplina", xp: 20, label: "Dia limpo" });
   for (const d of g.fullDays) ev.push({ date: d, attr: "disciplina", xp: 50, label: "Dia 100% completo" });
   for (const s of g.study) if (s.minutes > 0) ev.push({ date: s.date, attr: "sabedoria", xp: Math.min(s.minutes, 180), label: `${s.minutes} min de estudo` });
   for (const c of g.chapters) ev.push({ date: c.date, attr: "sabedoria", xp: 15, label: "Capítulo da Bíblia" });
@@ -92,7 +94,11 @@ export function achievements(g: GameInput): Achievement[] {
   const studyDays = new Set(g.study.map((s) => s.date)).size;
   const lost = g.weights.length ? Math.max(0, Math.max(...g.weights.map((w) => w.kg)) - g.weights.at(-1)!.kg) : 0;
   const a = (id: string, title: string, desc: string, attr: Attr, value: number, target: number): Achievement => ({ id, title, desc, attr, done: value >= target, progress: Math.min(1, value / target) });
+  const cleanBest = (() => { let b = 0, r = 0, last = ""; for (const d of [...(g.cleanDays ?? [])].sort()) { r = last && new Date(Date.parse(d) - 864e5).toISOString().slice(0, 10) === last ? r + 1 : 1; b = Math.max(b, r); last = d; } return b; })();
   return [
+    a("limpo7", "Sete dias limpos", "7 dias limpos seguidos", "disciplina", cleanBest, 7),
+    a("limpo30", "Trinta dias limpos", "30 dias limpos seguidos", "disciplina", cleanBest, 30),
+    a("limpo90", "Noventa dias limpos", "90 dias limpos seguidos", "disciplina", cleanBest, 90),
     a("dia1", "Primeiro passo", "Complete um dia inteiro do checklist", "disciplina", g.fullDays.length, 1),
     a("seq7", "Semana firme", "7 dias seguidos 100%", "disciplina", streak, 7),
     a("seq30", "Mês inabalável", "30 dias seguidos 100%", "disciplina", streak, 30),

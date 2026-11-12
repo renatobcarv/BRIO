@@ -8,7 +8,7 @@ import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/compone
 import { addDays, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
 
-const G = "#8ac295", P = "#e0ac53", C = "#84aed4", F = "#ac8fd6";
+const G = "#30d158", P = "#ffb340", C = "#0a84ff", F = "#bf5af2";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 export type Food = { id: string; name: string; portion: string | null; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 type Goals = { kcal: number; protein: number; carbs: number; fat: number };
@@ -47,7 +47,7 @@ function ItemForm({ date, slot, item, foods, onDone }: { date: string; slot: str
       {!item && (
         <div className="grid grid-cols-[6rem_1fr] gap-3 items-end">
           <Field label="Porções"><input className="field num text-center" inputMode="decimal" value={f.qty} onChange={(e) => setF({ ...f, qty: e.target.value })} /></Field>
-          <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#8ac295]" checked={f.fav} onChange={(e) => setF({ ...f, fav: e.target.checked })} />Salvar nos favoritos</label>
+          <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#30d158]" checked={f.fav} onChange={(e) => setF({ ...f, fav: e.target.checked })} />Salvar nos favoritos</label>
         </div>
       )}
       {mult !== 1 && <p className="text-xs text-muted">Total: {Math.round(n(f.kcal) * mult)} kcal · {fmt(n(f.p) * mult)} g proteína</p>}
@@ -168,7 +168,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
       <section className="glass rise p-5">
         <SectionTitle action={<LinkBtn onClick={() => setSheet({ kind: "goals" })}>Metas</LinkBtn>}>Resumo do dia</SectionTitle>
         <div className="flex items-center gap-6">
-          <Ring value={kcal / goals.kcal} size={130} stroke={11} color={kcal > goals.kcal * 1.05 ? "#e8a39a" : G}>
+          <Ring value={kcal / goals.kcal} size={130} stroke={11} color={kcal > goals.kcal * 1.05 ? "#ff453a" : G}>
             <span><span className="num text-3xl block">{Math.abs(remaining).toLocaleString("pt-BR")}</span><span className="label">{remaining >= 0 ? "kcal restam" : "kcal acima"}</span></span>
           </Ring>
           <div className="flex-1 grid gap-3">

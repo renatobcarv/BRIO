@@ -1,3 +1,3 @@
 { "name": "Brio", "short_name": "Brio", "start_url": "/", "display": "standalone",
-  "background_color": "#07080b", "theme_color": "#07080b", "lang": "pt-BR",
+  "background_color": "#000000", "theme_color": "#000000", "lang": "pt-BR",
   "icons": [{ "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }] }

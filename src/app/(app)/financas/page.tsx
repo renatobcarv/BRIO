@@ -30,7 +30,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       sb.from("finance_chat_proposals").select("id,kind,summary,status").eq("status", "pending").order("created_at"),
     ]);
     content = m.error
-      ? <p className="glass p-5 text-sm text-[#e8a39a]">Rode a migração <code>supabase/migrations/20261112000000_assistente.sql</code> no Supabase para usar o assistente.</p>
+      ? <p className="glass p-5 text-sm text-[#ff453a]">Rode a migração <code>supabase/migrations/20261112000000_assistente.sql</code> no Supabase para usar o assistente.</p>
       : <FinanceChat initial={(m.data ?? []).reverse() as { role: "user" | "assistant"; content: string }[]} pending={p.data ?? []} />;
   } else if (tab === "resumo" || tab === "lancamentos" || tab === "orcamento") {
     const from = addMonths(month, -5);
@@ -59,7 +59,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     const expMonths = new Set((exp.data ?? []).map((e) => e.month)).size;
     const monthlyCost = expMonths ? (exp.data ?? []).reduce((a, e) => a + Number(e.amount), 0) / expMonths : 0;
     content = <>
-      {mv.error && <p className="glass p-4 mb-4 text-sm text-[#e8a39a]">Para aportes, resgates e histórico, rode a migração <code>supabase/migrations/20261107000000_investimentos.sql</code> no Supabase.</p>}
+      {mv.error && <p className="glass p-4 mb-4 text-sm text-[#ff453a]">Para aportes, resgates e histórico, rode a migração <code>supabase/migrations/20261107000000_investimentos.sql</code> no Supabase.</p>}
       <Investments items={items} moves={moves} monthlyCost={monthlyCost} today={today} />
     </>;
   } else if (tab === "caixinhas") {
@@ -75,8 +75,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const href = (t: string, m = month) => `/financas?aba=${t}&m=${m.slice(0, 7)}`;
 
   return (
-    <div style={{ ["--accent" as string]: "#d9c49a" }}>
-      <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" color="#d9c49a" />
+    <div style={{ ["--accent" as string]: "#3ee6c1" }}>
+      <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" color="#3ee6c1" />
       <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
         <div className="flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 overflow-x-auto" role="tablist">
           {TABS.map(([k, l]) => (

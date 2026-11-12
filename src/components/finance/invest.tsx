@@ -6,7 +6,7 @@ import { Field, Progress, SectionTitle, Segmented, Sheet, Stat, fmt, n } from "@
 import { brl, monthLabel, shortDate } from "@/lib/date";
 import { INV_TYPES, LIQUIDITY, monthsToTarget, projection, reserveMonths, type InvType, type Liquidity } from "@/lib/invest";
 
-const A = "#d9c49a", UP = "#8ac295", DOWN = "#e8a39a";
+const A = "#3ee6c1", UP = "#30d158", DOWN = "#ff453a";
 export type Inv = { id: string; name: string; type: InvType; institution: string | null; amount: number; invested: number; rate_aa: number; monthly: number;
   liquidity: Liquidity; maturity: string | null; notes: string | null; is_reserve: boolean };
 export type Move = { id: string; investment_id: string; date: string; kind: "aporte" | "resgate" | "atualizacao"; amount: number; balance_after: number };
@@ -57,9 +57,9 @@ function InvForm({ inv, onDone }: { inv?: Inv; onDone: () => void }) {
           {(Object.keys(LIQUIDITY) as Liquidity[]).map((l) => <option key={l} value={l}>{LIQUIDITY[l]}</option>)}</select></Field>
       </div>
       <Field label="Vencimento (opcional)"><input type="date" className="field" value={f.maturity} onChange={(e) => set({ maturity: e.target.value })} /></Field>
-      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#8ac295]" checked={f.is_reserve} onChange={(e) => set({ is_reserve: e.target.checked })} />Conta como reserva de emergência</label>
+      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#30d158]" checked={f.is_reserve} onChange={(e) => set({ is_reserve: e.target.checked })} />Conta como reserva de emergência</label>
       <Field label="Observações"><input className="field" value={f.notes} onChange={(e) => set({ notes: e.target.value })} /></Field>
-      {err && <p role="alert" className="text-sm text-[#e8a39a]">{err}</p>}
+      {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
       <div className="flex gap-2">
         {inv && <button className="btn text-muted" disabled={pending} onClick={() => { if (confirm(`Excluir “${inv.name}” e o histórico?`)) start(async () => { await deleteInvestment(inv.id); onDone(); }); }}>Excluir</button>}
         <button className="btn btn-accent flex-1" disabled={pending || !f.name.trim()} onClick={() => start(async () => {
@@ -146,12 +146,12 @@ function Simulator({ initial, monthly, rate }: { initial: number; monthly: numbe
         <Field label="% ao ano"><input className="field num !px-2" inputMode="decimal" value={f.rate} onChange={(e) => setF({ ...f, rate: e.target.value })} /></Field>
       </div>
       <label className="grid gap-1 mt-3"><span className="label">Prazo: {f.years} {f.years === 1 ? "ano" : "anos"}</span>
-        <input type="range" min={1} max={35} value={f.years} onChange={(e) => setF({ ...f, years: +e.target.value })} className="w-full accent-[#d9c49a] min-h-11" /></label>
+        <input type="range" min={1} max={35} value={f.years} onChange={(e) => setF({ ...f, years: +e.target.value })} className="w-full accent-[#3ee6c1] min-h-11" /></label>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2" role="img" aria-label="Projeção do patrimônio">
         <path d={area("total")} fill={A} opacity=".35" />
-        <path d={area("contributed")} fill="#84aed4" opacity=".45" />
+        <path d={area("contributed")} fill="#0a84ff" opacity=".45" />
       </svg>
-      <div className="flex gap-4 text-xs text-muted"><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: "#84aed4" }} />Você aportou</span><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: A }} />Juros</span></div>
+      <div className="flex gap-4 text-xs text-muted"><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: "#0a84ff" }} />Você aportou</span><span><i className="inline-block h-2 w-2 rounded-full mr-1" style={{ background: A }} />Juros</span></div>
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Stat label={`Em ${f.years} anos`} value={brlShort(end.total)} color={A} />
         <Stat label="Aportado" value={brlShort(end.contributed)} />
@@ -184,7 +184,7 @@ export function Investments({ items, moves, monthlyCost, today }: { items: Inv[]
     <div style={{ ["--accent" as string]: A }}>
       <section className="glass rise p-5">
         <p className="label">Total investido</p>
-        <p className="num text-4xl md:text-5xl mt-1" style={{ color: A }}>{brl(total)}</p>
+        <p className="num text-[44px] md:text-5xl mt-1 leading-none">{brl(total)}</p>
         <p className="text-sm mt-1" style={{ color: gain >= 0 ? UP : DOWN }}>{gain >= 0 ? "▲" : "▼"} {brl(Math.abs(gain))} de rendimento ({pct(invested ? gain / invested : 0)})</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-4 mt-4">
           <Stat label="Aplicado" value={brl(invested)} sub="saiu do seu bolso" />

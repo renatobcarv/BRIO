@@ -9,11 +9,11 @@ export const MUSCLES = {
 export type Muscle = keyof typeof MUSCLES;
 
 export const PHASE_KINDS = {
-  acumulacao: { label: "Acumulação", color: "#84aed4", hint: "Mais volume, cargas moderadas (RPE 6–8)." },
-  intensificacao: { label: "Intensificação", color: "#e0ac53", hint: "Menos repetições, cargas mais altas (RPE 7–9)." },
-  realizacao: { label: "Realização", color: "#e8a39a", hint: "Consolidar força, volume baixo, intensidade alta." },
-  deload: { label: "Deload", color: "#8ac295", hint: "Reduzir volume e intensidade para recuperar." },
-  outro: { label: "Outra", color: "#ac8fd6", hint: "Fase personalizada." },
+  acumulacao: { label: "Acumulação", color: "#0a84ff", hint: "Mais volume, cargas moderadas (RPE 6–8)." },
+  intensificacao: { label: "Intensificação", color: "#ffb340", hint: "Menos repetições, cargas mais altas (RPE 7–9)." },
+  realizacao: { label: "Realização", color: "#ff453a", hint: "Consolidar força, volume baixo, intensidade alta." },
+  deload: { label: "Deload", color: "#30d158", hint: "Reduzir volume e intensidade para recuperar." },
+  outro: { label: "Outra", color: "#bf5af2", hint: "Fase personalizada." },
 } as const;
 export type PhaseKind = keyof typeof PHASE_KINDS;
 

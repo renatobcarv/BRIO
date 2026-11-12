@@ -9,7 +9,7 @@ import {
   type Goal, type Muscle, type Phase, type PhaseKind, type PlannedEx, type Program,
 } from "@/lib/training";
 
-const G = "#8ac295";
+const G = "#30d158";
 const ORDER = ["1", "2", "3", "4", "5", "6", "0"];
 const blankEx = (): PlannedEx => ({ name: "", muscle: "outro", sets: 3, reps: "8-12", kg: null, rpe: 7, rir: 2, rest: 90, notes: "" });
 const numOrNull = (s: string) => (s.trim() === "" ? null : n(s));
@@ -152,7 +152,7 @@ function ProgramForm({ initial, today, onDone, overrides }: { initial: Omit<Prog
         <p className="text-xs text-faint mt-1">Toque numa fase para editar os treinos dela. Uma fase nova copia os treinos da anterior.</p>
       </div>
       <Field label="Observações do programa"><textarea className="field" rows={2} value={p.notes ?? ""} onChange={(e) => setP({ ...p, notes: e.target.value })} /></Field>
-      {err && <p role="alert" className="text-sm text-[#e8a39a]">{err}</p>}
+      {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
       <button className="btn btn-accent" disabled={pending || !p.name.trim()} onClick={() => start(async () => {
         setErr("");
         try { await saveProgram({ name: p.name, goal: p.goal, start_date: p.start_date, phases: p.phases, notes: p.notes || null }, p.id); onDone(); }

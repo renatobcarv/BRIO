@@ -29,7 +29,7 @@ export function Stars({ value, onChange, size = 22 }: { value: number | null; on
     <div className="inline-flex" role={onChange ? "radiogroup" : undefined} aria-label={`Nota ${value ?? 0} de 5`} onMouseLeave={() => setHover(0)}>
       {[1, 2, 3, 4, 5].map((i) => {
         const star = <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"
-          fill={i <= v ? "#e0ac53" : "none"} stroke={i <= v ? "#e0ac53" : "rgba(255,255,255,.25)"} strokeWidth="1.4" strokeLinejoin="round" /></svg>;
+          fill={i <= v ? "#ffb340" : "none"} stroke={i <= v ? "#ffb340" : "rgba(255,255,255,.25)"} strokeWidth="1.4" strokeLinejoin="round" /></svg>;
         return onChange ? (
           <button key={i} role="radio" aria-checked={value === i} aria-label={`${i} estrela${i > 1 ? "s" : ""}`} className="p-1 min-h-11 min-w-9 grid place-items-center"
             onMouseEnter={() => setHover(i)} onClick={() => onChange(value === i ? null : i)}>{star}</button>
@@ -99,7 +99,7 @@ export function AddBook({ onDone }: { onDone: () => void }) {
       </div>
       {pick.description && <p className="text-sm text-muted line-clamp-5">{pick.description}</p>}
       {options}
-      {err && <p role="alert" className="text-sm text-[#e8a39a]">{err}</p>}
+      {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
       <div className="flex gap-2"><button className="btn" onClick={() => setPick(null)}>Voltar</button>
         <button className="btn btn-accent flex-1" disabled={pending} onClick={() => save(pick)}>{pending ? "Adicionando…" : "Adicionar à estante"}</button></div>
     </div>
@@ -112,7 +112,7 @@ export function AddBook({ onDone }: { onDone: () => void }) {
         <>
           <input className="field" placeholder="Título, autor ou ISBN" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
           {loading && <p className="text-sm text-muted">Buscando…</p>}
-          {err && <p role="alert" className="text-sm text-[#e8a39a]">{err}</p>}
+          {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
           {hits && hits.length === 0 && !loading && <p className="font-display italic text-muted">Nada encontrado. Tente outro termo ou cadastre manualmente.</p>}
           <ul className="grid gap-1">
             {(hits ?? []).map((h) => (
@@ -137,7 +137,7 @@ export function AddBook({ onDone }: { onDone: () => void }) {
           <Field label="Editora"><input className="field" value={m.publisher} onChange={(e) => setM({ ...m, publisher: e.target.value })} /></Field>
           <Field label="Link da capa (opcional)"><input className="field" placeholder="https://…" value={m.cover_url} onChange={(e) => setM({ ...m, cover_url: e.target.value })} /></Field>
           {options}
-          {err && <p role="alert" className="text-sm text-[#e8a39a]">{err}</p>}
+          {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
           <button className="btn btn-accent" disabled={pending || !m.title.trim()} onClick={() => save(null)}>{pending ? "Adicionando…" : "Adicionar à estante"}</button>
         </>
       )}

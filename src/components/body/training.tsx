@@ -8,7 +8,7 @@ import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShor
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, programPosition, type PlannedEx, type Program } from "@/lib/training";
 
-const G = "#8ac295";
+const G = "#30d158";
 type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
 export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
 type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
@@ -62,9 +62,9 @@ function RestTimer({ until, onDone, onAdd }: { until: number; onDone: () => void
     if (left === 0 && !fired.current) { fired.current = true; try { navigator.vibrate?.([200, 100, 200]); } catch {} setTimeout(onDone, 1500); }
   }, [left, onDone]);
   return (
-    <div className="fixed left-3 right-3 md:left-auto md:right-6 md:w-80 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 sheet-up">
-      <div className="rounded-2xl border border-white/10 bg-[#0e1015]/95 backdrop-blur-xl p-3 flex items-center gap-3 shadow-2xl">
-        <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#e0ac53" }}>{mmss(left)}</p></div>
+    <div className="fixed left-3 right-3 md:left-auto md:right-6 md:w-80 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 sheet-up">
+      <div className="rounded-2xl border border-white/10 bg-[#111113]/95 backdrop-blur-xl p-3 flex items-center gap-3 shadow-2xl">
+        <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#ffb340" }}>{mmss(left)}</p></div>
         <button className="btn !px-3" onClick={() => onAdd(15)}>+15s</button>
         <button className="btn" onClick={onDone}>Pular</button>
       </div>
@@ -399,7 +399,7 @@ function PlanVsDone({ w }: { w: Workout }) {
         const p = planned.find((x) => x.name === name), done = w.sets.filter((s) => s.exercise === name);
         const target = p ? firstNum(p.reps) : 0, top = done.reduce((a, s) => Math.max(a, Number(s.kg)), 0);
         const status = !p ? "extra" : done.length === 0 ? "não feito" : done.length < p.sets ? "parcial" : "completo";
-        const color = status === "completo" ? G : status === "parcial" ? "#e0ac53" : status === "extra" ? "#84aed4" : "#e8a39a";
+        const color = status === "completo" ? G : status === "parcial" ? "#ffb340" : status === "extra" ? "#0a84ff" : "#ff453a";
         const rpes = done.filter((s) => s.rpe).map((s) => Number(s.rpe));
         return (
           <div key={name} className="rounded-2xl bg-white/[.03] p-3">
@@ -410,7 +410,7 @@ function PlanVsDone({ w }: { w: Workout }) {
                 <tr><td className="text-muted py-0.5">Séries</td><td>{p?.sets ?? "—"}</td><td>{done.length}</td></tr>
                 <tr><td className="text-muted py-0.5">Reps</td><td>{p?.reps ?? "—"}</td><td>{done.map((s) => s.reps).join(", ") || "—"}</td></tr>
                 <tr><td className="text-muted py-0.5">Carga</td><td>{p?.kg != null ? `${fmt(p.kg)} kg` : "—"}</td>
-                  <td style={{ color: p?.kg != null && top ? (top > p.kg ? G : top < p.kg ? "#e8a39a" : undefined) : undefined }}>{done.length ? done.map((s) => fmt(Number(s.kg))).join(", ") : "—"}</td></tr>
+                  <td style={{ color: p?.kg != null && top ? (top > p.kg ? G : top < p.kg ? "#ff453a" : undefined) : undefined }}>{done.length ? done.map((s) => fmt(Number(s.kg))).join(", ") : "—"}</td></tr>
                 <tr><td className="text-muted py-0.5">RPE</td><td>{p?.rpe ? fmt(p.rpe) : "—"}</td><td>{rpes.length ? rpes.map((r) => fmt(r)).join(", ") : "—"}</td></tr>
               </tbody>
             </table>

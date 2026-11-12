@@ -4,7 +4,7 @@ import { deleteGoal, deleteObjective, saveGoal, saveObjective, setGoalCurrent } 
 import { Card, Empty } from "@/components/ui";
 import { AREAS, AUTO, goalStats, type AreaKey, type GoalRow } from "@/lib/goals";
 
-const ACC = "#ac8fd6";
+const ACC = "#bf5af2";
 type Objective = { id: string; title: string; area: AreaKey; description: string | null };
 const fmt = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 const num = (s: string) => Number(s.replace(",", ".")) || 0;
@@ -30,7 +30,7 @@ function GoalCard({ g, today, objectives, boxes }: { g: GoalRow; today: string; 
         {s.left > 0 && <span className="text-muted">faltam {fmt(s.left)} {g.unit}</span>}
       </div>
       {g.deadline && (
-        <p className="text-xs mt-2" style={{ color: s.late ? "#e8a39a" : "#9a978f" }}>
+        <p className="text-xs mt-2" style={{ color: s.late ? "#ff453a" : "#9a978f" }}>
           {s.daysLeft! >= 0 ? `${s.daysLeft} dias até o prazo` : `prazo vencido há ${-s.daysLeft!} dias`}
           {s.perWeek != null && s.left > 0 && ` · ritmo: ${fmt(s.perWeek)} ${g.unit}/semana (${fmt(s.perMonth!)}/mês)`}
           {s.late && " · atrasada"}
@@ -97,7 +97,7 @@ function GoalForm({ goal, objectives, boxes, onDone }: { goal?: GoalRow; objecti
             </select></label>
         )}
       </div>
-      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#ac8fd6]" checked={f.featured} onChange={(e) => set({ featured: e.target.checked })} /> Meta principal (aparece no Início)</label>
+      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#bf5af2]" checked={f.featured} onChange={(e) => set({ featured: e.target.checked })} /> Meta principal (aparece no Início)</label>
       <div className="flex gap-2 justify-end">
         {goal && <button className="btn text-muted" onClick={() => { if (confirm("Excluir meta?")) start(async () => { await deleteGoal(goal.id); onDone(); }); }}>Excluir</button>}
         <button className="btn" onClick={onDone}>Cancelar</button>

@@ -7,7 +7,7 @@ import type { ChecklistItem, Settings, SplitDay } from "@/lib/settings";
 
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 40) || "item";
 
-function Saved({ ok }: { ok: boolean }) { return ok ? <span className="text-sm" style={{ color: "#8ac295" }}>Salvo ✓</span> : null; }
+function Saved({ ok }: { ok: boolean }) { return ok ? <span className="text-sm" style={{ color: "#30d158" }}>Salvo ✓</span> : null; }
 
 export function ChecklistEditor({ initial }: { initial: ChecklistItem[] }) {
   const [items, setItems] = useState(initial);
@@ -31,7 +31,7 @@ export function ChecklistEditor({ initial }: { initial: ChecklistItem[] }) {
             <button className="btn !px-3" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
             <button className="btn !px-3" aria-label="Descer" disabled={i === items.length - 1} onClick={() => move(i, 1)}>↓</button>
             <button className="btn !px-3" aria-label="Destacar como primeiro item" aria-pressed={!!it.primary} title="Jeová em primeiro lugar"
-              style={it.primary ? { color: "#e0ac53", borderColor: "#e0ac53" } : undefined}
+              style={it.primary ? { color: "#ffb340", borderColor: "#ffb340" } : undefined}
               onClick={() => { setItems(items.map((x, j) => ({ ...x, primary: j === i }))); setOk(false); }}>★</button>
             <button className="btn !px-3 text-muted" aria-label="Remover" disabled={items.length === 1}
               onClick={() => { setItems(items.filter((_, j) => j !== i)); setOk(false); }}>×</button>
@@ -119,7 +119,7 @@ export function PartnerEditor({ phrase, photo }: { phrase: string; photo: string
               onChange={(e) => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)); setOk(false); }} /></label>
         </div>
         <textarea name="phrase" className="field font-display italic" defaultValue={phrase} placeholder="Uma frase dela" onChange={() => setOk(false)} />
-        {err && <p role="alert" className="text-sm text-[#e8a39a]">{err}</p>}
+        {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
         <div className="flex items-center gap-3"><button className="btn btn-accent" disabled={pending}>{pending ? "Salvando…" : "Salvar"}</button><Saved ok={ok} /></div>
       </form>
     </Card>
@@ -145,7 +145,7 @@ export function Backup() {
         start(async () => { try { setReport(await importBackup(text)); } catch { setErr("Arquivo inválido. Use um backup exportado pelo Brio."); } });
         e.target.value = "";
       }} />
-      {err && <p role="alert" className="text-sm text-[#e8a39a] mt-2">{err}</p>}
+      {err && <p role="alert" className="text-sm text-[#ff453a] mt-2">{err}</p>}
       {report && <ul className="text-xs text-muted mt-3 grid gap-0.5">{report.map((r) => <li key={r}>{r}</li>)}</ul>}
     </Card>
   );

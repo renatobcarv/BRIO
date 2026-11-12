@@ -27,7 +27,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
 
   return (
     <>
-      <PageHeader eyebrow="Pioneiro" title="Serviço de campo" color="#84aed4" />
+      <PageHeader eyebrow="Pioneiro" title="Serviço de campo" color="#0a84ff" />
       <Pioneer key={month} month={month} today={today}
         goal={goal.data?.goal_minutes ?? s.pioneer_goal_minutes}
         entries={entries.data ?? []} plan={plan.data?.minutes_by_day ?? [0, 0, 0, 0, 0, 0, 0]} year={yearData} />

@@ -7,7 +7,7 @@ import { addDays, addMonths, daysInMonth, diffDays, dow, fromHMM, monthEnd, mont
 import { CATEGORIES, PRESETS, scalePreset, type Category } from "@/lib/pioneer";
 
 type Entry = { id: string; date: string; category: Category; minutes: number };
-const ACC = "#84aed4";
+const ACC = "#0a84ff";
 
 export function Pioneer(props: {
   month: string; today: string; goal: number; entries: Entry[]; plan: number[]; year: { month: string; minutes: number }[];
@@ -96,7 +96,7 @@ export function Pioneer(props: {
         <div className="flex gap-2 mt-2">
           {["0:30", "1:00", "1:30", "2:00", "3:00"].map((v) => <button key={v} className="chip" onClick={() => setHmm(v)}>{v}</button>)}
         </div>
-        {err && <p role="alert" className="text-sm text-[#e8a39a] mt-2">{err}</p>}
+        {err && <p role="alert" className="text-sm text-[#ff453a] mt-2">{err}</p>}
         <button className="btn btn-accent w-full mt-3" disabled={pending} onClick={submit}>{pending ? "Salvando…" : "Adicionar"}</button>
       </Card>
 
@@ -148,7 +148,7 @@ export function Pioneer(props: {
         </div>
         <p className="mt-3 text-sm">
           <span className="num">{toHMM(weekTotal)}</span> por semana → <span className="num">{toHMM(projected)}</span> no mês ·{" "}
-          {projected >= goal ? <span style={{ color: "#8ac295" }}>fecha a meta</span> : <span className="text-gold">faltam {toHMM(goal - projected)}</span>}
+          {projected >= goal ? <span style={{ color: "#30d158" }}>fecha a meta</span> : <span className="text-gold">faltam {toHMM(goal - projected)}</span>}
         </p>
         <button className="btn mt-3" disabled={pending} onClick={() => start(() => saveWeekPlan(week))}>Salvar plano</button>
       </Card>

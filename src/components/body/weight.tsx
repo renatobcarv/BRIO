@@ -6,7 +6,7 @@ import { Empty } from "@/components/ui";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, Stat, fmt, n } from "@/components/kit";
 import { addDays, diffDays, shortDate } from "@/lib/date";
 
-const G = "#8ac295";
+const G = "#30d158";
 type Log = { id: string; date: string; kg: number };
 
 export function Weight({ today, logs, goal, startKg, rate }: { today: string; logs: Log[]; goal: number; startKg: number; rate: number }) {
@@ -68,7 +68,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4" role="img" aria-label="Gráfico do peso com a linha ideal">
             {[0, 0.5, 1].map((t) => { const v = min + (max - min) * t; return <g key={t}><line x1={P} x2={W - P} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,.05)" /><text x={4} y={py(v) + 4} fontSize="11" fill="#5d5b56">{fmt(v, 0)}</text></g>; })}
             <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke={G} strokeDasharray="4 6" opacity=".5" />
-            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#e0ac53" strokeDasharray="2 5" opacity=".6" />}
+            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#ffb340" strokeDasharray="2 5" opacity=".6" />}
             <path d={`${path} L${px(sorted.at(-1)!.date)},${H - P} L${px(t0)},${H - P} Z`} fill={G} opacity=".08" />
             <path d={path} fill="none" stroke={G} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
             {sorted.map((l) => <circle key={l.id} cx={px(l.date)} cy={py(l.kg)} r="3.5" fill="#07080b" stroke={G} strokeWidth="2" />)}
@@ -88,7 +88,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
               return (
                 <li key={l.id}><button className="row-hover w-full flex items-center gap-3 min-h-12 px-2" onClick={() => openLog(l)}>
                   <span className="text-sm text-muted flex-1 text-left">{shortDate(l.date)} {l.date.slice(0, 4)}</span>
-                  {d != null && <span className="text-xs num" style={{ color: (d < 0) === losing ? G : "#e8a39a" }}>{d > 0 ? "+" : ""}{fmt(d)}</span>}
+                  {d != null && <span className="text-xs num" style={{ color: (d < 0) === losing ? G : "#ff453a" }}>{d > 0 ? "+" : ""}{fmt(d)}</span>}
                   <span className="num w-20 text-right">{fmt(l.kg)} kg</span>
                 </button></li>
               );

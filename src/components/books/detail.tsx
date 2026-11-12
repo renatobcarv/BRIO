@@ -20,7 +20,7 @@ function AutoText({ id, field, initial, placeholder, rows = 6, display }: { id: 
       <textarea className={`field leading-relaxed ${display ? "font-display text-[17px]" : ""}`} rows={rows} value={v} placeholder={placeholder}
         onChange={(e) => { setV(e.target.value); setSaved(""); }}
         onBlur={() => { if (v === initial && saved === "") return; setSaved("salvando"); start(async () => { await updateBook(id, { [field]: v.trim() || null }); setSaved("salvo"); }); }} />
-      <p className="text-xs h-4 mt-1" style={{ color: saved === "salvo" ? "#8ac295" : "#5d5b56" }}>{saved === "salvando" ? "Salvando…" : saved === "salvo" ? "Salvo ✓" : "Salva automaticamente ao sair do campo"}</p>
+      <p className="text-xs h-4 mt-1" style={{ color: saved === "salvo" ? "#30d158" : "#5d5b56" }}>{saved === "salvando" ? "Salvando…" : saved === "salvo" ? "Salvo ✓" : "Salva automaticamente ao sair do campo"}</p>
     </div>
   );
 }
@@ -105,7 +105,7 @@ export function BookDetail({ book: b, notes, sessions, today }: { book: Book; no
           <div className="flex items-center gap-1 mt-2 -ml-1 flex-wrap">
             <Stars value={b.rating} onChange={(v) => start(() => updateBook(b.id, { rating: v }))} />
             <button className="min-h-11 min-w-11 text-xl" aria-pressed={b.favorite} aria-label={b.favorite ? "Remover dos favoritos" : "Favoritar"}
-              onClick={() => start(() => updateBook(b.id, { favorite: !b.favorite }))} style={{ color: b.favorite ? "#e8a39a" : "#5d5b56" }}>{b.favorite ? "♥" : "♡"}</button>
+              onClick={() => start(() => updateBook(b.id, { favorite: !b.favorite }))} style={{ color: b.favorite ? "#ff453a" : "#5d5b56" }}>{b.favorite ? "♥" : "♡"}</button>
           </div>
           {b.tags.length > 0 && <div className="flex flex-wrap gap-1.5 mt-1">{b.tags.map((t) => <span key={t} className="tag">#{t}</span>)}</div>}
           <button className="text-sm text-muted mt-2 min-h-9" onClick={() => setSheet("edit")}>Editar dados</button>
@@ -173,7 +173,7 @@ export function BookDetail({ book: b, notes, sessions, today }: { book: Book; no
         {notes.length === 0 ? <Empty>Marque as frases que valem guardar.</Empty> : (
           <ul className="grid gap-3">
             {notes.map((x) => (
-              <li key={x.id}><button className="w-full text-left rounded-2xl bg-white/[.03] hover:bg-white/[.05] transition-colors p-4 border-l-2" style={{ borderColor: x.kind === "citacao" ? B : x.kind === "reflexao" ? "#e0ac53" : "#84aed4" }} onClick={() => setSheet(x)}>
+              <li key={x.id}><button className="w-full text-left rounded-2xl bg-white/[.03] hover:bg-white/[.05] transition-colors p-4 border-l-2" style={{ borderColor: x.kind === "citacao" ? B : x.kind === "reflexao" ? "#ffb340" : "#0a84ff" }} onClick={() => setSheet(x)}>
                 <p className="label">{NOTE_KINDS[x.kind]}{x.page != null ? ` · pág. ${x.page}` : ""}</p>
                 <p className={`mt-1.5 whitespace-pre-line ${x.kind === "citacao" ? "font-display italic text-[17px] leading-relaxed" : "text-[15px]"}`}>{x.kind === "citacao" ? `“${x.text}”` : x.text}</p>
               </button></li>

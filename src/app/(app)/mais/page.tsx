@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 const items = [
-  { href: "/status", label: "Status", sub: "Nível, atributos e conquistas", color: "#e0ac53" },
-  { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#d9c49a" },
-  { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#7fc4bd" },
-  { href: "/metas", label: "Metas e objetivos", sub: "Destinos e passos mensuráveis", color: "#ac8fd6" },
+  { href: "/status", label: "Status", sub: "Nível, atributos e conquistas", color: "#ffb340" },
+  { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#3ee6c1" },
+  { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#ff9f0a" },
+  { href: "/metas", label: "Metas e objetivos", sub: "Destinos e passos mensuráveis", color: "#bf5af2" },
   { href: "/configuracoes", label: "Configurações", sub: "Checklist, metas padrão, backup", color: "#9a978f" },
 ];
 export default function Mais() {

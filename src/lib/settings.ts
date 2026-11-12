@@ -38,13 +38,13 @@ export const DEFAULT_PLAN: WorkoutPlan = {
 };
 const cat = (key: string, label: string, kind: FinCategory["kind"], color: string, budget = 0): FinCategory => ({ key, label, kind, color, budget });
 export const DEFAULT_CATEGORIES: FinCategory[] = [
-  cat("salario", "Salário", "receita", "#8ac295"), cat("extra", "Renda extra", "receita", "#a8d4b1"),
-  cat("moradia", "Moradia", "fixo", "#84aed4"), cat("contas", "Contas da casa", "fixo", "#6f9cc4"),
-  cat("transporte", "Transporte", "fixo", "#9bbfe0"), cat("faculdade", "Faculdade", "fixo", "#5f86ad"),
-  cat("assinaturas", "Assinaturas", "fixo", "#b3cce4"),
-  cat("alimentacao", "Alimentação", "variavel", "#d9c49a"), cat("ofertas", "Ofertas (Congregação)", "variavel", "#e0ac53"),
-  cat("saude", "Saúde", "variavel", "#ac8fd6"), cat("lazer", "Lazer", "variavel", "#c7a8e6"),
-  cat("roupas", "Roupas", "variavel", "#e6b8a2"), cat("outros", "Outros", "variavel", "#9a978f"),
+  cat("salario", "Salário", "receita", "#30d158"), cat("extra", "Renda extra", "receita", "#7ee2a0"),
+  cat("moradia", "Moradia", "fixo", "#0a84ff"), cat("contas", "Contas da casa", "fixo", "#3a7bd5"),
+  cat("transporte", "Transporte", "fixo", "#5aa9ff"), cat("faculdade", "Faculdade", "fixo", "#2f6fd6"),
+  cat("assinaturas", "Assinaturas", "fixo", "#8ec5ff"),
+  cat("alimentacao", "Alimentação", "variavel", "#64d2ff"), cat("ofertas", "Ofertas (Congregação)", "variavel", "#ffb340"),
+  cat("saude", "Saúde", "variavel", "#bf5af2"), cat("lazer", "Lazer", "variavel", "#d49bff"),
+  cat("roupas", "Roupas", "variavel", "#ff8a65"), cat("outros", "Outros", "variavel", "#9a978f"),
 ];
 
 export const DEFAULT_CHECKLIST: ChecklistItem[] = [

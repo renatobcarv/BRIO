@@ -11,7 +11,7 @@ const AVISOS: Record<string, string> = {
 
 function Aviso() {
   const erro = useSearchParams().get("erro");
-  return erro && AVISOS[erro] ? <p role="alert" className="glass p-4 mt-6 text-sm text-[#e8a39a]">{AVISOS[erro]}</p> : null;
+  return erro && AVISOS[erro] ? <p role="alert" className="glass p-4 mt-6 text-sm text-[#ff453a]">{AVISOS[erro]}</p> : null;
 }
 
 export default function Login() {
@@ -33,7 +33,7 @@ export default function Login() {
             <input name="password" type="password" autoComplete="current-password" required
               className="min-h-12 rounded-xl bg-white/[.04] border border-white/10 px-4 outline-none focus:border-gold/60" />
           </label>
-          {error && <p role="alert" className="text-sm text-[#e8a39a]">{error}</p>}
+          {error && <p role="alert" className="text-sm text-[#ff453a]">{error}</p>}
           <button disabled={pending}
             className="min-h-12 rounded-xl bg-gold text-base font-medium text-[#1a1408] disabled:opacity-60">
             {pending ? "Entrando…" : "Entrar"}

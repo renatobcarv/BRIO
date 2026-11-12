@@ -1,13 +1,13 @@
 // Cálculos de investimento, sem dependências (testáveis).
 export const INV_TYPES = {
-  reserva: { label: "Reserva de emergência", color: "#8ac295" },
-  renda_fixa: { label: "Renda fixa (CDB/LCI/LCA)", color: "#84aed4" },
-  tesouro: { label: "Tesouro Direto", color: "#6f9cc4" },
-  acoes: { label: "Ações", color: "#e0ac53" },
-  fiis: { label: "Fundos imobiliários", color: "#d9c49a" },
-  etf: { label: "ETFs", color: "#e6b8a2" },
-  cripto: { label: "Cripto", color: "#ac8fd6" },
-  previdencia: { label: "Previdência", color: "#a8d4b1" },
+  reserva: { label: "Reserva de emergência", color: "#30d158" },
+  renda_fixa: { label: "Renda fixa (CDB/LCI/LCA)", color: "#0a84ff" },
+  tesouro: { label: "Tesouro Direto", color: "#3a7bd5" },
+  acoes: { label: "Ações", color: "#ffb340" },
+  fiis: { label: "Fundos imobiliários", color: "#64d2ff" },
+  etf: { label: "ETFs", color: "#ff8a65" },
+  cripto: { label: "Cripto", color: "#bf5af2" },
+  previdencia: { label: "Previdência", color: "#7ee2a0" },
   outro: { label: "Outro", color: "#9a978f" },
 } as const;
 export type InvType = keyof typeof INV_TYPES;

@@ -34,7 +34,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     const done: Record<string, number> = {};
     for (const w of ws.data ?? []) { const k = `${w.program_id}:${w.week_no}`; done[k] = (done[k] ?? 0) + 1; }
     content = progs.error
-      ? <p className="glass p-5 text-sm text-[#e8a39a]">Rode a migração <code>supabase/migrations/20261106000000_periodizacao.sql</code> no SQL Editor do Supabase para usar a periodização.</p>
+      ? <p className="glass p-5 text-sm text-[#ff453a]">Rode a migração <code>supabase/migrations/20261106000000_periodizacao.sql</code> no SQL Editor do Supabase para usar a periodização.</p>
       : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
           overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={done} />;
   } else if (tab === "treino") {
@@ -88,7 +88,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
 
   return (
     <>
-      <PageHeader eyebrow="Corpo" title="Treino, dieta e saúde" color="#8ac295" />
+      <PageHeader eyebrow="Corpo" title="Treino, dieta e saúde" color="#30d158" />
       <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
         <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 max-w-full overflow-x-auto" role="tablist">
           {TABS.map(([k, l]) => (

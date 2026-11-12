@@ -34,7 +34,7 @@ export default async function Page() {
 
   return (
     <>
-      <PageHeader eyebrow="Metas" title="Metas e objetivos" color="#ac8fd6" />
+      <PageHeader eyebrow="Metas" title="Metas e objetivos" color="#bf5af2" />
       <Goals today={today} objectives={obj.data ?? []} goals={list} boxes={(boxes.data ?? []).map(({ id, name }) => ({ id, name }))} />
       <Verse area="metas" />
     </>

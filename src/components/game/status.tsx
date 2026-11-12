@@ -11,10 +11,10 @@ function Radar({ values }: { values: Record<Attr, number> }) {
   const poly = KEYS.map((k, i) => pt(i, values[k] / max).join(",")).join(" ");
   return (
     <svg viewBox={`0 0 ${S} ${S}`} className="w-full max-w-[360px] mx-auto" role="img" aria-label="Radar de atributos">
-      <defs><radialGradient id="rg"><stop offset="0" stopColor="#f3d48a" stopOpacity=".55" /><stop offset="1" stopColor="#e0ac53" stopOpacity=".15" /></radialGradient></defs>
+      <defs><radialGradient id="rg"><stop offset="0" stopColor="#ffd27a" stopOpacity=".55" /><stop offset="1" stopColor="#ffb340" stopOpacity=".15" /></radialGradient></defs>
       {[0.25, 0.5, 0.75, 1].map((f) => <polygon key={f} points={KEYS.map((_, i) => pt(i, f).join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,.07)" />)}
       {KEYS.map((_, i) => { const [x, y] = pt(i, 1); return <line key={i} x1={C} y1={C} x2={x} y2={y} stroke="rgba(255,255,255,.06)" />; })}
-      <polygon points={poly} fill="url(#rg)" stroke="#e0ac53" strokeWidth="2" strokeLinejoin="round" className="radar-in" />
+      <polygon points={poly} fill="url(#rg)" stroke="#ffb340" strokeWidth="2" strokeLinejoin="round" className="radar-in" />
       {KEYS.map((k, i) => { const [x, y] = pt(i, values[k] / max); return <circle key={k} cx={x} cy={y} r="4" fill={ATTRS[k].color} stroke="#07080b" strokeWidth="2" />; })}
       {KEYS.map((k, i) => { const [x, y] = pt(i, 1.24); return <text key={k} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="11" fill="#9a978f">{ATTRS[k].label} <tspan fill="#ece8df" fontWeight="600">{values[k]}</tspan></text>; })}
     </svg>
@@ -28,12 +28,11 @@ export function StatusSheet({ g }: { g: Game }) {
   return (
     <>
       <section className="glass rise p-6 relative overflow-hidden text-center">
-        <div className="absolute left-1/2 -top-24 -translate-x-1/2 h-64 w-64 rounded-full blur-3xl opacity-30" style={{ background: g.rank.color }} />
         <p className="label relative" style={{ color: g.rank.color }}>Patente · {g.rank.name}</p>
         <p className="font-display text-7xl mt-2 relative leading-none">{g.level}</p>
         <p className="label mt-1 relative">nível</p>
         <div className="mt-5 h-3 rounded-full bg-white/[.07] overflow-hidden relative">
-          <div className="h-full rounded-full xp-shine" style={{ width: `${g.progress * 100}%`, background: `linear-gradient(90deg, ${g.rank.color}, #f3d48a)` }} />
+          <div className="h-full rounded-full xp-shine" style={{ width: `${g.progress * 100}%`, background: `linear-gradient(90deg, ${g.rank.color}, #ffd27a)` }} />
         </div>
         <div className="flex justify-between text-xs text-muted mt-1.5 num relative">
           <span>{g.into.toLocaleString("pt-BR")} / {g.need.toLocaleString("pt-BR")} XP</span><span>{g.total.toLocaleString("pt-BR")} XP no total</span>
@@ -60,7 +59,7 @@ export function StatusSheet({ g }: { g: Game }) {
           {g.week.map((w) => (
             <div key={w.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
               {w.xp > 0 && <span className="text-[10px] num text-muted">{w.xp}</span>}
-              <div className="w-full rounded-md" style={{ height: `${(w.xp / maxWeek) * 80}%`, minHeight: 3, background: w.date === g.week.at(-1)!.date ? "linear-gradient(180deg,#f3d48a,#e0ac53)" : "rgba(224,172,83,.35)" }} />
+              <div className="w-full rounded-md" style={{ height: `${(w.xp / maxWeek) * 80}%`, minHeight: 3, background: w.date === g.week.at(-1)!.date ? "linear-gradient(180deg,#ffd27a,#ffb340)" : "rgba(255,179,64,.35)" }} />
               <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
             </div>
           ))}
@@ -102,7 +101,7 @@ export function StatusSheet({ g }: { g: Game }) {
       <details className="glass rise p-5 mt-4">
         <summary className="label cursor-pointer min-h-9 flex items-center">Como ganhar XP</summary>
         <ul className="text-sm text-muted grid gap-1.5 mt-3">
-          <li><b className="text-ink">Disciplina:</b> 10 por missão do dia · +50 no dia 100%</li>
+          <li><b className="text-ink">Disciplina:</b> 10 por missão do dia · +50 no dia 100% · 20 por dia limpo</li>
           <li><b className="text-ink">Sabedoria:</b> 1 por minuto de estudo · 15 por capítulo da Bíblia · 1 a cada 2 páginas · 150 por livro concluído</li>
           <li><b className="text-ink">Serviço:</b> 1 a cada 2 minutos de campo (30 por hora)</li>
           <li><b className="text-ink">Força:</b> 1 a cada 100 kg de volume (até 300 por sessão) · 100 por recorde em agachamento, supino ou terra</li>

@@ -1,8 +1,8 @@
-export const BOOK_COLOR = "#7fc4bd";
+export const BOOK_COLOR = "#ff9f0a";
 export const STATUS = {
-  lendo: { label: "Lendo", color: "#7fc4bd" },
-  quero_ler: { label: "Quero ler", color: "#84aed4" },
-  lido: { label: "Lido", color: "#8ac295" },
+  lendo: { label: "Lendo", color: "#ff9f0a" },
+  quero_ler: { label: "Quero ler", color: "#0a84ff" },
+  lido: { label: "Lido", color: "#30d158" },
   abandonado: { label: "Abandonado", color: "#9a978f" },
 } as const;
 export type BookStatus = keyof typeof STATUS;

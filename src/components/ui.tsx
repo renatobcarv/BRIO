@@ -1,6 +1,6 @@
 import { verseFor, type Area } from "@/lib/verses";
 
-export function PageHeader({ eyebrow, title, color = "#e0ac53" }: { eyebrow: string; title: string; color?: string }) {
+export function PageHeader({ eyebrow, title, color = "#ffb340" }: { eyebrow: string; title: string; color?: string }) {
   return (
     <header className="rise mb-6">
       <p className="label" style={{ color }}>{eyebrow}</p>
@@ -17,7 +17,7 @@ export function Empty({ children }: { children: React.ReactNode }) {
   return <p className="font-display italic text-muted text-lg text-center py-8">{children}</p>;
 }
 
-export function Ring({ value, size = 120, stroke = 10, color = "#e0ac53", children }:
+export function Ring({ value, size = 120, stroke = 10, color = "#ffb340", children }:
   { value: number; size?: number; stroke?: number; color?: string; children?: React.ReactNode }) {
   const r = (size - stroke) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, value));
   return (

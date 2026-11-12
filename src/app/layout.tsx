@@ -13,14 +13,12 @@ export const metadata: Metadata = {
   icons: { icon: "/icon.svg", apple: "/icon.svg" },
   appleWebApp: { capable: true, title: "Brio", statusBarStyle: "black-translucent" },
 };
-export const viewport: Viewport = { themeColor: "#07080b", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#000000", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt-BR" className={`${fraunces.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
-        <div className="ambient" aria-hidden />
-        <div className="grain" aria-hidden />
         {children}
       </body>
     </html>
