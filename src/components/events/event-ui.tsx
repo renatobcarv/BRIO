@@ -1,4 +1,5 @@
 "use client";
+import { LORE, wordOfDay } from "@/lib/event-lore";
 import { useEffect, useState } from "react";
 import type { Badge, GameEvent } from "@/lib/events";
 
@@ -54,6 +55,17 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
         <p className="font-display text-[40px] leading-none mt-3 tracking-tight uppercase" style={{ textShadow: live ? `0 0 30px ${e.color}` : undefined }}>{e.title}</p>
         <p className="text-sm text-ink/80 mt-2">{e.tagline}</p>
         <p className="text-xs text-muted mt-1">{startLabel} – {endLabel} · {e.program}</p>
+        {(() => { const w = wordOfDay(e.type, new Date(Date.now() - 3 * 36e5).toISOString().slice(0, 10)); return (
+          <blockquote className="mt-4 pl-3 border-l-2" style={{ borderColor: e.color }}>
+            <p className="text-[15px] italic leading-snug text-ink/90">“{w.t}”</p>
+            <p className="text-[11px] text-muted mt-1">— {w.a}</p>
+          </blockquote>); })()}
+        <details className="mt-3 group">
+          <summary className="text-xs font-semibold cursor-pointer list-none" style={{ color: e.color }}>Por que este evento existe ›</summary>
+          <p className="text-sm text-ink/80 mt-2 leading-relaxed">{LORE[e.type].why}</p>
+          <p className="label mt-3">Como vencer</p>
+          <p className="text-sm text-ink/80 mt-1 leading-relaxed">{LORE[e.type].how}</p>
+        </details>
 
         {(e.stage === "anunciado" || e.stage === "contagem") && <div className="mt-4"><p className="label mb-2">Começa em</p><Countdown to={e.start} color={e.color} /></div>}
         {e.stage === "ativo" && <div className="mt-4"><p className="label mb-2">Termina em</p><Countdown to={new Date(Date.parse(e.end + "T12:00:00Z") + 864e5).toISOString().slice(0, 10)} color={e.color} /></div>}
