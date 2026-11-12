@@ -55,7 +55,8 @@ export async function setMealDone(date: string, slot: string, isDone: boolean) {
 export async function copyMeals(from: string, to: string) {
   const sb = await createClient();
   const { data } = await sb.from("meal_items").select("slot,name,kcal,protein_g,carbs_g,fat_g").eq("date", Iso.parse(from));
-  if (data?.length) await ok(sb.from("meal_items").insert(data.map((r) => ({ ...r, date: Iso.parse(to) }))));
+  const plan = (data ?? []).filter((r) => !String(r.slot).startsWith("extra|")); // fora do plano não se copia
+  if (plan.length) await ok(sb.from("meal_items").insert(plan.map((r) => ({ ...r, date: Iso.parse(to) }))));
   done();
 }
 export async function saveFood(input: z.infer<typeof Macro> & { portion: string }, id?: string) {

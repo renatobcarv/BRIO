@@ -17,6 +17,69 @@ type Goals = { kcal: number; protein: number; carbs: number; fat: number };
 const sum = (l: Item[], k: keyof Pick<Item, "kcal" | "protein_g" | "carbs_g" | "fat_g">) => l.reduce((a, i) => a + Number(i[k]), 0);
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 30) || "ref";
 
+/** Fora do plano: slot "extra|comida|14:30" ou "extra|bebida|22:10" (sem migração). */
+export const isExtra = (slot: string) => slot.startsWith("extra|");
+const extraInfo = (slot: string) => { const [, kind, time] = slot.split("|"); return { kind: kind === "bebida" ? "bebida" : "comida", time: time ?? "" }; };
+const PRESETS: { kind: "comida" | "bebida"; e: string; name: string; kcal: number; p: number; c: number; g: number }[] = [
+  { kind: "comida", e: "🍕", name: "Pizza (1 fatia)", kcal: 285, p: 12, c: 36, g: 10 },
+  { kind: "comida", e: "🍔", name: "Hambúrguer", kcal: 500, p: 25, c: 40, g: 26 },
+  { kind: "comida", e: "🥟", name: "Salgado", kcal: 250, p: 7, c: 28, g: 12 },
+  { kind: "comida", e: "🧀", name: "Pão de queijo (3 un.)", kcal: 240, p: 6, c: 30, g: 11 },
+  { kind: "comida", e: "🍫", name: "Chocolate (barra 25 g)", kcal: 135, p: 2, c: 15, g: 8 },
+  { kind: "comida", e: "🍦", name: "Sorvete (1 bola)", kcal: 140, p: 2, c: 18, g: 7 },
+  { kind: "comida", e: "🍟", name: "Batata frita (porção média)", kcal: 340, p: 4, c: 44, g: 17 },
+  { kind: "comida", e: "🫐", name: "Açaí (300 ml)", kcal: 400, p: 4, c: 60, g: 15 },
+  { kind: "comida", e: "🍰", name: "Bolo (1 fatia)", kcal: 300, p: 4, c: 45, g: 12 },
+  { kind: "bebida", e: "🥤", name: "Refrigerante (lata)", kcal: 140, p: 0, c: 35, g: 0 },
+  { kind: "bebida", e: "🧃", name: "Suco de caixinha (200 ml)", kcal: 100, p: 0, c: 24, g: 0 },
+  { kind: "bebida", e: "☕", name: "Café com açúcar", kcal: 40, p: 0, c: 10, g: 0 },
+  { kind: "bebida", e: "🥛", name: "Milkshake (400 ml)", kcal: 520, p: 12, c: 70, g: 20 },
+  { kind: "bebida", e: "🧋", name: "Cappuccino", kcal: 150, p: 5, c: 20, g: 5 },
+  { kind: "bebida", e: "⚡", name: "Energético (lata)", kcal: 110, p: 0, c: 27, g: 0 },
+];
+const nowHM = () => { const d = new Date(Date.now() - 3 * 36e5); return `${String(d.getUTCHours()).padStart(2, "0")}:${String(d.getUTCMinutes()).padStart(2, "0")}`; };
+
+function OffPlanForm({ date, onDone }: { date: string; onDone: () => void }) {
+  const [pending, start] = useTransition();
+  const [kind, setKind] = useState<"comida" | "bebida">("comida");
+  const [time, setTime] = useState(nowHM());
+  const [f, setF] = useState({ name: "", kcal: "", p: "", c: "", g: "", qty: "1" });
+  const mult = n(f.qty) || 1;
+  const save = () => start(async () => {
+    await saveMealItem({ date, slot: `extra|${kind}|${time}`, name: mult !== 1 ? `${f.name} ×${fmt(mult)}` : f.name, kcal: Math.round(n(f.kcal) * mult),
+      protein_g: n(f.p) * mult, carbs_g: n(f.c) * mult, fat_g: n(f.g) * mult });
+    onDone();
+  });
+  return (
+    <div className="grid gap-3">
+      <div className="grid grid-cols-2 gap-2">
+        {(["comida", "bebida"] as const).map((k) => <button key={k} className="chip justify-center !min-h-11" aria-pressed={kind === k} onClick={() => setKind(k)}>{k === "comida" ? "🍽️ Comida" : "🥤 Bebida"}</button>)}
+      </div>
+      <div>
+        <p className="label mb-1.5">Atalhos (valores aproximados, ajuste se quiser)</p>
+        <div className="flex flex-wrap gap-1.5">
+          {PRESETS.filter((x) => x.kind === kind).map((x) => (
+            <button key={x.name} className="chip" aria-pressed={f.name === x.name} onClick={() => setF({ ...f, name: x.name, kcal: String(x.kcal), p: String(x.p), c: String(x.c), g: String(x.g) })}>{x.e} {x.name.split(" (")[0]}</button>))}
+        </div>
+      </div>
+      <Field label={kind === "bebida" ? "Bebida" : "Comida"}><input className="field" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} placeholder={kind === "bebida" ? "Ex.: Refrigerante, suco" : "Ex.: Pizza, doce, salgado"} /></Field>
+      <div className="grid grid-cols-4 gap-2">
+        <Field label="Kcal"><input className="field num text-center !px-1" inputMode="numeric" value={f.kcal} onChange={(e) => setF({ ...f, kcal: e.target.value })} /></Field>
+        <Field label="Prot g"><input className="field num text-center !px-1" inputMode="decimal" value={f.p} onChange={(e) => setF({ ...f, p: e.target.value })} /></Field>
+        <Field label="Carb g"><input className="field num text-center !px-1" inputMode="decimal" value={f.c} onChange={(e) => setF({ ...f, c: e.target.value })} /></Field>
+        <Field label="Gord g"><input className="field num text-center !px-1" inputMode="decimal" value={f.g} onChange={(e) => setF({ ...f, g: e.target.value })} /></Field>
+      </div>
+      <div className="grid grid-cols-2 gap-3">
+        <Field label="Horário"><input type="time" className="field num" value={time} onChange={(e) => setTime(e.target.value)} /></Field>
+        <Field label="Quantidade"><input className="field num text-center" inputMode="decimal" value={f.qty} onChange={(e) => setF({ ...f, qty: e.target.value })} /></Field>
+      </div>
+      {mult !== 1 && <p className="text-xs text-muted">Total: {Math.round(n(f.kcal) * mult)} kcal</p>}
+      <p className="text-xs text-faint">Entra no total do dia, mas fica separado das refeições do plano. Sem culpa: registrar com honestidade é o que mantém o controle.</p>
+      <button className="btn btn-accent" disabled={pending || !f.name.trim()} onClick={save}>{pending ? "Salvando…" : "Registrar"}</button>
+    </div>
+  );
+}
+
 function ItemForm({ date, slot, item, foods, onDone }: { date: string; slot: string; item?: Item; foods: Food[]; onDone: () => void }) {
   const [pending, start] = useTransition();
   const [f, setF] = useState({ name: item?.name ?? "", kcal: String(item?.kcal ?? ""), p: String(item?.protein_g ?? ""), c: String(item?.carbs_g ?? ""), g: String(item?.fat_g ?? ""), fav: false, qty: "1" });
@@ -151,13 +214,15 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   date: string; today: string; slots: MealSlot[]; items: Item[]; doneSlots: string[]; foods: Food[]; goals: Goals; week: { date: string; kcal: number; protein: number }[];
 }) {
   const [pending, start] = useTransition();
-  const [sheet, setSheet] = useState<null | { kind: "add"; slot: string } | { kind: "edit"; item: Item } | { kind: "foods" | "slots" | "goals" | "quiz" }>(null);
+  const [sheet, setSheet] = useState<null | { kind: "add"; slot: string } | { kind: "edit"; item: Item } | { kind: "foods" | "slots" | "goals" | "quiz" | "off" }>(null);
   const close = () => setSheet(null);
   const kcal = sum(items, "kcal"), prot = sum(items, "protein_g"), carb = sum(items, "carbs_g"), fat = sum(items, "fat_g");
   const remaining = goals.kcal - kcal;
   const maxW = Math.max(goals.kcal, ...week.map((w) => w.kcal)) * 1.1;
   const isToday = date === today;
-  const extraSlots = [...new Set(items.map((i) => i.slot))].filter((k) => !slots.some((s) => s.key === k)).map((k) => ({ key: k, label: k }));
+  const extraSlots = [...new Set(items.map((i) => i.slot))].filter((k) => !isExtra(k) && !slots.some((s) => s.key === k)).map((k) => ({ key: k, label: k }));
+  const off = items.filter((i) => isExtra(i.slot)).sort((a, b) => extraInfo(a.slot).time.localeCompare(extraInfo(b.slot).time));
+  const offKcal = sum(off, "kcal");
 
   return (
     <div style={{ ["--accent" as string]: G }}>
@@ -187,7 +252,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
             ))}
           </div>
         </div>
-        <p className="text-xs text-muted mt-3">{kcal.toLocaleString("pt-BR")} de {goals.kcal.toLocaleString("pt-BR")} kcal consumidas</p>
+        <p className="text-xs text-muted mt-3">{kcal.toLocaleString("pt-BR")} de {goals.kcal.toLocaleString("pt-BR")} kcal consumidas{offKcal ? ` · ${offKcal.toLocaleString("pt-BR")} fora do plano` : ""}</p>
         <div className="grid grid-cols-4 gap-1 mt-4 pt-4 border-t border-white/[.06]">
           {([["Energia", <EnergyFlame key="f" pct={kcal / goals.kcal} size={40} />, kcal / goals.kcal], ["Proteína", <Drumstick key="s" pct={prot / goals.protein} size={46} />, prot / goals.protein],
             ["Carbo", <Bread key="g" pct={carb / goals.carbs} size={48} />, carb / goals.carbs], ["Gordura", <Avocado key="d" pct={fat / goals.fat} size={38} />, fat / goals.fat]] as const).map(([l, m, v]) => (
@@ -231,6 +296,26 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         );
       })}
 
+      <section className="rise mt-4 rounded-[22px] p-5 border" style={{ borderColor: "rgba(255,159,10,.3)", background: "linear-gradient(160deg, rgba(255,159,10,.10), #0f0f11 60%)" }}>
+        <div className="flex items-center gap-3">
+          <span className="text-2xl" aria-hidden>🍕</span>
+          <div className="flex-1"><p className="font-display text-xl">Fora do plano</p><p className="text-xs text-muted">Lanches, bebidas, férias, imprevistos</p></div>
+          {off.length > 0 && <p className="num text-sm" style={{ color: "#ff9f0a" }}>{offKcal} kcal</p>}
+        </div>
+        {off.length > 0 && (
+          <ul className="mt-3">
+            {off.map((i) => { const x = extraInfo(i.slot); return (
+              <li key={i.id}><button className="row-hover w-full flex items-center gap-3 min-h-11 px-2 text-left" onClick={() => setSheet({ kind: "edit", item: i })}>
+                <span className="num text-xs text-muted w-11">{x.time}</span>
+                <span aria-hidden>{x.kind === "bebida" ? "🥤" : "🍽️"}</span>
+                <span className="flex-1 text-[15px] min-w-0 truncate">{i.name}</span>
+                <span className="num text-sm w-14 text-right">{i.kcal}</span>
+              </button></li>); })}
+          </ul>
+        )}
+        <button className="btn w-full mt-3" style={{ borderColor: "rgba(255,159,10,.35)" }} onClick={() => setSheet({ kind: "off" })}>+ Registrar comida ou bebida</button>
+      </section>
+
       <div className="grid grid-cols-2 gap-2 mt-4">
         <button className="btn" onClick={() => setSheet({ kind: "foods" })}>Favoritos ({foods.length})</button>
         <button className="btn" onClick={() => setSheet({ kind: "slots" })}>Editar refeições</button>
@@ -254,6 +339,9 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         title={sheet?.kind === "edit" ? "Editar alimento" : `Adicionar · ${slots.find((s) => sheet?.kind === "add" && s.key === sheet.slot)?.label ?? ""}`}>
         {sheet?.kind === "add" && <ItemForm key={"a" + sheet.slot} date={date} slot={sheet.slot} foods={foods} onDone={close} />}
         {sheet?.kind === "edit" && <ItemForm key={sheet.item.id} date={date} slot={sheet.item.slot} item={sheet.item} foods={foods} onDone={close} />}
+      </Sheet>
+      <Sheet accent="#ff9f0a" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
+        {sheet?.kind === "off" && <OffPlanForm date={date} onDone={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "quiz"} onClose={close} title="Refeição">
         {sheet?.kind === "quiz" && <MealQuiz date={date} slots={slots} foods={foods} doneSlots={doneSlots} proteinSoFar={prot} proteinGoal={goals.protein} onClose={close} />}
