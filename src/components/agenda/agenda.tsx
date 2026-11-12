@@ -1,10 +1,12 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { deleteEvent, disableCalendarToken, rotateCalendarToken, saveEvent } from "@/app/(app)/agenda/actions";
+import { deleteEvent, disableCalendarToken, disconnectGoogle, rotateCalendarToken, saveEvent, syncAllToGoogle } from "@/app/(app)/agenda/actions";
 import { Field, Sheet } from "@/components/kit";
 import { haptic } from "@/components/game/xp";
 
+export type GoogleState = { ready: boolean; connected: boolean; email: string | null; migrated: boolean; error: boolean; flash: string | null };
+export type GEv = { id: string; title: string; date: string; start_time: string | null; end_time: string | null; location: string | null; link: string | null };
 export type CalEvent = { id: string; title: string; date: string; start_time: string | null; end_time: string | null; category: string; location: string | null; notes: string | null; remind_min: number | null };
 const CAT: Record<string, { label: string; color: string; e: string }> = {
   pessoal: { label: "Pessoal", color: "#9a978f", e: "📌" }, espiritual: { label: "Espiritual", color: "#ffb340", e: "📖" },
@@ -17,16 +19,18 @@ const add = (iso: string, n: number) => new Date(Date.parse(iso + "T12:00:00Z") 
 const hm = (t: string | null) => (t ? t.slice(0, 5) : "");
 const br = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
 
-export function Agenda({ today, month, events, ready, feed }: { today: string; month: string; events: CalEvent[]; ready: boolean; feed: string | null }) {
+export function Agenda({ today, month, events, ready, feed, google, gEvents = [] }: { today: string; month: string; events: CalEvent[]; ready: boolean; feed: string | null; google?: GoogleState; gEvents?: GEv[] }) {
   const [sel, setSel] = useState(today.slice(0, 7) === month.slice(0, 7) ? today : month);
   const [form, setForm] = useState<null | Partial<CalEvent>>(null);
-  const [conn, setConn] = useState(false);
+  const [conn, setConn] = useState(!!google?.flash);
   const y = +month.slice(0, 4), mo = +month.slice(5, 7);
   const prev = `${mo === 1 ? y - 1 : y}-${String(mo === 1 ? 12 : mo - 1).padStart(2, "0")}`, next = `${mo === 12 ? y + 1 : y}-${String(mo === 12 ? 1 : mo + 1).padStart(2, "0")}`;
   const first = month, lead = (new Date(first + "T12:00:00Z").getUTCDay() + 6) % 7;
   const days = Array.from({ length: 42 }, (_, i) => add(first, i - lead));
   const byDay = useMemo(() => { const m = new Map<string, CalEvent[]>(); for (const e of events) m.set(e.date, [...(m.get(e.date) ?? []), e]); return m; }, [events]);
-  const list = byDay.get(sel) ?? [];
+  const gBy = useMemo(() => { const m = new Map<string, GEv[]>(); for (const e of gEvents) m.set(e.date, [...(m.get(e.date) ?? []), e]); return m; }, [gEvents]);
+  const list = byDay.get(sel) ?? [], gList = gBy.get(sel) ?? [];
+  const linked = !!feed || !!google?.connected;
   const upcoming = events.filter((e) => e.date >= today).slice(0, 6);
 
   return (
@@ -35,8 +39,8 @@ export function Agenda({ today, month, events, ready, feed }: { today: string; m
         <div className="min-w-0"><p className="text-[11px] font-semibold tracking-[.3em]" style={{ color: "#5ab0ff" }}>AGENDA</p>
           <h1 className="font-display text-[clamp(32px,10vw,44px)] leading-none mt-1 capitalize">{MES[mo - 1]} <span className="text-muted">{y}</span></h1></div>
         <button onClick={() => setConn(true)} className="press shrink-0 rounded-2xl px-3 py-2 border text-xs font-semibold flex items-center gap-2"
-          style={{ borderColor: feed ? "#30d15866" : "rgba(255,255,255,.15)", background: feed ? "rgba(48,209,88,.1)" : "transparent" }}>
-          <span className={`h-2 w-2 rounded-full ${feed ? "war-pulse" : ""}`} style={{ background: feed ? "#30d158" : "#8e8e93" }} />{feed ? "Conectado" : "Conectar"}</button>
+          style={{ borderColor: linked ? "#30d15866" : "rgba(255,255,255,.15)", background: linked ? "rgba(48,209,88,.1)" : "transparent" }}>
+          <span className={`h-2 w-2 rounded-full ${linked ? "war-pulse" : ""}`} style={{ background: linked ? "#30d158" : "#8e8e93" }} />{google?.connected ? "Google ✓" : linked ? "Conectado" : "Conectar"}</button>
       </header>
 
       {!ready && <p className="glass p-4 mb-4 text-sm text-[#ff6961]">Rode a migração <b>supabase/migrations/20261116000000_agenda.sql</b> no Supabase para usar a agenda.</p>}
@@ -56,7 +60,7 @@ export function Agenda({ today, month, events, ready, feed }: { today: string; m
                 className={`press rounded-xl h-11 !min-h-0 min-w-0 flex flex-col items-center justify-center gap-0.5 border transition-colors ${inMonth ? "" : "opacity-30"}`}
                 style={{ borderColor: on ? "#5ab0ff" : isToday ? "rgba(90,176,255,.4)" : "transparent", background: on ? "rgba(90,176,255,.16)" : "transparent" }}>
                 <span className={`num text-sm ${isToday ? "font-bold text-[#5ab0ff]" : ""}`}>{+d.slice(8)}</span>
-                <span className="flex gap-0.5 h-1.5">{evs.slice(0, 3).map((e) => <i key={e.id} className="h-1.5 w-1.5 rounded-full" style={{ background: CAT[e.category]?.color }} />)}</span>
+                <span className="flex gap-0.5 h-1.5">{evs.slice(0, 3).map((e) => <i key={e.id} className="h-1.5 w-1.5 rounded-full" style={{ background: CAT[e.category]?.color }} />)}{(gBy.get(d) ?? []).slice(0, Math.max(0, 3 - evs.length)).map((e) => <i key={e.id} className="h-1.5 w-1.5 rounded-full bg-white/70" />)}</span>
               </button>
             );
           })}
@@ -68,8 +72,17 @@ export function Agenda({ today, month, events, ready, feed }: { today: string; m
           <p className="font-display text-lg">{sel === today ? "Hoje" : br(sel)}</p>
           <button className="btn btn-accent !min-h-10" onClick={() => setForm({ date: sel, category: "pessoal" })}>+ Compromisso</button>
         </div>
-        {list.length === 0 ? <p className="text-sm text-muted mt-3">Nada marcado. Toque em “+ Compromisso”.</p> : (
-          <ul className="grid grid-cols-1 gap-2 mt-3 [&>li]:min-w-0">{list.map((e) => <EventRow key={e.id} e={e} onClick={() => setForm(e)} />)}</ul>
+        {list.length + gList.length === 0 ? <p className="text-sm text-muted mt-3">Nada marcado. Toque em “+ Compromisso”.</p> : (
+          <ul className="grid grid-cols-1 gap-2 mt-3 [&>li]:min-w-0">
+            {list.map((e) => <EventRow key={e.id} e={e} onClick={() => setForm(e)} />)}
+            {gList.map((e) => (
+              <li key={e.id}><a href={e.link ?? "#"} target="_blank" rel="noreferrer" className="press w-full flex items-center gap-3 rounded-2xl px-3 py-2.5 border border-white/10 bg-white/[.03]">
+                <span className="w-1 self-stretch rounded-full bg-white/60" />
+                <span className="w-14 shrink-0 num text-xs text-muted">{e.start_time ? `${e.start_time}${e.end_time ? `–${e.end_time}` : ""}` : "dia todo"}</span>
+                <span className="flex-1 min-w-0"><span className="block font-medium truncate">{e.title}</span>{e.location && <span className="block text-xs text-muted truncate">📍 {e.location}</span>}</span>
+                <span className="text-[10px] font-bold rounded px-1.5 py-0.5 bg-white text-black shrink-0">G</span>
+              </a></li>))}
+          </ul>
         )}
       </section>
 
@@ -84,7 +97,7 @@ export function Agenda({ today, month, events, ready, feed }: { today: string; m
         {form && <EventForm key={form.id ?? form.date} ev={form} onDone={() => setForm(null)} />}
       </Sheet>
       <Sheet open={conn} onClose={() => setConn(false)} title="Conexão com calendário" accent="#30d158">
-        <Connection feed={feed} />
+        <Connection feed={feed} google={google} />
       </Sheet>
     </div>
   );
@@ -140,7 +153,7 @@ function EventForm({ ev, onDone }: { ev: Partial<CalEvent>; onDone: () => void }
   );
 }
 
-function Connection({ feed }: { feed: string | null }) {
+function Connection({ feed, google }: { feed: string | null; google?: GoogleState }) {
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -169,9 +182,20 @@ function Connection({ feed }: { feed: string | null }) {
         <button className="btn" disabled={pending} onClick={() => { if (confirm("Trocar o link? O antigo para de funcionar e você precisa assinar de novo.")) start(async () => setErr(await rotateCalendarToken())); }}>Trocar link</button>
         <button className="btn text-muted" disabled={pending} onClick={() => { if (confirm("Desconectar? Os calendários assinados param de atualizar.")) start(async () => setErr(await disableCalendarToken())); }}>Desconectar</button>
       </div>}
-      <div className="rounded-2xl border border-white/10 p-4">
-        <p className="text-sm font-semibold">Google Agenda em 2 vias <span className="text-[10px] text-muted font-normal ml-1">em breve</span></p>
-        <p className="text-xs text-muted mt-1">Para o que você criar no Google aparecer aqui também, é preciso registrar o BRIO no Google Cloud (OAuth). Dá para fazer quando quiser.</p>
+      <div className="rounded-2xl border p-4" style={{ borderColor: google?.connected ? "#4285f455" : "rgba(255,255,255,.1)", background: google?.connected ? "rgba(66,133,244,.08)" : "transparent" }}>
+        <p className="text-sm font-semibold flex items-center gap-2"><span className="grid place-items-center h-5 w-5 rounded bg-white text-[11px] font-black text-[#4285f4]">G</span>Google Agenda · 2 vias
+          {google?.connected && <span className="text-[10px] text-[#30d158] font-normal">conectado</span>}</p>
+        <p className="text-xs text-muted mt-1">{google?.connected ? `Conta ${google.email ?? ""}. O que você cria aqui vai para o Google; os eventos do Google aparecem aqui com a marca G.` : "Cria, edita e apaga no Google automaticamente, e mostra seus eventos do Google aqui."}</p>
+        {google?.flash && <p className="text-xs mt-2" style={{ color: google.flash === "ok" ? "#30d158" : "#ff6961" }}>{({"ok": "Google Agenda conectado ✓", "config": "Faltam as chaves do Google na Vercel (GOOGLE_CLIENT_ID e GOOGLE_CLIENT_SECRET).", "erro": "O Google não confirmou a conexão. Tente de novo.", "sem-refresh": "O Google não liberou acesso contínuo. Remova o BRIO em myaccount.google.com/permissions e conecte de novo.", "migracao": "Rode a migração 20261117000000_google_agenda.sql no Supabase."} as Record<string, string>)[google.flash] ?? ""}</p>}
+        {google?.error && <p className="text-xs mt-2 text-[#ff6961]">A conexão expirou. Conecte de novo.</p>}
+        {!google?.migrated && <p className="text-xs mt-2 text-[#ff6961]">Rode a migração 20261117000000_google_agenda.sql no Supabase.</p>}
+        <div className="grid gap-2 mt-3">
+          {google?.connected ? <>
+            <button className="btn" disabled={pending} onClick={() => start(async () => setErr(await syncAllToGoogle()))}>{pending ? "Sincronizando…" : "Enviar compromissos ao Google"}</button>
+            <button className="btn text-muted" disabled={pending} onClick={() => { if (confirm("Desconectar o Google Agenda? Os eventos já enviados continuam lá.")) start(async () => setErr(await disconnectGoogle())); }}>Desconectar Google</button>
+          </> : google?.ready ? <a className="btn btn-accent" href="/api/google/connect">Conectar com Google</a>
+            : <p className="text-xs text-muted">Precisa configurar as chaves do Google na Vercel primeiro (passo a passo no chat).</p>}
+        </div>
       </div>
       {err && <p role="alert" className="text-sm text-[#ff6961]">{err}</p>}
     </div>
