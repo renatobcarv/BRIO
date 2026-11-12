@@ -55,6 +55,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
   const dupPhase = () => { setP((x) => ({ ...x, phases: [...x.phases.slice(0, ph + 1), { ...clone(phase), id: newPhaseId(), name: `${phase.name} (cópia)` }, ...x.phases.slice(ph + 1)] })); setPh(ph + 1); };
   const delPhase = () => { if (p.phases.length === 1 || !confirm(`Excluir a fase "${phase.name}"?`)) return; setP((x) => ({ ...x, phases: x.phases.filter((_, i) => i !== ph) })); setPh(Math.max(0, ph - 1)); };
 
+  const [tune, setTune] = useState(false);
   return (
     <div>
       {/* Cabeçalho */}
@@ -69,28 +70,31 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
       </div>
 
       {/* Fases */}
+      <p className="label mt-5">1 · Fases da campanha</p>
       <div className="flex gap-1.5 overflow-x-auto mt-4 pb-1 -mx-1 px-1">
         {p.phases.map((f, i) => {
           const on = i === ph, cur = i === pos.phaseIndex && pos.status === "andamento", c = PHASE_KINDS[f.kind].color;
           return (
-            <button key={f.id} onClick={() => { setPh(i); setOpen(null); haptic(6); }} className="press shrink-0 rounded-2xl px-3 py-2 text-left border min-w-[76px]"
+            <button key={f.id} onClick={() => { setPh(i); setOpen(null); setTune(false); haptic(6); }} className="press shrink-0 rounded-2xl px-3 py-2 text-left border min-w-[76px]"
               style={{ borderColor: on ? c : "rgba(255,255,255,.08)", background: on ? `${c}26` : "#140808", boxShadow: on ? `0 0 16px -6px ${c}` : "none" }}>
               <span className="block text-[13px] font-semibold truncate max-w-[110px]">{f.name}</span>
-              <span className="block text-[10px]" style={{ color: c }}>{PHASE_KINDS[f.kind].label}{cur ? " · agora" : ""}</span>
+              <span className="block text-[10px]" style={{ color: c }}>{f.name.trim() === PHASE_KINDS[f.kind].label ? `${f.weeks} sem` : PHASE_KINDS[f.kind].label}{cur ? " · agora" : ""}</span>
             </button>
           );
         })}
-        <button onClick={addPhase} className="press shrink-0 rounded-2xl px-3 border border-dashed text-sm text-muted min-w-[64px]" style={{ borderColor: "rgba(224,57,62,.35)" }}>+ Fase</button>
+        <button onClick={addPhase} className="press shrink-0 rounded-2xl px-3 border border-dashed text-sm text-muted whitespace-nowrap" style={{ borderColor: "rgba(224,57,62,.35)" }}>+ Fase</button>
       </div>
 
       {/* Fase selecionada */}
       <div key={phase.id} className="mt-3 rounded-2xl border p-3 step-in-right" style={{ borderColor: PHASE_KINDS[phase.kind].color + "55", background: "#120707" }}>
         <div className="flex items-center gap-2">
           <input className="bg-transparent outline-none font-semibold text-lg flex-1 min-w-0" value={phase.name} onChange={(e) => setPhase({ name: e.target.value })} aria-label="Nome da fase" />
-          <span className="text-[11px] text-muted shrink-0">{shortDate(ranges[ph].start)}–{shortDate(ranges[ph].end)}</span>
+          <button className="text-xs font-semibold shrink-0" style={{ color: R }} onClick={() => setTune(!tune)} aria-expanded={tune}>{tune ? "Fechar" : "Ajustar ▸"}</button>
         </div>
-        <div className="flex gap-1.5 overflow-x-auto mt-2 pb-1">
-          {(Object.keys(PHASE_KINDS) as PhaseKind[]).map((k) => <button key={k} className="chip shrink-0 !min-h-9 text-xs" aria-pressed={phase.kind === k} onClick={() => setPhase({ kind: k })}>{PHASE_KINDS[k].label}</button>)}
+        <p className="text-[11px] text-muted">{PHASE_KINDS[phase.kind].label} · {phase.weeks} {phase.weeks === 1 ? "semana" : "semanas"} · {shortDate(ranges[ph].start)}–{shortDate(ranges[ph].end)}</p>
+        {tune && <div className="step-in-right">
+        <div className="flex flex-wrap gap-1.5 mt-2">
+          {(Object.keys(PHASE_KINDS) as PhaseKind[]).map((k) => <button key={k} className="chip !min-h-9 !px-3 text-xs" aria-pressed={phase.kind === k} onClick={() => setPhase({ kind: k })}>{PHASE_KINDS[k].label}</button>)}
         </div>
         <div className="flex items-center gap-2 mt-2">
           <span className="text-sm text-muted">Semanas</span>
@@ -98,15 +102,19 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
           <span className="num text-lg w-6 text-center">{phase.weeks}</span>
           <button className="press h-9 w-9 rounded-full bg-white/[.07]" onClick={() => setPhase({ weeks: Math.min(52, phase.weeks + 1) })} aria-label="Mais semanas">+</button>
           <div className="ml-auto flex gap-1">
-            <button className="btn !min-h-9 !px-3 text-xs" onClick={dupPhase}>Duplicar</button>
-            <button className="btn !min-h-9 !px-3 text-xs text-muted" onClick={delPhase} disabled={p.phases.length === 1}>Excluir</button>
+            <button className="press h-9 w-9 rounded-full bg-white/[.07] text-sm" onClick={dupPhase} aria-label="Duplicar fase" title="Duplicar fase">⧉</button>
+            <button className="press h-9 w-9 rounded-full bg-white/[.07] text-sm text-muted disabled:opacity-30" onClick={delPhase} disabled={p.phases.length === 1} aria-label="Excluir fase" title="Excluir fase">✕</button>
           </div>
         </div>
         <textarea className="field mt-2 !min-h-[60px] text-sm" rows={2} placeholder="Objetivo da fase (ex.: RPE 6–7 nos básicos, cardio 2–3×/sem)" value={phase.notes} onChange={(e) => setPhase({ notes: e.target.value })} />
+        </div>}
+        {!tune && phase.notes && <p className="text-xs text-ink/70 mt-1.5">{phase.notes}</p>}
       </div>
 
+      <p className="label mt-6">2 · Treinos da semana · {phase.name}</p>
+
       {/* Dias */}
-      <div className="grid grid-cols-7 gap-1 mt-4">
+      <div className="grid grid-cols-7 gap-1 mt-2">
         {DAYS.map((d) => {
           const n = (phase.days[d] ?? []).length, on = d === day;
           return (
@@ -119,7 +127,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         })}
       </div>
 
-      <input className="field mt-3 !min-h-12 font-semibold text-lg" placeholder={`Nome do treino de ${weekdayShort[+day]} (ex.: Lower A, Push pesado)`}
+      <input className="field mt-3 !min-h-12 font-semibold text-lg" placeholder={`Nome do treino · ${weekdayShort[+day]} (ex.: Lower A)`}
         value={phase.dayNames?.[day] ?? ""} onChange={(e) => setPhase({ dayNames: { ...(phase.dayNames ?? {}), [day]: e.target.value } })} aria-label="Nome do treino do dia" />
       {!phase.dayNames?.[day] && list.length > 0 && <p className="text-[11px] text-faint mt-1">Sem nome, aparece como “{dayTitle(phase, day)}”.</p>}
       {/* Exercícios do dia */}
@@ -137,9 +145,8 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
               <button className="w-full flex items-center gap-3 p-3 text-left" onClick={() => { setOpen(isOpen ? null : i); haptic(6); }} aria-expanded={isOpen}>
                 <span className="num text-xs text-faint w-4">{i + 1}</span>
                 <span className="flex-1 min-w-0"><span className="block font-semibold truncate">{e.name || "Novo exercício"}</span>
-                  <span className="block text-xs text-muted">{MUSCLES[e.muscle]}{e.notes ? ` · ${e.notes}` : ""}</span></span>
+                  <span className="block text-xs text-muted truncate">{MUSCLES[e.muscle]}{rest && !cardio ? ` · ${rest}` : ""}{e.notes ? ` · ${e.notes}` : ""}</span></span>
                 <span className="num text-sm shrink-0" style={{ color: R }}>{cardio ? e.reps : `${e.sets}×${e.reps}`}{e.rpe ? ` @${String(e.rpe).replace(".", ",")}` : ""}</span>
-                {rest && !cardio && <span className="text-[11px] text-muted shrink-0">{rest}</span>}
                 <span className="text-muted text-xs">{isOpen ? "▴" : "▾"}</span>
               </button>
               {isOpen && (
@@ -172,8 +179,8 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         })}
         <button className="btn !min-h-12 font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 10px 26px -12px #e0393e" }} onClick={() => setLib(true)}>+ Adicionar exercício</button>
         <div className="grid grid-cols-2 gap-2">
-          <button className="btn !min-h-10 text-sm" onClick={() => setCopyDay(true)} disabled={!list.length}>Copiar dia para…</button>
-          <button className="btn !min-h-10 text-sm" onClick={copyToFollowing} disabled={ph >= p.phases.length - 1}>Copiar semana → próximas fases</button>
+          <button className="btn !min-h-10 text-sm" onClick={() => setCopyDay(true)} disabled={!list.length}>Copiar dia</button>
+          <button className="btn !min-h-10 text-sm" onClick={copyToFollowing} disabled={ph >= p.phases.length - 1}>Replicar nas fases</button>
         </div>
       </div>
 

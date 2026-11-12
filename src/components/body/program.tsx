@@ -217,8 +217,8 @@ export function ProgramView({ programs, today, planDays, overrides, sessionsDone
           <>
             <ProgramBuilder key={active.id} program={active} today={today} overrides={overrides} />
             <div className="flex gap-2 mt-5">
-              <button className="btn flex-1" disabled={pending} onClick={() => { if (confirm("Arquivar este programa? O histórico fica guardado.")) start(() => archiveProgram(active.id)); }}>Arquivar</button>
-              <button className="btn flex-1" onClick={fromPlan}>Novo programa</button>
+              <button className="btn flex-1" disabled={pending} onClick={() => { if (confirm("Arquivar esta campanha? O histórico fica guardado.")) start(() => archiveProgram(active.id)); }}>Arquivar</button>
+              <button className="btn flex-1" onClick={fromPlan}>Nova campanha</button>
             </div>
           </>
       ) : (
@@ -249,7 +249,7 @@ export function ProgramView({ programs, today, planDays, overrides, sessionsDone
       )}
       {!active && others.length === 0 && null}
 
-      <Sheet tone="war" accent={G} open={!!form} onClose={() => setForm(null)} title={form?.id ? "Editar programa" : "Novo programa"}>
+      <Sheet tone="war" accent={G} open={!!form} onClose={() => setForm(null)} title={form?.id ? "Editar campanha" : "Nova campanha"}>
         {form && <ProgramForm key={form.id ?? "novo"} initial={form} today={today} overrides={overrides} onDone={() => setForm(null)} />}
       </Sheet>
     </div>
