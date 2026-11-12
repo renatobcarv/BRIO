@@ -358,7 +358,7 @@ body { background: transparent; }
 @media (prefers-reduced-motion: reduce) { .fire-aura, .fire-ember { animation: none; } }
 /* Janela de sistema (missões do dia) */
 .sys-scan::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
-  background: repeating-linear-gradient(180deg, rgba(58,209,255,.035) 0 1px, transparent 1px 3px); }
+  background: repeating-linear-gradient(180deg, rgba(120,160,255,.03) 0 1px, transparent 1px 3px); }
 .sys-pulse { animation: sys-pulse 2.4s ease-in-out infinite; }
 @keyframes sys-pulse { 50% { box-shadow: 0 0 26px 0 currentColor; } }
 .sys-hit { animation: sys-hit .45s ease-out; }

@@ -84,17 +84,17 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const doneCount = items.filter((i) => opt.has(i.key)).length;
   const pct = items.length ? doneCount / items.length : 0, full = pct === 1;
   const left = useCountdown();
-  const SYS = full ? "#ffd60a" : "#3ad1ff";
+  const SYS = full ? "#ffd27a" : "#5ab0ff", ALT = full ? "#ff9f0a" : "#9d8cff";
 
   return (
-    <section className="relative rise rounded-[22px] p-[1px] overflow-hidden" style={{ background: `linear-gradient(160deg, ${SYS}aa, ${SYS}22 40%, ${SYS}66)`, boxShadow: `0 0 40px -14px ${SYS}, inset 0 0 0 1px ${SYS}33` }}>
-      <div className="relative rounded-[21px] p-4 sys-scan" style={{ background: "linear-gradient(180deg, #06101f 0%, #040a14 60%, #03070e 100%)" }}>
+    <section className="relative rise rounded-[22px] p-[1px] overflow-hidden" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
+      <div className="relative rounded-[21px] p-4 sys-scan" style={{ background: full ? "radial-gradient(90% 60% at 50% 0%, #2a2108, #0d0a04 60%, #070604)" : "radial-gradient(90% 55% at 15% 0%, #12234a, transparent 60%), radial-gradient(70% 50% at 100% 100%, #1d1640, transparent 65%), #060a16" }}>
         {/* cantos */}
         {["left-2 top-2 border-l-2 border-t-2", "right-2 top-2 border-r-2 border-t-2", "left-2 bottom-2 border-l-2 border-b-2", "right-2 bottom-2 border-r-2 border-b-2"].map((c) =>
-          <span key={c} className={`absolute h-3 w-3 ${c}`} style={{ borderColor: SYS }} />)}
+          <span key={c} className={`absolute h-3 w-3 ${c}`} style={{ borderColor: ALT }} />)}
 
         <div className="flex items-start gap-3">
-          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border-2 font-black text-lg sys-pulse" style={{ borderColor: SYS, color: SYS, boxShadow: `0 0 16px -2px ${SYS}`, background: `${SYS}14` }}>{full ? "✓" : "!"}</span>
+          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-xl border-2 font-black text-lg sys-pulse" style={{ borderColor: SYS, color: SYS, boxShadow: `0 0 16px -2px ${SYS}, inset 0 0 12px ${ALT}55`, background: `linear-gradient(140deg, ${SYS}22, ${ALT}22)` }}>{full ? "✓" : "!"}</span>
           <div className="flex-1 min-w-0">
             <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: SYS }}>{full ? "MISSÃO CONCLUÍDA" : "MISSÃO DIÁRIA"}</p>
             <p className="text-[15px] font-semibold mt-0.5">{full ? "O sistema registrou sua constância." : "Treinamento para se tornar mais forte"}</p>
@@ -102,15 +102,22 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
           <button onClick={() => setEditing(true)} className="text-[11px] text-white/50 underline underline-offset-4 shrink-0 mt-1">editar</button>
         </div>
 
+        <div className="grid grid-cols-3 gap-2 mt-3">
+          {[[streak, streak === 1 ? "dia 100%" : "dias 100%", SYS], [best, "recorde", ALT], [doneCount, `de ${items.length} hoje`, "#ffd27a"]].map(([v, l, c]) => (
+            <div key={String(l)} className="rounded-xl px-2 py-2 text-center border" style={{ borderColor: `${c}33`, background: `${c}0f` }}>
+              <p className="num text-2xl leading-none" style={{ color: String(c), textShadow: `0 0 12px ${c}` }}>{v}</p>
+              <p className="text-[10px] text-[#8fa6c8] mt-1">{l}</p>
+            </div>))}
+        </div>
         <div className="flex items-center justify-between mt-3 text-[11px] font-mono">
-          <span className="text-white/55">⏳ {full ? "Concluída hoje" : `restam ${left}`}</span>
+          <span className="text-[#8fa6c8]">⏳ {full ? "Concluída hoje" : `restam ${left}`}</span>
           <span style={{ color: SYS }}>{Math.round(pct * 100)}%</span>
         </div>
         <div className="h-1.5 rounded-full bg-white/[.06] mt-1.5 overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(3, pct * 100)}%`, background: `linear-gradient(90deg, ${SYS}88, ${SYS})`, boxShadow: `0 0 12px ${SYS}` }} />
+          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(3, pct * 100)}%`, background: `linear-gradient(90deg, ${ALT}, ${SYS})`, boxShadow: `0 0 12px ${SYS}` }} />
         </div>
 
-        <p className="text-[10px] font-bold tracking-[.3em] text-white/40 mt-4 mb-1.5">OBJETIVOS</p>
+        <p className="text-[10px] font-bold tracking-[.3em] mt-4 mb-1.5" style={{ color: `${ALT}cc` }}>OBJETIVOS</p>
         <ul className="grid gap-1.5">
           {ordered.map((it) => {
             const on = opt.has(it.key), m = missionStyle(it.label), main = it === primary;
@@ -118,15 +125,15 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
               <li key={it.key}>
                 <button onClick={() => toggle(it.key)} aria-pressed={on}
                   className={`press w-full flex items-center gap-3 text-left rounded-xl px-3 min-h-[52px] py-2 border transition-all duration-300 ${popped === it.key ? "sys-hit" : ""}`}
-                  style={{ borderColor: on ? `${m.color}55` : main ? `${SYS}44` : "rgba(255,255,255,.06)", background: on ? `linear-gradient(90deg, ${m.color}1f, transparent 70%)` : main ? `${SYS}0d` : "rgba(255,255,255,.02)" }}>
-                  <span className="grid place-items-center h-8 w-8 shrink-0 rounded-lg" style={{ background: on ? m.color : `${m.color}22`, boxShadow: on ? `0 0 14px -2px ${m.color}` : "none" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#000" : m.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
+                  style={{ borderColor: on ? `${SYS}55` : main ? `${ALT}55` : "rgba(140,170,255,.10)", background: on ? `linear-gradient(90deg, ${SYS}24, ${ALT}0d 70%)` : main ? `linear-gradient(90deg, ${ALT}1a, transparent 80%)` : "rgba(120,150,255,.035)" }}>
+                  <span className="grid place-items-center h-8 w-8 shrink-0 rounded-lg" style={{ background: on ? `linear-gradient(140deg, ${SYS}, ${ALT})` : `${m.color}1f`, border: `1px solid ${on ? "transparent" : m.color + "44"}`, boxShadow: on ? `0 0 14px -2px ${SYS}` : "none" }}>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#061023" : m.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
                   </span>
                   <span className="flex-1 min-w-0">
-                    {main && <span className="block text-[9px] font-bold tracking-[.25em]" style={{ color: on ? "#5a6a7a" : SYS }}>PRINCIPAL</span>}
-                    <span className={`block text-[14px] leading-snug ${on ? "text-white/45 line-through decoration-1" : "text-white"}`}>{it.label}</span>
+                    {main && <span className="block text-[9px] font-bold tracking-[.25em]" style={{ color: on ? "#5a6a8a" : ALT }}>PRINCIPAL</span>}
+                    <span className={`block text-[14px] leading-snug ${on ? "text-[#8fa6c8] line-through decoration-1" : "text-[#eef3ff]"}`}>{it.label}</span>
                   </span>
-                  <span className="font-mono text-[12px] shrink-0 tabular-nums" style={{ color: on ? "#30d158" : "rgba(255,255,255,.45)" }}>[{on ? 1 : 0}/1]</span>
+                  <span className="font-mono text-[12px] shrink-0 tabular-nums" style={{ color: on ? SYS : "rgba(170,190,230,.5)", textShadow: on ? `0 0 8px ${SYS}` : "none" }}>[{on ? 1 : 0}/1]</span>
                 </button>
               </li>
             );
@@ -134,16 +141,16 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
         </ul>
 
         <div className="grid grid-cols-2 gap-2 mt-4">
-          <div className="rounded-xl border p-2.5" style={{ borderColor: `${SYS}33`, background: `${SYS}0a` }}>
-            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: SYS }}>RECOMPENSAS</p>
+          <div className="rounded-xl border p-2.5" style={{ borderColor: "rgba(255,210,122,.3)", background: "linear-gradient(160deg, rgba(255,210,122,.10), transparent)" }}>
+            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: "#ffd27a" }}>✦ RECOMPENSAS</p>
             <p className="text-[12px] text-white/85 mt-1 leading-snug">+10 XP por objetivo<br />+50 XP ao completar tudo</p>
           </div>
-          <div className="rounded-xl border p-2.5" style={{ borderColor: full ? "rgba(48,209,88,.35)" : "rgba(255,69,58,.3)", background: full ? "rgba(48,209,88,.06)" : "rgba(255,69,58,.05)" }}>
-            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: full ? "#30d158" : "#ff6961" }}>{full ? "SEQUÊNCIA" : "PENALIDADE"}</p>
+          <div className="rounded-xl border p-2.5" style={{ borderColor: full ? "rgba(48,209,88,.35)" : "rgba(255,107,129,.3)", background: full ? "linear-gradient(160deg, rgba(48,209,88,.10), transparent)" : "linear-gradient(160deg, rgba(255,107,129,.09), transparent)" }}>
+            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: full ? "#30d158" : "#ff6b81" }}>{full ? "▲ SEQUÊNCIA" : "⚠ PENALIDADE"}</p>
             <p className="text-[12px] text-white/85 mt-1 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} 100% zera.`}</p>
           </div>
         </div>
-        {!full && <p className="text-center text-[11px] font-mono mt-3" style={{ color: SYS }}>+{(items.length - doneCount) * 10 + 50} XP disponíveis</p>}
+        {!full && <p className="text-center text-[11px] font-mono mt-3" style={{ color: "#ffd27a" }}>+{(items.length - doneCount) * 10 + 50} XP disponíveis</p>}
       </div>
       <Sheet open={editing} onClose={() => setEditing(false)} title="Editar missões"><Editor items={items} onClose={() => setEditing(false)} /></Sheet>
     </section>
