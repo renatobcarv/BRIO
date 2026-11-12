@@ -365,8 +365,8 @@ export function Training({ today, split, plan, workouts, program = null, program
                   <p className="font-display text-[26px] leading-tight mt-1">{sel.title ?? `${sel.label} · ${sel.focus || "Descanso"}`}</p>
                   {ctx && list.length > 0 && (() => { const b = beastFor(ctx.kind, ctx.weekInPhase ?? 1, { hell: ctx.kind === "intensificacao" && ctx.weekInPhase === 1, last: ctx.lastPhase, week: ctx.weekNo }); return (
                     <a href="/bestiario" className="flex items-center gap-2 mt-2 text-xs rounded-full px-3 py-1.5 w-fit border" style={{ borderColor: b.color + "55", background: b.color + "14" }}>
-                      <span style={{ color: b.color }}>{b.angel ? "✨" : "⚔"} {b.name}</span>
-                      <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-1.5 w-2.5 rounded-sm" style={{ background: i <= b.threat ? b.color : "rgba(255,255,255,.12)" }} />)}</span>
+                      <span style={{ color: b.color }}>{b.angel ? `✨ ${b.virtue} · ${b.name}` : `⚔ ${b.name}`}</span>
+                      {!b.angel && <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-1.5 w-2.5 rounded-sm" style={{ background: i <= b.threat ? b.color : "rgba(255,255,255,.12)" }} />)}</span>}
                     </a>); })()}
                   
                   {ctx && <p className="text-xs mt-0.5" style={{ color: ctx.deload ? "#30d158" : G }}>{ctx.phase}{ctx.deload ? " · recuperação: cargas reduzidas" : ""}</p>}

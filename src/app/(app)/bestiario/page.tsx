@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { BeastArt } from "@/components/body/battle-intro";
+import { AngelArt } from "@/components/body/angel-art";
 import { ALL, ANGELS, FERAS, bestiaryRecord, type BeastId } from "@/lib/bestiary";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,13 +22,13 @@ export default async function Bestiario() {
     return (
       <div className="rounded-3xl p-3 border text-center relative overflow-hidden"
         style={{ borderColor: open ? b.color + "66" : "rgba(255,255,255,.07)", background: open ? `radial-gradient(90% 70% at 50% 25%, ${b.color}30, #0b0b0d 70%)` : "#0b0b0d" }}>
-        <div className="mx-auto w-24 h-24" style={{ filter: open ? `drop-shadow(0 0 12px ${b.color}88)` : "grayscale(1) brightness(.18)" }}>
-          <svg viewBox="0 0 240 240" className="w-full h-full" aria-hidden><BeastArt id={id} c={b.color} eye={b.eye} look={b.angel} /></svg>
+        <div className="mx-auto w-28 h-28" style={{ filter: open ? `drop-shadow(0 0 12px ${b.color}88)` : "grayscale(1) brightness(.18)" }}>
+          {b.angel ? <svg viewBox="0 0 320 360" className="w-full h-full" aria-hidden><AngelArt look={b.angel} c={b.color} eye={b.eye} /></svg> : <svg viewBox="0 0 240 240" className="w-full h-full" aria-hidden><BeastArt id={id} c={b.color} eye={b.eye} look={b.angel} /></svg>}
         </div>
         <p className="text-[13px] font-bold uppercase leading-tight mt-2 break-words">{open || r.met ? b.name : "???"}</p>
-        <p className="text-[10px] text-muted mt-0.5 leading-tight">{open || r.met ? (b.ref ?? b.epithet) : "Ainda não encontrado"}</p>
-        {open ? <p className="text-xs font-semibold mt-2" style={{ color: b.color }}>{angel ? "Aprovado" : "Abatido"} ×{r.won}</p>
-          : r.met ? <p className="text-xs text-muted mt-2">Encontrado · escapou</p> : <p className="text-xs text-faint mt-2">🔒</p>}
+        <p className="text-[10px] text-muted mt-0.5 leading-tight">{open || r.met ? (b.angel ? `${b.virtue} · ${b.epithet}` : b.epithet) : "Ainda não encontrado"}</p>
+        {open ? <p className="text-xs font-semibold mt-2" style={{ color: b.color }}>{angel ? `${b.virtue} conquistada` : "Abatido"} ×{r.won}</p>
+          : r.met ? <p className="text-xs text-muted mt-2">{angel ? "Semana incompleta" : "Encontrado · escapou"}</p> : <p className="text-xs text-faint mt-2">🔒</p>}
         {open && r.last && <p className="text-[10px] text-faint">última {br(r.last)}</p>}
       </div>
     );
@@ -38,17 +39,17 @@ export default async function Bestiario() {
       <header className="rise mb-6">
         <p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#e0393e" }}>ASCENSION · WAR ROOM</p>
         <h1 className="font-display text-5xl mt-2 leading-none tracking-tight uppercase">Bestiário</h1>
-        <p className="text-sm text-muted mt-2">Cada semana da campanha traz um adversário. Cumpra todos os treinos planejados da semana para vencê-lo.</p>
+        <p className="text-sm text-muted mt-2">Cada semana da campanha traz uma fera a vencer ou um anjo como exemplo a seguir. Cumpra todos os treinos planejados da semana.</p>
         <div className="grid grid-cols-3 gap-2 mt-4">
           <div className="glass p-3"><p className="num text-2xl">{seen}<span className="text-muted text-sm">/{ANGELS.length + FERAS.length}</span></p><p className="text-[11px] text-muted">desbloqueados</p></div>
-          <div className="glass p-3"><p className="num text-2xl" style={{ color: "#ffb340" }}>{won(ANGELS)}</p><p className="text-[11px] text-muted">provações ✨</p></div>
+          <div className="glass p-3"><p className="num text-2xl" style={{ color: "#ffb340" }}>{won(ANGELS)}</p><p className="text-[11px] text-muted">virtudes ✨</p></div>
           <div className="glass p-3"><p className="num text-2xl" style={{ color: "#e0393e" }}>{won(FERAS)}</p><p className="text-[11px] text-muted">feras abatidas ⚔</p></div>
         </div>
       </header>
 
       <section className="rise">
-        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#ffb340" }}>PROVAÇÕES · ACUMULAÇÃO</p>
-        <p className="text-xs text-muted mt-1 mb-3">Anjos não são inimigos: eles provam a sua constância. Vencer a semana é ser aprovado.</p>
+        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#ffb340" }}>EXEMPLOS · ACUMULAÇÃO</p>
+        <p className="text-xs text-muted mt-1 mb-3">Os anjos não são adversários: são referências do que buscar. Cumpra a semana seguindo o exemplo e conquiste a virtude dele.</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">{ANGELS.map((id) => <Card key={id} id={id} angel />)}</div>
       </section>
       <section className="rise mt-8">

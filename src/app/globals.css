@@ -314,3 +314,20 @@ body { background: transparent; }
 .intro-wheel { animation: wheel-spin 6s linear infinite; }
 @keyframes wheel-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .intro-wheel { animation: none; } }
+/* Anjos: asas batendo, coluna de luz, arma erguida */
+.angel-flap { animation: angel-open 1s cubic-bezier(.2,.9,.2,1) backwards, angel-flap 3.2s 1s ease-in-out infinite; }
+@keyframes angel-open { from { opacity: 0; transform: scale(.3, .6); } }
+@keyframes angel-flap { 50% { transform: scale(1.04, .94) rotate(0deg); } }
+.angel-pillar { animation: pillar 1.2s ease-out backwards, pillar-pulse 2.6s 1.2s ease-in-out infinite; transform-origin: 160px 0; }
+@keyframes pillar { from { opacity: 0; transform: scaleY(0); } }
+@keyframes pillar-pulse { 50% { opacity: .55; } }
+.angel-aura { animation: aura 3s ease-in-out infinite; transform-origin: 160px 150px; }
+@keyframes aura { 50% { transform: scale(1.12); opacity: .5; } }
+.angel-face { animation: face 1.8s ease-in-out infinite; }
+@keyframes face { 50% { opacity: .55; } }
+.angel-weapon { animation: weapon-raise 1s .5s cubic-bezier(.2,.9,.2,1) backwards; }
+@keyframes weapon-raise { from { opacity: 0; transform: translateY(60px) rotate(18deg); } }
+.angel-blade-fire { animation: blade 1.2s ease-in-out infinite alternate; }
+@keyframes blade { to { opacity: .2; } }
+.angel-veil { animation: angel-open 1.2s .4s cubic-bezier(.2,.9,.2,1) backwards; transform-origin: 160px 200px; }
+@media (prefers-reduced-motion: reduce) { .angel-flap, .angel-pillar, .angel-aura, .angel-face, .angel-weapon, .angel-blade-fire, .angel-veil { animation: none; } }
