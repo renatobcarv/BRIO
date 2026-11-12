@@ -35,7 +35,7 @@ export function Countdown({ to, color }: { to: string; color: string }) {
   );
 }
 
-const STAGE = { anunciado: "Anunciado", contagem: "Contagem regressiva", ativo: "Em andamento", vitoria: "Vencido", falha: "Não concluído" } as const;
+const STAGE = { anunciado: "Anunciado", contagem: "Contagem regressiva", ativo: "Em andamento", vitoria: "Vencido", falha: "Não concluído", pausado: "Pausado · viagem" } as const;
 const STEPS = ["anunciado", "contagem", "ativo", "resultado"] as const;
 
 /** Cartão cinematográfico do evento. */
@@ -70,7 +70,8 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
         {(e.stage === "anunciado" || e.stage === "contagem") && <div className="mt-4"><p className="label mb-2">Começa em</p><Countdown to={e.start} color={e.color} /></div>}
         {e.stage === "ativo" && <div className="mt-4"><p className="label mb-2">Termina em</p><Countdown to={new Date(Date.parse(e.end + "T12:00:00Z") + 864e5).toISOString().slice(0, 10)} color={e.color} /></div>}
 
-        {!compact && (
+        {e.stage === "pausado" && <p className="text-sm text-ink/80 mt-4 rounded-2xl p-3 border border-white/10">✈ Pausado por viagem. Sem prêmio e sem cicatriz: o que não dependia de você não conta contra você.</p>}
+        {!compact && e.stage !== "pausado" && (
           <>
             <div className="flex gap-1 mt-5">{STEPS.map((st, i) => <div key={st} className="flex-1"><div className="h-1 rounded-full" style={{ background: i <= stepIdx ? e.color : "rgba(255,255,255,.08)", boxShadow: i === stepIdx ? `0 0 10px ${e.color}` : "none" }} /><p className="text-[9px] text-muted mt-1 capitalize">{st}</p></div>)}</div>
             <ul className="grid gap-2.5 mt-4">

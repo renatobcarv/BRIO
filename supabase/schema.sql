@@ -506,3 +506,5 @@ create index if not exists field_contacts_user on field_contacts (user_id, statu
 alter table field_contacts enable row level security;
 drop policy if exists "dono" on field_contacts;
 create policy "dono" on field_contacts for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
+-- Modo viagem: períodos em que os eventos ficam pausados (sem prêmio e sem cicatriz).
+alter table settings add column if not exists travel jsonb not null default '[]';

@@ -1,14 +1,14 @@
 // ASCENSION EVENTS: eventos dinâmicos derivados da periodização e dos registros reais. Sem dependências.
 export type EvProgram = { id: string; name: string; start_date: string; phases: { kind: string; name: string; weeks: number; days: Record<string, unknown[]> }[] };
 export type EvWorkout = { date: string; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] };
-export type EvInput = { today: string; programs: EvProgram[]; workouts: EvWorkout[]; meals: { date: string; protein: number }[]; proteinGoal: number; sleep: { date: string; hours: number }[] };
+export type EvInput = { today: string; programs: EvProgram[]; workouts: EvWorkout[]; meals: { date: string; protein: number }[]; proteinGoal: number; sleep: { date: string; hours: number }[]; travel?: { start: string; end: string }[] };
 
 export type Badge = { id: string; name: string; pt: string; desc: string; kind: "glory" | "scar"; color: string; icon: string };
 export type Objective = { label: string; value: number; target: number; done: boolean; unit?: string; safety?: boolean };
 export type EventType = "hell_week" | "war_rations" | "genesis" | "sanctuary" | "judgment";
 export type GameEvent = {
   id: string; type: EventType; title: string; tagline: string; color: string; start: string; end: string;
-  stage: "anunciado" | "contagem" | "ativo" | "vitoria" | "falha"; daysToStart: number; program: string;
+  stage: "anunciado" | "contagem" | "ativo" | "vitoria" | "falha" | "pausado"; daysToStart: number; program: string;
   objectives: Objective[]; rewardXp: number; boost: string; glory: Badge; scar: Badge; bonusXp: { date: string; xp: number; label: string }[];
   retro?: { sessions: number; volume: number; rpeShare: number };
 };
@@ -54,7 +54,9 @@ export function computeEvents(g: EvInput): GameEvent[] {
   const push = (ev: Omit<GameEvent, "stage" | "daysToStart">) => {
     if (diff(ev.start, g.today) > 14) return;                // só aparece até 14 dias antes
     const success = ev.objectives.every((o) => o.done);
-    const stage = stageOf(g.today, ev.start, ev.end, success);
+    // Viagem que cruza a janela do evento: pausa, sem prêmio e sem cicatriz.
+    const away = (g.travel ?? []).some((t) => t.start <= ev.end && t.end >= ev.start);
+    const stage = away ? "pausado" : stageOf(g.today, ev.start, ev.end, success);
     const bonus = [...ev.bonusXp.filter((b) => b.date <= g.today), ...(stage === "vitoria" ? [{ date: add(ev.end, 1), xp: ev.rewardXp, label: `${ev.title} vencido` }] : [])];
     out.push({ ...ev, stage, daysToStart: diff(ev.start, g.today), bonusXp: bonus });
   };
@@ -125,6 +127,6 @@ export function computeEvents(g: EvInput): GameEvent[] {
         scar: scar("untested", "UNTESTED", "Não testado", "O ciclo terminou sem a avaliação dos levantamentos.") });
     }
   }
-  const order = { ativo: 0, contagem: 1, anunciado: 2, vitoria: 3, falha: 3 };
+  const order = { ativo: 0, contagem: 1, anunciado: 2, vitoria: 3, falha: 3, pausado: 5 };
   return out.sort((a, b) => order[a.stage] - order[b.stage] || a.start.localeCompare(b.start));
 }

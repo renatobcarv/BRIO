@@ -4,6 +4,7 @@ import { EventBadge, EventCard } from "@/components/events/event-ui";
 import { loadGame } from "@/lib/game-data";
 import { getSettings } from "@/lib/settings";
 import { todayISO } from "@/lib/date";
+import { TravelControl } from "@/components/events/travel";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +13,7 @@ export default async function Page() {
   const sb = await createClient();
   const s = await getSettings(sb);
   const g = await loadGame(sb, s, todayISO());
-  const live = g.events.filter((e) => e.stage === "ativo" || e.stage === "contagem" || e.stage === "anunciado");
+  const live = g.events.filter((e) => e.stage === "ativo" || e.stage === "contagem" || e.stage === "anunciado" || (e.stage === "pausado" && e.end >= todayISO()));
   const past = g.events.filter((e) => e.stage === "vitoria" || e.stage === "falha").sort((a, b) => b.end.localeCompare(a.end));
   const earned = past.map((e) => (e.stage === "vitoria" ? e.glory : e.scar));
   return (
@@ -29,6 +30,7 @@ export default async function Page() {
         </section>
       )}
 
+      <TravelControl trips={s.travel ?? []} today={todayISO()} />
       <div className="grid gap-4">{live.map((e) => <EventCard key={e.id} e={e} />)}</div>
 
       {earned.length > 0 && (

@@ -15,7 +15,7 @@ export type Settings = {
   partner_phrase: string | null; partner_photo_path: string | null;
   daily_text: string | null; daily_text_date: string | null;
   meal_slots: MealSlot[]; carbs_goal_g: number; fat_goal_g: number;
-  workout_plan: WorkoutPlan; finance_categories: FinCategory[];
+  workout_plan: WorkoutPlan; finance_categories: FinCategory[]; travel?: { start: string; end: string }[];
   books_goal_year: number;
 };
 

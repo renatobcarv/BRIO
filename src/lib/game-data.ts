@@ -60,7 +60,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   };
   // Eventos dinâmicos: bônus de XP e insígnias de vitória/cicatriz
   const mealsByDay = input.meals ?? [];
-  const events = computeEvents({ today, programs, proteinGoal: s.protein_goal_g, sleep: input.sleep, meals: mealsByDay.map((m) => ({ date: m.date, protein: m.protein })),
+  const events = computeEvents({ today, programs, travel: s.travel ?? [], proteinGoal: s.protein_goal_g, sleep: input.sleep, meals: mealsByDay.map((m) => ({ date: m.date, protein: m.protein })),
     workouts: input.workouts.map((w) => ({ date: w.date, sets: w.sets })) });
   input.eventBonus = events.flatMap((e) => e.bonusXp.map((b) => ({ ...b, attr: (e.type === "sanctuary" ? "vigor" : e.type === "war_rations" ? "vigor" : "forca") as "forca" | "vigor" })));
   return { ...summarize(input), events };
