@@ -30,6 +30,7 @@ export default async function Page() {
         </section>
       )}
 
+      <Link href="/bestiario" className="glass flex items-center justify-between p-4 mb-4"><span><span className="block text-sm font-semibold">⚔ Bestiário</span><span className="block text-xs text-muted">Anjos aprovados e feras abatidas</span></span><span className="text-muted">›</span></Link>
       <TravelControl trips={s.travel ?? []} today={todayISO()} />
       <div className="grid gap-4">{live.map((e) => <EventCard key={e.id} e={e} />)}</div>
 

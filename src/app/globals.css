@@ -311,3 +311,6 @@ body { background: transparent; }
 .tile { background: linear-gradient(160deg, rgba(255,255,255,.06), #141416 45%); }
 .war::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: radial-gradient(80% 45% at 50% 0%, rgba(224,57,62,.16), transparent 65%), radial-gradient(70% 40% at 100% 100%, rgba(255,106,61,.08), transparent 65%), #050202; }
+.intro-wheel { animation: wheel-spin 6s linear infinite; }
+@keyframes wheel-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .intro-wheel { animation: none; } }
