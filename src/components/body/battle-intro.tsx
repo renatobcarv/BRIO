@@ -149,13 +149,13 @@ export function BattleIntro({ title, beast, onDone }: { title: string; beast: Be
       {Array.from({ length: 10 + t * 6 }, (_, i) => (
         <span key={i} className="intro-ember" style={{ left: `${(i * 37) % 100}%`, background: i % 3 ? beast.color : beast.eye, animationDelay: `${(i % 9) * 0.18}s`, animationDuration: `${2.4 - t * 0.2 + (i % 4) * 0.3}s`, width: 2 + (i % 3), height: 2 + (i % 3) }} />
       ))}
-      <div className={`relative flex flex-col items-center px-6 text-center ${t >= 3 ? "intro-quake" : ""}`} style={{ ["--q" as string]: `${t * 1.5}px` } as React.CSSProperties}>
+      <div className={`relative flex flex-col items-center px-5 text-center max-w-md w-full max-h-dvh justify-center py-[max(16px,env(safe-area-inset-top))] ${t >= 3 ? "intro-quake" : ""}`} style={{ ["--q" as string]: `${t * 1.5}px` } as React.CSSProperties}>
         {beast.angel ? (
-          <svg viewBox="0 0 320 320" className="intro-beast" aria-hidden style={{ width: "min(94vw, 420px)", marginTop: -30 }}>
+          <svg viewBox="0 0 320 320" className="intro-beast" aria-hidden style={{ width: "min(88vw, 46dvh, 420px)" }}>
             <CelestialArt id={beast.id} c={beast.color} eye={beast.eye} />
           </svg>
         ) : <svg viewBox="0 0 240 240" className="intro-beast intro-breathe" aria-hidden
-          style={{ width: 200 + t * 16, ["--shake" as string]: `${2 + t * 2}px`, animationIterationCount: `1, ${1 + t}`, filter: `drop-shadow(0 0 ${t * 8}px ${beast.color}88)` } as React.CSSProperties}>
+          style={{ width: `min(${200 + t * 16}px, 72vw, 40dvh)`, ["--shake" as string]: `${2 + t * 2}px`, animationIterationCount: `1, ${1 + t}`, filter: `drop-shadow(0 0 ${t * 8}px ${beast.color}88)` } as React.CSSProperties}>
           <BeastArt id={beast.id} c={beast.color} eye={beast.eye} look={beast.angel} />
         </svg>}
         {!beast.angel && <div className="flex gap-1 mt-4 intro-text" aria-label={`Ameaça ${t} de 5`}>
@@ -163,11 +163,12 @@ export function BattleIntro({ title, beast, onDone }: { title: string; beast: Be
         </div>}
         {beast.angel && <p className="text-[11px] text-muted mt-4 intro-text">{beast.epithet}</p>}
         <p className="text-[11px] font-semibold tracking-[.35em] mt-3 intro-text" style={{ color: beast.color }}>{beast.angel ? `EXEMPLO DA SEMANA · ${beast.virtue?.toUpperCase()}` : t >= 5 ? "☠ AMEAÇA MÁXIMA" : `AMEAÇA ${t}/5`} {beast.angel ? "" : ` · ${beast.epithet.toUpperCase()}`}</p>
-        <p className="font-display text-4xl uppercase mt-2 intro-text" style={{ animationDelay: ".2s", textShadow: `0 0 30px ${beast.color}` }}>{beast.name}</p>
+        <p className="font-display text-[clamp(28px,9vw,40px)] leading-none uppercase mt-2 intro-text" style={{ animationDelay: ".2s", textShadow: `0 0 30px ${beast.color}` }}>{beast.name}</p>
         <p className="text-sm text-ink/80 mt-2 intro-text" style={{ animationDelay: ".35s" }}>{beast.line}</p>
         {beast.ref && <p className="text-[11px] text-muted mt-1 intro-text" style={{ animationDelay: ".4s" }}>Inspirado em {beast.ref}</p>}
         <p className="text-xs text-muted mt-4 intro-text" style={{ animationDelay: ".5s" }}>{beast.angel ? `Siga o exemplo no treino de hoje: ${title}` : `Missão: ${title}`}</p>
       </div>
+      <p className="absolute bottom-[max(20px,env(safe-area-inset-bottom))] left-0 right-0 text-center text-[11px] text-muted tracking-[.3em] intro-text" style={{ animationDelay: ".9s" }}>TOQUE PARA COMEÇAR</p>
     </div>,
     document.body,
   );
