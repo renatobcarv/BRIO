@@ -118,3 +118,39 @@ export async function moveInvestment(id: string, kind: "aporte" | "resgate" | "a
 export async function deleteInvestment(id: string) {
   const sb = await createClient(); await sb.from("investments").delete().eq("id", z.string().uuid().parse(id)); done();
 }
+
+// ── Assistente: aplica uma proposta só quando o Renato confirma ──
+export async function resolveProposal(id: string, confirm: boolean) {
+  const pid = z.string().uuid().parse(id);
+  const sb = await createClient();
+  const { data: p } = await sb.from("finance_chat_proposals").select("*").eq("id", pid).eq("status", "pending").maybeSingle();
+  if (!p) throw new Error("Proposta não encontrada ou já resolvida.");
+  if (!confirm) { await sb.from("finance_chat_proposals").update({ status: "cancelled" }).eq("id", pid); done(); return "cancelada"; }
+  const pl = p.payload as Record<string, unknown>;
+  if (p.kind === "budget") {
+    const { data: s } = await sb.from("settings").select("id,finance_categories").maybeSingle();
+    const cats = ((s?.finance_categories as { key: string; budget: number }[] | null) ?? []);
+    if (!cats.some((c) => c.key === pl.key)) throw new Error("Categoria não existe mais.");
+    await sb.from("settings").update({ finance_categories: cats.map((c) => (c.key === pl.key ? { ...c, budget: z.number().min(0).parse(pl.monthly_limit) } : c)) }).not("id", "is", null);
+  } else if (p.kind === "goal") {
+    const name = z.string().min(1).max(200).parse(pl.name), target = z.number().min(0).parse(pl.target);
+    const deadline = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().parse(pl.deadline ?? null), current = z.number().min(0).nullable().parse(pl.current ?? null);
+    const { data: g } = await sb.from("goals").select("id").eq("area", "financeira").ilike("title", name).maybeSingle();
+    const row: Record<string, unknown> = { target, ...(deadline ? { deadline } : {}), ...(current != null ? { current } : {}) };
+    if (g) await sb.from("goals").update(row).eq("id", g.id);
+    else await sb.from("goals").insert({ title: name, area: "financeira", unit: "R$", start_value: 0, current: current ?? 0, target, deadline, featured: false, auto_source: null, auto_ref: null });
+    revalidatePath("/metas");
+  } else if (p.kind === "recategorize") {
+    const kind = z.enum(["receita", "fixo", "variavel"]).parse(pl.kind);
+    await sb.from("finance_items").update({ category: z.string().max(40).parse(pl.key), kind }).eq("id", z.string().uuid().parse(pl.id));
+  }
+  await sb.from("finance_chat_proposals").update({ status: "confirmed" }).eq("id", pid);
+  done();
+  return "confirmada";
+}
+export async function clearChat() {
+  const sb = await createClient();
+  await sb.from("finance_chat_messages").delete().not("id", "is", null);
+  await sb.from("finance_chat_proposals").update({ status: "cancelled" }).eq("status", "pending");
+  done();
+}

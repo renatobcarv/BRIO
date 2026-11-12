@@ -4,12 +4,13 @@ import { Boxes, NetWorth } from "@/components/finance/finance";
 import { Investments, type Inv, type Move } from "@/components/finance/invest";
 import { todayISO } from "@/lib/date";
 import { Budget, MoneyShell, type Tx } from "@/components/finance/money";
+import { FinanceChat } from "@/components/finance/chat";
 import { addMonths, isoMonthParam, monthLabel } from "@/lib/date";
 import { getSettings } from "@/lib/settings";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-const TABS = [["resumo", "Resumo"], ["lancamentos", "Lançamentos"], ["orcamento", "Orçamento"], ["caixinhas", "Caixinhas"], ["investimentos", "Investimentos"], ["patrimonio", "Patrimônio"]] as const;
+const TABS = [["conversar", "Conversar"], ["resumo", "Resumo"], ["lancamentos", "Lançamentos"], ["orcamento", "Orçamento"], ["caixinhas", "Caixinhas"], ["investimentos", "Investimentos"], ["patrimonio", "Patrimônio"]] as const;
 const num = <T extends Record<string, unknown>>(r: T, ...keys: string[]) => ({ ...r, ...Object.fromEntries(keys.map((k) => [k, Number(r[k])])) });
 const TX = "id,kind,name,amount,category,date,paid,recurring,note,month";
 
@@ -23,7 +24,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const toTx = (r: Record<string, unknown>) => ({ ...num(r, "amount"), paid: r.paid !== false, recurring: !!r.recurring }) as unknown as Tx;
 
   let content: React.ReactNode;
-  if (tab === "resumo" || tab === "lancamentos" || tab === "orcamento") {
+  if (tab === "conversar") {
+    const [m, p] = await Promise.all([
+      sb.from("finance_chat_messages").select("role,content").order("created_at", { ascending: false }).limit(50),
+      sb.from("finance_chat_proposals").select("id,kind,summary,status").eq("status", "pending").order("created_at"),
+    ]);
+    content = m.error
+      ? <p className="glass p-5 text-sm text-[#e8a39a]">Rode a migração <code>supabase/migrations/20261112000000_assistente.sql</code> no Supabase para usar o assistente.</p>
+      : <FinanceChat initial={(m.data ?? []).reverse() as { role: "user" | "assistant"; content: string }[]} pending={p.data ?? []} />;
+  } else if (tab === "resumo" || tab === "lancamentos" || tab === "orcamento") {
     const from = addMonths(month, -5);
     const [cur, range, prevRec] = await Promise.all([
       sb.from("finance_items").select(TX).eq("month", month),
