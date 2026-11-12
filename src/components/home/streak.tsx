@@ -21,12 +21,13 @@ function Flame({ lit, size = 72 }: { lit: boolean; size?: number }) {
 }
 
 /** Dias limpos: +1 por dia vencido, recomeço honesto em caso de queda. */
-export function Streak({ count: initial, best, todayDone: done0, week: week0, next }: { count: number; best: number; todayDone: boolean; week: DayState[]; next: number }) {
+export function Streak({ count: initial, best, todayDone: done0, week: week0, next, ready = true }: { count: number; best: number; todayDone: boolean; week: DayState[]; next: number; ready?: boolean }) {
   const [pending, start] = useTransition();
   const { gain, celebrate } = useXp();
   const [count, setCount] = useState(initial);
   const [done, setDone] = useState(done0);
   const [week, setWeek] = useState(week0);
+  const [err, setErr] = useState(ready ? "" : "Falta criar a tabela de dias limpos: rode supabase/migrations/20261113000000_dias_limpos.sql no SQL Editor do Supabase.");
   const lit = count > 0;
   const setToday = (state: DayState["state"]) => setWeek((w) => w.map((d) => (d.today ? { ...d, state } : d)));
 
@@ -35,12 +36,12 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
     setCount(c); setDone(true); setToday("done");
     gain(20, "Dia limpo", "#ff9f0a");
     if (MILESTONES.includes(c) && c > 1) setTimeout(() => celebrate(`${c} dias limpos`, c >= best ? "Novo recorde. Continue firme." : "Firme. Um dia de cada vez."), 400);
-    start(() => markClean(true));
+    start(async () => { const e = await markClean(true); if (e) { setErr(e); setCount(c - 1); setDone(false); setToday("none"); gain(-20); } });
   };
-  const undo = () => { setCount((c) => Math.max(0, c - 1)); setDone(false); setToday("none"); gain(-20); start(() => markClean(false)); };
+  const undo = () => { setCount((c) => Math.max(0, c - 1)); setDone(false); setToday("none"); gain(-20); start(async () => { const e = await markClean(false); if (e) setErr(e); }); };
   const restart = () => {
     if (!confirm("Recomeçar do zero? Seu recorde fica guardado. O que importa é levantar.")) return;
-    setCount(0); setDone(false); setToday("relapse"); start(() => relapse());
+    setCount(0); setDone(false); setToday("relapse"); start(async () => { const e = await relapse(); if (e) setErr(e); });
   };
 
   return (
@@ -68,6 +69,7 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
         ))}
       </div>
 
+      {err && <p role="alert" className="mx-5 mb-3 rounded-xl p-3 text-sm text-[#ff453a] bg-[#ff453a]/10 border border-[#ff453a]/30">{err}</p>}
       <div className="px-5 pb-5 grid gap-2">
         {done ? (
           <button className="btn w-full" disabled={pending} onClick={undo}>Hoje já contado ✓ <span className="text-faint text-xs">desfazer</span></button>

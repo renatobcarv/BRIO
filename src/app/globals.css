@@ -211,3 +211,16 @@ h1.font-display { font-weight: 700; letter-spacing: -0.04em; }
 @keyframes achvShine { 0% { transform: translateX(-120%) skewX(-20deg); } 60%, 100% { transform: translateX(220%) skewX(-20deg); } }
 .achv-shine::after { content: ""; position: absolute; top: 0; bottom: 0; width: 40%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent); animation: achvShine 3.6s ease-in-out infinite; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .bar-grow, .rays, .emblem-spin, .achv-shine::after { animation: none !important; } }
+@keyframes stepInR { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes stepInL { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.step-in-right { animation: stepInR .38s var(--ease-out) both; }
+.step-in-left { animation: stepInL .38s var(--ease-out) both; }
+@keyframes rewardIn { 0% { opacity: 0; transform: scale(.85); } 60% { transform: scale(1.03); } 100% { opacity: 1; transform: none; } }
+.reward-in { animation: rewardIn .6s var(--spring) both; }
+
+/* ═══════════ Comportamento de app no celular ═══════════ */
+html, body { overscroll-behavior-y: none; -webkit-text-size-adjust: 100%; }
+* { -webkit-tap-highlight-color: transparent; }
+a, button, [role="button"], label, .chip, .tile { touch-action: manipulation; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* iOS dá zoom em campos com fonte menor que 16px: força 16px no celular */
+@media (max-width: 767px) { input, textarea, select, .field { font-size: 16px !important; } }

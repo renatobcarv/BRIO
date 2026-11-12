@@ -18,7 +18,7 @@ const MISSIONS: [RegExp, string, string][] = [
   [/[aá]gua|hidrat/i, "#64d2ff", "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"],
   [/refei|prote[ií]na|dieta|comer/i, "#ff8a65", "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"],
   [/dorm|sono/i, "#5e5ce6", "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"],
-  [/campo|prega|pioneir|servi[cç]o/i, "#0a84ff", "M12 21s-7-6.2-7-11.5A7 7 0 0 1 19 9.5C19 14.8 12 21 12 21z"],
+  [/campo|prega|pioneir|servi[cç]o/i, "#0a84ff", "M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z"],
   [/finan|gasto|lan[cç]a/i, "#64d2ff", "M3 7h18v10H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
 ];
 function missionStyle(label: string) {

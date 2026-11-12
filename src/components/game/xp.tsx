@@ -14,7 +14,7 @@ export function haptic(pattern: number | number[] = 12) { try { navigator.vibrat
 const CONFETTI = ["#ffb340", "#ffd27a", "#30d158", "#0a84ff", "#bf5af2", "#ff453a"];
 
 /** Guarda o XP no cliente para a barra reagir na hora; o servidor recalcula no próximo carregamento. */
-export function XpProvider({ initialTotal, initialToday, children }: { initialTotal: number; initialToday: number; children: React.ReactNode }) {
+export function XpProvider({ initialTotal, initialToday, children, trackLevel = true }: { initialTotal: number; initialToday: number; children: React.ReactNode; trackLevel?: boolean }) {
   const [total, setTotal] = useState(initialTotal);
   const [today, setToday] = useState(initialToday);
   const [floats, setFloats] = useState<Float[]>([]);
@@ -31,7 +31,7 @@ export function XpProvider({ initialTotal, initialToday, children }: { initialTo
   const gain = useCallback((xp: number, label?: string, color = "#ffb340") => {
     setTotal((t) => {
       const next = Math.max(0, t + xp);
-      if (xp > 0 && levelOf(next).level > levelOf(t).level) setTimeout(() => celebrate(`Nível ${levelOf(next).level}`, rankOf(levelOf(next).level).name), 450);
+      if (trackLevel && xp > 0 && levelOf(next).level > levelOf(t).level) setTimeout(() => celebrate(`Nível ${levelOf(next).level}`, rankOf(levelOf(next).level).name), 450);
       return next;
     });
     setToday((t) => Math.max(0, t + xp));
@@ -41,7 +41,7 @@ export function XpProvider({ initialTotal, initialToday, children }: { initialTo
       setFloats((l) => [...l, f]);
       setTimeout(() => setFloats((l) => l.filter((x) => x.id !== f.id)), 1500);
     }
-  }, [celebrate]);
+  }, [celebrate, trackLevel]);
 
   return (
     <XpCtx.Provider value={{ total, today, gain, celebrate }}>

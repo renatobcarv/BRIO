@@ -57,16 +57,22 @@ export async function saveDailyReflection(text: string) {
 }
 
 // ── Dias limpos ──
-export async function markClean(on: boolean) {
+const CLEAN_MISSING = "A tabela de dias limpos não existe. Rode supabase/migrations/20261113000000_dias_limpos.sql no SQL Editor do Supabase.";
+export async function markClean(on: boolean): Promise<string | null> {
   const sb = await createClient();
   const date = todayISO();
-  if (on) await sb.from("clean_marks").upsert({ date, kind: "limpo" }, { onConflict: "user_id,date" });
-  else await sb.from("clean_marks").delete().eq("date", date).eq("kind", "limpo");
+  const { error } = on
+    ? await sb.from("clean_marks").upsert({ date, kind: "limpo" }, { onConflict: "user_id,date" })
+    : await sb.from("clean_marks").delete().eq("date", date).eq("kind", "limpo");
+  if (error) return /relation|does not exist|schema cache/i.test(error.message) ? CLEAN_MISSING : error.message;
   revalidatePath("/"); revalidatePath("/status");
+  return null;
 }
 /** Recomeço honesto: registra a queda de hoje; a sequência volta a zero e o recorde fica. */
-export async function relapse() {
+export async function relapse(): Promise<string | null> {
   const sb = await createClient();
-  await sb.from("clean_marks").upsert({ date: todayISO(), kind: "recaida" }, { onConflict: "user_id,date" });
+  const { error } = await sb.from("clean_marks").upsert({ date: todayISO(), kind: "recaida" }, { onConflict: "user_id,date" });
+  if (error) return /relation|does not exist|schema cache/i.test(error.message) ? CLEAN_MISSING : error.message;
   revalidatePath("/"); revalidatePath("/status");
+  return null;
 }

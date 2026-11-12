@@ -14,7 +14,8 @@ import { goalStats, AREAS, type GoalRow } from "@/lib/goals";
 import { createClient } from "@/lib/supabase/server";
 import { loadGame } from "@/lib/game-data";
 import { ATTRS, type Attr } from "@/lib/game";
-import { StatusHud, XpProvider } from "@/components/game/xp";
+import { XpProvider } from "@/components/game/xp";
+import { HeroPlayer, QuickActions } from "@/components/home/hero";
 
 export const dynamic = "force-dynamic";
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -47,6 +48,7 @@ export default async function Hoje() {
     sb.from("journal_entries").select("id").eq("date", today).like("text", "Texto do dia:%").limit(1),
     sb.from("clean_marks").select("date,kind").gte("date", addDays(today, -800)),
   ]);
+  const contactsQ = await sb.from("field_contacts").select("id,name,address").neq("status", "encerrado").order("next_visit", { nullsFirst: false }).limit(30);
 
   // Sequência
   const keys = s.checklist.map((c) => c.key);
@@ -93,10 +95,18 @@ export default async function Hoje() {
     <XpProvider initialTotal={game.total} initialToday={game.today}>
       <div className="stagger">
       <Greeting name="Renato" />
-      <div className="mb-4"><StatusHud attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} /></div>
+      <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
+      <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
+      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
+      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} />
+      <div className="grid grid-cols-3 gap-3 mt-4">
+        <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} />
+        <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} />
+        <Mini href="/corpo?aba=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
+      </div>
 
       {/* Relatório financeiro */}
-      <Link href="/financas" className="glass rise block p-5" style={{ ["--accent" as string]: "#3ee6c1" }}>
+      <Link href="/financas" className="glass rise block p-5 mt-4" style={{ ["--accent" as string]: "#3ee6c1" }}>
         <div className="flex items-center justify-between"><p className="label" style={{ color: "#3ee6c1" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
           <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#30d158" }}>{brl(income)}</p></div>
@@ -134,15 +144,6 @@ export default async function Hoje() {
           </ul>
         )}
       </Link>
-
-      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
-      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} />
-
-      <div className="grid grid-cols-3 gap-3 mt-4">
-        <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} />
-        <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} />
-        <Mini href="/corpo?aba=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
-      </div>
 
       <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>
       <Partner photo={photo} phrase={s.partner_phrase ?? "Tijolo por tijolinho"} />

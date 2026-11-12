@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Card, PageHeader, Verse } from "@/components/ui";
 import { BibleTab, JournalTab, StudyTab } from "@/components/spirit/spirit";
+import { StudyQuizButton } from "@/components/quiz/study-button";
 import { addDays, daysInMonth, dow, monthEnd, monthStart, todayISO, weekdayShort } from "@/lib/date";
 import { dayStreak } from "@/lib/streak-days";
 import { createClient } from "@/lib/supabase/server";
@@ -28,6 +29,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   return (
     <div style={{ ["--accent" as string]: ACC }}>
       <PageHeader eyebrow="Espiritual" title="Vida espiritual" />
+      <StudyQuizButton today={today} minutesToday={st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0)} />
       <Card>
         <div className="grid grid-cols-3 gap-3">
           <div><p className="label">Dias no mês</p><p className="num text-3xl">{mins.size}</p></div>
