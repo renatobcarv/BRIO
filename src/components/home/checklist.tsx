@@ -84,9 +84,10 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const doneCount = items.filter((i) => opt.has(i.key)).length;
   const pct = items.length ? doneCount / items.length : 0, full = pct === 1;
   const left = useCountdown();
-  // Paleta pela sequência de dias 100%: luz limpa → aurora → chama → fogueira → inferno → fogo de guerra.
+  // Paleta pela sequência de dias 100%: luz → aurora → chama → fogueira → inferno → fogo de guerra → chama violeta.
   const run = streak + (full ? 0 : 0);
-  const T = run >= 30 ? { n: "FOGO DE GUERRA", a: "#ff2d2d", b: "#ffd27a", bg: "#2a0606", heat: 5 }
+  const T = run >= 60 ? { n: "CHAMA VIOLETA", a: "#bf5af2", b: "#ff9ff3", bg: "#1e0a2e", heat: 5 }
+    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#ff2d2d", b: "#ffd27a", bg: "#2a0606", heat: 5 }
     : run >= 14 ? { n: "INFERNO", a: "#ff3b30", b: "#ff9f0a", bg: "#240707", heat: 4 }
     : run >= 7 ? { n: "FOGUEIRA", a: "#ff6a1a", b: "#ffb340", bg: "#221005", heat: 3 }
     : run >= 3 ? { n: "CHAMA", a: "#ff9f0a", b: "#ffd27a", bg: "#1d1406", heat: 2 }
@@ -95,7 +96,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const SYS = T.a, ALT = T.b;
 
   return (
-    <section className="relative rise rounded-[22px] p-[1px] overflow-hidden" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
+    <section className="relative rise rounded-[22px] p-[1px] overflow-hidden min-w-0 w-full" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
       <div className="relative isolate rounded-[21px] p-4 sys-scan" style={{ background: `radial-gradient(90% 55% at 50% 0%, ${T.bg}, transparent 65%), radial-gradient(${60 + T.heat * 10}% ${30 + T.heat * 8}% at 50% 105%, ${SYS}${["10", "1c", "2a", "3a", "4d", "66"][T.heat]}, transparent 70%), #08080a` }}>
         {T.heat > 0 && <div aria-hidden className="pointer-events-none absolute -z-10 inset-x-0 bottom-0 h-1/3 overflow-hidden rounded-b-[21px]">
           {Array.from({ length: T.heat * 4 }, (_, i) => <span key={i} className="absolute bottom-2 rounded-full fire-ember" style={{ left: `${((i + 0.5) / (T.heat * 4)) * 100}%`, width: 2 + (i % 2), height: 2 + (i % 2), background: i % 2 ? SYS : ALT, animationDelay: `${(i % 7) * 0.3}s` }} />)}
