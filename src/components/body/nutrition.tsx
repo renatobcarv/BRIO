@@ -12,6 +12,7 @@ import { MealQuiz } from "@/components/quiz/meal-quiz";
 
 const G = "#30d158", P = "#ffb340", C = "#0a84ff", F = "#bf5af2";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
+export type SavedMeal = { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] };
 export type Food = { id: string; name: string; portion: string | null; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 type Goals = { kcal: number; protein: number; carbs: number; fat: number };
 const sum = (l: Item[], k: keyof Pick<Item, "kcal" | "protein_g" | "carbs_g" | "fat_g">) => l.reduce((a, i) => a + Number(i[k]), 0);
@@ -299,13 +300,16 @@ function GoalsEditor({ goals, onDone }: { goals: Goals; onDone: () => void }) {
   );
 }
 
-export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, week }: {
-  date: string; today: string; slots: MealSlot[]; items: Item[]; doneSlots: string[]; foods: Food[]; goals: Goals; week: { date: string; kcal: number; protein: number }[];
+export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, week, saved = [] }: {
+  date: string; today: string; slots: MealSlot[]; items: Item[]; doneSlots: string[]; foods: Food[]; goals: Goals; week: { date: string; kcal: number; protein: number }[]; saved?: SavedMeal[];
 }) {
   const [pending, start] = useTransition();
   const [sheet, setSheet] = useState<null | { kind: "add"; slot: string } | { kind: "edit"; item: Item } | { kind: "foods" | "slots" | "goals" | "quiz" | "off" }>(null);
   const close = () => setSheet(null);
-  const kcal = sum(items, "kcal"), prot = sum(items, "protein_g"), carb = sum(items, "carbs_g"), fat = sum(items, "fat_g");
+  // Consumido = refeições marcadas como feitas + fora do plano. O resto é só planejado.
+  const ate = items.filter((i) => isExtra(i.slot) || doneSlots.includes(i.slot));
+  const kcal = sum(ate, "kcal"), prot = sum(ate, "protein_g"), carb = sum(ate, "carbs_g"), fat = sum(ate, "fat_g");
+  const plannedKcal = sum(items.filter((i) => !isExtra(i.slot)), "kcal"), pendingKcal = sum(items.filter((i) => !isExtra(i.slot) && !doneSlots.includes(i.slot)), "kcal");
   const remaining = goals.kcal - kcal;
   const maxW = Math.max(goals.kcal, ...week.map((w) => w.kcal)) * 1.1;
   const isToday = date === today;
@@ -342,6 +346,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
           </div>
         </div>
         <p className="text-xs text-muted mt-3">{kcal.toLocaleString("pt-BR")} de {goals.kcal.toLocaleString("pt-BR")} kcal consumidas{offKcal ? ` · ${offKcal.toLocaleString("pt-BR")} fora do plano` : ""}</p>
+        {pendingKcal > 0 && <p className="text-xs mt-1" style={{ color: "#8e8e93" }}>📋 Planejado no dia: {plannedKcal.toLocaleString("pt-BR")} kcal · marque cada refeição como feita para contar ({pendingKcal.toLocaleString("pt-BR")} kcal a confirmar)</p>}
         <div className="grid grid-cols-4 gap-1 mt-4 pt-4 border-t border-white/[.06]">
           {([["Energia", <EnergyFlame key="f" pct={kcal / goals.kcal} size={40} />, kcal / goals.kcal], ["Proteína", <Drumstick key="s" pct={prot / goals.protein} size={46} />, prot / goals.protein],
             ["Carbo", <Bread key="g" pct={carb / goals.carbs} size={48} />, carb / goals.carbs], ["Gordura", <Avocado key="d" pct={fat / goals.fat} size={38} />, fat / goals.fat]] as const).map(([l, m, v]) => (
@@ -433,7 +438,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         {sheet?.kind === "off" && <OffPlanForm date={date} onDone={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "quiz"} onClose={close} title="Refeição">
-        {sheet?.kind === "quiz" && <MealQuiz date={date} slots={slots} foods={foods} doneSlots={doneSlots} proteinSoFar={prot} proteinGoal={goals.protein} onClose={close} />}
+        {sheet?.kind === "quiz" && <MealQuiz date={date} slots={slots} foods={foods} saved={saved} planned={Object.fromEntries(slots.map((s) => [s.key, items.filter((i) => i.slot === s.key)]))} doneSlots={doneSlots} proteinSoFar={prot} proteinGoal={goals.protein} onClose={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "foods"} onClose={close} title="Alimentos favoritos"><FoodsManager foods={foods} /></Sheet>
       <Sheet accent={G} open={sheet?.kind === "slots"} onClose={close} title="Refeições do dia"><SlotsEditor slots={slots} onDone={close} /></Sheet>

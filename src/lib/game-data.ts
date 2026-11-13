@@ -1,4 +1,5 @@
 import "server-only";
+import { eaten } from "./meals.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { summarize, type GameInput } from "./game";
 import { computeEvents, type EvProgram } from "./events";
@@ -7,7 +8,7 @@ import type { Settings } from "./settings";
 /** Junta os registros reais de todas as áreas e calcula o progresso. Tabelas ausentes contam como vazias. */
 export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const q = async <T,>(p: PromiseLike<{ data: T[] | null; error: unknown }>) => { const r = await p; return r.error ? [] : r.data ?? []; };
-  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal, mealRows, programs] = await Promise.all([
+  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal, mealRows, programs, mealsDone] = await Promise.all([
     q<{ date: string; item_key: string }>(sb.from("daily_checks").select("date,item_key").eq("done", true).limit(20000)),
     q<{ date: string; minutes: number }>(sb.from("study_entries").select("date,minutes").limit(10000)),
     q<{ date_read: string }>(sb.from("bible_reading").select("date_read").limit(2000)),
@@ -24,6 +25,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     q<{ id: string }>(sb.from("journal_entries").select("id").limit(5000)),
     q<{ date: string; slot: string; protein_g: number }>(sb.from("meal_items").select("date,slot,protein_g").limit(20000)),
     q<EvProgram>(sb.from("training_programs").select("id,name,start_date,phases").limit(50)),
+    q<{ date: string; slot: string }>(sb.from("meals").select("date,slot").eq("done", true).limit(20000)),
   ]);
 
   const keys = s.checklist.map((c) => c.key);
@@ -55,7 +57,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
       .filter((c) => { const h = (new Date(c.created_at).getUTCHours() + 21) % 24; return h >= 3 && h < 7; }).map((c) => c.date),
     journalCount: journal.length,
     weightGoal: s.weight_goal_kg,
-    meals: (() => { const m = new Map<string, { slots: Set<string>; protein: number }>(); for (const r of mealRows) { const x = m.get(r.date) ?? { slots: new Set(), protein: 0 }; x.slots.add(r.slot); x.protein += Number(r.protein_g); m.set(r.date, x); } return [...m].map(([date, v]) => ({ date, slots: v.slots.size, protein: v.protein })); })(),
+    meals: (() => { const m = new Map<string, { slots: Set<string>; protein: number }>(); for (const r of eaten(mealRows, new Set(mealsDone.map((m) => `${m.date}|${m.slot}`)))) { const x = m.get(r.date) ?? { slots: new Set(), protein: 0 }; x.slots.add(r.slot); x.protein += Number(r.protein_g); m.set(r.date, x); } return [...m].map(([date, v]) => ({ date, slots: v.slots.size, protein: v.protein })); })(),
     proteinGoal: s.protein_goal_g,
   };
   // Eventos dinâmicos: bônus de XP e insígnias de vitória/cicatriz

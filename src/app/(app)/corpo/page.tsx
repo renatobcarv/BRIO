@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { eaten } from "@/lib/meals";
 import { PageHeader, Verse } from "@/components/ui";
 import { BodyToday } from "@/components/body/today";
 import { Nutrition } from "@/components/body/nutrition";
@@ -66,33 +67,42 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   } else if (tab === "alimentacao") {
     const date = sp.d && /^\d{4}-\d{2}-\d{2}$/.test(sp.d) ? sp.d : today;
     const from = addDays(date, -6);
-    const [items, meals, foods, week] = await Promise.all([
+    const [items, meals, foods, week, hist, weekDone] = await Promise.all([
       sb.from("meal_items").select("id,slot,name,kcal,protein_g,carbs_g,fat_g").eq("date", date).order("created_at"),
       sb.from("meals").select("slot,done").eq("date", date),
       sb.from("foods").select("id,name,portion,kcal,protein_g,carbs_g,fat_g").order("name"),
-      sb.from("meal_items").select("date,kcal,protein_g").gte("date", from).lte("date", date),
+      sb.from("meal_items").select("date,slot,kcal,protein_g").gte("date", from).lte("date", date),
+      sb.from("meal_items").select("date,slot,name,kcal,protein_g,carbs_g,fat_g").gte("date", addDays(date, -45)).lt("date", date).not("slot", "like", "extra|%").order("date", { ascending: false }).limit(600),
+      sb.from("meals").select("date,slot").eq("done", true).gte("date", from).lte("date", date),
     ]);
+    const weekEaten = eaten((week.data ?? []) as { date: string; slot: string; kcal: number; protein_g: number }[], new Set((weekDone.data ?? []).map((m) => `${m.date}|${m.slot}`)));
+    // Refeições salvas: combinações já registradas (por dia e refeição), sem repetir a mesma combinação.
+    const groups = new Map<string, { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] }>();
+    for (const r of (hist.data ?? []) as { date: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[]) { const k = `${r.date}|${r.slot}`; const g = groups.get(k) ?? { date: r.date, slot: r.slot, items: [] }; g.items.push({ name: r.name, kcal: N(r.kcal), protein_g: N(r.protein_g), carbs_g: N(r.carbs_g), fat_g: N(r.fat_g) }); groups.set(k, g); }
+    const seen = new Set<string>(), saved = ([...groups.values()] as { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] }[]).filter((g) => { const sig = g.slot + "|" + g.items.map((i) => i.name).sort().join("+"); if (seen.has(sig)) return false; seen.add(sig); return true; }).slice(0, 24);
     const days = Array.from({ length: 7 }, (_, i) => addDays(from, i));
-    const wk = days.map((d) => { const l = (week.data ?? []).filter((x) => x.date === d); return { date: d, kcal: l.reduce((a, x) => a + N(x.kcal), 0), protein: Math.round(l.reduce((a, x) => a + N(x.protein_g), 0)) }; });
+    const wk = days.map((d) => { const l = weekEaten.filter((x) => x.date === d); return { date: d, kcal: l.reduce((a, x) => a + N(x.kcal), 0), protein: Math.round(l.reduce((a, x) => a + N(x.protein_g), 0)) }; });
     content = <Nutrition key={date} date={date} today={today} slots={s.meal_slots}
       items={(items.data ?? []).map((i) => ({ ...i, kcal: N(i.kcal), protein_g: N(i.protein_g), carbs_g: N(i.carbs_g), fat_g: N(i.fat_g) }))}
       doneSlots={(meals.data ?? []).filter((m) => m.done).map((m) => m.slot)}
       foods={(foods.data ?? []).map((f) => ({ ...f, kcal: N(f.kcal), protein_g: N(f.protein_g), carbs_g: N(f.carbs_g), fat_g: N(f.fat_g) }))}
-      goals={{ kcal: s.kcal_goal, protein: s.protein_goal_g, carbs: s.carbs_goal_g, fat: s.fat_goal_g }} week={wk} />;
+      goals={{ kcal: s.kcal_goal, protein: s.protein_goal_g, carbs: s.carbs_goal_g, fat: s.fat_goal_g }} week={wk} saved={saved} />;
   } else {
     const from = addDays(today, -6);
-    const [water, sleep, food, weight] = await Promise.all([
+    const [water, sleep, food, weight, doneToday] = await Promise.all([
       sb.from("water_logs").select("date,ml").gte("date", from),
       sb.from("sleep_logs").select("date,hours").gte("date", from),
-      sb.from("meal_items").select("kcal,protein_g").eq("date", today),
+      sb.from("meal_items").select("slot,kcal,protein_g").eq("date", today),
       sb.from("weight_logs").select("kg").order("date", { ascending: false }).limit(1).maybeSingle(),
+      sb.from("meals").select("slot").eq("date", today).eq("done", true),
     ]);
+    const foodEaten = eaten((food.data ?? []) as { slot: string; kcal: number; protein_g: number }[], (doneToday.data ?? []).map((m) => m.slot));
     const days = Array.from({ length: 7 }, (_, i) => addDays(from, i));
     const water7 = days.map((d) => ({ date: d, ml: (water.data ?? []).filter((w) => w.date === d).reduce((a, w) => a + w.ml, 0) }));
     const sleep7 = days.map((d) => { const r = (sleep.data ?? []).find((x) => x.date === d); return { date: d, hours: r ? N(r.hours) : null }; });
     content = <BodyToday today={today} waterMl={water7.at(-1)!.ml} waterGoal={s.water_goal_ml} water7={water7}
       split={todaySplit} exercises={(s.workout_plan.days[String(todaySplit.dow)] ?? []).length}
-      food={{ kcal: (food.data ?? []).reduce((a, x) => a + N(x.kcal), 0), protein: (food.data ?? []).reduce((a, x) => a + N(x.protein_g), 0), kcalGoal: s.kcal_goal, proteinGoal: s.protein_goal_g }}
+      food={{ kcal: foodEaten.reduce((a, x) => a + N(x.kcal), 0), protein: foodEaten.reduce((a, x) => a + N(x.protein_g), 0), kcalGoal: s.kcal_goal, proteinGoal: s.protein_goal_g }}
       sleepHours={sleep7.at(-1)!.hours} sleep7={sleep7} weightKg={weight.data ? N(weight.data.kg) : s.weight_start_kg} />;
   }
 
