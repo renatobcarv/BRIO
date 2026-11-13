@@ -53,9 +53,17 @@ export function computeEvents(g: EvInput): GameEvent[] {
   const inWin = (s: string, e: string) => g.workouts.filter((w) => w.date >= s && w.date <= e);
   const push = (ev: Omit<GameEvent, "stage" | "daysToStart">) => {
     if (diff(ev.start, g.today) > 14) return;                // só aparece até 14 dias antes
+    // Viagem: os dias fora saem da conta (a meta diminui na proporção).
+    // Só pausa o evento inteiro se a viagem cobrir a janela toda.
+    const span = diff(ev.end, ev.start) + 1;
+    const awayDays = new Set<string>();
+    for (const t of g.travel ?? []) for (let d = t.start > ev.start ? t.start : ev.start; d <= ev.end && d <= t.end; d = add(d, 1)) awayDays.add(d);
+    const away = awayDays.size >= span;
+    if (awayDays.size && !away) {
+      const k = (span - awayDays.size) / span;
+      ev = { ...ev, objectives: ev.objectives.map((o) => o.safety ? o : { ...o, target: Math.max(1, Math.ceil(o.target * k)), done: o.value >= Math.max(1, Math.ceil(o.target * k)) }) };
+    }
     const success = ev.objectives.every((o) => o.done);
-    // Viagem que cruza a janela do evento: pausa, sem prêmio e sem cicatriz.
-    const away = (g.travel ?? []).some((t) => t.start <= ev.end && t.end >= ev.start);
     const stage = away ? "pausado" : stageOf(g.today, ev.start, ev.end, success);
     const bonus = [...ev.bonusXp.filter((b) => b.date <= g.today), ...(stage === "vitoria" ? [{ date: add(ev.end, 1), xp: ev.rewardXp, label: `${ev.title} vencido` }] : [])];
     out.push({ ...ev, stage, daysToStart: diff(ev.start, g.today), bonusXp: bonus });

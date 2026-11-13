@@ -19,13 +19,19 @@ export function TravelControl({ trips, today }: { trips: Trip[]; today: string }
     <section className="glass p-4 mb-4">
       <div className="flex items-center justify-between gap-3">
         <div><p className="text-sm font-semibold">✈ Modo viagem</p>
-          <p className="text-xs text-muted mt-0.5">Eventos durante a viagem ficam pausados: sem prêmio, sem cicatriz.</p></div>
+          <p className="text-xs text-muted mt-0.5">Os dias fora saem da conta dos eventos. Voltou antes? Toque em “Voltei”.</p></div>
         {!open && <button className="btn !min-h-10 shrink-0" onClick={() => setOpen(true)}>Estou viajando</button>}
       </div>
       {current.map((t) => (
         <div key={t.start + t.end} className="flex items-center justify-between mt-3 text-sm rounded-xl px-3 py-2 bg-white/[.05]">
           <span>{br(t.start)} – {br(t.end)}</span>
-          <button className="text-xs text-muted underline" disabled={pending} onClick={() => save(trips.filter((x) => x !== t))}>remover</button>
+          <span className="flex items-center gap-3">
+            {t.start <= today && <button className="text-xs font-semibold" style={{ color: "#30d158" }} disabled={pending} onClick={() => {
+              const y = new Date(Date.parse(today + "T12:00:00Z") - 864e5).toISOString().slice(0, 10);
+              save(t.start > y ? trips.filter((x) => x !== t) : trips.map((x) => (x === t ? { ...x, end: y } : x)));
+            }}>Voltei ✓</button>}
+            <button className="text-xs text-muted underline" disabled={pending} onClick={() => save(trips.filter((x) => x !== t))}>remover</button>
+          </span>
         </div>
       ))}
       {open && (

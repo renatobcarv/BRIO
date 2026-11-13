@@ -21,3 +21,12 @@ test("vitória só com todas as sessões da semana", () => {
   assert.equal(r.alcion.met, 1);
   assert.equal(r.alcion.won, 0);
 });
+import { computeEvents } from "../src/lib/events.ts";
+test("viagem parcial reduz a meta em vez de pausar", () => {
+  const p = { id: "p", name: "X", start_date: "2026-11-09", phases: [{ kind: "acumulacao", name: "A", weeks: 4, days: { "1": [1], "2": [1], "3": [1], "4": [1], "5": [1], "6": [1] } }] };
+  const ws = ["2026-11-09", "2026-11-10", "2026-11-11"].map((date) => ({ date, sets: [] }));
+  const g = computeEvents({ today: "2026-11-13", programs: [p] as never, workouts: ws as never, meals: [], proteinGoal: 180, sleep: [], travel: [{ start: "2026-11-12", end: "2026-11-13" }] });
+  const gen = g.find((e) => e.type === "genesis")!;
+  assert.equal(gen.stage, "ativo");
+  assert.ok(gen.objectives[0].target < 6);
+});
