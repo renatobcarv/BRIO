@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { Agenda, type CalEvent } from "@/components/agenda/agenda";
 import { todayISO } from "@/lib/date";
 import { createClient } from "@/lib/supabase/server";
+import { getSettings } from "@/lib/settings";
 import { accessToken, googleReady, list, type GEvent } from "@/lib/google";
 
 export const dynamic = "force-dynamic";
@@ -22,12 +23,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
   if (gc.data && googleReady()) {
     try { gEvents = (await list(await accessToken(gc.data.refresh_token), gc.data.calendar_id, from, to)).filter((e) => !e.fromBrio); } catch { gErr = true; }
   }
+  const st2 = await getSettings(sb);
+  // Rotina fixa: refeições com horário no nome (ex.: "Almoço · 12h", "Jantar 21:30")
+  const routine = st2.meal_slots.map((m) => { const r = /(\d{1,2})(?:h|:)(\d{2})?/i.exec(m.label); return r ? { label: m.label.replace(/\s*[·-]?\s*\d{1,2}(h|:)\d{0,2}\s*$/i, "").trim() || m.label, time: `${r[1].padStart(2, "0")}:${r[2] ?? "00"}` } : null; }).filter(Boolean) as { label: string; time: string }[];
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
   const token = (st.data as { calendar_token?: string | null } | null)?.calendar_token ?? null;
   return (
     <Agenda today={today} month={month} events={(ev.data ?? []) as CalEvent[]} ready={!ev.error}
       feed={token && host ? `${host}/api/agenda/${token}.ics` : null}
-      google={{ ready: googleReady(), connected: !!gc.data, email: gc.data?.email ?? null, migrated: !gc.error, error: gErr, flash: flash ?? null }} gEvents={gEvents} />
+      google={{ ready: googleReady(), connected: !!gc.data, email: gc.data?.email ?? null, migrated: !gc.error, error: gErr, flash: flash ?? null }} gEvents={gEvents} routine={routine} />
   );
 }
