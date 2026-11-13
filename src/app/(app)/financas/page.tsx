@@ -34,18 +34,28 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       : <FinanceChat initial={(m.data ?? []).reverse() as { role: "user" | "assistant"; content: string }[]} pending={p.data ?? []} />;
   } else if (tab === "resumo" || tab === "lancamentos" || tab === "orcamento") {
     const from = addMonths(month, -5);
-    const [cur, range, prevRec] = await Promise.all([
-      sb.from("finance_items").select(TX).eq("month", month),
+    const [curI, range, prevRec, instQ] = await Promise.all([
+      sb.from("finance_items").select(TX + ",inst_group,inst_no,inst_total").eq("month", month),
       sb.from("finance_items").select("month,kind,amount").gte("month", from).lte("month", month),
       sb.from("finance_items").select("id").eq("month", addMonths(month, -1)).eq("recurring", true).limit(1),
+      sb.from("finance_items").select("inst_group,inst_no,inst_total,amount,name,date,paid").not("inst_group", "is", null).limit(3000),
     ]);
-    const txs = (cur.data ?? []).map(toTx);
+    // Sem a migração de parcelas: lê as colunas antigas.
+    const cur = curI.error ? await sb.from("finance_items").select(TX).eq("month", month) : curI;
+    const txs = ((cur.data ?? []) as unknown as Record<string, unknown>[]).map(toTx);
+    const groups = new Map<string, { name: string; total: number; n: number; paidN: number; left: number; next: string | null; last: string }>();
+    for (const r of (instQ.error ? [] : instQ.data ?? []) as { inst_group: string; inst_no: number; inst_total: number; amount: number; name: string; date: string; paid: boolean }[]) {
+      const g = groups.get(r.inst_group) ?? { name: r.name.replace(/\s*\(\d+\/\d+\)\s*$/, ""), total: 0, n: r.inst_total, paidN: 0, left: 0, next: null, last: r.date };
+      g.total += Number(r.amount); if (r.paid) g.paidN++; else { g.left += Number(r.amount); if (!g.next || r.date < g.next) g.next = r.date; }
+      if (r.date > g.last) g.last = r.date; groups.set(r.inst_group, g);
+    }
+    const installments = [...groups].map(([id, g]) => ({ id, ...g })).filter((g) => g.left > 0).sort((a, b) => (a.next ?? "").localeCompare(b.next ?? ""));
     const all = (range.data ?? []).map((r) => ({ ...r, amount: Number(r.amount) }));
     const history = Array.from({ length: 6 }, (_, i) => { const m = addMonths(from, i); const l = all.filter((r) => r.month === m);
       return { month: m, income: l.filter((r) => r.kind === "receita").reduce((a, r) => a + r.amount, 0), expense: l.filter((r) => r.kind !== "receita").reduce((a, r) => a + r.amount, 0) }; });
     const prevTxs = all.filter((r) => r.month === addMonths(month, -1)) as unknown as Tx[];
     content = tab === "orcamento" ? <Budget txs={txs} cats={s.finance_categories} />
-      : <MoneyShell view={tab} month={month} txs={txs} prevTxs={prevTxs} history={history} cats={s.finance_categories} hasRecurringPrev={(prevRec.data ?? []).length > 0} />;
+      : <MoneyShell view={tab} month={month} txs={txs} prevTxs={prevTxs} history={history} cats={s.finance_categories} hasRecurringPrev={(prevRec.data ?? []).length > 0} installments={installments} />;
   } else if (tab === "investimentos") {
     const today = todayISO();
     const [inv, mv, exp] = await Promise.all([

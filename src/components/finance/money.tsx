@@ -1,6 +1,7 @@
 "use client";
 import { useMemo, useState, useTransition } from "react";
-import { deleteRow, generateRecurring, saveTx, setPaid } from "@/app/(app)/financas/actions";
+import { deleteInstallmentsFrom, deleteRow, generateRecurring, saveInstallments, saveTx, setPaid } from "@/app/(app)/financas/actions";
+import { plan as planInst } from "@/lib/installments";
 import { updateSettings } from "@/app/settings-actions";
 import { Empty } from "@/components/ui";
 import { Field, Progress, SectionTitle, Segmented, Sheet, Stat, LinkBtn, n } from "@/components/kit";
@@ -8,7 +9,8 @@ import { brl, monthLabel, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { FinCategory } from "@/lib/settings";
 
 const A = "#3ee6c1", IN = "#3ee6c1", OUT = "#ff453a", GREY = "#8e8e93";
-export type Tx = { id: string; kind: "receita" | "fixo" | "variavel"; name: string; amount: number; category: string | null; date: string | null; paid: boolean; recurring: boolean; note: string | null; month: string };
+export type Tx = { id: string; kind: "receita" | "fixo" | "variavel"; name: string; amount: number; category: string | null; date: string | null; paid: boolean; recurring: boolean; note: string | null; month: string; inst_group?: string | null; inst_no?: number | null; inst_total?: number | null };
+export type InstGroup = { id: string; name: string; total: number; n: number; paidN: number; left: number; next: string | null; last: string };
 const isOut = (t: Tx) => t.kind !== "receita";
 const COLORS = ["#30d158", "#0a84ff", "#ffb340", "#3ee6c1", "#bf5af2", "#ff453a", "#3a7bd5", "#d49bff", "#7ee2a0", "#9a978f"];
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 30) || "cat";
@@ -27,12 +29,16 @@ export function TxForm({ tx, month, cats, onDone }: { tx?: Tx; month: string; ca
     category: tx?.category ?? "", date: tx?.date ?? (today.slice(0, 7) === month.slice(0, 7) ? today : month),
     paid: tx?.paid ?? true, recurring: tx?.recurring ?? false, note: tx?.note ?? "",
   });
+  const [inst, setInst] = useState({ on: false, n: "10", mode: "total" as "total" | "parcela" });
+  const [err, setErr] = useState<string | null>(null);
+  const preview = inst.on && n(f.amount) && +inst.n >= 2 ? planInst(inst.mode === "total" ? { total: n(f.amount), n: +inst.n, first: f.date } : { each: n(f.amount), n: +inst.n, first: f.date }) : null;
   const options = cats.filter((c) => (type === "receita" ? c.kind === "receita" : c.kind !== "receita"));
   const cat = cats.find((c) => c.key === f.category);
   const kind = type === "receita" ? "receita" : cat?.kind === "fixo" ? "fixo" : "variavel";
   const save = () => start(async () => {
-    await saveTx({ kind, name: f.name, amount: n(f.amount), category: f.category || (type === "receita" ? "extra" : "outros"), date: f.date, paid: f.paid, recurring: f.recurring, note: f.note }, tx?.id);
-    onDone();
+    const base = { kind: kind as "receita" | "fixo" | "variavel", name: f.name, amount: n(f.amount), category: f.category || (type === "receita" ? "extra" : "outros"), date: f.date, paid: f.paid, recurring: inst.on ? false : f.recurring, note: f.note };
+    try { if (inst.on && !tx) await saveInstallments({ ...base, n: Math.round(+inst.n), mode: inst.mode }); else await saveTx(base, tx?.id); onDone(); }
+    catch (e) { setErr((e as Error).message); }
   });
   return (
     <div className="grid gap-4">
@@ -59,12 +65,36 @@ export function TxForm({ tx, month, cats, onDone }: { tx?: Tx; month: string; ca
           <Segmented value={f.paid ? "s" : "n"} onChange={(v) => setF({ ...f, paid: v === "s" })} options={[["s", type === "receita" ? "Recebido" : "Pago"], ["n", type === "receita" ? "A receber" : "A pagar"]]} />
         </Field>
       </div>
-      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#3ee6c1]" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} />
-        <span>Repete todo mês <span className="text-faint text-sm">(entra automaticamente nos próximos meses)</span></span></label>
+      {tx?.inst_group && tx.inst_no && (
+        <div className="rounded-2xl p-3 border" style={{ borderColor: A + "44", background: A + "0f" }}>
+          <p className="text-sm">💳 Parcela <b>{tx.inst_no}/{tx.inst_total}</b> de uma compra parcelada.</p>
+          <button className="text-xs text-[#ff6961] underline mt-2" disabled={pending} onClick={() => { if (confirm(`Apagar a parcela ${tx.inst_no} e as seguintes? (ex.: quitou antes)`)) start(async () => { await deleteInstallmentsFrom(tx.inst_group!, tx.inst_no!); onDone(); }); }}>Apagar esta e as próximas parcelas</button>
+        </div>
+      )}
+      {!tx && type === "despesa" && (
+        <div className="rounded-2xl border p-3 grid gap-3" style={{ borderColor: inst.on ? A + "66" : "rgba(255,255,255,.08)", background: inst.on ? A + "0d" : "transparent" }}>
+          <label className="flex items-center gap-3 min-h-10"><input type="checkbox" className="h-5 w-5 accent-[#3ee6c1]" checked={inst.on} onChange={(e) => setInst({ ...inst, on: e.target.checked })} />
+            <span>💳 Parcelado</span></label>
+          {inst.on && <>
+            <div className="grid grid-cols-[6rem_1fr] gap-2 items-end">
+              <Field label="Parcelas"><input className="field num text-center" inputMode="numeric" value={inst.n} onChange={(e) => setInst({ ...inst, n: e.target.value.replace(/\D/g, "").slice(0, 2) })} /></Field>
+              <Field label="O valor digitado é"><Segmented value={inst.mode} onChange={(v) => setInst({ ...inst, mode: v })} options={[["total", "Total"], ["parcela", "Da parcela"]]} /></Field>
+            </div>
+            <div className="flex flex-wrap gap-1.5">{[2, 3, 4, 6, 10, 12].map((k) => <button key={k} className="chip !min-h-8 text-xs" aria-pressed={+inst.n === k} onClick={() => setInst({ ...inst, n: String(k) })}>{k}×</button>)}</div>
+            {preview && <p className="text-sm">
+              <b className="num">{preview.length}× de {brl(preview.at(-1)!.amount)}</b>{preview[0].amount !== preview.at(-1)!.amount ? <span className="text-muted"> (1ª {brl(preview[0].amount)})</span> : null}
+              <span className="text-muted"> · total <b className="num text-ink">{brl(preview.reduce((a, x) => a + x.amount, 0))}</b> · última em {monthLabel(preview.at(-1)!.date.slice(0, 7) + "-01")}</span></p>}
+            <p className="text-[11px] text-faint">Uma linha por mês. A 1ª segue o “Pago/A pagar”; as outras ficam “A pagar”.</p>
+          </>}
+        </div>
+      )}
+      {!inst.on && <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#3ee6c1]" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} />
+        <span>Repete todo mês <span className="text-faint text-sm">(entra automaticamente nos próximos meses)</span></span></label>}
+      {err && <p className="text-sm text-[#ff6961]">{err}</p>}
       <Field label="Observação"><input className="field" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="Opcional" /></Field>
       <div className="flex gap-2">
         {tx && <button className="btn text-muted" disabled={pending} onClick={() => { if (confirm(`Excluir “${tx.name}”?`)) start(async () => { await deleteRow("finance_items", tx.id); onDone(); }); }}>Excluir</button>}
-        <button className="btn btn-accent flex-1" disabled={pending || !n(f.amount) || !f.name.trim()} onClick={save}>{pending ? "Salvando…" : tx ? "Salvar" : "Adicionar"}</button>
+        <button className="btn btn-accent flex-1" disabled={pending || !n(f.amount) || !f.name.trim()} onClick={save}>{pending ? "Salvando…" : tx ? "Salvar" : inst.on && preview ? `Lançar ${preview.length} parcelas` : "Adicionar"}</button>
       </div>
     </div>
   );
@@ -320,8 +350,8 @@ export function Budget({ txs, cats }: { txs: Tx[]; cats: FinCategory[] }) {
 }
 
 /* ───────── Contêiner com o painel de lançamento ───────── */
-export function MoneyShell({ view, month, txs, prevTxs, history, cats, hasRecurringPrev }: {
-  view: "resumo" | "lancamentos"; month: string; txs: Tx[]; prevTxs: Tx[]; history: { month: string; income: number; expense: number }[]; cats: FinCategory[]; hasRecurringPrev: boolean;
+export function MoneyShell({ view, month, txs, prevTxs, history, cats, hasRecurringPrev, installments = [] }: {
+  view: "resumo" | "lancamentos"; month: string; txs: Tx[]; prevTxs: Tx[]; history: { month: string; income: number; expense: number }[]; cats: FinCategory[]; hasRecurringPrev: boolean; installments?: InstGroup[];
 }) {
   const [sheet, setSheet] = useState<null | "new" | Tx>(null);
   const close = () => setSheet(null);
@@ -330,6 +360,20 @@ export function MoneyShell({ view, month, txs, prevTxs, history, cats, hasRecurr
       {view === "resumo"
         ? <Overview month={month} txs={txs} prevTxs={prevTxs} history={history} cats={cats} onAdd={() => setSheet("new")} onOpen={setSheet} />
         : <Transactions month={month} txs={txs} cats={cats} hasRecurringPrev={hasRecurringPrev} onAdd={() => setSheet("new")} onOpen={setSheet} />}
+      {installments.length > 0 && (
+        <section className="glass rise p-5 mt-4">
+          <div className="flex items-baseline justify-between"><SectionTitle>💳 Parcelas em aberto</SectionTitle>
+            <span className="num text-sm" style={{ color: OUT }}>{brl(installments.reduce((a, g) => a + g.left, 0))}</span></div>
+          <ul className="grid gap-3 mt-1">
+            {installments.map((g) => (
+              <li key={g.id}>
+                <div className="flex items-baseline justify-between gap-3"><span className="font-medium truncate">{g.name}</span><span className="num text-sm shrink-0">{brl(g.left)} <span className="text-muted text-xs">de {brl(g.total)}</span></span></div>
+                <div className="flex gap-0.5 mt-1.5">{Array.from({ length: g.n }, (_, i) => <i key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i < g.paidN ? A : "rgba(255,255,255,.1)" }} />)}</div>
+                <p className="text-[11px] text-muted mt-1">{g.paidN}/{g.n} pagas{g.next ? ` · próxima ${shortDate(g.next)}` : ""} · termina {monthLabel(g.last.slice(0, 7) + "-01")}</p>
+              </li>))}
+          </ul>
+        </section>
+      )}
       <Sheet accent={A} open={!!sheet} onClose={close} title={sheet === "new" ? "Novo lançamento" : "Editar lançamento"}>
         {sheet && <TxForm key={sheet === "new" ? "new" : sheet.id} tx={sheet === "new" ? undefined : sheet} month={month} cats={cats} onDone={close} />}
       </Sheet>

@@ -2,6 +2,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { plan as planInst } from "@/lib/installments";
 import { addMonths } from "@/lib/date";
 
 const Iso = z.string().regex(/^\d{4}-\d{2}-01$/);
@@ -49,6 +50,25 @@ export async function saveTx(input: z.infer<typeof Tx>, id?: string) {
   const row = { ...p, month: p.date.slice(0, 7) + "-01", note: p.note || null };
   const sb = await createClient();
   const { error } = id ? await sb.from("finance_items").update(row).eq("id", z.string().uuid().parse(id)) : await sb.from("finance_items").insert(row);
+  if (error) throw new Error(error.message);
+  done();
+}
+/** Compra parcelada: cria uma linha por mês ("Nome (k/N)"). Só a 1ª segue o "pago" escolhido; as outras ficam a pagar. */
+export async function saveInstallments(input: z.infer<typeof Tx> & { n: number; mode: "total" | "parcela" }) {
+  const p = Tx.parse(input), n = z.number().int().min(2).max(72).parse(input.n);
+  const parts = planInst(input.mode === "total" ? { total: p.amount, n, first: p.date } : { each: p.amount, n, first: p.date });
+  const group = crypto.randomUUID(), base = p.name.replace(/\s*\(\d+\/\d+\)\s*$/, "");
+  const rows = parts.map((x) => ({ kind: p.kind, category: p.category, name: `${base} (${x.no}/${n})`, amount: x.amount, date: x.date, month: x.date.slice(0, 7) + "-01",
+    paid: x.no === 1 ? p.paid : false, recurring: false, note: p.note || null, inst_group: group, inst_no: x.no, inst_total: n, inst_amount: parts.reduce((a, y) => a + y.amount, 0) }));
+  const sb = await createClient();
+  const { error } = await sb.from("finance_items").insert(rows);
+  if (error) throw new Error(/inst_/.test(error.message) ? "Rode a migração 20261119000000_parcelas.sql no Supabase." : error.message);
+  done();
+}
+/** Apaga as parcelas desta compra a partir de uma (inclusive) — ex.: quitou antes. */
+export async function deleteInstallmentsFrom(group: string, fromNo: number) {
+  const sb = await createClient();
+  const { error } = await sb.from("finance_items").delete().eq("inst_group", z.string().uuid().parse(group)).gte("inst_no", z.number().int().parse(fromNo));
   if (error) throw new Error(error.message);
   done();
 }
