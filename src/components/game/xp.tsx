@@ -22,6 +22,8 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
   const [floats, setFloats] = useState<Float[]>([]);
   const [banner, setBanner] = useState<{ title: string; sub?: string; key: number; insignia?: number } | null>(null);
   const id = useRef(0);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
   useEffect(() => { setTotal(initialTotal); setToday(initialToday); }, [initialTotal, initialToday]);
 
   const celebrate = useCallback((title: string, sub?: string, insignia?: number) => {
@@ -52,7 +54,7 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
   return (
     <XpCtx.Provider value={{ total, today, gain, celebrate }}>
       {children}
-      {typeof document !== "undefined" && createPortal(<>
+      {mounted && createPortal(<>
       <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.5rem)] z-50 flex flex-col items-center gap-2" aria-live="polite">
         {floats.map((f) => <span key={f.id} className="xp-float rounded-full px-4 py-1.5 text-sm font-semibold backdrop-blur-md border" style={{ color: f.color, borderColor: f.color + "55", background: "rgba(14,16,21,.85)" }}>{f.text}</span>)}
       </div>

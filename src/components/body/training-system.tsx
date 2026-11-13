@@ -81,7 +81,7 @@ export function TrainingSystem({ sessions, today, bodyweight, plannedPerWeek, pr
         <div className="grid grid-cols-2 gap-2.5 mt-3">
           {medals.map((m) => (
             <div key={m.id} className={`relative overflow-hidden rounded-2xl p-3 border ${m.done ? "achv-shine" : ""}`} style={{ borderColor: m.done ? m.color + "88" : "rgba(255,255,255,.06)", background: m.done ? `linear-gradient(160deg, ${m.color}22, #111113 70%)` : "#111113" }}>
-              <div className="flex items-center gap-2 min-w-0"><span className="shrink-0"><Medal color={m.color} done={m.done} /></span><p className={`min-w-0 break-words text-[12px] font-bold uppercase leading-tight ${m.done ? "" : "text-muted"}`}>{m.name}</p></div>
+              <div className="flex flex-col items-start gap-1.5 min-w-0"><span className="shrink-0"><Medal color={m.color} done={m.done} /></span><p className={`min-w-0 text-[12px] font-bold uppercase leading-tight tracking-wide ${m.done ? "" : "text-muted"}`}>{m.name}</p></div>
               <p className="text-[11px] text-muted mt-2 leading-snug">{m.desc}</p>
               {!m.done && <><div className="h-1 rounded-full bg-white/[.06] mt-2 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${Math.max(3, m.progress * 100)}%`, background: m.color }} /></div><p className="text-[10px] text-faint mt-1 num">{Math.floor(m.value)} / {m.target}</p></>}
             </div>
