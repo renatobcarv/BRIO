@@ -4,6 +4,7 @@ import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { accessToken, remove, revoke, upsert } from "@/lib/google";
+import { geminiJSON } from "@/lib/gemini";
 
 const Ev = z.object({
   title: z.string().trim().min(1).max(120),
@@ -112,29 +113,17 @@ ${(evs ?? []).map((e) => `${e.id} | ${e.date} ${e.start_time?.slice(0, 5) ?? "di
   try {
     let out: { reply: string; items: Partial<AgendaProposal>[] };
     if (GEMINI) {
-      // Gemini: resposta em JSON com esquema fixo (a chave fica só no servidor).
-      const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`, {
-        method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": GEMINI },
-        body: JSON.stringify({
-          systemInstruction: { parts: [{ text: system + '\nResponda só com JSON no formato pedido. "items" lista o que criar/alterar/apagar.' }] },
-          contents: [{ role: "user", parts: [{ text: msgText.data }] }],
-          generationConfig: { temperature: 0.2, responseMimeType: "application/json", responseSchema: {
-            type: "OBJECT", properties: {
-              reply: { type: "STRING" },
-              items: { type: "ARRAY", items: { type: "OBJECT", properties: {
-                action: { type: "STRING", enum: ["criar", "alterar", "apagar"] }, id: { type: "STRING" }, title: { type: "STRING" },
-                date: { type: "STRING" }, start_time: { type: "STRING", nullable: true }, end_time: { type: "STRING", nullable: true },
-                category: { type: "STRING", enum: CATS }, location: { type: "STRING", nullable: true }, notes: { type: "STRING", nullable: true }, remind_min: { type: "INTEGER", nullable: true },
-              }, required: ["action", "title", "date", "category"] } },
-            }, required: ["reply", "items"] } },
-        }),
-      });
-      if (r.status === 400 || r.status === 403) return { error: "Chave do Gemini inválida ou sem acesso. Confira GEMINI_API_KEY na Vercel." };
-      if (r.status === 429) return { error: "Limite do Gemini atingido. Tente em um minuto." };
-      if (!r.ok) return { error: `O Gemini não respondeu (${r.status}). Tente de novo.` };
-      const j = (await r.json()) as { candidates?: { content?: { parts?: { text?: string }[] } }[] };
-      const txt = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
-      try { out = JSON.parse(txt); } catch { return { error: "Não entendi. Tente de novo com dia e horário." }; }
+      const g = await geminiJSON<{ reply: string; items: Partial<AgendaProposal>[] }>(system + '\nResponda só com JSON no formato pedido. "items" lista o que criar/alterar/apagar.', msgText.data, {
+        type: "OBJECT", properties: {
+          reply: { type: "STRING" },
+          items: { type: "ARRAY", items: { type: "OBJECT", properties: {
+            action: { type: "STRING", enum: ["criar", "alterar", "apagar"] }, id: { type: "STRING" }, title: { type: "STRING" },
+            date: { type: "STRING" }, start_time: { type: "STRING", nullable: true }, end_time: { type: "STRING", nullable: true },
+            category: { type: "STRING", enum: CATS }, location: { type: "STRING", nullable: true }, notes: { type: "STRING", nullable: true }, remind_min: { type: "INTEGER", nullable: true },
+          }, required: ["action", "title", "date", "category"] } },
+        }, required: ["reply", "items"] });
+      if ("error" in g) return g;
+      out = g;
     } else {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
       const client = new Anthropic();
