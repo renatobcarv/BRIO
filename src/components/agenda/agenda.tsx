@@ -264,13 +264,16 @@ function AiBar({ today }: { today: string }) {
         <div className="flex items-end gap-2 mt-2">
           <textarea rows={2} className="field flex-1 !min-h-[52px] text-[15px] resize-none" value={text} onChange={(e) => setText(e.target.value)}
             placeholder="Ex.: tenho dentista quinta às 15h, reunião sábado 19h30 no salão e pagar o cartão dia 20" onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey && text.trim()) { e.preventDefault(); ask(); } }} />
-          <button className="btn btn-accent !min-h-[52px] !px-4" disabled={pending || !text.trim()} onClick={ask} aria-label="Enviar">{pending && !res ? "…" : "→"}</button>
+          <button className="btn btn-accent !min-h-[52px] !px-4" disabled={pending || !text.trim()} onClick={ask} aria-label="Enviar">{pending && !res ? <span className="flex gap-1">{[0, 1, 2].map((i) => <i key={i} className="h-1.5 w-1.5 rounded-full bg-black/70 typing-dot" style={{ animationDelay: `${i * .18}s` }} />)}</span> : "→"}</button>
         </div>
         <p className="text-[10px] text-faint mt-1">Dica: no celular, toque no 🎤 do teclado e fale.</p>
         {err && <p className="text-sm text-[#ff6961] mt-2">{err}</p>}
         {res && (
           <div className="mt-3 grid gap-2">
-            {res.reply && <p className="text-sm text-ink/85">{res.reply}</p>}
+            {res.reply && <div className="flex items-end gap-2 msg-in">
+              <span className="h-7 w-7 shrink-0 rounded-xl grid place-items-center text-sm text-white" style={{ background: "linear-gradient(135deg,#5ab0ff,#bf5af2)", boxShadow: "0 0 14px -4px #bf5af2" }}>✦</span>
+              <p className="rounded-[20px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(90,176,255,.10), rgba(191,90,242,.06))" }}>{res.reply}</p>
+            </div>}
             {res.proposals.length === 0 ? <p className="text-xs text-muted">Nada para marcar.</p> : res.proposals.map((p, i) => {
               const c = CAT[p.category] ?? CAT.pessoal, on = !off.has(i);
               return (

@@ -6,6 +6,12 @@ const A = "#3ee6c1";
 type Msg = { role: "user" | "assistant"; content: string; error?: boolean };
 type Proposal = { id: string; kind: string; summary: string; status: string };
 const SUGGESTIONS = ["Como estou este mês?", "Posso gastar R$ 200 em lazer?", "Tem algo estranho nos meus gastos?", "Quais são minhas assinaturas?", "Compare com o mês passado", "Quanto falta para minhas metas?"];
+const STARTERS: [string, string, string][] = [["📊", "Como estou este mês?", "Resumo de entradas, saídas e saldo"], ["🎯", "Quanto falta para minhas metas?", "Progresso e ritmo das caixinhas"], ["🔍", "Tem algo estranho nos meus gastos?", "Gastos fora do padrão"], ["📅", "Compare com o mês passado", "O que subiu e o que caiu"]];
+const KIND: Record<string, [string, string]> = { budget: ["🧱", "Teto de gastos"], goal: ["🎯", "Meta"], recategorize: ["🏷️", "Categorias"] };
+function Avatar({ size = 28 }: { size?: number }) {
+  return <span className="relative shrink-0 grid place-items-center rounded-xl" style={{ width: size, height: size, background: "linear-gradient(135deg, #ffb340, #3ee6c1)", boxShadow: "0 0 16px -4px #3ee6c1" }}>
+    <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="2.2" aria-hidden><path d="M12 3l2.2 5.3L20 9l-4.4 3.8L17 19l-5-3-5 3 1.4-6.2L4 9l5.8-.7z" /></svg></span>;
+}
 
 /** Markdown mínimo e seguro: negrito, listas e quebras de linha (sem HTML cru). */
 function Rich({ text }: { text: string }) {
@@ -59,37 +65,45 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
 
   return (
     <div style={{ ["--accent" as string]: A }} className="flex flex-col">
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <span className="relative h-10 w-10 rounded-2xl grid place-items-center" style={{ background: "linear-gradient(135deg, #ffb340, #3ee6c1)" }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="2" aria-hidden><path d="M12 3l2.2 5.3L20 9l-4.4 3.8L17 19l-5-3-5 3 1.4-6.2L4 9l5.8-.7z" /></svg>
-            <span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-base" style={{ background: "#30d158" }} />
-          </span>
-          <div><p className="font-display text-lg leading-tight">Assistente</p><p className="text-xs text-muted">Lê seus lançamentos, metas e tetos · Claude</p></div>
+      <div className="sticky top-0 z-20 -mx-4 px-4 pt-1 pb-3 mb-3 bg-gradient-to-b from-base via-base/95 to-transparent">
+        <div className="flex items-center justify-between rounded-3xl p-3 border border-white/10" style={{ background: "radial-gradient(120% 120% at 0% 0%, rgba(62,230,193,.16), transparent 60%), radial-gradient(90% 90% at 100% 100%, rgba(255,179,64,.12), transparent 60%), #0b0d0d" }}>
+          <div className="flex items-center gap-3">
+            <span className="relative"><Avatar size={42} /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#0b0d0d] war-pulse" style={{ background: "#30d158" }} /></span>
+            <div><p className="font-display text-lg leading-tight">Assistente financeiro</p><p className="text-[11px] text-muted">online · lê lançamentos, metas e tetos</p></div>
+          </div>
+          {msgs.length > 0 && <button className="text-xs text-muted rounded-full px-3 py-1.5 border border-white/10" onClick={() => { if (confirm("Apagar a conversa?")) start(async () => { await clearChat(); setMsgs([]); setProposals([]); }); }}>Limpar</button>}
         </div>
-        {msgs.length > 0 && <button className="text-sm text-muted min-h-11 px-2" onClick={() => { if (confirm("Apagar a conversa?")) start(async () => { await clearChat(); setMsgs([]); setProposals([]); }); }}>Limpar</button>}
       </div>
 
       <div className="grid gap-3 pb-40">
         {msgs.length === 0 && (
-          <section className="glass rise p-5">
-            <p className="font-display italic text-xl">Pergunte sobre o seu dinheiro.</p>
-            <p className="text-sm text-muted mt-1">Eu respondo com os números que você lança no BRIO. Para mudar tetos, metas ou categorias, eu proponho e você confirma.</p>
+          <section className="rise text-center pt-8">
+            <div className="mx-auto w-fit"><Avatar size={64} /></div>
+            <p className="font-display text-2xl mt-4">Pergunte sobre o seu dinheiro.</p>
+            <p className="text-sm text-muted mt-1 max-w-sm mx-auto">Respondo com os números que você lança no BRIO. Para mudar tetos, metas ou categorias, eu proponho e você confirma.</p>
+            <div className="grid grid-cols-2 gap-2 mt-5 text-left">
+              {STARTERS.map(([e, q, sub]) => (
+                <button key={q} disabled={busy} onClick={() => send(q)} className="press text-left rounded-2xl p-3 border border-white/10 bg-white/[.03] hover:bg-white/[.06]">
+                  <span className="text-xl">{e}</span><span className="block text-sm font-semibold mt-1 leading-snug">{q}</span><span className="block text-[11px] text-muted mt-0.5">{sub}</span>
+                </button>))}
+            </div>
           </section>
         )}
         {msgs.map((m, i) => (
-          <div key={i} className={`flex msg-in ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`max-w-[85%] rounded-3xl px-4 py-3 text-[15px] leading-relaxed ${m.role === "user"
-              ? "rounded-br-lg text-[#120f08]" : `glass rounded-bl-lg ${m.error ? "!border-[#ff453a]/40 text-[#ff453a]" : ""}`}`}
-              style={m.role === "user" ? { background: A } : undefined}>
+          <div key={i} className={`flex items-end gap-2 msg-in ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+            {m.role === "assistant" && <Avatar size={26} />}
+            <div className={`max-w-[82%] rounded-[22px] px-4 py-3 text-[15px] leading-relaxed ${m.role === "user"
+              ? "rounded-br-md text-[#06201a] font-medium" : `rounded-bl-md border ${m.error ? "border-[#ff453a]/40 text-[#ff6961] bg-[#ff453a]/10" : "border-white/10"}`}`}
+              style={m.role === "user" ? { background: "linear-gradient(135deg, #5ff5d3, #3ee6c1 50%, #2bb89a)", boxShadow: "0 8px 22px -12px #3ee6c1" } : m.error ? undefined : { background: "linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.025))" }}>
               {m.role === "user" ? <p className="whitespace-pre-wrap">{m.content}</p> : <Rich text={m.content} />}
             </div>
           </div>
         ))}
         {proposals.map((p) => (
-          <div key={p.id} className="msg-in glass p-4 border-l-2" style={{ borderLeftColor: p.status === "confirmed" ? "#30d158" : p.status === "cancelled" ? "#5d5b56" : A }}>
-            <p className="label">{p.status === "pending" ? "Alteração proposta" : p.status === "confirmed" ? "Aplicada ✓" : "Cancelada"}</p>
-            <p className="mt-1">{p.summary}</p>
+          <div key={p.id} className="msg-in ml-8 rounded-2xl p-4 border" style={{ borderColor: p.status === "confirmed" ? "#30d15566" : p.status === "cancelled" ? "rgba(255,255,255,.08)" : A + "55", background: p.status === "pending" ? `linear-gradient(160deg, ${A}14, transparent 70%)` : "rgba(255,255,255,.02)", opacity: p.status === "cancelled" ? 0.6 : 1 }}>
+            <p className="flex items-center gap-2 text-[10px] font-bold tracking-[.2em]" style={{ color: p.status === "confirmed" ? "#30d158" : p.status === "cancelled" ? "#8e8e93" : A }}>
+              <span className="text-base">{KIND[p.kind]?.[0] ?? "✏️"}</span>{(p.status === "pending" ? `PROPOSTA · ${KIND[p.kind]?.[1] ?? "Alteração"}` : p.status === "confirmed" ? "APLICADA ✓" : "CANCELADA").toUpperCase()}</p>
+            <p className="mt-1.5 text-[15px]">{p.summary}</p>
             {p.status === "pending" && (
               <div className="flex gap-2 mt-3">
                 <button className="btn flex-1" onClick={() => resolve(p, false)}>Cancelar</button>
@@ -98,22 +112,22 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
             )}
           </div>
         ))}
-        {busy && <div className="flex justify-start msg-in"><div className="glass rounded-3xl rounded-bl-lg"><Typing /></div></div>}
+        {busy && <div className="flex items-end gap-2 justify-start msg-in"><Avatar size={26} /><div className="rounded-[22px] rounded-bl-md border border-white/10 bg-white/[.04]"><Typing /></div></div>}
         <div ref={end} />
       </div>
 
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] md:bottom-0 md:left-60 z-30 px-4 pb-3 pt-6 bg-gradient-to-t from-base via-base/95 to-transparent">
         <div className="mx-auto max-w-3xl">
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
-            {SUGGESTIONS.map((s) => <button key={s} className="chip shrink-0 !bg-base/60 backdrop-blur" disabled={busy} onClick={() => send(s)}>{s}</button>)}
+            {msgs.length > 0 && SUGGESTIONS.map((s) => <button key={s} className="chip shrink-0 !bg-base/60 backdrop-blur !min-h-9 text-xs" disabled={busy} onClick={() => send(s)}>{s}</button>)}
           </div>
-          <form className="flex items-end gap-2 rounded-3xl border border-white/10 bg-[#111113]/90 backdrop-blur-xl p-1.5 pl-4"
+          <form className="flex items-end gap-2 rounded-3xl border border-white/10 bg-[#0e1111]/90 backdrop-blur-xl p-1.5 pl-4 transition-shadow focus-within:border-[#3ee6c1]/50 focus-within:shadow-[0_0_0_4px_rgba(62,230,193,.12)]"
             onSubmit={(e) => { e.preventDefault(); send(text); }}>
             <textarea ref={area} rows={1} value={text} placeholder="Pergunte algo…" aria-label="Mensagem para o assistente"
               className="flex-1 resize-none bg-transparent outline-none py-2.5 text-[15px] max-h-32"
               onChange={(e) => { setText(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(128, e.target.scrollHeight) + "px"; }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(text); } }} />
-            <button type="submit" disabled={busy || !text.trim()} aria-label="Enviar" className="h-11 w-11 shrink-0 rounded-full grid place-items-center transition-opacity disabled:opacity-40" style={{ background: A }}>
+            <button type="submit" disabled={busy || !text.trim()} aria-label="Enviar" className="h-11 w-11 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 press" style={{ background: "linear-gradient(135deg, #5ff5d3, #2bb89a)", boxShadow: text.trim() ? "0 0 18px -4px #3ee6c1" : "none" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 19V5M5 12l7-7 7 7" /></svg>
             </button>
           </form>
