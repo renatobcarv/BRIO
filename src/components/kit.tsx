@@ -6,15 +6,18 @@ import { createPortal } from "react-dom";
 export function Sheet({ open, onClose, title, children, accent = "#ffb340", tone }:
   { open: boolean; onClose: () => void; title: string; children: React.ReactNode; accent?: string; tone?: "war" }) {
   const ref = useRef<HTMLDivElement>(null);
+  // onClose costuma ser uma função nova a cada render: guardar em ref evita refocar o 1º campo a cada tecla.
+  const close = useRef(onClose); close.current = onClose;
   useEffect(() => {
     if (!open) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && close.current();
     window.addEventListener("keydown", esc);
-    ref.current?.querySelector<HTMLElement>("input,textarea,select,button")?.focus();
+    // Foca só ao abrir; no celular não abre o teclado sozinho.
+    if (window.matchMedia("(pointer: fine)").matches) ref.current?.querySelector<HTMLElement>("input,textarea,select")?.focus();
     return () => { document.body.style.overflow = prev; window.removeEventListener("keydown", esc); };
-  }, [open, onClose]);
+  }, [open]);
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   if (!open || !mounted) return null;

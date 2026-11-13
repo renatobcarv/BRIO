@@ -87,3 +87,69 @@ export async function disconnectGoogle(): Promise<string | null> {
   revalidatePath("/agenda");
   return msg(error);
 }
+
+// ── IA: transforma o que você fala em compromissos (propostas para confirmar) ──
+export type AgendaProposal = { action: "criar" | "alterar" | "apagar"; id?: string; title: string; date: string; start_time: string | null; end_time: string | null;
+  category: z.infer<typeof Ev>["category"]; location: string | null; notes: string | null; remind_min: number | null; why?: string };
+
+export async function aiAgenda(text: string, today: string): Promise<{ reply: string; proposals: AgendaProposal[] } | { error: string }> {
+  const msgText = z.string().trim().min(2).max(1500).safeParse(text);
+  if (!msgText.success) return { error: "Escreva o que você tem marcado." };
+  if (!process.env.ANTHROPIC_API_KEY) return { error: "Falta ANTHROPIC_API_KEY na Vercel." };
+  const sb = await createClient();
+  const until = new Date(Date.parse(today + "T12:00:00Z") + 60 * 864e5).toISOString().slice(0, 10);
+  const { data: evs } = await sb.from("calendar_events").select("id,title,date,start_time,end_time,category,location").gte("date", today).lte("date", until).order("date").limit(200);
+  const wd = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][new Date(today + "T12:00:00Z").getUTCDay()];
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic();
+  try {
+    const r = await client.messages.create({
+      model: "claude-haiku-5-5", max_tokens: 4000,
+      system: `Você organiza a agenda pessoal do Renato (fuso America/Sao_Paulo). Hoje é ${wd}, ${today}.
+Interprete o que ele disser e proponha compromissos com a ferramenta "propor". Datas relativas ("amanhã", "quinta", "dia 20", "semana que vem") viram datas ISO a partir de hoje; "quinta" sem mais contexto é a próxima quinta (hoje conta se ainda for possível).
+Sem horário = dia todo (start_time null). Sem fim = deixe end_time null. Categorias: pessoal, espiritual (reuniões, estudo, assembleia), campo (pregação, revisitas, estudos bíblicos), treino, financas (pagamentos, vencimentos), trabalho, familia.
+Lembrete padrão: 30 min para eventos com horário, 1440 (1 dia) para vencimentos e dia todo.
+Para mudar ou cancelar algo existente, use "alterar" ou "apagar" com o id da lista. Não invente compromissos que ele não pediu. "reply" é uma frase curta em PT-BR resumindo.
+Compromissos existentes (próximos 60 dias):
+${(evs ?? []).map((e) => `${e.id} | ${e.date} ${e.start_time?.slice(0, 5) ?? "dia todo"}${e.end_time ? "-" + e.end_time.slice(0, 5) : ""} | ${e.title} | ${e.category}`).join("\n") || "(nenhum)"}`,
+      tools: [{
+        name: "propor", description: "Propõe criar, alterar ou apagar compromissos.",
+        input_schema: { type: "object", properties: {
+          reply: { type: "string" },
+          items: { type: "array", items: { type: "object", properties: {
+            action: { type: "string", enum: ["criar", "alterar", "apagar"] }, id: { type: "string" },
+            title: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" },
+            start_time: { type: ["string", "null"], description: "HH:MM" }, end_time: { type: ["string", "null"], description: "HH:MM" },
+            category: { type: "string", enum: ["pessoal", "espiritual", "campo", "treino", "financas", "trabalho", "familia"] },
+            location: { type: ["string", "null"] }, notes: { type: ["string", "null"] }, remind_min: { type: ["integer", "null"] },
+          }, required: ["action", "title", "date", "category"] } },
+        }, required: ["reply", "items"] },
+      }],
+      tool_choice: { type: "tool", name: "propor" },
+      messages: [{ role: "user", content: msgText.data }],
+    });
+    const tu = r.content.find((b) => b.type === "tool_use");
+    if (!tu || tu.type !== "tool_use") return { error: "Não entendi. Tente de novo com dia e horário." };
+    const out = tu.input as { reply: string; items: Partial<AgendaProposal>[] };
+    const hm = (t: unknown) => (typeof t === "string" && /^\d{1,2}:\d{2}/.test(t) ? t.padStart(5, "0").slice(0, 5) : null);
+    const proposals = (out.items ?? []).filter((i) => i.title && /^\d{4}-\d{2}-\d{2}$/.test(i.date ?? "")).map((i) => ({
+      action: (i.action ?? "criar") as AgendaProposal["action"], id: i.id, title: String(i.title).slice(0, 120), date: i.date!, start_time: hm(i.start_time), end_time: hm(i.end_time),
+      category: (Ev.shape.category.safeParse(i.category).success ? i.category : "pessoal") as AgendaProposal["category"],
+      location: i.location ?? null, notes: i.notes ?? null, remind_min: typeof i.remind_min === "number" ? i.remind_min : null,
+    }));
+    return { reply: out.reply ?? "", proposals };
+  } catch (e) {
+    return { error: e instanceof Error && /401|auth/i.test(e.message) ? "Chave da API do Claude inválida." : "A IA não respondeu agora. Tente de novo." };
+  }
+}
+
+/** Aplica as propostas confirmadas. */
+export async function applyProposals(list: AgendaProposal[]): Promise<string | null> {
+  for (const p of list) {
+    if (p.action === "apagar" && p.id) { const e = await deleteEvent(p.id); if (e) return e; continue; }
+    const e = await saveEvent({ title: p.title, date: p.date, start_time: p.start_time, end_time: p.end_time, category: p.category, location: p.location, notes: p.notes, remind_min: p.remind_min },
+      p.action === "alterar" && p.id ? p.id : undefined);
+    if (e) return e;
+  }
+  return null;
+}
