@@ -16,6 +16,8 @@ type Journal = { id: string; date: string; kind: keyof typeof KINDS; text: strin
 export function StudyTab({ today, studies }: { today: string; studies: Study[] }) {
   const [pending, start] = useTransition();
   const [f, setF] = useState({ date: today, type: "publicacao" as keyof typeof STUDY_TYPES, material: "", minutes: "30", takeaway: "" });
+  const [err, setErr] = useState<string | null>(null);
+  const [ok, setOk] = useState(false);
   return (
     <>
       {(() => { const from = new Date(Date.parse(today + "T12:00:00Z") - 6 * 864e5).toISOString().slice(0, 10), wk = studies.filter((s) => s.date >= from).reduce((a, s) => a + s.minutes, 0), target = 210; return (
@@ -38,9 +40,12 @@ export function StudyTab({ today, studies }: { today: string; studies: Study[] }
           <input className="field text-center num" inputMode="numeric" value={f.minutes} onChange={(e) => setF({ ...f, minutes: e.target.value })} aria-label="Minutos" />
         </div>
         <input className="field mt-2" placeholder="Material / referência" value={f.material} onChange={(e) => setF({ ...f, material: e.target.value })} />
-        <textarea className="field mt-2" placeholder="O que aprendi / como vou aplicar" value={f.takeaway} onChange={(e) => setF({ ...f, takeaway: e.target.value })} />
+        <textarea className="field mt-2 !min-h-[140px]" placeholder="O que aprendi / como vou aplicar" value={f.takeaway} onChange={(e) => { setF({ ...f, takeaway: e.target.value }); setOk(false); }} />
+        {f.takeaway.length > 500 && <p className="text-[11px] text-faint mt-1 num">{f.takeaway.length.toLocaleString("pt-BR")} caracteres</p>}
+        {err && <p role="alert" className="text-sm text-[#ff6961] mt-2">{err}</p>}
+        {ok && <p className="text-sm text-[#30d158] mt-2">Estudo salvo ✓</p>}
         <button className="btn btn-accent w-full mt-3" disabled={pending}
-          onClick={() => start(async () => { await addStudy({ ...f, minutes: Number(f.minutes) || 0 }); setF({ ...f, material: "", takeaway: "" }); })}>Salvar estudo</button>
+          onClick={() => start(async () => { const e = await addStudy({ ...f, minutes: Number(f.minutes) || 0 }); setErr(e); if (!e) { setOk(true); setF({ ...f, material: "", takeaway: "" }); } })}>Salvar estudo</button>
       </Card>
       <Card className="mt-4">
         <p className="label mb-2">Estudos recentes</p>
@@ -54,7 +59,7 @@ export function StudyTab({ today, studies }: { today: string; studies: Study[] }
                   <span className="num text-sm">{s.minutes} min</span>
                   <button className="btn !min-h-9 !px-3 text-muted" aria-label="Excluir" onClick={() => { if (confirm("Excluir?")) start(() => deleteStudy(s.id)); }}>×</button>
                 </div>
-                {s.takeaway && <p className="font-display italic mt-1 text-[15px]">{s.takeaway}</p>}
+                {s.takeaway && <Takeaway text={s.takeaway} />}
               </li>
             ))}
           </ul>
@@ -141,5 +146,16 @@ export function JournalTab({ entries }: { entries: Journal[] }) {
         )}
       </Card>
     </>
+  );
+}
+
+/** Anotação longa: mostra o começo e expande. Mantém as quebras de linha. */
+function Takeaway({ text }: { text: string }) {
+  const [open, setOpen] = useState(false), long = text.length > 280;
+  return (
+    <div className="mt-1">
+      <p className="font-display italic text-[15px] whitespace-pre-wrap">{open || !long ? text : text.slice(0, 280).trimEnd() + "…"}</p>
+      {long && <button className="text-xs text-gold underline mt-1" onClick={() => setOpen(!open)}>{open ? "mostrar menos" : "ler tudo"}</button>}
+    </div>
   );
 }
