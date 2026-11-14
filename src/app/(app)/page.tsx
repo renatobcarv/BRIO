@@ -99,12 +99,15 @@ export default async function Hoje() {
 
   return (
     <XpProvider initialTotal={game.total} initialToday={game.today}>
-      <div className="stagger">
+      <div className="stagger home-dash">
+      <div className="dash-main min-w-0">
       <Greeting name={firstName} />
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
       {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
+      </div>
+      <div className="dash-side min-w-0">
       <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} />
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
@@ -155,6 +158,7 @@ export default async function Hoje() {
       <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>
       <Partner photo={photo} phrase={s.partner_phrase ?? "Tijolo por tijolinho"} />
       <Verse area="inicio" />
+      </div>
       </div>
     </XpProvider>
   );

@@ -7,7 +7,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <XpProvider initialTotal={0} initialToday={0} trackLevel={false}>
       <Nav />
       <main className="md:pl-60 pb-32 md:pb-10">
-        <div className="mx-auto max-w-3xl px-4 pt-[calc(env(safe-area-inset-top)+2rem)] md:pt-12">{children}</div>
+        <div className="app-shell mx-auto max-w-3xl px-4 pt-[calc(env(safe-area-inset-top)+2rem)] md:pt-12">{children}</div>
       </main>
       </XpProvider>
     </>

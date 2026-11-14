@@ -1,4 +1,5 @@
 "use client";
+import { BrioWordmark } from "@/components/brand";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -46,12 +47,12 @@ export function Nav() {
     <>
       {/* Desktop */}
       <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 flex-col gap-1 p-5 border-r border-white/5">
-        <Link href="/" className="font-display text-2xl text-ink mb-8 px-3 tracking-tight">Brio</Link>
+        <Link href="/" className="text-ink mb-8 px-3 block w-fit" aria-label="Início — brio"><BrioWordmark height={26} /></Link>
         {[...primary, ...secondary].map((it) => {
           const on = isActive(path, it.href);
           return (
             <Link key={it.href} href={it.href} aria-current={on ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3 min-h-11 text-sm transition-colors ${on ? "bg-white/[.08] text-ink" : "text-muted hover:text-ink"}`}>
+              className={`flex items-center gap-3 rounded-xl px-3 min-h-11 text-sm transition-colors ${on ? "bg-[#d12b65]/[.14] text-ink shadow-[inset_3px_0_0_#d12b65]" : "text-muted hover:text-ink hover:bg-white/[.04]"}`}>
               <span style={{ color: on ? it.color : undefined }}>{it.icon}</span>{it.label}
             </Link>
           );
@@ -65,7 +66,7 @@ export function Nav() {
             return (
               <li key={it.href} className={on ? "flex-[1.6]" : "flex-1"} style={{ transition: "flex .35s cubic-bezier(.34,1.56,.64,1)" }}>
                 <Link href={it.href} aria-current={on ? "page" : undefined} aria-label={it.label}
-                  className={`flex items-center justify-center gap-2 h-12 rounded-full transition-colors ${on ? "bg-[#f5f5f7] text-black shadow-[0_0_24px_-4px_rgba(255,255,255,.55)]" : "text-muted hover:text-ink"}`}>
+                  className={`flex items-center justify-center gap-2 h-12 rounded-full transition-colors ${on ? "bg-gradient-to-br from-[#d12b65] to-[#b51224] text-white shadow-[0_0_24px_-4px_rgba(209,43,101,.7)]" : "text-muted hover:text-ink"}`}>
                   {it.icon}
                   {on && <span className="text-[12px] font-semibold nav-label">{it.label}</span>}
                 </Link>
