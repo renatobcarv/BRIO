@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { eaten } from "@/lib/meals";
-import { PageHeader, Verse } from "@/components/ui";
+import { Verse } from "@/components/ui";
 import { BodyToday } from "@/components/body/today";
 import { Nutrition } from "@/components/body/nutrition";
 import { Training } from "@/components/body/training";
@@ -106,21 +106,47 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       sleepHours={sleep7.at(-1)!.hours} sleep7={sleep7} weightKg={weight.data ? N(weight.data.kg) : s.weight_start_kg} />;
   }
 
+  // Resumo dos 4 setores (sempre visível, leve)
+  const [sumW, sumF, sumD, sumKg] = await Promise.all([
+    sb.from("water_logs").select("ml").eq("date", today),
+    sb.from("meal_items").select("slot,kcal,protein_g").eq("date", today),
+    sb.from("meals").select("slot").eq("date", today).eq("done", true),
+    sb.from("weight_logs").select("kg").order("date", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+  const sumKcal = Math.round(eaten((sumF.data ?? []) as { slot: string; kcal: number; protein_g: number }[], (sumD.data ?? []).map((m) => m.slot)).reduce((a, x) => a + N(x.kcal), 0));
+  const sumMl = (sumW.data ?? []).reduce((a, w) => a + w.ml, 0);
+  const SECT: Record<string, { n: string; title: string; line: string; stat: string; sub: string; icon: string }> = {
+    hoje: { n: "01", title: "Hoje", line: "O corpo de hoje: água, sono, comida e treino num relance.", stat: `${(sumMl / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L`, sub: "água", icon: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" },
+    treino: { n: "02", title: "War Room", line: "Disciplina conquista o impulso.", stat: todaySplit.label, sub: todaySplit.focus || "treino do dia", icon: "M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" },
+    alimentacao: { n: "03", title: "Dieta", line: "Combustível medido. Nada de achismo no prato.", stat: `${sumKcal}`, sub: `de ${s.kcal_goal} kcal`, icon: "M7 3v8a3 3 0 0 0 6 0V3M10 3v18M17 3c-2 2-2 6 0 8v10" },
+    peso: { n: "04", title: "Peso", line: "A balança não mente. Tendência acima de um dia ruim.", stat: sumKg.data ? `${N(sumKg.data.kg).toLocaleString("pt-BR")} kg` : "—", sub: s.weight_goal_kg ? `meta ${s.weight_goal_kg} kg` : "último registro", icon: "M5 20h14l-2-12H7zM9 8a3 3 0 0 1 6 0" },
+  };
+  const cur = SECT[tab] ?? SECT.hoje;
+
   return (
     <>
       <div className={tab === "treino" ? `war ${onFire ? "war-fire" : ""}` : undefined}>
       {tab === "treino" && onFire && <FireLayer />}
-      {tab === "treino"
-        ? <header className="rise mb-6"><p className="text-[11px] font-semibold tracking-[.32em] flex items-center gap-2" style={{ color: "#e0393e" }}><span className="h-1.5 w-1.5 rounded-full war-pulse" style={{ background: "#e0393e", boxShadow: "0 0 10px #e0393e" }} />ASCENSION · TREINO</p><h1 className="font-display text-5xl mt-2 leading-none tracking-tight uppercase">War Room</h1><p className="text-sm text-muted mt-2">Disciplina conquista o impulso.</p></header>
-        : <PageHeader eyebrow="Corpo" title="Treino e dieta" color="#30d158" />}
-      <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
-        <div className="inline-flex p-1 rounded-[8px] bg-white/[.04] border border-white/[.06] gap-1 max-w-full overflow-x-auto" role="tablist">
-          {TABS.map(([k, l]) => (
-            <Link key={k} href={`/corpo?aba=${k}`} role="tab" aria-selected={tab === k}
-              className={`min-h-10 px-4 rounded-xl text-sm whitespace-nowrap grid place-items-center transition-colors ${tab === k ? "bg-white/[.09] text-ink" : "text-muted hover:text-ink"}`}>{l}</Link>
-          ))}
+      <header className="rise mb-4">
+        <p className="label flex items-center gap-2" style={{ color: "#ff2800" }}><span className="h-1.5 w-1.5 war-pulse" style={{ background: "#ff2800", boxShadow: "0 0 10px #ff2800" }} />Corpo · setor {cur.n}</p>
+        <h1 className="font-display text-5xl mt-2">{cur.title}</h1>
+        <p className="text-sm text-muted mt-2">{cur.line}</p>
+      </header>
+      <nav aria-label="Setores do corpo" className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-5 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent md:backdrop-blur-none">
+        <div className="grid grid-cols-4 gap-px bg-white/[.08] border border-white/[.08] rounded-[8px] overflow-hidden">
+          {TABS.map(([k]) => { const x = SECT[k], on = tab === k; return (
+            <Link key={k} href={`/corpo?aba=${k}`} aria-current={on ? "page" : undefined}
+              className={`relative min-w-0 px-2 py-2.5 sm:px-3 sm:py-3 transition-colors ${on ? "bg-[#140303]" : "bg-[#080808] hover:bg-[#0e0e0e]"}`}>
+              {on && <span aria-hidden className="absolute left-0 right-0 top-0 h-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 12px #ff2800" }} />}
+              <span className="flex items-center gap-1.5">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={on ? "#ff2800" : "#8a8a8f"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d={x.icon} /></svg>
+                <span className={`label !text-[9px] !tracking-[.14em] truncate ${on ? "!text-white" : ""}`}>{k === "treino" ? "Treino" : x.title}</span>
+              </span>
+              <span className={`num block text-lg sm:text-2xl leading-none mt-2 truncate ${on ? "text-white" : "text-white/70"}`}>{x.stat}</span>
+              <span className="block text-[10px] text-white/45 mt-1 truncate">{x.sub}</span>
+            </Link>); })}
         </div>
-      </div>
+      </nav>
       {tab === "treino" && warEvent}
       {content}
       <Verse area="corpo" />

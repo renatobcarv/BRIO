@@ -10,7 +10,7 @@ const GOLD = "#ff2800";
 
 /** Ícone e cor de cada missão pelo texto (funciona com missões personalizadas). */
 const MISSIONS: [RegExp, string, string][] = [
-  [/ora[cç][aã]o|estudo pessoal|devocional/i, "#ff2800", "M12 3v18M7 8h10M5 21h14"],
+  [/ora[cç][aã]o|estudo pessoal|devocional/i, "#ff2800", "M3 6c3-1.5 6-1.5 9 0v13c-3-1.5-6-1.5-9 0zM21 6c-3-1.5-6-1.5-9 0v13c3-1.5 6-1.5 9 0z"],
   [/b[ií]blia|leitura|livro/i, "#ff4d3d", "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z"],
   [/faculdade|aula|curso|estud/i, "#dc0000", "M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5"],
   [/treino|cardio|academia|corrida/i, "#30d158", "M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8"],
@@ -96,73 +96,62 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const SYS = T.a, ALT = T.b;
 
   return (
-    <section className="relative rise rounded-[8px] p-[1px] overflow-hidden min-w-0 w-full" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
-      <div className="relative isolate rounded-[8px] p-4 sys-scan" style={{ background: `radial-gradient(90% 55% at 50% 0%, ${T.bg}, transparent 65%), radial-gradient(${60 + T.heat * 10}% ${30 + T.heat * 8}% at 50% 105%, ${SYS}${["10", "1c", "2a", "3a", "4d", "66"][T.heat]}, transparent 70%), #08080a` }}>
-        {T.heat > 0 && <div aria-hidden className="pointer-events-none absolute -z-10 inset-x-0 bottom-0 h-1/3 overflow-hidden rounded-b-[21px]">
-          {Array.from({ length: T.heat * 4 }, (_, i) => <span key={i} className="absolute bottom-2 rounded-full fire-ember" style={{ left: `${((i + 0.5) / (T.heat * 4)) * 100}%`, width: 2 + (i % 2), height: 2 + (i % 2), background: i % 2 ? SYS : ALT, animationDelay: `${(i % 7) * 0.3}s` }} />)}
-        </div>}
-        {/* cantos */}
-        {["left-2 top-2 border-l-2 border-t-2", "right-2 top-2 border-r-2 border-t-2", "left-2 bottom-2 border-l-2 border-b-2", "right-2 bottom-2 border-r-2 border-b-2"].map((c) =>
-          <span key={c} className={`absolute h-3 w-3 ${c}`} style={{ borderColor: ALT }} />)}
-
+    <section className="hunt-card rise relative min-w-0 w-full overflow-hidden" style={{ ["--sys" as string]: SYS }}>
+      <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: SYS, boxShadow: `0 0 18px ${SYS}` }} />
+      <div className="p-4 pl-5">
         <div className="flex items-start gap-3">
           <StreakFlame n={streak} a={SYS} b={ALT} heat={T.heat} />
           <div className="flex-1 min-w-0">
-            <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: SYS }}>{full ? "MISSÃO CONCLUÍDA" : "MISSÃO DIÁRIA"} · <span style={{ color: ALT }}>{T.n}</span></p>
-            <p className="text-[15px] font-semibold mt-0.5">{full ? "O sistema registrou sua constância." : "Treinamento para se tornar mais forte"}</p>
+            <p className="label" style={{ color: SYS }}>{full ? "Missão concluída" : "Missão diária"} · {T.n}</p>
+            <p className="font-display text-3xl mt-1">{full ? "Alvo abatido." : "Olho no alvo."}</p>
           </div>
-          <button onClick={() => setEditing(true)} className="text-[11px] text-white/50 underline underline-offset-4 shrink-0 mt-1">editar</button>
+          <button onClick={() => setEditing(true)} className="label !text-[10px] underline underline-offset-4 shrink-0 mt-1 min-h-11">editar</button>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 mt-3">
-          {[[streak, streak === 1 ? "dia 100%" : "dias 100%", SYS], [best, "recorde", ALT], [doneCount, `de ${items.length} hoje`, "#ff7a5c"]].map(([v, l, c]) => (
-            <div key={String(l)} className="rounded-xl px-2 py-2 text-center border" style={{ borderColor: `${c}33`, background: `${c}0f` }}>
-              <p className="num text-2xl leading-none" style={{ color: String(c), textShadow: `0 0 12px ${c}` }}>{v}</p>
-              <p className="text-[10px] text-[#b3a99a] mt-1">{l}</p>
+        <div className="grid grid-cols-3 mt-4 border-y border-white/[.08] divide-x divide-white/[.08]">
+          {[[streak, streak === 1 ? "dia 100%" : "dias 100%"], [best, "recorde"], [`${doneCount}/${items.length}`, "hoje"]].map(([v, l], i) => (
+            <div key={String(l)} className="py-3 text-center">
+              <p className="num text-3xl leading-none" style={{ color: i === 0 ? SYS : "#f5f5f7" }}>{v}</p>
+              <p className="label !text-[9px] mt-1.5">{l}</p>
             </div>))}
         </div>
-        <div className="flex items-center justify-between mt-3 text-[11px] font-mono">
-          <span className="text-[#b3a99a]">⏳ {full ? "Concluída hoje" : `restam ${left}`}</span>
-          <span style={{ color: SYS }}>{Math.round(pct * 100)}%</span>
+
+        <div className="flex items-end justify-between mt-4">
+          <div><p className="label !text-[9px]">{full ? "Status" : "Tempo restante"}</p><p className="num text-2xl tabular-nums mt-0.5">{full ? "CUMPRIDA" : left}</p></div>
+          <p className="num text-2xl" style={{ color: SYS }}>{Math.round(pct * 100)}%</p>
         </div>
-        <div className="h-1.5 rounded-full bg-white/[.06] mt-1.5 overflow-hidden">
-          <div className="h-full rounded-full transition-all duration-700" style={{ width: `${Math.max(3, pct * 100)}%`, background: `linear-gradient(90deg, ${ALT}, ${SYS})`, boxShadow: `0 0 12px ${SYS}` }} />
+        <div className="flex gap-[3px] mt-2" aria-hidden>
+          {items.map((it, i) => <i key={it.key} className="h-1.5 flex-1 transition-colors duration-500" style={{ background: i < doneCount ? SYS : "rgba(255,255,255,.08)" }} />)}
         </div>
 
-        <p className="text-[10px] font-bold tracking-[.3em] mt-4 mb-1.5" style={{ color: `${ALT}cc` }}>OBJETIVOS</p>
-        <ul className="grid gap-1.5">
+        <p className="label !text-[9px] mt-5 mb-2">Objetivos</p>
+        <ul className="grid gap-px bg-white/[.06] border border-white/[.06]">
           {ordered.map((it) => {
             const on = opt.has(it.key), m = missionStyle(it.label), main = it === primary;
             return (
-              <li key={it.key}>
+              <li key={it.key} className="bg-[#080808]">
                 <button onClick={() => toggle(it.key)} aria-pressed={on}
-                  className={`press w-full flex items-center gap-3 text-left rounded-xl px-3 min-h-[52px] py-2 border transition-all duration-300 ${popped === it.key ? "sys-hit" : ""}`}
-                  style={{ borderColor: on ? `${SYS}55` : main ? `${ALT}55` : "rgba(255,255,255,.08)", background: on ? `linear-gradient(90deg, ${SYS}24, ${ALT}0d 70%)` : main ? `linear-gradient(90deg, ${ALT}1a, transparent 80%)` : "rgba(255,255,255,.03)" }}>
-                  <span className="grid place-items-center h-8 w-8 shrink-0 rounded-lg" style={{ background: on ? `linear-gradient(140deg, ${SYS}, ${ALT})` : `${m.color}1f`, border: `1px solid ${on ? "transparent" : m.color + "44"}`, boxShadow: on ? `0 0 14px -2px ${SYS}` : "none" }}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#140a03" : m.color} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={m.icon} /></svg>
+                  className={`press w-full flex items-center gap-3 text-left px-3 min-h-[54px] py-2 transition-colors ${popped === it.key ? "sys-hit" : ""}`}
+                  style={{ background: on ? `linear-gradient(90deg, ${SYS}1f, transparent 70%)` : undefined }}>
+                  <span className="grid place-items-center h-6 w-6 shrink-0 border" style={{ borderColor: on ? SYS : "rgba(255,255,255,.25)", background: on ? SYS : "transparent" }}>
+                    {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}
                   </span>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={on ? "#6b6b70" : "#a1a1a6"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d={m.icon} /></svg>
                   <span className="flex-1 min-w-0">
-                    {main && <span className="block text-[9px] font-bold tracking-[.25em]" style={{ color: on ? "#7a6a5a" : ALT }}>PRINCIPAL</span>}
-                    <span className={`block text-[14px] leading-snug ${on ? "text-[#b3a99a] line-through decoration-1" : "text-[#fbf6ee]"}`}>{it.label}</span>
+                    {main && <span className="label !text-[9px] block" style={{ color: on ? undefined : SYS }}>Principal</span>}
+                    <span className={`block text-[14px] leading-snug ${on ? "text-[#6b6b70] line-through decoration-1" : "text-[#f5f5f7]"}`}>{it.label}</span>
                   </span>
-                  <span className="font-mono text-[12px] shrink-0 tabular-nums" style={{ color: on ? SYS : "rgba(235,225,205,.5)", textShadow: on ? `0 0 8px ${SYS}` : "none" }}>[{on ? 1 : 0}/1]</span>
+                  <span className="font-mono text-[11px] shrink-0 tabular-nums" style={{ color: on ? SYS : "#6b6b70" }}>{on ? "+10" : "10"} XP</span>
                 </button>
               </li>
             );
           })}
         </ul>
 
-        <div className="grid grid-cols-2 gap-2 mt-4">
-          <div className="rounded-xl border p-2.5" style={{ borderColor: "rgba(255,210,122,.3)", background: "linear-gradient(160deg, rgba(255,210,122,.10), transparent)" }}>
-            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: "#ff7a5c" }}>✦ RECOMPENSAS</p>
-            <p className="text-[12px] text-white/85 mt-1 leading-snug">+10 XP por objetivo<br />+50 XP ao completar tudo</p>
-          </div>
-          <div className="rounded-xl border p-2.5" style={{ borderColor: full ? "rgba(48,209,88,.35)" : "rgba(255,107,129,.3)", background: full ? "linear-gradient(160deg, rgba(48,209,88,.10), transparent)" : "linear-gradient(160deg, rgba(255,107,129,.09), transparent)" }}>
-            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: full ? "#30d158" : "#ff6b81" }}>{full ? "▲ SEQUÊNCIA" : "⚠ PENALIDADE"}</p>
-            <p className="text-[12px] text-white/85 mt-1 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} 100% zera.`}</p>
-          </div>
+        <div className="flex items-start justify-between gap-3 mt-4 text-[12px]">
+          <p className="text-white/60 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} zera.`}</p>
+          {!full && <p className="font-mono shrink-0" style={{ color: SYS }}>+{(items.length - doneCount) * 10 + 50} XP</p>}
         </div>
-        {!full && <p className="text-center text-[11px] font-mono mt-3" style={{ color: "#ff7a5c" }}>+{(items.length - doneCount) * 10 + 50} XP disponíveis</p>}
       </div>
       <Sheet open={editing} onClose={() => setEditing(false)} title="Editar missões"><Editor items={items} onClose={() => setEditing(false)} /></Sheet>
     </section>
@@ -180,19 +169,14 @@ function useCountdown() {
 }
 
 /** Chama estilo cartoon (arredondada, gordinha, quica). Cresce e esquenta com a sequência. */
-function StreakFlame({ n, a, b, heat }: { n: number; a: string; b: string; heat: number }) {
-  const size = 44 + heat * 4, lit = heat > 0;
+function StreakFlame({ n, a, heat }: { n: number; a: string; b: string; heat: number }) {
+  const lit = heat > 0, size = 52;
   return (
-    <span className="relative shrink-0 grid place-items-center" style={{ width: size, height: size * 1.15 }}>
-      {lit && <span className="absolute inset-0 rounded-full fire-aura" style={{ background: `radial-gradient(50% 50% at 50% 60%, ${a}66, transparent 70%)` }} />}
-      <svg viewBox="0 0 40 46" className={`relative w-full h-full overflow-visible ${lit ? "duo-flame" : ""}`} aria-hidden style={lit ? { filter: `drop-shadow(0 3px 8px ${a}88)` } : undefined}>
-        <defs>
-          <linearGradient id={`duo${heat}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={lit ? b : "#3a3a3c"} /><stop offset="1" stopColor={lit ? a : "#2c2c2e"} /></linearGradient>
-        </defs>
-        <path d="M21 2c2 6 8 10 11 15 3 5 5 9 5 13a17 17 0 0 1-34 0c0-6 3-11 7-15 1 3 2 5 4 6 0-7 3-13 7-19z" fill={`url(#duo${heat})`} stroke={lit ? "rgba(255,255,255,.25)" : "rgba(255,255,255,.18)"} strokeWidth="1" />
-        <path d="M20 21c3 3 7 7 7 11a7 7 0 0 1-14 0c0-3 2-6 4-8 0 2 1 3 2 3 0-2 0-4 1-6z" fill={lit ? "#fff7e0" : "#48484a"} opacity={lit ? 0.92 : 1} />
-        <path d="M10 25c1-4 3-7 5-9" stroke="rgba(255,255,255,.55)" strokeWidth="2.2" strokeLinecap="round" fill="none" />
-        <text x="20" y="38" textAnchor="middle" fontSize="11" fontWeight="800" fill={lit ? "#5a1e00" : "#8e8e93"} style={{ fontFamily: "var(--font-sans)" }}>{n}</text>
+    <span className="relative shrink-0" style={{ width: size, height: size * 1.1 }}>
+      <svg viewBox="0 0 40 44" className="w-full h-full overflow-visible" aria-hidden style={lit ? { filter: `drop-shadow(0 0 ${4 + heat * 2}px ${a})` } : undefined}>
+        <path d="M20 1 L31 16 L27 15 L35 28 L28 43 L12 43 L5 28 L13 15 L9 16 Z" fill={lit ? a : "#1c1c1e"} stroke={lit ? "none" : "#3a3a3c"} />
+        <path d="M20 18 L26 30 L22 29 L24 43 L16 43 L18 29 L14 30 Z" fill={lit ? "#000" : "#0b0b0b"} opacity={lit ? 0.55 : 1} />
+        <text x="20" y="39" textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff" style={{ fontFamily: "var(--font-hunt), var(--font-sans)" }}>{n}</text>
       </svg>
     </span>
   );

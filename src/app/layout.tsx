@@ -1,10 +1,11 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Barlow_Condensed } from "next/font/google";
+import { Fraunces, Barlow_Condensed, Noto_Emoji } from "next/font/google";
 import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 const hunt = Barlow_Condensed({ subsets: ["latin"], weight: ["600", "700", "800"], style: ["normal", "italic"], variable: "--font-hunt" });
+const emoji = Noto_Emoji({ subsets: ["emoji"], weight: ["400", "600"], variable: "--font-emoji" });
 const fraunces = Fraunces({ subsets: ["latin"], style: ["normal", "italic"], variable: "--font-fraunces", axes: ["opsz"] });
 
 export const metadata: Metadata = {
@@ -18,7 +19,7 @@ export const viewport: Viewport = { themeColor: "#000000", width: "device-width"
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="pt-BR" className={`${hunt.variable} ${fraunces.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
+    <html lang="pt-BR" className={`${emoji.variable} ${hunt.variable} ${fraunces.variable} ${GeistSans.variable} ${GeistMono.variable}`}>
       <body>
         {children}
       </body>

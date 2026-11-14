@@ -94,6 +94,11 @@ export default async function Hoje() {
   const kg = weight.data ? Number(weight.data.kg) : null;
   const goalList = (goals.data ?? []).map((g) => ({ ...g, target: Number(g.target), current: Number(g.current), start_value: Number(g.start_value) }) as GoalRow);
   const photo = await signedPhoto(sb, s.partner_photo_path);
+  const dq = await sb.from("dreams").select("id,title,category,target_date,image_path").is("done_at", null).order("position").order("created_at").limit(5);
+  const dreams = dq.error ? [] : dq.data ?? [];
+  const dPaths = dreams.map((d) => d.image_path).filter(Boolean) as string[];
+  const dSigned = dPaths.length ? (await sb.storage.from("privado").createSignedUrls(dPaths, 3600)).data ?? [] : [];
+  const dUrl = (p: string | null) => (p ? dSigned.find((x) => x.path === p)?.signedUrl ?? null : null);
   const dailyText = s.daily_text_date === today ? s.daily_text ?? "" : "";
   const game = await loadGame(sb, s, today);
 
@@ -102,6 +107,24 @@ export default async function Hoje() {
       <div className="stagger home-dash">
       <div className="dash-main min-w-0">
       <Greeting name={firstName} />
+      <section className="rise mt-4" aria-label="Quadro dos sonhos">
+        <div className="flex items-end justify-between mb-2"><p className="label">Quadro dos sonhos · por quem você caça</p><Link href="/sonhos" className="label !text-[10px] underline underline-offset-4 min-h-11 inline-flex items-center">ver tudo</Link></div>
+        <div className="flex gap-2 overflow-x-auto snap-x pb-1 -mx-1 px-1">
+          <Link href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-[#3a0000] bg-[#0b0b0b]">
+            {photo && <img src={photo} alt="Maria Luisa" className="absolute inset-0 h-full w-full object-cover" />}
+            <span className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+            <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] !text-[#ff2800] block">Meu maior motivo</span><span className="font-display text-xl uppercase italic leading-none block mt-1">Maria Luisa</span></span>
+          </Link>
+          {dreams.map((d) => (
+            <Link key={d.id} href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-white/10 bg-[#0b0b0b]">
+              {dUrl(d.image_path) ? <img src={dUrl(d.image_path)!} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <span className="absolute inset-0" style={{ background: "radial-gradient(80% 60% at 70% 20%, rgba(220,0,0,.35), transparent 70%), #0b0b0b" }} />}
+              <span className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+              <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] block">{d.target_date ? `até ${d.target_date.split("-").reverse().slice(0, 2).join("/")}` : d.category}</span><span className="text-[14px] font-semibold leading-tight block mt-1 line-clamp-3">{d.title}</span></span>
+            </Link>))}
+          {dreams.length === 0 && <Link href="/sonhos" className="snap-start shrink-0 w-[150px] h-[190px] rounded-[8px] border border-dashed border-white/20 grid place-items-center text-center p-3 text-sm text-white/60">+ Coloque seu primeiro sonho</Link>}
+        </div>
+      </section>
+
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
       {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
