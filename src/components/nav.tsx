@@ -19,6 +19,7 @@ const star = I("M12 3l2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l
 const flame = I("M12 2c1.5 4 6 6 6 12a6 6 0 0 1-12 0c0-3 1.5-4.5 2.5-6 .5 2 1.5 3 2.5 3.5-1-4 .5-7 1-9.5z");
 const cal = I("M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4M15 3v4");
 const studyI = I("M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5M22 9v6");
+const dreamI = I("M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4-3.9-3.8 5.4-.8zM5 21h14");
 const gear = I("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z");
 
 const primary: Item[] = [
@@ -30,6 +31,7 @@ const primary: Item[] = [
 const secondary: Item[] = [
   { href: "/status", label: "Status", color: "#ff4d8a", icon: star },
   { href: "/agenda", label: "Agenda", color: "#f5f5f7", icon: cal },
+  { href: "/sonhos", label: "Sonhos", color: "#d12b65", icon: dreamI },
   { href: "/estudos", label: "Estudos", color: "#d12b65", icon: studyI },
   { href: "/eventos", label: "Eventos", color: "#e0393e", icon: flame },
   { href: "/financas", label: "Finanças", color: "#ff4d8a", icon: money },

@@ -8,7 +8,8 @@ export async function geminiJSON<T>(system: string, user: string, schema: object
   const key = process.env.GEMINI_API_KEY;
   if (!key) return { error: "Falta GEMINI_API_KEY na Vercel." };
   let last = 0;
-  for (const model of MODELS) {
+  for (const model of MODELS) for (let attempt = 0; attempt < 2; attempt++) {
+    if (attempt) await new Promise((ok) => setTimeout(ok, 900));
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST", headers: { "content-type": "application/json", "x-goog-api-key": key },
       body: JSON.stringify({
@@ -18,7 +19,8 @@ export async function geminiJSON<T>(system: string, user: string, schema: object
       }),
     });
     last = r.status;
-    if (r.status === 404) continue; // nome de modelo inexistente: tenta o próximo
+    if (r.status === 404) break; // nome de modelo inexistente: tenta o próximo
+    if (r.status === 503 || r.status === 500 || r.status === 502) { if (attempt === 0) continue; break; } // sobrecarga: tenta de novo e depois outro modelo
     if (r.status === 400 || r.status === 403) { const t = await r.text(); return { error: /API key|PERMISSION|key/i.test(t) ? "Chave do Gemini inválida ou sem acesso. Confira GEMINI_API_KEY." : "O Gemini recusou o pedido. Tente reformular." }; }
     if (r.status === 429) return { error: "Limite do Gemini atingido. Tente em um minuto." };
     if (!r.ok) return { error: `O Gemini não respondeu (${r.status}). Tente de novo.` };
@@ -26,5 +28,5 @@ export async function geminiJSON<T>(system: string, user: string, schema: object
     const txt = j.candidates?.[0]?.content?.parts?.map((p) => p.text ?? "").join("") ?? "";
     try { return JSON.parse(txt) as T; } catch { return { error: "Não entendi a resposta. Tente de novo." }; }
   }
-  return { error: `Nenhum modelo do Gemini disponível (${last}). Defina GEMINI_MODEL na Vercel.` };
+  return { error: last === 503 || last === 500 || last === 502 ? "O Gemini está sobrecarregado agora. Tente em instantes." : `Nenhum modelo do Gemini disponível (${last}). Defina GEMINI_MODEL na Vercel.`, overloaded: last >= 500 } as { error: string };
 }

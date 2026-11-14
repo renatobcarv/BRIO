@@ -408,7 +408,7 @@ body { background: transparent; }
 /* Telas em "dashboard" no desktop (como o Início): casca mais larga e blocos em duas colunas.
    Cabeçalho, navegação e itens .span-all ocupam a largura toda. No celular nada muda. */
 @media (min-width: 1280px) {
-  .app-shell:has(.dash-auto) { max-width: 76rem; }
+  .app-shell:has(.dash-auto), .app-shell:has(.dream-board) { max-width: 76rem; }
   .dash-auto { columns: 2; column-gap: 24px; }
   .dash-auto > * { break-inside: avoid; }
   .dash-auto > *:not(header):not(nav):not(.span-all) { margin-top: 0 !important; margin-bottom: 16px; }

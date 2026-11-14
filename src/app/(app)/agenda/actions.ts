@@ -122,32 +122,12 @@ ${(evs ?? []).map((e) => `${e.id} | ${e.date} ${e.start_time?.slice(0, 5) ?? "di
             category: { type: "STRING", enum: CATS }, location: { type: "STRING", nullable: true }, notes: { type: "STRING", nullable: true }, remind_min: { type: "INTEGER", nullable: true },
           }, required: ["action", "title", "date", "category"] } },
         }, required: ["reply", "items"] });
-      if ("error" in g) return g;
-      out = g;
+      if ("error" in g) {
+        if (!CLAUDE) return g;
+        out = await claudePlan(system, msgText.data, CATS);
+      } else out = g;
     } else {
-      const { default: Anthropic } = await import("@anthropic-ai/sdk");
-      const client = new Anthropic();
-      const r = await client.messages.create({
-        model: "claude-haiku-5-5", max_tokens: 4000, system,
-        tools: [{
-          name: "propor", description: "Propõe criar, alterar ou apagar compromissos.",
-          input_schema: { type: "object", properties: {
-            reply: { type: "string" },
-            items: { type: "array", items: { type: "object", properties: {
-              action: { type: "string", enum: ["criar", "alterar", "apagar"] }, id: { type: "string" },
-              title: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" },
-              start_time: { type: ["string", "null"], description: "HH:MM" }, end_time: { type: ["string", "null"], description: "HH:MM" },
-              category: { type: "string", enum: CATS },
-              location: { type: ["string", "null"] }, notes: { type: ["string", "null"] }, remind_min: { type: ["integer", "null"] },
-            }, required: ["action", "title", "date", "category"] } },
-          }, required: ["reply", "items"] },
-        }],
-        tool_choice: { type: "tool", name: "propor" },
-        messages: [{ role: "user", content: msgText.data }],
-      });
-      const tu = r.content.find((b) => b.type === "tool_use");
-      if (!tu || tu.type !== "tool_use") return { error: "Não entendi. Tente de novo com dia e horário." };
-      out = tu.input as { reply: string; items: Partial<AgendaProposal>[] };
+      out = await claudePlan(system, msgText.data, CATS);
     }
     const hm = (t: unknown) => (typeof t === "string" && /^\d{1,2}:\d{2}/.test(t) ? t.padStart(5, "0").slice(0, 5) : null);
     const proposals = (out.items ?? []).filter((i) => i.title && /^\d{4}-\d{2}-\d{2}$/.test(i.date ?? "")).map((i) => ({
@@ -170,4 +150,31 @@ export async function applyProposals(list: AgendaProposal[]): Promise<string | n
     if (e) return e;
   }
   return null;
+}
+
+/** Mesmo pedido via Claude (usado sem Gemini ou quando o Gemini está fora). */
+async function claudePlan(system: string, text: string, CATS: string[]): Promise<{ reply: string; items: Partial<AgendaProposal>[] }> {
+  const { default: Anthropic } = await import("@anthropic-ai/sdk");
+  const client = new Anthropic();
+  const r = await client.messages.create({
+    model: "claude-haiku-5-5", max_tokens: 4000, system,
+    tools: [{
+      name: "propor", description: "Propõe criar, alterar ou apagar compromissos.",
+      input_schema: { type: "object", properties: {
+        reply: { type: "string" },
+        items: { type: "array", items: { type: "object", properties: {
+          action: { type: "string", enum: ["criar", "alterar", "apagar"] }, id: { type: "string" },
+          title: { type: "string" }, date: { type: "string", description: "YYYY-MM-DD" },
+          start_time: { type: ["string", "null"], description: "HH:MM" }, end_time: { type: ["string", "null"], description: "HH:MM" },
+          category: { type: "string", enum: CATS },
+          location: { type: ["string", "null"] }, notes: { type: ["string", "null"] }, remind_min: { type: ["integer", "null"] },
+        }, required: ["action", "title", "date", "category"] } },
+      }, required: ["reply", "items"] },
+    }],
+    tool_choice: { type: "tool", name: "propor" },
+    messages: [{ role: "user", content: text }],
+  });
+  const tu = r.content.find((b) => b.type === "tool_use");
+  if (!tu || tu.type !== "tool_use") return { reply: "Não entendi. Tente de novo com dia e horário.", items: [] };
+  return tu.input as { reply: string; items: Partial<AgendaProposal>[] };
 }
