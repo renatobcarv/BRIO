@@ -27,7 +27,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const bibleStreak = dayStreak(new Set((bible.data ?? []).map((b) => b.date_read)), today);
 
   return (
-    <div style={{ ["--accent" as string]: ACC }}>
+    <div className="dash-auto" style={{ ["--accent" as string]: ACC }}>
       <PageHeader eyebrow="Espiritual" title="Vida espiritual" />
       <StudyQuizButton today={today} minutesToday={st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0)} />
       <Card>

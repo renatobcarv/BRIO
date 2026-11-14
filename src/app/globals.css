@@ -404,3 +404,13 @@ body { background: transparent; }
 /* Acabamento da marca: cards de vidro com fio de luz no topo; borda acende em magenta ao passar o mouse */
 .glass { box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 24px 60px -36px rgba(0,0,0,.9); transition: border-color .15s ease; }
 @media (hover: hover) { a.glass:hover, button.glass:hover { border-color: rgba(209,43,101,.45); } }
+
+/* Telas em "dashboard" no desktop (como o Início): casca mais larga e blocos em duas colunas.
+   Cabeçalho, navegação e itens .span-all ocupam a largura toda. No celular nada muda. */
+@media (min-width: 1280px) {
+  .app-shell:has(.dash-auto) { max-width: 76rem; }
+  .dash-auto { columns: 2; column-gap: 24px; }
+  .dash-auto > * { break-inside: avoid; }
+  .dash-auto > *:not(header):not(nav):not(.span-all) { margin-top: 0 !important; margin-bottom: 16px; }
+  .dash-auto > header, .dash-auto > nav, .dash-auto > .span-all, .dash-auto > [class*="sticky"] { column-span: all; }
+}

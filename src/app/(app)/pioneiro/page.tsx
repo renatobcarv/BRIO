@@ -32,7 +32,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
   }));
 
   return (
-    <>
+    <div className="dash-auto">
       <PageHeader eyebrow="Pioneiro" title="Serviço de campo" color="#f5f5f7" />
       <FieldHub today={today} contacts={(contacts.error ? [] : contacts.data ?? []) as Contact[]} todayEntries={todayRows.data ?? []} monthMinutes={monthMin} goal={goalMin} />
       <div className="mt-6" />
@@ -40,6 +40,6 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
         goal={goal.data?.goal_minutes ?? s.pioneer_goal_minutes}
         entries={entries.data ?? []} plan={plan.data?.minutes_by_day ?? [0, 0, 0, 0, 0, 0, 0]} year={yearData} />
       <Verse area="pioneiro" />
-    </>
+    </div>
   );
 }

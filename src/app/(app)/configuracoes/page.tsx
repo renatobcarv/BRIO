@@ -17,7 +17,7 @@ export default async function Config() {
   const { data: claims } = await sb.auth.getClaims();
   const ref = SUPABASE_URL.replace(/^https?:\/\//, "").split(".")[0] || "não configurado";
   return (
-    <>
+    <div className="dash-auto">
       <PageHeader eyebrow="Ajustes" title="Configurações" color="#9a978f" />
       <nav className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 mb-2 sticky top-0 z-10 py-2 bg-[#000]/80 backdrop-blur">
         {[["rotina", "Rotina"], ["metas", "Metas"], ["treino", "Treino"], ["maria-luisa", "Maria Luisa"], ["dados", "Dados"], ["conta", "Conta"]].map(([id, t]) =>
@@ -45,7 +45,7 @@ export default async function Config() {
         <p className="text-xs tracking-[.3em] mt-2 pl-[.3em]">BRIO</p>
         <p className="text-[11px] text-muted mt-1">Vigor com honra · sobre o app</p>
       </Link>
-    </>
+    </div>
   );
 }
 

@@ -12,10 +12,10 @@ export default async function Page() {
   const s = await getSettings(sb);
   const g = await loadGame(sb, s, todayISO());
   return (
-    <>
+    <div className="dash-auto">
       <PageHeader eyebrow="Status" title="Sua evolução" />
       <StatusSheet g={g} />
       <Verse area="metas" />
-    </>
+    </div>
   );
 }
