@@ -14,5 +14,6 @@ test("lacuna reinicia a sequência", () => {
 test("fogo por faixa", () => {
   assert.equal(fireTier(0).name, "Apagado");
   assert.equal(fireTier(7).name, "Fogueira");
-  assert.equal(fireTier(120).name, "Fogo branco");
+  assert.equal(fireTier(120).name, "Rubi");
+  assert.equal(fireTier(40).name, "Fogo branco");
 });

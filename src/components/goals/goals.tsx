@@ -5,7 +5,7 @@ import { deleteGoal, deleteObjective, saveGoal, saveObjective, setGoalCurrent } 
 import { Card, Empty } from "@/components/ui";
 import { AREAS, AUTO, goalStats, type AreaKey, type GoalRow } from "@/lib/goals";
 
-const ACC = "#bf5af2";
+const ACC = "#d12b65";
 type Objective = { id: string; title: string; area: AreaKey; description: string | null };
 const fmt = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 const num = (s: string) => Number(s.replace(",", ".")) || 0;
@@ -98,7 +98,7 @@ function GoalForm({ goal, objectives, boxes, onDone }: { goal?: GoalRow; objecti
             </select></label>
         )}
       </div>
-      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#bf5af2]" checked={f.featured} onChange={(e) => set({ featured: e.target.checked })} /> Meta principal (aparece no Início)</label>
+      <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#d12b65]" checked={f.featured} onChange={(e) => set({ featured: e.target.checked })} /> Meta principal (aparece no Início)</label>
       <div className="flex gap-2 justify-end">
         {goal && <button className="btn text-muted" onClick={() => { if (confirm("Excluir meta?")) start(async () => { await deleteGoal(goal.id); onDone(); }); }}>Excluir</button>}
         <button className="btn" onClick={onDone}>Cancelar</button>

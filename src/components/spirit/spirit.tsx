@@ -6,7 +6,7 @@ import { Card, Empty } from "@/components/ui";
 import { shortDate } from "@/lib/date";
 import { BOOKS, TOTAL_CHAPTERS } from "@/lib/bible";
 
-const ACC = "#ffb340";
+const ACC = "#ff4d8a";
 export const STUDY_TYPES = { biblia: "Bíblia", publicacao: "Publicação", meio_semana: "Reunião do meio de semana",
   sentinela: "Sentinela", pesquisa: "Pesquisa de tema", outro: "Outro" } as const;
 const KINDS = { oracao: "Motivo de oração", gratidao: "Gratidão", reflexao: "Reflexão" } as const;

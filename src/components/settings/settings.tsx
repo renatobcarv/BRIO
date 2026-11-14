@@ -31,7 +31,7 @@ export function ChecklistEditor({ initial }: { initial: ChecklistItem[] }) {
             <button className="btn !px-3" aria-label="Subir" disabled={i === 0} onClick={() => move(i, -1)}>↑</button>
             <button className="btn !px-3" aria-label="Descer" disabled={i === items.length - 1} onClick={() => move(i, 1)}>↓</button>
             <button className="btn !px-3" aria-label="Destacar como primeiro item" aria-pressed={!!it.primary} title="Jeová em primeiro lugar"
-              style={it.primary ? { color: "#ffb340", borderColor: "#ffb340" } : undefined}
+              style={it.primary ? { color: "#ff4d8a", borderColor: "#ff4d8a" } : undefined}
               onClick={() => { setItems(items.map((x, j) => ({ ...x, primary: j === i }))); setOk(false); }}>★</button>
             <button className="btn !px-3 text-muted" aria-label="Remover" disabled={items.length === 1}
               onClick={() => { setItems(items.filter((_, j) => j !== i)); setOk(false); }}>×</button>

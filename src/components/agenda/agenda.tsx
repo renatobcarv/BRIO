@@ -9,9 +9,9 @@ export type GoogleState = { ready: boolean; connected: boolean; email: string | 
 export type GEv = { id: string; title: string; date: string; start_time: string | null; end_time: string | null; location: string | null; link: string | null };
 export type CalEvent = { id: string; title: string; date: string; start_time: string | null; end_time: string | null; category: string; location: string | null; notes: string | null; remind_min: number | null };
 const CAT: Record<string, { label: string; color: string; e: string }> = {
-  pessoal: { label: "Pessoal", color: "#9a978f", e: "📌" }, espiritual: { label: "Espiritual", color: "#ffb340", e: "📖" },
-  campo: { label: "Campo", color: "#0a84ff", e: "💬" }, treino: { label: "Treino", color: "#e0393e", e: "🏋️" },
-  financas: { label: "Finanças", color: "#3ee6c1", e: "💰" }, trabalho: { label: "Trabalho", color: "#bf5af2", e: "💼" }, familia: { label: "Família", color: "#ff6b81", e: "❤️" },
+  pessoal: { label: "Pessoal", color: "#9a978f", e: "📌" }, espiritual: { label: "Espiritual", color: "#ff4d8a", e: "📖" },
+  campo: { label: "Campo", color: "#f5f5f7", e: "💬" }, treino: { label: "Treino", color: "#e0393e", e: "🏋️" },
+  financas: { label: "Finanças", color: "#ff4d8a", e: "💰" }, trabalho: { label: "Trabalho", color: "#d12b65", e: "💼" }, familia: { label: "Família", color: "#ff6b81", e: "❤️" },
 };
 const MES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 const DS = ["S", "T", "Q", "Q", "S", "S", "D"];
@@ -68,13 +68,13 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
   const weekStart = add(sel, -((new Date(sel + "T12:00:00Z").getUTCDay() + 6) % 7));
 
   return (
-    <div style={{ ["--accent" as string]: "#5ab0ff" }}>
+    <div style={{ ["--accent" as string]: "#f5f5f7" }}>
       {/* Cabeçalho */}
-      <header className="rise mb-4 rounded-[26px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(90,176,255,.25)", background: "radial-gradient(120% 90% at 0% 0%, rgba(90,176,255,.16), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(191,90,242,.12), transparent 60%), #07090f" }}>
+      <header className="rise mb-4 rounded-[26px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(245,245,247,.25)", background: "radial-gradient(120% 90% at 0% 0%, rgba(245,245,247,.16), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(209,43,101,.12), transparent 60%), #07090f" }}>
         <div className="absolute inset-0 pointer-events-none opacity-[.07]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
         <div className="relative flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-[.35em] text-[#5ab0ff]">CENTRAL DE OPERAÇÕES</p>
+            <p className="text-[10px] font-bold tracking-[.35em] text-[#f5f5f7]">CENTRAL DE OPERAÇÕES</p>
             <p className="num text-[40px] leading-none mt-1 tabular-nums">{now ? fmtMin(nowMin!) : "--:--"}<span className="text-lg text-muted ml-1">{now ? String(new Date(now).getUTCSeconds()).padStart(2, "0") : ""}</span></p>
             <p className="text-xs text-muted mt-1">{WD[new Date(today + "T12:00:00Z").getUTCDay()]}, {br(today)} · {todayBlocks.length} {todayBlocks.length === 1 ? "compromisso" : "compromissos"} · {Math.floor(busy / 60)}h{String(busy % 60).padStart(2, "0")} ocupadas</p>
           </div>
@@ -131,8 +131,8 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
               return (
                 <button key={d} onClick={() => { setSel(d); setView("dia"); haptic(5); }} aria-label={`${br(d)}${evs.length ? `, ${evs.length} compromissos` : ""}`}
                   className={`press rounded-xl h-11 !min-h-0 min-w-0 flex flex-col items-center justify-center gap-0.5 border ${inMonth ? "" : "opacity-30"}`}
-                  style={{ borderColor: on ? "#5ab0ff" : isToday ? "rgba(90,176,255,.4)" : "transparent", background: on ? "rgba(90,176,255,.16)" : "transparent" }}>
-                  <span className={`num text-sm ${isToday ? "font-bold text-[#5ab0ff]" : ""}`}>{+d.slice(8)}</span>
+                  style={{ borderColor: on ? "#f5f5f7" : isToday ? "rgba(245,245,247,.4)" : "transparent", background: on ? "rgba(245,245,247,.16)" : "transparent" }}>
+                  <span className={`num text-sm ${isToday ? "font-bold text-[#f5f5f7]" : ""}`}>{+d.slice(8)}</span>
                   <span className="flex gap-0.5 h-1.5">{evs.slice(0, 3).map((e) => <i key={e.id} className="h-1.5 w-1.5 rounded-full" style={{ background: CAT[e.category]?.color }} />)}{(gBy.get(d) ?? []).slice(0, Math.max(0, 3 - evs.length)).map((e) => <i key={e.id} className="h-1.5 w-1.5 rounded-full bg-white/70" />)}</span>
                 </button>
               );
@@ -147,7 +147,7 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
         {google?.connected && <span className="flex items-center gap-1"><i className="h-2 w-2 rounded-full bg-white/80" />Google</span>}
       </div>
 
-      <Sheet open={!!form} onClose={() => setForm(null)} title={form?.id ? "Editar compromisso" : "Novo compromisso"} accent="#5ab0ff">
+      <Sheet open={!!form} onClose={() => setForm(null)} title={form?.id ? "Editar compromisso" : "Novo compromisso"} accent="#f5f5f7">
         {form && <EventForm key={form.id ?? `${form.date}${form.start_time}`} ev={form} onDone={() => setForm(null)} />}
       </Sheet>
       <Sheet open={conn} onClose={() => setConn(false)} title="Conexão com calendário" accent="#30d158">
@@ -224,13 +224,13 @@ function WeekGrid({ start, today, nowMin, blocksOf, allDayOf, onDay, onEvent }: 
         {days.map((d) => (
           <button key={d} onClick={() => onDay(d)} className="text-center pb-1">
             <span className="block text-[10px] text-muted">{WD[new Date(d + "T12:00:00Z").getUTCDay()].slice(0, 3)}</span>
-            <span className={`block num text-sm ${d === today ? "text-[#5ab0ff] font-bold" : ""}`}>{+d.slice(8)}</span>
-            <span className="block h-1.5">{allDayOf(d).length > 0 && <i className="inline-block h-1.5 w-1.5 rounded-full bg-[#ffd60a]" />}</span>
+            <span className={`block num text-sm ${d === today ? "text-[#f5f5f7] font-bold" : ""}`}>{+d.slice(8)}</span>
+            <span className="block h-1.5">{allDayOf(d).length > 0 && <i className="inline-block h-1.5 w-1.5 rounded-full bg-[#ffffff]" />}</span>
           </button>
         ))}
         <div className="relative" style={{ height: (T - F) * P }}>{Array.from({ length: T - F }, (_, i) => <span key={i} className="absolute right-0 text-[9px] num text-faint -translate-y-1/2" style={{ top: i * P }}>{F + i}</span>)}</div>
         {days.map((d) => (
-          <div key={d} className="relative rounded-lg" style={{ height: (T - F) * P, background: d === today ? "rgba(90,176,255,.06)" : "rgba(255,255,255,.02)" }}>
+          <div key={d} className="relative rounded-lg" style={{ height: (T - F) * P, background: d === today ? "rgba(245,245,247,.06)" : "rgba(255,255,255,.02)" }}>
             {Array.from({ length: T - F }, (_, i) => <span key={i} className="absolute inset-x-0 border-t border-white/[.05]" style={{ top: i * P }} />)}
             {lanes(blocksOf(d).filter((b) => !b.routine)).map((b) => {
               const top = Math.max(0, (b.start / 60 - F) * P), h = Math.max(10, ((b.end - b.start) / 60) * P - 1);
@@ -255,11 +255,11 @@ function AiBar({ today }: { today: string }) {
   const ask = () => start(async () => { setErr(null); setOff(new Set()); const r = await aiAgenda(text, today); if ("error" in r) { setErr(r.error); setRes(null); } else setRes(r); });
   const apply = () => start(async () => { const list = res!.proposals.filter((_, i) => !off.has(i)); const e = await applyProposals(list); if (e) setErr(e); else { haptic([20, 40, 20]); setRes(null); setText(""); } });
   return (
-    <section className="rise rounded-[22px] p-[1px]" style={{ background: "linear-gradient(120deg, #5ab0ff, #bf5af2, #ff6b81)" }}>
+    <section className="rise rounded-[22px] p-[1px]" style={{ background: "linear-gradient(120deg, #f5f5f7, #d12b65, #ff6b81)" }}>
       <div className="rounded-[21px] p-3 bg-[#07080d]">
         <div className="flex items-center gap-2">
           <span className="text-lg" aria-hidden>✦</span>
-          <p className="text-[10px] font-bold tracking-[.3em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#5ab0ff,#bf5af2)" }}>ASSISTENTE DE AGENDA</p>
+          <p className="text-[10px] font-bold tracking-[.3em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#f5f5f7,#d12b65)" }}>ASSISTENTE DE AGENDA</p>
         </div>
         <div className="flex items-end gap-2 mt-2">
           <textarea rows={2} className="field flex-1 !min-h-[52px] text-[15px] resize-none" value={text} onChange={(e) => setText(e.target.value)}
@@ -271,15 +271,15 @@ function AiBar({ today }: { today: string }) {
         {res && (
           <div className="mt-3 grid gap-2">
             {res.reply && <div className="flex items-end gap-2 msg-in">
-              <span className="h-7 w-7 shrink-0 rounded-xl grid place-items-center text-sm text-white" style={{ background: "linear-gradient(135deg,#5ab0ff,#bf5af2)", boxShadow: "0 0 14px -4px #bf5af2" }}>✦</span>
-              <p className="rounded-[20px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(90,176,255,.10), rgba(191,90,242,.06))" }}>{res.reply}</p>
+              <span className="h-7 w-7 shrink-0 rounded-xl grid place-items-center text-sm text-white" style={{ background: "linear-gradient(135deg,#f5f5f7,#d12b65)", boxShadow: "0 0 14px -4px #d12b65" }}>✦</span>
+              <p className="rounded-[20px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(245,245,247,.10), rgba(209,43,101,.06))" }}>{res.reply}</p>
             </div>}
             {res.proposals.length === 0 ? <p className="text-xs text-muted">Nada para marcar.</p> : res.proposals.map((p, i) => {
               const c = CAT[p.category] ?? CAT.pessoal, on = !off.has(i);
               return (
                 <button key={i} onClick={() => setOff((s) => { const n = new Set(s); if (n.has(i)) n.delete(i); else n.add(i); return n; })}
                   className="press flex items-center gap-3 text-left rounded-2xl px-3 py-2.5 border" style={{ borderColor: on ? c.color + "66" : "rgba(255,255,255,.08)", background: on ? c.color + "14" : "transparent", opacity: on ? 1 : 0.5 }}>
-                  <span className="text-[10px] font-bold rounded-md px-1.5 py-0.5 shrink-0" style={{ background: p.action === "apagar" ? "#ff453a33" : p.action === "alterar" ? "#ffd60a33" : "#30d15833", color: p.action === "apagar" ? "#ff6961" : p.action === "alterar" ? "#ffd60a" : "#30d158" }}>{p.action.toUpperCase()}</span>
+                  <span className="text-[10px] font-bold rounded-md px-1.5 py-0.5 shrink-0" style={{ background: p.action === "apagar" ? "#ff453a33" : p.action === "alterar" ? "#ffffff33" : "#30d15833", color: p.action === "apagar" ? "#ff6961" : p.action === "alterar" ? "#ffffff" : "#30d158" }}>{p.action.toUpperCase()}</span>
                   <span className="flex-1 min-w-0"><span className="block text-sm font-medium truncate">{c.e} {p.title}</span>
                     <span className="block text-[11px] text-muted num">{WD[new Date(p.date + "T12:00:00Z").getUTCDay()].slice(0, 3)} {br(p.date)} · {p.start_time ? `${p.start_time}${p.end_time ? `–${p.end_time}` : ""}` : "dia todo"}{p.location ? ` · ${p.location}` : ""}</span></span>
                   <span className="h-5 w-5 rounded-md border grid place-items-center text-[11px]" style={{ borderColor: on ? c.color : "rgba(255,255,255,.3)", background: on ? c.color : "transparent", color: "#000" }}>{on ? "✓" : ""}</span>

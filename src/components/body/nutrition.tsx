@@ -10,7 +10,7 @@ import { addDays, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
 import { MealQuiz } from "@/components/quiz/meal-quiz";
 
-const G = "#30d158", P = "#ffb340", C = "#0a84ff", F = "#bf5af2";
+const G = "#30d158", P = "#ff4d8a", C = "#f5f5f7", F = "#d12b65";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 export type SavedMeal = { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] };
 export type Food = { id: string; name: string; portion: string | null; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
@@ -390,11 +390,11 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         );
       })}
 
-      <section className="rise mt-4 rounded-[22px] p-5 border" style={{ borderColor: "rgba(255,159,10,.3)", background: "linear-gradient(160deg, rgba(255,159,10,.10), #0f0f11 60%)" }}>
+      <section className="rise mt-4 rounded-[22px] p-5 border" style={{ borderColor: "rgba(255,90,110,.3)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0f0f11 60%)" }}>
         <div className="flex items-center gap-3">
           <span className="text-2xl" aria-hidden>🍕</span>
           <div className="flex-1"><p className="font-display text-xl">Fora do plano</p><p className="text-xs text-muted">Lanches, bebidas, férias, imprevistos</p></div>
-          {off.length > 0 && <p className="num text-sm" style={{ color: "#ff9f0a" }}>{offKcal} kcal</p>}
+          {off.length > 0 && <p className="num text-sm" style={{ color: "#ff5a6e" }}>{offKcal} kcal</p>}
         </div>
         {off.length > 0 && (
           <ul className="mt-3">
@@ -407,7 +407,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
               </button></li>); })}
           </ul>
         )}
-        <button className="btn w-full mt-3" style={{ borderColor: "rgba(255,159,10,.35)" }} onClick={() => setSheet({ kind: "off" })}>+ Registrar comida ou bebida</button>
+        <button className="btn w-full mt-3" style={{ borderColor: "rgba(255,90,110,.35)" }} onClick={() => setSheet({ kind: "off" })}>+ Registrar comida ou bebida</button>
       </section>
 
       <div className="grid grid-cols-2 gap-2 mt-4">
@@ -434,7 +434,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         {sheet?.kind === "add" && <ItemForm key={"a" + sheet.slot} date={date} slot={sheet.slot} foods={foods} onDone={close} />}
         {sheet?.kind === "edit" && <ItemForm key={sheet.item.id} date={date} slot={sheet.item.slot} item={sheet.item} foods={foods} onDone={close} />}
       </Sheet>
-      <Sheet accent="#ff9f0a" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
+      <Sheet accent="#ff5a6e" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
         {sheet?.kind === "off" && <OffPlanForm date={date} onDone={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "quiz"} onClose={close} title="Refeição">

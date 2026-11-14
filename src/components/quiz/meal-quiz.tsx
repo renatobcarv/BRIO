@@ -10,12 +10,12 @@ type Food = { id: string; name: string; portion: string | null; kcal: number; pr
 type Pick = { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number; favorite?: boolean };
 
 const slotStyle = (label: string) =>
-  /caf[eé]|manh/i.test(label) ? { color: "#ffb340", icon: "M5 8h11v6a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5zM16 10h2a2 2 0 0 1 0 4h-2M8 3v2M11 3v2" }
+  /caf[eé]|manh/i.test(label) ? { color: "#ff4d8a", icon: "M5 8h11v6a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5zM16 10h2a2 2 0 0 1 0 4h-2M8 3v2M11 3v2" }
   : /almo/i.test(label) ? { color: "#30d158", icon: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8a4 4 0 1 0 0 8" }
-  : /lanche/i.test(label) ? { color: "#ff8a65", icon: "M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4zM12 7c0-2 1-4 3-4" }
-  : /jant/i.test(label) ? { color: "#5e5ce6", icon: "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" }
-  : /tre?ino/i.test(label) ? { color: "#ff9f0a", icon: "M13 2L4 14h7l-1 8 9-12h-7z" }
-  : { color: "#64d2ff", icon: "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8" };
+  : /lanche/i.test(label) ? { color: "#ff5a6e", icon: "M12 7c-3-3-8-1-8 4 0 5 4 9 8 9s8-4 8-9c0-5-5-7-8-4zM12 7c0-2 1-4 3-4" }
+  : /jant/i.test(label) ? { color: "#d12b65", icon: "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" }
+  : /tre?ino/i.test(label) ? { color: "#ff5a6e", icon: "M13 2L4 14h7l-1 8 9-12h-7z" }
+  : { color: "#f5f5f7", icon: "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8" };
 
 type Saved = { date: string; slot: string; items: Pick[] };
 const br = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
@@ -97,11 +97,11 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-2.5">
               <div className="rounded-2xl bg-[#141416] p-4 text-center"><p className="num text-4xl">{kcal}</p><p className="text-xs text-muted">kcal</p></div>
-              <div className="rounded-2xl p-4 text-center" style={{ background: "#ffb34018" }}><p className="num text-4xl" style={{ color: "#ffb340" }}>{Math.round(prot)}</p><p className="text-xs text-muted">g de proteína</p></div>
+              <div className="rounded-2xl p-4 text-center" style={{ background: "#ff4d8a18" }}><p className="num text-4xl" style={{ color: "#ff4d8a" }}>{Math.round(prot)}</p><p className="text-xs text-muted">g de proteína</p></div>
             </div>
             <div>
               <div className="flex justify-between text-xs text-muted mb-1"><span>Proteína do dia</span><span className="num">{Math.round(proteinSoFar + prot)} / {proteinGoal} g</span></div>
-              <div className="h-2.5 rounded-full bg-white/[.08] overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${Math.min(100, ((proteinSoFar + prot) / proteinGoal) * 100)}%`, background: "#ffb340", boxShadow: "0 0 12px #ffb340" }} /></div>
+              <div className="h-2.5 rounded-full bg-white/[.08] overflow-hidden"><div className="h-full rounded-full bar-grow" style={{ width: `${Math.min(100, ((proteinSoFar + prot) / proteinGoal) * 100)}%`, background: "#ff4d8a", boxShadow: "0 0 12px #ff4d8a" }} /></div>
               {reachesGoal && <p className="text-sm mt-2 font-semibold" style={{ color: "#30d158" }}>Esta refeição fecha sua meta de proteína: +25 XP extra</p>}
             </div>
           </div>) },

@@ -69,7 +69,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4" role="img" aria-label="Gráfico do peso com a linha ideal">
             {[0, 0.5, 1].map((t) => { const v = min + (max - min) * t; return <g key={t}><line x1={P} x2={W - P} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,.05)" /><text x={4} y={py(v) + 4} fontSize="11" fill="#5d5b56">{fmt(v, 0)}</text></g>; })}
             <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke={G} strokeDasharray="4 6" opacity=".5" />
-            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#ffb340" strokeDasharray="2 5" opacity=".6" />}
+            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#ff4d8a" strokeDasharray="2 5" opacity=".6" />}
             <path d={`${path} L${px(sorted.at(-1)!.date)},${H - P} L${px(t0)},${H - P} Z`} fill={G} opacity=".08" />
             <path d={path} fill="none" stroke={G} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
             {sorted.map((l) => <circle key={l.id} cx={px(l.date)} cy={py(l.kg)} r="3.5" fill="#07080b" stroke={G} strokeWidth="2" />)}

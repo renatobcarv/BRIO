@@ -1,12 +1,12 @@
 // Cálculos de investimento, sem dependências (testáveis).
 export const INV_TYPES = {
   reserva: { label: "Reserva de emergência", color: "#30d158" },
-  renda_fixa: { label: "Renda fixa (CDB/LCI/LCA)", color: "#0a84ff" },
+  renda_fixa: { label: "Renda fixa (CDB/LCI/LCA)", color: "#f5f5f7" },
   tesouro: { label: "Tesouro Direto", color: "#3a7bd5" },
-  acoes: { label: "Ações", color: "#ffb340" },
-  fiis: { label: "Fundos imobiliários", color: "#64d2ff" },
-  etf: { label: "ETFs", color: "#ff8a65" },
-  cripto: { label: "Cripto", color: "#bf5af2" },
+  acoes: { label: "Ações", color: "#ff4d8a" },
+  fiis: { label: "Fundos imobiliários", color: "#f5f5f7" },
+  etf: { label: "ETFs", color: "#ff5a6e" },
+  cripto: { label: "Cripto", color: "#d12b65" },
   previdencia: { label: "Previdência", color: "#7ee2a0" },
   outro: { label: "Outro", color: "#9a978f" },
 } as const;

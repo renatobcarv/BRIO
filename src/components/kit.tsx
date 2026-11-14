@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 /** Painel que sobe de baixo no celular e vira modal centralizado no desktop. */
-export function Sheet({ open, onClose, title, children, accent = "#ffb340", tone }:
+export function Sheet({ open, onClose, title, children, accent = "#ff4d8a", tone }:
   { open: boolean; onClose: () => void; title: string; children: React.ReactNode; accent?: string; tone?: "war" }) {
   const ref = useRef<HTMLDivElement>(null);
   // onClose costuma ser uma função nova a cada render: guardar em ref evita refocar o 1º campo a cada tecla.

@@ -5,11 +5,11 @@ import { Field, Sheet } from "@/components/kit";
 import { haptic, useXp } from "@/components/game/xp";
 import { nextStep, pace, perDay, progress, studyStreak, type SItem, type SLog, type STrack, type StudyStatus } from "@/lib/study";
 
-const V = "#bf5af2";
-const COLORS = ["#bf5af2", "#5ab0ff", "#30d158", "#ff9f0a", "#ff6b81", "#3ee6c1", "#ffd60a"];
+const V = "#d12b65";
+const COLORS = ["#d12b65", "#f5f5f7", "#30d158", "#ff5a6e", "#ff6b81", "#ff4d8a", "#ffffff"];
 const ST: Record<StudyStatus, { label: string; color: string; e: string }> = {
-  afazer: { label: "A estudar", color: "#8e8e93", e: "○" }, estudando: { label: "Estudando", color: "#5ab0ff", e: "◐" },
-  revisar: { label: "Revisar", color: "#ff9f0a", e: "↻" }, dominado: { label: "Dominado", color: "#30d158", e: "●" },
+  afazer: { label: "A estudar", color: "#8e8e93", e: "○" }, estudando: { label: "Estudando", color: "#f5f5f7", e: "◐" },
+  revisar: { label: "Revisar", color: "#ff5a6e", e: "↻" }, dominado: { label: "Dominado", color: "#30d158", e: "●" },
 };
 const ORDER: StudyStatus[] = ["afazer", "estudando", "dominado", "revisar"];
 const hm = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}` : `${m} min`);
@@ -35,7 +35,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
   return (
     <div style={{ ["--accent" as string]: V }}>
       {/* Cabeçalho */}
-      <header className="rise rounded-[26px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(191,90,242,.3)", background: "radial-gradient(120% 90% at 0% 0%, rgba(191,90,242,.2), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(90,176,255,.14), transparent 60%), #08070d" }}>
+      <header className="rise rounded-[26px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(209,43,101,.3)", background: "radial-gradient(120% 90% at 0% 0%, rgba(209,43,101,.2), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(245,245,247,.14), transparent 60%), #08070d" }}>
         <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: V }}>CENTRAL DE ESTUDOS</p>
         <h1 className="font-display text-[clamp(28px,9vw,40px)] leading-none mt-1">Aprender até fechar.</h1>
         <div className="grid grid-cols-4 gap-2 mt-4">
@@ -56,8 +56,8 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
 
       {/* Revisões de hoje (todas as trilhas) */}
       {dueAll.length > 0 && (
-        <section className="rise mt-4 rounded-[22px] p-4 border" style={{ borderColor: "rgba(255,159,10,.35)", background: "linear-gradient(160deg, rgba(255,159,10,.10), #0d0b08 70%)" }}>
-          <p className="text-[10px] font-bold tracking-[.3em] text-[#ff9f0a]">↻ REVISÕES DE HOJE · {dueAll.length}</p>
+        <section className="rise mt-4 rounded-[22px] p-4 border" style={{ borderColor: "rgba(255,90,110,.35)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0d0b08 70%)" }}>
+          <p className="text-[10px] font-bold tracking-[.3em] text-[#ff5a6e]">↻ REVISÕES DE HOJE · {dueAll.length}</p>
           <ul className="grid gap-2 mt-2">{dueAll.slice(0, 6).map((i) => <ReviewRow key={i.id} i={i} track={tracks.find((t) => t.id === i.track_id)} />)}</ul>
         </section>
       )}
@@ -88,16 +88,16 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
               <div className="flex-1 min-w-0">
                 <p className="font-display text-xl leading-tight">{track.title}</p>
                 {track.why && <p className="text-xs text-muted mt-0.5 line-clamp-2">🎯 {track.why}</p>}
-                {track.weakness && <p className="text-xs mt-1 line-clamp-2" style={{ color: "#ff9f0a" }}>⚠ Fraquezas: {track.weakness}</p>}
+                {track.weakness && <p className="text-xs mt-1 line-clamp-2" style={{ color: "#ff5a6e" }}>⚠ Fraquezas: {track.weakness}</p>}
               </div>
               <button className="text-xs text-muted shrink-0" onClick={() => setSheet({ k: "track", t: track })}>editar</button>
             </div>
             <div className="grid grid-cols-3 gap-2 mt-3 text-center">
               <div className="rounded-xl bg-white/[.04] p-2"><p className="num text-base">{hm(tLogs.reduce((a, l) => a + l.minutes, 0))}</p><p className="text-[10px] text-muted">estudado</p></div>
               <div className="rounded-xl bg-white/[.04] p-2"><p className="num text-base">{pc ? hm(Math.round(pc.leftMin)) : "—"}</p><p className="text-[10px] text-muted">faltam (est.)</p></div>
-              <div className="rounded-xl bg-white/[.04] p-2"><p className="num text-base" style={{ color: pc?.perDay && pc.perDay > track.daily_min ? "#ff9f0a" : undefined }}>{pc?.perDay ? hm(pc.perDay) : hm(track.daily_min)}</p><p className="text-[10px] text-muted">{pc?.days != null ? `/dia · ${pc.days} dias` : "meta/dia"}</p></div>
+              <div className="rounded-xl bg-white/[.04] p-2"><p className="num text-base" style={{ color: pc?.perDay && pc.perDay > track.daily_min ? "#ff5a6e" : undefined }}>{pc?.perDay ? hm(pc.perDay) : hm(track.daily_min)}</p><p className="text-[10px] text-muted">{pc?.days != null ? `/dia · ${pc.days} dias` : "meta/dia"}</p></div>
             </div>
-            {pc?.perDay && pc.perDay > track.daily_min && <p className="text-[11px] text-[#ff9f0a] mt-2">No ritmo de {hm(track.daily_min)}/dia você não fecha no prazo. Aumente o tempo ou ajuste o prazo.</p>}
+            {pc?.perDay && pc.perDay > track.daily_min && <p className="text-[11px] text-[#ff5a6e] mt-2">No ritmo de {hm(track.daily_min)}/dia você não fecha no prazo. Aumente o tempo ou ajuste o prazo.</p>}
 
             {/* Próximo passo */}
             {tItems.length > 0 && (step ? (
@@ -210,7 +210,7 @@ function ReviewRow({ i, track }: { i: SItem; track?: STrack }) {
     <li className="flex items-center gap-2 rounded-xl px-3 py-2 bg-black/30">
       <span className="flex-1 min-w-0"><span className="block text-sm truncate">{i.title}</span><span className="block text-[10px] text-muted truncate">{track?.title} · revisão {i.review_step + 1}</span></span>
       <button className="text-xs rounded-lg px-2.5 py-1.5 border border-[#ff453a55] text-[#ff6961]" disabled={pending} onClick={() => start(async () => { await reviewItem(i.id, false); })}>Esqueci</button>
-      <button className="text-xs rounded-lg px-2.5 py-1.5 bg-[#30d158] text-black font-semibold" disabled={pending} onClick={() => start(async () => { await reviewItem(i.id, true); gain(5, "Revisão feita", "#ff9f0a"); haptic(12); })}>Lembrei</button>
+      <button className="text-xs rounded-lg px-2.5 py-1.5 bg-[#30d158] text-black font-semibold" disabled={pending} onClick={() => start(async () => { await reviewItem(i.id, true); gain(5, "Revisão feita", "#ff5a6e"); haptic(12); })}>Lembrei</button>
     </li>
   );
 }
@@ -339,7 +339,7 @@ function AiPlan({ track, onDone }: { track: STrack; onDone: () => void }) {
   return (
     <div className="grid gap-3">
       {!plan ? <>
-        <p className="text-sm text-muted">Objetivo: <b className="text-ink">{track.title}</b>{track.weakness ? <> · fraquezas: <span className="text-[#ff9f0a]">{track.weakness}</span></> : null}</p>
+        <p className="text-sm text-muted">Objetivo: <b className="text-ink">{track.title}</b>{track.weakness ? <> · fraquezas: <span className="text-[#ff5a6e]">{track.weakness}</span></> : null}</p>
         <Field label="Seu nível hoje (opcional)"><textarea className="field !min-h-[70px]" value={level} onChange={(e) => setLevel(e.target.value)} placeholder="Ex.: entendo textos simples, travo para falar; já vi limites mas não derivadas" /></Field>
         {err && <p className="text-sm text-[#ff6961]">{err}</p>}
         <button className="btn btn-accent !min-h-12" disabled={pending} onClick={gen}>{pending ? "Montando o plano…" : "✦ Gerar plano"}</button>

@@ -33,7 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
 
   return (
     <>
-      <PageHeader eyebrow="Pioneiro" title="Serviço de campo" color="#0a84ff" />
+      <PageHeader eyebrow="Pioneiro" title="Serviço de campo" color="#f5f5f7" />
       <FieldHub today={today} contacts={(contacts.error ? [] : contacts.data ?? []) as Contact[]} todayEntries={todayRows.data ?? []} monthMinutes={monthMin} goal={goalMin} />
       <div className="mt-6" />
       <Pioneer key={month} month={month} today={today}

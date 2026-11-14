@@ -19,7 +19,7 @@ export default async function Page() {
   const noteList = (notes.data ?? []).map((x) => { const { books: bk, ...r } = x as unknown as BookNote & { books: Pick<Book, "id" | "title" | "cover_url" | "authors"> }; return { ...r, book: bk }; }).filter((x) => x.book);
   return (
     <>
-      <PageHeader eyebrow="Livros" title="Leitura e aprendizado" color="#ff9f0a" />
+      <PageHeader eyebrow="Livros" title="Leitura e aprendizado" color="#ff5a6e" />
       {books.error && <p className="glass p-4 mb-4 text-sm text-[#ff453a]">A tabela de livros ainda não existe. Rode a migração <code>supabase/migrations/20261105000000_livros.sql</code> no SQL Editor do Supabase.</p>}
       <Library books={(books.data ?? []) as Book[]} sessions={(sessions.data ?? []) as Session[]} notes={noteList} goal={s.books_goal_year} today={today} />
       <Verse area="livros" />

@@ -29,7 +29,7 @@ export function Stars({ value, onChange, size = 22 }: { value: number | null; on
     <div className="inline-flex" role={onChange ? "radiogroup" : undefined} aria-label={`Nota ${value ?? 0} de 5`} onMouseLeave={() => setHover(0)}>
       {[1, 2, 3, 4, 5].map((i) => {
         const star = <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9z"
-          fill={i <= v ? "#ffb340" : "none"} stroke={i <= v ? "#ffb340" : "rgba(255,255,255,.25)"} strokeWidth="1.4" strokeLinejoin="round" /></svg>;
+          fill={i <= v ? "#ff4d8a" : "none"} stroke={i <= v ? "#ff4d8a" : "rgba(255,255,255,.25)"} strokeWidth="1.4" strokeLinejoin="round" /></svg>;
         return onChange ? (
           <button key={i} role="radio" aria-checked={value === i} aria-label={`${i} estrela${i > 1 ? "s" : ""}`} className="p-1 min-h-11 min-w-9 grid place-items-center"
             onMouseEnter={() => setHover(i)} onClick={() => onChange(value === i ? null : i)}>{star}</button>

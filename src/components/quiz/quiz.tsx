@@ -6,7 +6,7 @@ import { useXp, haptic } from "@/components/game/xp";
 export type Step = { title: string; hint?: string; content: React.ReactNode; canNext?: boolean; skippable?: boolean };
 
 /** Fluxo em perguntas: uma por vez, avanço com deslize, recompensa no final. */
-export function Quiz({ steps, onFinish, xp, color = "#ffb340", rewardTitle, rewardLines = [], onClose }: {
+export function Quiz({ steps, onFinish, xp, color = "#ff4d8a", rewardTitle, rewardLines = [], onClose }: {
   steps: Step[]; onFinish: () => Promise<string | null>; xp: number; color?: string; rewardTitle: string; rewardLines?: string[]; onClose: () => void;
 }) {
   const [i, setI] = useState(0);
@@ -79,7 +79,7 @@ export function Choices<T extends string>({ value, onChange, options, cols = 2 }
 }
 
 /** Chips rápidos de valor (ex.: 15, 30, 60 min). */
-export function QuickPick({ values, value, onChange, format = (v: number) => String(v), color = "#ffb340" }: { values: number[]; value: number; onChange: (v: number) => void; format?: (v: number) => string; color?: string }) {
+export function QuickPick({ values, value, onChange, format = (v: number) => String(v), color = "#ff4d8a" }: { values: number[]; value: number; onChange: (v: number) => void; format?: (v: number) => string; color?: string }) {
   return (
     <div className="flex flex-wrap gap-2">
       {values.map((v) => (
@@ -90,7 +90,7 @@ export function QuickPick({ values, value, onChange, format = (v: number) => Str
   );
 }
 
-export function Stepper({ value, onChange, min = 0, max = 99, color = "#ffb340" }: { value: number; onChange: (v: number) => void; min?: number; max?: number; color?: string }) {
+export function Stepper({ value, onChange, min = 0, max = 99, color = "#ff4d8a" }: { value: number; onChange: (v: number) => void; min?: number; max?: number; color?: string }) {
   return (
     <div className="flex items-center justify-center gap-6">
       <button className="press h-14 w-14 rounded-full border border-white/10 bg-[#141416] text-2xl" onClick={() => { haptic(8); onChange(Math.max(min, value - 1)); }} aria-label="Menos">−</button>

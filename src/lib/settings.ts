@@ -39,12 +39,12 @@ export const DEFAULT_PLAN: WorkoutPlan = {
 const cat = (key: string, label: string, kind: FinCategory["kind"], color: string, budget = 0): FinCategory => ({ key, label, kind, color, budget });
 export const DEFAULT_CATEGORIES: FinCategory[] = [
   cat("salario", "Salário", "receita", "#30d158"), cat("extra", "Renda extra", "receita", "#7ee2a0"),
-  cat("moradia", "Moradia", "fixo", "#0a84ff"), cat("contas", "Contas da casa", "fixo", "#3a7bd5"),
+  cat("moradia", "Moradia", "fixo", "#f5f5f7"), cat("contas", "Contas da casa", "fixo", "#3a7bd5"),
   cat("transporte", "Transporte", "fixo", "#5aa9ff"), cat("faculdade", "Faculdade", "fixo", "#2f6fd6"),
   cat("assinaturas", "Assinaturas", "fixo", "#8ec5ff"),
-  cat("alimentacao", "Alimentação", "variavel", "#64d2ff"), cat("ofertas", "Ofertas (Congregação)", "variavel", "#ffb340"),
-  cat("saude", "Saúde", "variavel", "#bf5af2"), cat("lazer", "Lazer", "variavel", "#d49bff"),
-  cat("roupas", "Roupas", "variavel", "#ff8a65"), cat("outros", "Outros", "variavel", "#9a978f"),
+  cat("alimentacao", "Alimentação", "variavel", "#f5f5f7"), cat("ofertas", "Ofertas (Congregação)", "variavel", "#ff4d8a"),
+  cat("saude", "Saúde", "variavel", "#d12b65"), cat("lazer", "Lazer", "variavel", "#d49bff"),
+  cat("roupas", "Roupas", "variavel", "#ff5a6e"), cat("outros", "Outros", "variavel", "#9a978f"),
 ];
 
 export const DEFAULT_CHECKLIST: ChecklistItem[] = [

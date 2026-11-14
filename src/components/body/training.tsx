@@ -83,7 +83,7 @@ function RestTimer({ until, onDone, onAdd }: { until: number; onDone: () => void
   return (
     <div className="fixed left-3 right-3 md:left-auto md:right-6 md:w-80 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 sheet-up">
       <div className="rounded-2xl border border-white/10 bg-[#111113]/95 backdrop-blur-xl p-3 flex items-center gap-3 shadow-2xl">
-        <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#ffb340" }}>{mmss(left)}</p></div>
+        <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#ff4d8a" }}>{mmss(left)}</p></div>
         <button className="btn !px-3" onClick={() => onAdd(15)}>+15s</button>
         <button className="btn" onClick={onDone}>Pular</button>
       </div>
@@ -305,7 +305,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   return (
     <div style={{ ["--accent" as string]: G }}>
       {programSlot && (
-        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(171,36,36,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #ab2424" }}>
+        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(181,18,36,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #b51224" }}>
           {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
             <>
               <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold truncate min-w-0">{program.name}</p><span className="text-xs text-muted whitespace-nowrap shrink-0">ver ›</span></div>
@@ -411,7 +411,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                     </>
                   ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
                   {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
-                    <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 12px 34px -10px #e0393e" }}
+                    <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#7a0c18)", boxShadow: "0 12px 34px -10px #e0393e" }}
                       onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: beastFor(ctx?.kind, ctx?.weekInPhase ?? 1, { hell: ctx?.kind === "intensificacao" && ctx?.weekInPhase === 1, last: ctx?.lastPhase, week: ctx?.weekNo }) }); } else setSession(ns); }}>
                       {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
                   )}
@@ -525,7 +525,7 @@ function PlanVsDone({ w }: { w: Workout }) {
         const p = planned.find((x) => x.name === name), done = w.sets.filter((s) => s.exercise === name);
         const target = p ? firstNum(p.reps) : 0, top = done.reduce((a, s) => Math.max(a, Number(s.kg)), 0);
         const status = !p ? "extra" : done.length === 0 ? "não feito" : done.length < p.sets ? "parcial" : "completo";
-        const color = status === "completo" ? G : status === "parcial" ? "#ffb340" : status === "extra" ? "#0a84ff" : "#ff453a";
+        const color = status === "completo" ? G : status === "parcial" ? "#ff4d8a" : status === "extra" ? "#f5f5f7" : "#ff453a";
         const rpes = done.filter((s) => s.rpe).map((s) => Number(s.rpe));
         const timed = isTimed(name, p?.muscle);
         return (

@@ -86,7 +86,7 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
       {/* fogueira central */}
       <div className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 w-10 h-12">
         <div className="absolute inset-x-0 bottom-0 h-3 rounded-full bg-[#2a1608]" />
-        <div className="absolute left-1/2 bottom-2 -translate-x-1/2 w-7 h-10 rounded-[50%_50%_40%_40%] cel-flicker" style={{ background: "radial-gradient(60% 70% at 50% 80%, #fff3c4, #ff9f0a 45%, #e0393e 80%, transparent)", filter: "blur(.5px)", boxShadow: "0 0 50px 20px rgba(255,106,61,.35)" }} />
+        <div className="absolute left-1/2 bottom-2 -translate-x-1/2 w-7 h-10 rounded-[50%_50%_40%_40%] cel-flicker" style={{ background: "radial-gradient(60% 70% at 50% 80%, #fff3c4, #ff5a6e 45%, #e0393e 80%, transparent)", filter: "blur(.5px)", boxShadow: "0 0 50px 20px rgba(255,106,61,.35)" }} />
       </div>
       {won.length === 0 ? (
         <div className="absolute inset-x-6 bottom-[12%] text-center">

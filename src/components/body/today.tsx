@@ -61,7 +61,7 @@ export function BodyToday(props: {
             <span className="flex items-end gap-2"><Drumstick pct={props.food.protein / props.food.proteinGoal} size={44} /><span className="text-xs text-muted pb-1">proteína<br /><b className="num text-ink text-sm">{Math.round((props.food.protein / props.food.proteinGoal) * 100) || 0}%</b></span></span>
           </div>
           <div><div className="flex justify-between text-sm"><span>Calorias</span><span className="num">{props.food.kcal}/{props.food.kcalGoal}</span></div><Progress value={props.food.kcal / props.food.kcalGoal} height={6} /></div>
-          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ffb340" height={6} /></div>
+          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ff4d8a" height={6} /></div>
         </div>
       </Link>
 
@@ -102,7 +102,7 @@ export function BodyToday(props: {
         <div className="flex items-end gap-2 h-16 mt-4">
           {props.sleep7.map((s) => (
             <div key={s.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={s.hours != null ? `${fmt(s.hours)} h` : "sem registro"}>
-              <div className="w-full rounded-md" style={{ height: `${((s.hours ?? 0) / 10) * 100}%`, minHeight: 2, background: (s.hours ?? 0) >= 7 ? "#0a84ff" : "#0a84ff55" }} />
+              <div className="w-full rounded-md" style={{ height: `${((s.hours ?? 0) / 10) * 100}%`, minHeight: 2, background: (s.hours ?? 0) >= 7 ? "#f5f5f7" : "#f5f5f755" }} />
               <span className="text-[10px] text-muted">{weekdayShort[dow(s.date)]}</span>
             </div>
           ))}

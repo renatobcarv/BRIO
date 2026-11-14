@@ -41,7 +41,7 @@ export default async function Page() {
             {earned.map((b, i) => (
               <div key={i} className="text-center">
                 <div className="mx-auto w-fit emblem-spin"><EventBadge b={b} size={64} /></div>
-                <p className="text-[11px] font-bold tracking-wider mt-1.5" style={{ color: b.kind === "glory" ? b.color : "#c43838" }}>{b.name}</p>
+                <p className="text-[11px] font-bold tracking-wider mt-1.5" style={{ color: b.kind === "glory" ? b.color : "#b51224" }}>{b.name}</p>
                 <p className="text-[10px] text-muted">{b.pt}</p>
               </div>
             ))}

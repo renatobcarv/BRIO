@@ -3,8 +3,8 @@ import { RANKS } from "@/lib/game";
 
 const METAL = {
   silver: ["#f2f4f6", "#aeb3ba", "#6f747b", "#d9dce0"],
-  red: ["#e65a5a", "#ab2424", "#5c0f0f", "#c43838"],
-  gold: ["#fbe7ae", "#c6a15b", "#7a5a22", "#e6c47e"],
+  red: ["#e65a5a", "#b51224", "#5c0f0f", "#b51224"],
+  gold: ["#ffd1e0", "#d12b65", "#7a5a22", "#e6c47e"],
 } as const;
 
 function Defs({ id }: { id: string }) {
@@ -16,7 +16,7 @@ function Defs({ id }: { id: string }) {
         </linearGradient>
       ))}
       <linearGradient id={`${id}-shine`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#fff" stopOpacity=".55" /><stop offset=".5" stopColor="#fff" stopOpacity="0" /></linearGradient>
-      <radialGradient id={`${id}-rays`}><stop offset="0" stopColor="#fbe7ae" stopOpacity=".8" /><stop offset="1" stopColor="#fbe7ae" stopOpacity="0" /></radialGradient>
+      <radialGradient id={`${id}-rays`}><stop offset="0" stopColor="#ffd1e0" stopOpacity=".8" /><stop offset="1" stopColor="#ffd1e0" stopOpacity="0" /></radialGradient>
     </defs>
   );
 }
@@ -39,7 +39,7 @@ export function Insignia({ index, size = 96, locked = false, glow = true }: { in
       style={{ filter: locked ? "grayscale(1) brightness(.45)" : glow ? `drop-shadow(0 0 ${index >= 6 ? 14 : 9}px ${rank.color}88)` : undefined, overflow: "visible" }}>
       <Defs id={id} />
       {index === 9 && <circle cx="50" cy="50" r="50" fill={`url(#${id}-rays)`} />}
-      {index === 9 && Array.from({ length: 12 }, (_, i) => <rect key={i} x="49" y="-2" width="2" height="16" fill="#fbe7ae" opacity=".55" transform={`rotate(${i * 30} 50 50)`} />)}
+      {index === 9 && Array.from({ length: 12 }, (_, i) => <rect key={i} x="49" y="-2" width="2" height="16" fill="#ffd1e0" opacity=".55" transform={`rotate(${i * 30} 50 50)`} />)}
       {index <= 2 && (
         <g>
           {index >= 1 && <path d="M50 14 L57 22 L50 30 L43 22 Z" fill={m("silver")} />}
@@ -75,7 +75,7 @@ export function Insignia({ index, size = 96, locked = false, glow = true }: { in
 /** Insígnias dos títulos especiais. */
 export function TitleBadge({ id, size = 64, locked = false }: { id: "phoenix" | "titan" | "archon"; size?: number; locked?: boolean }) {
   const k = `t-${id}`;
-  const c = id === "phoenix" ? ["#ffd27a", "#e2572b", "#801717"] : id === "titan" ? ["#f2f4f6", "#9aa0a6", "#4a4e54"] : ["#fbe7ae", "#c6a15b", "#7a5a22"];
+  const c = id === "phoenix" ? ["#ff8fb5", "#e2572b", "#7a0c18"] : id === "titan" ? ["#f2f4f6", "#9aa0a6", "#4a4e54"] : ["#ffd1e0", "#d12b65", "#7a5a22"];
   return (
     <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={`Título ${id}`} style={{ filter: locked ? "grayscale(1) brightness(.4)" : `drop-shadow(0 0 12px ${c[1]}99)`, overflow: "visible" }}>
       <defs><linearGradient id={k} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={c[0]} /><stop offset=".55" stopColor={c[1]} /><stop offset="1" stopColor={c[2]} /></linearGradient></defs>

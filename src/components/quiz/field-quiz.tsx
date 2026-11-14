@@ -4,12 +4,12 @@ import { logFieldDay } from "@/app/(app)/pioneiro/actions";
 import { Choices, QuickPick, Quiz, Stepper } from "./quiz";
 import { toHMM } from "@/lib/date";
 
-const C = "#0a84ff";
+const C = "#f5f5f7";
 export const FIELD_ICON = "M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z";
 const CATS = [
-  { value: "campo", label: "Campo", sub: "de casa em casa", color: "#0a84ff", icon: FIELD_ICON },
-  { value: "publico", label: "Testemunho público", sub: "carrinho e locais públicos", color: "#ffb340", icon: "M4 21V8l8-5 8 5v13M9 21v-6h6v6" },
-  { value: "assembleia", label: "Assembleia", sub: "dias de assembleia", color: "#bf5af2", icon: "M3 21h18M5 21V9l7-5 7 5v12M9 13h6" },
+  { value: "campo", label: "Campo", sub: "de casa em casa", color: "#f5f5f7", icon: FIELD_ICON },
+  { value: "publico", label: "Testemunho público", sub: "carrinho e locais públicos", color: "#ff4d8a", icon: "M4 21V8l8-5 8 5v13M9 21v-6h6v6" },
+  { value: "assembleia", label: "Assembleia", sub: "dias de assembleia", color: "#d12b65", icon: "M3 21h18M5 21V9l7-5 7 5v12M9 13h6" },
   { value: "obra", label: "Obra", sub: "construção e manutenção", color: "#30d158", icon: "M2 20h20M4 20V10l8-6 8 6v10M10 20v-5h4v5" },
 ] as const;
 type Cat = (typeof CATS)[number]["value"];

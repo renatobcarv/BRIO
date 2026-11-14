@@ -31,7 +31,7 @@ const ICON = {
   bolt: "M27 4L10 27h12l-3 17 17-24H24z",
   empty: "M14 14h20v24H14zM18 8h12v6H18zM14 30h20",
 };
-const glory = (id: string, name: string, pt: string, desc: string, icon: keyof typeof ICON, color = "#c6a15b"): Badge => ({ id, name, pt, desc, kind: "glory", color, icon: ICON[icon] });
+const glory = (id: string, name: string, pt: string, desc: string, icon: keyof typeof ICON, color = "#d12b65"): Badge => ({ id, name, pt, desc, kind: "glory", color, icon: ICON[icon] });
 const scar = (id: string, name: string, pt: string, desc: string): Badge => ({ id, name, pt, desc, kind: "scar", color: "#6e1a1a", icon: ICON.scar });
 
 /** Semanas de cada fase de um programa. */
@@ -86,7 +86,7 @@ export function computeEvents(g: EvInput): GameEvent[] {
       const sets = ws.flatMap(strength), rpeShare = sets.length ? sets.filter((x) => x.rpe).length / sets.length : 0;
       const run = longestRun(g.workouts.filter((w) => w.date >= add(s, -6) && w.date <= e).map((w) => w.date));
       const safe = run <= 6 && ws.length <= planned + 1;
-      push({ id: `${p.id}:hell:${s}`, type: "hell_week", title: "HELL WEEK", tagline: "A semana de intensidade. Execução, não ego.", color: "#ab2424", start: s, end: e, program: p.name,
+      push({ id: `${p.id}:hell:${s}`, type: "hell_week", title: "HELL WEEK", tagline: "A semana de intensidade. Execução, não ego.", color: "#b51224", start: s, end: e, program: p.name,
         objectives: [
           { label: "Cumprir as missões planejadas", value: ws.length, target: planned, done: ws.length >= planned },
           { label: "Registrar o RPE das séries", value: Math.round(rpeShare * 100), target: 70, unit: "%", done: rpeShare >= 0.7 },
@@ -99,10 +99,10 @@ export function computeEvents(g: EvInput): GameEvent[] {
         scar: scar("scarred", "SCARRED", "Cicatriz", "Entrou no fogo e não terminou. A cicatriz é lembrete, não sentença.") });
       const days = Array.from({ length: 7 }, (_, i) => add(s, i));
       const hit = days.filter((d) => g.proteinGoal > 0 && g.meals.filter((m) => m.date === d).reduce((a, m) => a + m.protein, 0) >= g.proteinGoal).length;
-      push({ id: `${p.id}:rations:${s}`, type: "war_rations", title: "WAR RATIONS", tagline: "Combustível de guerra: proteína em dia durante a Hell Week.", color: "#ff9f0a", start: s, end: e, program: p.name,
+      push({ id: `${p.id}:rations:${s}`, type: "war_rations", title: "WAR RATIONS", tagline: "Combustível de guerra: proteína em dia durante a Hell Week.", color: "#ff5a6e", start: s, end: e, program: p.name,
         objectives: [{ label: "Bater a meta de proteína", value: hit, target: 5, unit: " dias", done: hit >= 5 }],
         rewardXp: 150, boost: "+150 XP ao vencer", bonusXp: [],
-        glory: glory("fueled", "FUELED FOR WAR", "Abastecido para a guerra", "Proteína em dia em 5 dos 7 dias da Hell Week.", "drop", "#ff9f0a"),
+        glory: glory("fueled", "FUELED FOR WAR", "Abastecido para a guerra", "Proteína em dia em 5 dos 7 dias da Hell Week.", "drop", "#ff5a6e"),
         scar: scar("empty_tank", "EMPTY TANK", "Tanque vazio", "Treinou a Hell Week sem o combustível necessário.") });
     }
     // SANCTUARY: semana de deload
@@ -127,11 +127,11 @@ export function computeEvents(g: EvInput): GameEvent[] {
       const e = lastWork.end, s = add(e, -6), ws = inWin(s, e);
       const has = (re: RegExp) => ws.some((w) => strength(w).some((x) => re.test(x.exercise) && !/stiff|romeno|halter|incl/i.test(x.exercise)));
       const lifts = [has(/agach|squat/i), has(/^supino|bench/i), has(/terra|deadlift/i)].filter(Boolean).length;
-      push({ id: `${p.id}:judgment:${s}`, type: "judgment", title: "JUDGMENT DAY", tagline: "A avaliação do ciclo. O que foi construído aparece agora.", color: "#c6a15b", start: s, end: e, program: p.name,
+      push({ id: `${p.id}:judgment:${s}`, type: "judgment", title: "JUDGMENT DAY", tagline: "A avaliação do ciclo. O que foi construído aparece agora.", color: "#d12b65", start: s, end: e, program: p.name,
         objectives: [{ label: "Registrar uma série de teste no agachamento, supino e terra", value: lifts, target: 3, done: lifts >= 3 }],
         rewardXp: 300, boost: "+300 XP ao vencer",
         bonusXp: [],
-        glory: glory("proven", "PROVEN", "Comprovado", "Testou os três levantamentos no fim do ciclo. Evolução medida, não imaginada.", "hammer", "#c6a15b"),
+        glory: glory("proven", "PROVEN", "Comprovado", "Testou os três levantamentos no fim do ciclo. Evolução medida, não imaginada.", "hammer", "#d12b65"),
         scar: scar("untested", "UNTESTED", "Não testado", "O ciclo terminou sem a avaliação dos levantamentos.") });
     }
   }

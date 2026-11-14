@@ -13,10 +13,10 @@ function Radar({ values }: { values: Record<Attr, number> }) {
   const poly = KEYS.map((k, i) => pt(i, values[k] / max).join(",")).join(" ");
   return (
     <svg viewBox={`0 0 ${S} ${S}`} className="w-full max-w-[360px] mx-auto" role="img" aria-label="Radar de atributos">
-      <defs><radialGradient id="rg"><stop offset="0" stopColor="#ffd27a" stopOpacity=".55" /><stop offset="1" stopColor="#ffb340" stopOpacity=".15" /></radialGradient></defs>
+      <defs><radialGradient id="rg"><stop offset="0" stopColor="#ff8fb5" stopOpacity=".55" /><stop offset="1" stopColor="#ff4d8a" stopOpacity=".15" /></radialGradient></defs>
       {[0.25, 0.5, 0.75, 1].map((f) => <polygon key={f} points={KEYS.map((_, i) => pt(i, f).join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,.07)" />)}
       {KEYS.map((_, i) => { const [x, y] = pt(i, 1); return <line key={i} x1={C} y1={C} x2={x} y2={y} stroke="rgba(255,255,255,.06)" />; })}
-      <polygon points={poly} fill="url(#rg)" stroke="#ffb340" strokeWidth="2" strokeLinejoin="round" className="radar-in" />
+      <polygon points={poly} fill="url(#rg)" stroke="#ff4d8a" strokeWidth="2" strokeLinejoin="round" className="radar-in" />
       {KEYS.map((k, i) => { const [x, y] = pt(i, values[k] / max); return <circle key={k} cx={x} cy={y} r="4" fill={ATTRS[k].color} stroke="#07080b" strokeWidth="2" />; })}
       {KEYS.map((k, i) => { const [x, y] = pt(i, 1.24); return <text key={k} x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize="11" fill="#9a978f">{ATTRS[k].label} <tspan fill="#ece8df" fontWeight="600">{values[k]}</tspan></text>; })}
     </svg>
@@ -36,7 +36,7 @@ export function StatusSheet({ g }: { g: Game }) {
         <p className="text-sm text-ink/80 relative">{g.rank.pt} · nível <CountUp value={g.level} /></p>
         <p className="text-sm italic text-muted mt-2 relative">“{g.rank.motto}”</p>
         <div className="mt-5 h-3 rounded-full bg-white/[.07] overflow-hidden relative">
-          <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(2, g.progress * 100)}%`, background: `linear-gradient(90deg, ${g.rank.color}, #ffd27a)`, boxShadow: `0 0 16px ${g.rank.color}` }} />
+          <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(2, g.progress * 100)}%`, background: `linear-gradient(90deg, ${g.rank.color}, #ff8fb5)`, boxShadow: `0 0 16px ${g.rank.color}` }} />
         </div>
         <div className="flex justify-between text-xs text-muted mt-1.5 num relative">
           <span><CountUp value={g.into} /> / {g.need.toLocaleString("pt-BR")} XP</span><span><CountUp value={g.total} duration={1400} /> XP no total</span>
@@ -45,7 +45,7 @@ export function StatusSheet({ g }: { g: Game }) {
       </section>
 
       <section className="rise mt-4 rounded-[24px] p-5 text-center border border-white/[.06]" style={{ background: "linear-gradient(160deg, #1a0b0b, #0d0d0d 70%)" }}>
-        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#c6a15b" }}>O CREDO</p>
+        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#d12b65" }}>O CREDO</p>
         <p className="font-display text-xl mt-2 leading-snug">{ASCENSION_CREED}</p>
         <p className="text-xs text-muted mt-2">Você não compete com ninguém. Está construindo alguém que possa respeitar.</p>
       </section>
@@ -116,7 +116,7 @@ export function StatusSheet({ g }: { g: Game }) {
           {g.week.map((w) => (
             <div key={w.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
               {w.xp > 0 && <span className="text-[10px] num text-muted">{w.xp}</span>}
-              <div className="w-full rounded-md grow-up" style={{ height: `${(w.xp / maxWeek) * 80}%`, minHeight: 3, background: w.date === g.week.at(-1)!.date ? "linear-gradient(180deg,#ffd27a,#ffb340)" : "rgba(255,179,64,.35)" }} />
+              <div className="w-full rounded-md grow-up" style={{ height: `${(w.xp / maxWeek) * 80}%`, minHeight: 3, background: w.date === g.week.at(-1)!.date ? "linear-gradient(180deg,#ff8fb5,#ff4d8a)" : "rgba(255,77,138,.35)" }} />
               <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
             </div>
           ))}

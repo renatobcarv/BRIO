@@ -6,7 +6,7 @@ import { FieldQuiz, FIELD_ICON } from "@/components/quiz/field-quiz";
 import { CountUp } from "@/components/count-up";
 import { shortDate, toHMM } from "@/lib/date";
 
-const C = "#0a84ff";
+const C = "#f5f5f7";
 export type Contact = { id: string; name: string; address: string | null; notes: string | null; next_visit: string | null; last_visit: string | null; status: "revisita" | "estudo" | "encerrado" };
 type TodayEntry = { minutes: number; category: string; start_time?: string | null; end_time?: string | null; return_visits?: number | null; notes?: string | null };
 

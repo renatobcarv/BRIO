@@ -9,9 +9,9 @@ export function EventBadge({ b, size = 56, locked = false }: { b: Badge; size?: 
   return (
     <svg width={size} height={size} viewBox="0 0 48 48" role="img" aria-label={b.name} className="shrink-0"
       style={{ filter: locked ? "grayscale(1) brightness(.4)" : glory ? `drop-shadow(0 0 10px ${b.color})` : "drop-shadow(0 0 6px #3a0a0a)" }}>
-      <defs><linearGradient id={`eb-${b.id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={glory ? "#fbe7ae" : "#3a3a3c"} /><stop offset=".5" stopColor={glory ? b.color : "#1c1c1e"} /><stop offset="1" stopColor={glory ? "#5c0f0f" : "#0d0d0d"} /></linearGradient></defs>
-      <path d="M24 2l18 8v13c0 11-8 19-18 23C14 42 6 34 6 23V10z" fill={`url(#eb-${b.id})`} stroke={glory ? "#fbe7ae" : "#5a1414"} strokeWidth="1.2" />
-      <path d={b.icon} fill={glory ? "#0d0d0d" : "none"} stroke={glory ? "none" : "#c43838"} strokeWidth={glory ? 0 : 2.6} strokeLinecap="round" transform="translate(6 6) scale(.75)" />
+      <defs><linearGradient id={`eb-${b.id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={glory ? "#ffd1e0" : "#3a3a3c"} /><stop offset=".5" stopColor={glory ? b.color : "#1c1c1e"} /><stop offset="1" stopColor={glory ? "#5c0f0f" : "#0d0d0d"} /></linearGradient></defs>
+      <path d="M24 2l18 8v13c0 11-8 19-18 23C14 42 6 34 6 23V10z" fill={`url(#eb-${b.id})`} stroke={glory ? "#ffd1e0" : "#5a1414"} strokeWidth="1.2" />
+      <path d={b.icon} fill={glory ? "#0d0d0d" : "none"} stroke={glory ? "none" : "#b51224"} strokeWidth={glory ? 0 : 2.6} strokeLinecap="round" transform="translate(6 6) scale(.75)" />
     </svg>
   );
 }
@@ -96,7 +96,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
               return (
                 <div key={b.id} className={`rounded-2xl p-3 border ${got ? "achv-shine relative overflow-hidden" : ""}`} style={{ borderColor: got ? b.color : "rgba(255,255,255,.06)", background: "#0d0606", opacity: got || e.stage !== "vitoria" && e.stage !== "falha" ? 1 : 0.35 }}>
                   <div className="flex items-center gap-2"><EventBadge b={b} size={40} locked={!got && (e.stage === "vitoria" || e.stage === "falha")} />
-                    <div className="min-w-0"><p className="text-[11px] font-bold tracking-wider" style={{ color: b.kind === "glory" ? b.color : "#c43838" }}>{b.name}</p><p className="text-[10px] text-muted">{b.kind === "glory" ? "se vencer" : "se falhar"}</p></div></div>
+                    <div className="min-w-0"><p className="text-[11px] font-bold tracking-wider" style={{ color: b.kind === "glory" ? b.color : "#b51224" }}>{b.name}</p><p className="text-[10px] text-muted">{b.kind === "glory" ? "se vencer" : "se falhar"}</p></div></div>
                   <p className="text-[11px] text-muted mt-1.5 leading-snug">{b.desc}</p>
                 </div>
               );

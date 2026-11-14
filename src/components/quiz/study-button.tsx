@@ -5,7 +5,7 @@ import { StudyQuiz } from "./study-quiz";
 
 export function StudyQuizButton({ today, minutesToday }: { today: string; minutesToday: number }) {
   const [open, setOpen] = useState(false);
-  const C = "#ffb340";
+  const C = "#ff4d8a";
   return (
     <>
       <section className="rounded-[26px] p-5 mb-4 border" style={{ borderColor: C + "44", background: `linear-gradient(160deg, ${C}24, #0f0f11 65%)` }}>

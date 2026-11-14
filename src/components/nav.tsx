@@ -22,19 +22,19 @@ const studyI = I("M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5M22 9v6");
 const gear = I("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z");
 
 const primary: Item[] = [
-  { href: "/", label: "Início", color: "#ffb340", icon: home },
-  { href: "/espiritual", label: "Espiritual", color: "#ffb340", icon: spirit },
-  { href: "/pioneiro", label: "Pioneiro", color: "#0a84ff", icon: pioneer },
+  { href: "/", label: "Início", color: "#ff4d8a", icon: home },
+  { href: "/espiritual", label: "Espiritual", color: "#ff4d8a", icon: spirit },
+  { href: "/pioneiro", label: "Pioneiro", color: "#f5f5f7", icon: pioneer },
   { href: "/corpo", label: "Corpo", color: "#30d158", icon: body },
 ];
 const secondary: Item[] = [
-  { href: "/status", label: "Status", color: "#ffb340", icon: star },
-  { href: "/agenda", label: "Agenda", color: "#5ab0ff", icon: cal },
-  { href: "/estudos", label: "Estudos", color: "#bf5af2", icon: studyI },
+  { href: "/status", label: "Status", color: "#ff4d8a", icon: star },
+  { href: "/agenda", label: "Agenda", color: "#f5f5f7", icon: cal },
+  { href: "/estudos", label: "Estudos", color: "#d12b65", icon: studyI },
   { href: "/eventos", label: "Eventos", color: "#e0393e", icon: flame },
-  { href: "/financas", label: "Finanças", color: "#3ee6c1", icon: money },
-  { href: "/livros", label: "Livros", color: "#ff9f0a", icon: book },
-  { href: "/metas", label: "Metas", color: "#bf5af2", icon: goals },
+  { href: "/financas", label: "Finanças", color: "#ff4d8a", icon: money },
+  { href: "/livros", label: "Livros", color: "#ff5a6e", icon: book },
+  { href: "/metas", label: "Metas", color: "#d12b65", icon: goals },
   { href: "/configuracoes", label: "Configurações", color: "#9a978f", icon: gear },
 ];
 
@@ -61,7 +61,7 @@ export function Nav() {
       {/* Mobile: cápsula flutuante */}
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] pointer-events-none" aria-label="Navegação principal">
         <ul className="pointer-events-auto mx-auto max-w-md flex items-center justify-between gap-1 rounded-full p-1.5 border border-white/[.09] bg-[#161618]/90 backdrop-blur-xl shadow-[0_20px_40px_-16px_rgba(0,0,0,1)]">
-          {[...primary, { href: "/mais", label: "Mais", color: "#bf5af2", icon: more }].map((it) => {
+          {[...primary, { href: "/mais", label: "Mais", color: "#d12b65", icon: more }].map((it) => {
             const on = it.href === "/mais" ? moreActive : isActive(path, it.href);
             return (
               <li key={it.href} className={on ? "flex-[1.6]" : "flex-1"} style={{ transition: "flex .35s cubic-bezier(.34,1.56,.64,1)" }}>

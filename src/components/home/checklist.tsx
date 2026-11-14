@@ -6,19 +6,19 @@ import { Sheet } from "@/components/kit";
 import type { ChecklistItem } from "@/lib/settings";
 import { useXp } from "@/components/game/xp";
 
-const GOLD = "#ffb340";
+const GOLD = "#ff4d8a";
 
 /** Ícone e cor de cada missão pelo texto (funciona com missões personalizadas). */
 const MISSIONS: [RegExp, string, string][] = [
-  [/ora[cç][aã]o|estudo pessoal|devocional/i, "#ffb340", "M12 3v18M7 8h10M5 21h14"],
-  [/b[ií]blia|leitura|livro/i, "#ff9f0a", "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z"],
-  [/faculdade|aula|curso|estud/i, "#bf5af2", "M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5"],
+  [/ora[cç][aã]o|estudo pessoal|devocional/i, "#ff4d8a", "M12 3v18M7 8h10M5 21h14"],
+  [/b[ií]blia|leitura|livro/i, "#ff5a6e", "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z"],
+  [/faculdade|aula|curso|estud/i, "#d12b65", "M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5"],
   [/treino|cardio|academia|corrida/i, "#30d158", "M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8"],
-  [/[aá]gua|hidrat/i, "#64d2ff", "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"],
-  [/refei|prote[ií]na|dieta|comer/i, "#ff8a65", "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"],
-  [/dorm|sono/i, "#5e5ce6", "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"],
-  [/campo|prega|pioneir|servi[cç]o/i, "#0a84ff", "M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z"],
-  [/finan|gasto|lan[cç]a/i, "#64d2ff", "M3 7h18v10H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
+  [/[aá]gua|hidrat/i, "#f5f5f7", "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"],
+  [/refei|prote[ií]na|dieta|comer/i, "#ff5a6e", "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"],
+  [/dorm|sono/i, "#d12b65", "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"],
+  [/campo|prega|pioneir|servi[cç]o/i, "#f5f5f7", "M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z"],
+  [/finan|gasto|lan[cç]a/i, "#f5f5f7", "M3 7h18v10H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
 ];
 function missionStyle(label: string) {
   const m = MISSIONS.find(([re]) => re.test(label));
@@ -86,13 +86,13 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const left = useCountdown();
   // Paleta pela sequência de dias 100%: luz → aurora → chama → fogueira → inferno → fogo de guerra → chama violeta.
   const run = streak + (full ? 0 : 0);
-  const T = run >= 60 ? { n: "CHAMA VIOLETA", a: "#bf5af2", b: "#ff9ff3", bg: "#1e0a2e", heat: 5 }
-    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#ff2d2d", b: "#ffd27a", bg: "#2a0606", heat: 5 }
-    : run >= 14 ? { n: "INFERNO", a: "#ff3b30", b: "#ff9f0a", bg: "#240707", heat: 4 }
-    : run >= 7 ? { n: "FOGUEIRA", a: "#ff6a1a", b: "#ffb340", bg: "#221005", heat: 3 }
-    : run >= 3 ? { n: "CHAMA", a: "#ff9f0a", b: "#ffd27a", bg: "#1d1406", heat: 2 }
-    : run >= 1 ? { n: "AURORA", a: "#ffd27a", b: "#fff3d6", bg: "#17140c", heat: 1 }
-    : { n: "LUZ", a: "#f5f7ff", b: "#cfd8ea", bg: "#111318", heat: 0 };
+  const T = run >= 60 ? { n: "RUBI", a: "#ff2d55", b: "#ffffff", bg: "#2a0512", heat: 5 }
+    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#e11d48", b: "#ff8fb5", bg: "#2a0510", heat: 5 }
+    : run >= 14 ? { n: "INFERNO", a: "#d12b65", b: "#ff8fb5", bg: "#24060f", heat: 4 }
+    : run >= 7 ? { n: "FOGUEIRA", a: "#ff4d8a", b: "#ffd1e0", bg: "#200811", heat: 3 }
+    : run >= 3 ? { n: "CHAMA", a: "#ff5a6e", b: "#ffd1e0", bg: "#1c0a0e", heat: 2 }
+    : run >= 1 ? { n: "AURORA", a: "#ff8fb5", b: "#ffffff", bg: "#170d10", heat: 1 }
+    : { n: "LUZ", a: "#f5f5f7", b: "#cfd8ea", bg: "#111113", heat: 0 };
   const SYS = T.a, ALT = T.b;
 
   return (
@@ -115,7 +115,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
         </div>
 
         <div className="grid grid-cols-3 gap-2 mt-3">
-          {[[streak, streak === 1 ? "dia 100%" : "dias 100%", SYS], [best, "recorde", ALT], [doneCount, `de ${items.length} hoje`, "#ffd27a"]].map(([v, l, c]) => (
+          {[[streak, streak === 1 ? "dia 100%" : "dias 100%", SYS], [best, "recorde", ALT], [doneCount, `de ${items.length} hoje`, "#ff8fb5"]].map(([v, l, c]) => (
             <div key={String(l)} className="rounded-xl px-2 py-2 text-center border" style={{ borderColor: `${c}33`, background: `${c}0f` }}>
               <p className="num text-2xl leading-none" style={{ color: String(c), textShadow: `0 0 12px ${c}` }}>{v}</p>
               <p className="text-[10px] text-[#b3a99a] mt-1">{l}</p>
@@ -154,7 +154,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
 
         <div className="grid grid-cols-2 gap-2 mt-4">
           <div className="rounded-xl border p-2.5" style={{ borderColor: "rgba(255,210,122,.3)", background: "linear-gradient(160deg, rgba(255,210,122,.10), transparent)" }}>
-            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: "#ffd27a" }}>✦ RECOMPENSAS</p>
+            <p className="text-[9px] font-bold tracking-[.25em]" style={{ color: "#ff8fb5" }}>✦ RECOMPENSAS</p>
             <p className="text-[12px] text-white/85 mt-1 leading-snug">+10 XP por objetivo<br />+50 XP ao completar tudo</p>
           </div>
           <div className="rounded-xl border p-2.5" style={{ borderColor: full ? "rgba(48,209,88,.35)" : "rgba(255,107,129,.3)", background: full ? "linear-gradient(160deg, rgba(48,209,88,.10), transparent)" : "linear-gradient(160deg, rgba(255,107,129,.09), transparent)" }}>
@@ -162,7 +162,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
             <p className="text-[12px] text-white/85 mt-1 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} 100% zera.`}</p>
           </div>
         </div>
-        {!full && <p className="text-center text-[11px] font-mono mt-3" style={{ color: "#ffd27a" }}>+{(items.length - doneCount) * 10 + 50} XP disponíveis</p>}
+        {!full && <p className="text-center text-[11px] font-mono mt-3" style={{ color: "#ff8fb5" }}>+{(items.length - doneCount) * 10 + 50} XP disponíveis</p>}
       </div>
       <Sheet open={editing} onClose={() => setEditing(false)} title="Editar missões"><Editor items={items} onClose={() => setEditing(false)} /></Sheet>
     </section>

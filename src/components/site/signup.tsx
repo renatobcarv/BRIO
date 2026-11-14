@@ -27,7 +27,7 @@ export function SignUpFlow() {
   const [f, setF] = useState({ name: "", email: "", password: "", show: false });
   const [focus, setFocus] = useState<string[]>(["habitos"]);
   const [plan, setPlan] = useState(planById(sp.get("plano")).id);
-  const st = strength(f.password), stLabel = ["muito fraca", "fraca", "ok", "boa", "forte"][st], stColor = ["#ff453a", "#ff9f0a", "#ffd60a", "#30d158", "#30d158"][st];
+  const st = strength(f.password), stLabel = ["muito fraca", "fraca", "ok", "boa", "forte"][st], stColor = ["#ff453a", "#ff5a6e", "#ffffff", "#30d158", "#30d158"][st];
   const can0 = f.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(f.email) && f.password.length >= 8;
   const first = f.name.trim().split(" ")[0];
 

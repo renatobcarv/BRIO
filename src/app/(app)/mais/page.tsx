@@ -2,10 +2,10 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 const items = [
   { href: "/eventos", label: "Event Center", sub: "Hell Week, desafios e insígnias", color: "#e0393e" },
-  { href: "/status", label: "Status", sub: "Nível, atributos e conquistas", color: "#ffb340" },
-  { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#3ee6c1" },
-  { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#ff9f0a" },
-  { href: "/metas", label: "Metas e objetivos", sub: "Destinos e passos mensuráveis", color: "#bf5af2" },
+  { href: "/status", label: "Status", sub: "Nível, atributos e conquistas", color: "#ff4d8a" },
+  { href: "/financas", label: "Finanças", sub: "Fluxo, caixinhas e patrimônio", color: "#ff4d8a" },
+  { href: "/livros", label: "Livros", sub: "Estante, leituras e anotações", color: "#ff5a6e" },
+  { href: "/metas", label: "Metas e objetivos", sub: "Destinos e passos mensuráveis", color: "#d12b65" },
   { href: "/configuracoes", label: "Configurações", sub: "Checklist, metas padrão, backup", color: "#9a978f" },
 ];
 export default function Mais() {

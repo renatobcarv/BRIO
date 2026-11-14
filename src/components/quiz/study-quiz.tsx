@@ -3,13 +3,13 @@ import { useState } from "react";
 import { addStudy } from "@/app/(app)/espiritual/actions";
 import { Choices, QuickPick, Quiz } from "./quiz";
 
-const C = "#ffb340";
+const C = "#ff4d8a";
 const TYPES = [
-  { value: "publicacao", label: "Publicação", color: "#ffb340", icon: "M6 3h9l4 4v14H6zM14 3v5h5" },
-  { value: "biblia", label: "Bíblia", color: "#ff9f0a", icon: "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z" },
-  { value: "meio_semana", label: "Reunião do meio de semana", color: "#0a84ff", icon: "M3 5h18v12H8l-5 4z" },
-  { value: "sentinela", label: "Sentinela", color: "#64d2ff", icon: "M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" },
-  { value: "pesquisa", label: "Pesquisa de tema", color: "#bf5af2", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5" },
+  { value: "publicacao", label: "Publicação", color: "#ff4d8a", icon: "M6 3h9l4 4v14H6zM14 3v5h5" },
+  { value: "biblia", label: "Bíblia", color: "#ff5a6e", icon: "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z" },
+  { value: "meio_semana", label: "Reunião do meio de semana", color: "#f5f5f7", icon: "M3 5h18v12H8l-5 4z" },
+  { value: "sentinela", label: "Sentinela", color: "#f5f5f7", icon: "M12 2l3 7h7l-5.5 4.5L18 21l-6-4-6 4 1.5-7.5L2 9h7z" },
+  { value: "pesquisa", label: "Pesquisa de tema", color: "#d12b65", icon: "M11 4a7 7 0 1 0 0 14 7 7 0 0 0 0-14zM21 21l-5-5" },
   { value: "outro", label: "Outro", color: "#8e8e93", icon: "M12 5v14M5 12h14" },
 ] as const;
 type T = (typeof TYPES)[number]["value"];

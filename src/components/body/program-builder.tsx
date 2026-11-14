@@ -177,7 +177,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
             </div>
           );
         })}
-        <button className="btn !min-h-12 font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#801717)", boxShadow: "0 10px 26px -12px #e0393e" }} onClick={() => setLib(true)}>+ Adicionar exercício</button>
+        <button className="btn !min-h-12 font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#7a0c18)", boxShadow: "0 10px 26px -12px #e0393e" }} onClick={() => setLib(true)}>+ Adicionar exercício</button>
         <div className="grid grid-cols-2 gap-2">
           <button className="btn !min-h-10 text-sm" onClick={() => setCopyDay(true)} disabled={!list.length}>Copiar dia</button>
           <button className="btn !min-h-10 text-sm" onClick={copyToFollowing} disabled={ph >= p.phases.length - 1}>Replicar nas fases</button>

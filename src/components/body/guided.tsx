@@ -22,8 +22,8 @@ function Rest({ total, onDone }: { total: number; onDone: () => void }) {
       <div className="relative h-[180px] w-[180px] grid place-items-center">
         <svg width="180" height="180" className="-rotate-90 absolute" aria-hidden>
           <circle cx="90" cy="90" r={r} fill="none" stroke="rgba(255,255,255,.08)" strokeWidth="10" />
-          <circle cx="90" cy="90" r={r} fill="none" stroke={left ? G : "#ffb340"} strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - p)}
-            style={{ transition: "stroke-dashoffset .25s linear", filter: `drop-shadow(0 0 10px ${left ? G : "#ffb340"})` }} />
+          <circle cx="90" cy="90" r={r} fill="none" stroke={left ? G : "#ff4d8a"} strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={c * (1 - p)}
+            style={{ transition: "stroke-dashoffset .25s linear", filter: `drop-shadow(0 0 10px ${left ? G : "#ff4d8a"})` }} />
         </svg>
         <div className="text-center"><p className="text-xs text-muted">{left ? "Descanso" : "Bora!"}</p><p className="num text-5xl">{mmss(left)}</p></div>
       </div>
@@ -85,7 +85,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min${kg ? ` · ${fmt(kg)} km` : ""}` : `${ex.name} ${fmt(kg)}×${reps}`, G);
     const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
     if (old > 0 && now > old) setTimeout(() => celebrate("Novo recorde!", `${ex.name}: ${fmt(kg)} kg × ${reps}`), 300);
-    else if (next.exercises[cur.e].sets.every((x) => x.done)) { setTimeout(() => { gain(15, `${ex.name} conquistado`, "#ffd27a"); haptic([30, 30, 80]); }, 450); }
+    else if (next.exercises[cur.e].sets.every((x) => x.done)) { setTimeout(() => { gain(15, `${ex.name} conquistado`, "#ff8fb5"); haptic([30, 30, 80]); }, 450); }
     let nx: { e: number; k: number } | null = null;
     for (let e = cur.e; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
     if (!nx) for (let e = 0; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
@@ -117,7 +117,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
         <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.vol / 1000} format={(v) => v.toFixed(1).replace(".", ",")} /> t</p><p className="text-xs text-muted">volume</p></div>
         <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.min} /></p><p className="text-xs text-muted">minutos</p></div>
       </div>
-      {finished.prs.length > 0 && <p className="mt-4 rounded-2xl p-3 text-sm font-semibold" style={{ background: "#ffb34022", color: "#ffb340", boxShadow: "0 0 24px -8px #ffb340" }}>🏆 Recorde em {finished.prs.join(", ")}</p>}
+      {finished.prs.length > 0 && <p className="mt-4 rounded-2xl p-3 text-sm font-semibold" style={{ background: "#ff4d8a22", color: "#ff4d8a", boxShadow: "0 0 24px -8px #ff4d8a" }}>🏆 Recorde em {finished.prs.join(", ")}</p>}
       <p className="mt-5"><span className="num text-5xl text-glow" style={{ color: G, ["--glow" as string]: G } as React.CSSProperties}>+<CountUp value={finished.xp} /></span> <span className="text-muted">XP de Força</span></p>
       <button className="btn btn-accent w-full mt-6 !min-h-12" onClick={() => { onSaved(); }}>Continuar</button>
     </div>

@@ -2,14 +2,14 @@
 import { useEffect, useRef, useState, useTransition } from "react";
 import { clearChat, resolveProposal } from "@/app/(app)/financas/actions";
 
-const A = "#3ee6c1";
+const A = "#ff4d8a";
 type Msg = { role: "user" | "assistant"; content: string; error?: boolean };
 type Proposal = { id: string; kind: string; summary: string; status: string };
 const SUGGESTIONS = ["Como estou este mês?", "Posso gastar R$ 200 em lazer?", "Tem algo estranho nos meus gastos?", "Quais são minhas assinaturas?", "Compare com o mês passado", "Quanto falta para minhas metas?"];
 const STARTERS: [string, string, string][] = [["📊", "Como estou este mês?", "Resumo de entradas, saídas e saldo"], ["🎯", "Quanto falta para minhas metas?", "Progresso e ritmo das caixinhas"], ["🔍", "Tem algo estranho nos meus gastos?", "Gastos fora do padrão"], ["📅", "Compare com o mês passado", "O que subiu e o que caiu"]];
 const KIND: Record<string, [string, string]> = { budget: ["🧱", "Teto de gastos"], goal: ["🎯", "Meta"], recategorize: ["🏷️", "Categorias"] };
 function Avatar({ size = 28 }: { size?: number }) {
-  return <span className="relative shrink-0 grid place-items-center rounded-xl" style={{ width: size, height: size, background: "linear-gradient(135deg, #ffb340, #3ee6c1)", boxShadow: "0 0 16px -4px #3ee6c1" }}>
+  return <span className="relative shrink-0 grid place-items-center rounded-xl" style={{ width: size, height: size, background: "linear-gradient(135deg, #ff4d8a, #ff4d8a)", boxShadow: "0 0 16px -4px #ff4d8a" }}>
     <svg width={size * 0.5} height={size * 0.5} viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="2.2" aria-hidden><path d="M12 3l2.2 5.3L20 9l-4.4 3.8L17 19l-5-3-5 3 1.4-6.2L4 9l5.8-.7z" /></svg></span>;
 }
 
@@ -66,7 +66,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
   return (
     <div style={{ ["--accent" as string]: A }} className="flex flex-col">
       <div className="sticky top-0 z-20 -mx-4 px-4 pt-1 pb-3 mb-3 bg-gradient-to-b from-base via-base/95 to-transparent">
-        <div className="flex items-center justify-between rounded-3xl p-3 border border-white/10" style={{ background: "radial-gradient(120% 120% at 0% 0%, rgba(62,230,193,.16), transparent 60%), radial-gradient(90% 90% at 100% 100%, rgba(255,179,64,.12), transparent 60%), #0b0d0d" }}>
+        <div className="flex items-center justify-between rounded-3xl p-3 border border-white/10" style={{ background: "radial-gradient(120% 120% at 0% 0%, rgba(255,77,138,.16), transparent 60%), radial-gradient(90% 90% at 100% 100%, rgba(255,77,138,.12), transparent 60%), #0b0d0d" }}>
           <div className="flex items-center gap-3">
             <span className="relative"><Avatar size={42} /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#0b0d0d] war-pulse" style={{ background: "#30d158" }} /></span>
             <div><p className="font-display text-lg leading-tight">Assistente financeiro</p><p className="text-[11px] text-muted">online · lê lançamentos, metas e tetos</p></div>
@@ -94,7 +94,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
             {m.role === "assistant" && <Avatar size={26} />}
             <div className={`max-w-[82%] rounded-[22px] px-4 py-3 text-[15px] leading-relaxed ${m.role === "user"
               ? "rounded-br-md text-[#06201a] font-medium" : `rounded-bl-md border ${m.error ? "border-[#ff453a]/40 text-[#ff6961] bg-[#ff453a]/10" : "border-white/10"}`}`}
-              style={m.role === "user" ? { background: "linear-gradient(135deg, #5ff5d3, #3ee6c1 50%, #2bb89a)", boxShadow: "0 8px 22px -12px #3ee6c1" } : m.error ? undefined : { background: "linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.025))" }}>
+              style={m.role === "user" ? { background: "linear-gradient(135deg, #5ff5d3, #ff4d8a 50%, #2bb89a)", boxShadow: "0 8px 22px -12px #ff4d8a" } : m.error ? undefined : { background: "linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.025))" }}>
               {m.role === "user" ? <p className="whitespace-pre-wrap">{m.content}</p> : <Rich text={m.content} />}
             </div>
           </div>
@@ -121,13 +121,13 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
             {msgs.length > 0 && SUGGESTIONS.map((s) => <button key={s} className="chip shrink-0 !bg-base/60 backdrop-blur !min-h-9 text-xs" disabled={busy} onClick={() => send(s)}>{s}</button>)}
           </div>
-          <form className="flex items-end gap-2 rounded-3xl border border-white/10 bg-[#0e1111]/90 backdrop-blur-xl p-1.5 pl-4 transition-shadow focus-within:border-[#3ee6c1]/50 focus-within:shadow-[0_0_0_4px_rgba(62,230,193,.12)]"
+          <form className="flex items-end gap-2 rounded-3xl border border-white/10 bg-[#0e1111]/90 backdrop-blur-xl p-1.5 pl-4 transition-shadow focus-within:border-[#ff4d8a]/50 focus-within:shadow-[0_0_0_4px_rgba(255,77,138,.12)]"
             onSubmit={(e) => { e.preventDefault(); send(text); }}>
             <textarea ref={area} rows={1} value={text} placeholder="Pergunte algo…" aria-label="Mensagem para o assistente"
               className="flex-1 resize-none bg-transparent outline-none py-2.5 text-[15px] max-h-32"
               onChange={(e) => { setText(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(128, e.target.scrollHeight) + "px"; }}
               onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(text); } }} />
-            <button type="submit" disabled={busy || !text.trim()} aria-label="Enviar" className="h-11 w-11 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 press" style={{ background: "linear-gradient(135deg, #5ff5d3, #2bb89a)", boxShadow: text.trim() ? "0 0 18px -4px #3ee6c1" : "none" }}>
+            <button type="submit" disabled={busy || !text.trim()} aria-label="Enviar" className="h-11 w-11 shrink-0 rounded-full grid place-items-center transition-all disabled:opacity-30 press" style={{ background: "linear-gradient(135deg, #5ff5d3, #2bb89a)", boxShadow: text.trim() ? "0 0 18px -4px #ff4d8a" : "none" }}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 19V5M5 12l7-7 7 7" /></svg>
             </button>
           </form>

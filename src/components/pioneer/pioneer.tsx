@@ -8,7 +8,7 @@ import { addDays, addMonths, daysInMonth, diffDays, dow, fromHMM, monthEnd, mont
 import { CATEGORIES, PRESETS, scalePreset, type Category } from "@/lib/pioneer";
 
 type Entry = { id: string; date: string; category: Category; minutes: number };
-const ACC = "#0a84ff";
+const ACC = "#f5f5f7";
 
 export function Pioneer(props: {
   month: string; today: string; goal: number; entries: Entry[]; plan: number[]; year: { month: string; minutes: number }[];

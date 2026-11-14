@@ -110,20 +110,20 @@ export default async function Hoje() {
       <div className="dash-side min-w-0">
       <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} />
       <div className="grid grid-cols-3 gap-3 mt-4">
-        <Mini href="/pioneiro" label="Pioneiro" color="#0a84ff" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
+        <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
         <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
         <Mini href="/corpo?aba=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
       </div>
 
       {/* Relatório financeiro */}
-      <Link href="/financas" className="glass rise block p-5 mt-4" style={{ ["--accent" as string]: "#3ee6c1" }}>
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#3ee6c1" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
+      <Link href="/financas" className="glass rise block p-5 mt-4" style={{ ["--accent" as string]: "#ff4d8a" }}>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ff4d8a" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
           <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#30d158" }}>{brl(income)}</p></div>
           <div><p className="label">Saiu</p><p className="num text-lg md:text-xl">{brl(spent)}</p></div>
           <div className="col-span-2 sm:col-span-1"><p className="label">Sobra</p><p className="num text-2xl md:text-xl" style={{ color: left >= 0 ? "#f5f5f7" : "#ff453a" }}>{brl(left)}</p></div>
         </div>
-        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#3ee6c1" }} /></div>
+        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#ff4d8a" }} /></div>
         <div className="flex justify-between text-xs text-muted mt-1.5">
           <span>{income ? `${Math.round((spent / income) * 100)}% da renda usada` : "Sem receitas lançadas"}</span>
           <span>Poupança {income ? Math.round((left / income) * 100) : 0}%</span>
@@ -138,11 +138,11 @@ export default async function Hoje() {
 
       {/* Metas */}
       <Link href="/metas" className="glass rise block p-5 mt-4">
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#bf5af2" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#d12b65" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
         {goalList.length === 0 ? <p className="font-display italic text-muted text-lg mt-2">Defina sua primeira meta.</p> : (
           <ul className="grid gap-4 mt-3">
             {goalList.map((g) => {
-              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#bf5af2";
+              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#d12b65";
               return (
                 <li key={g.id}>
                   <div className="flex justify-between gap-3 text-sm"><span className="truncate">{g.title}</span><span className="num shrink-0" style={{ color: c }}>{Math.round(st.pct * 100)}%</span></div>

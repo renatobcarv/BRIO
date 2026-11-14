@@ -3,11 +3,11 @@ import { cleanXpByDay } from "./clean.ts";
 
 export const ATTRS = {
   forca: { label: "Força", color: "#30d158", hint: "Volume de treino e recordes" },
-  vigor: { label: "Vigor", color: "#0a84ff", hint: "Água, sono e cardio" },
-  sabedoria: { label: "Sabedoria", color: "#ffb340", hint: "Estudo, Bíblia e livros" },
+  vigor: { label: "Vigor", color: "#f5f5f7", hint: "Água, sono e cardio" },
+  sabedoria: { label: "Sabedoria", color: "#ff4d8a", hint: "Estudo, Bíblia e livros" },
   servico: { label: "Serviço", color: "#409cff", hint: "Horas de pioneiro" },
-  disciplina: { label: "Disciplina", color: "#bf5af2", hint: "Checklist e dias completos" },
-  ordem: { label: "Ordem", color: "#3ee6c1", hint: "Finanças em dia" },
+  disciplina: { label: "Disciplina", color: "#d12b65", hint: "Checklist e dias completos" },
+  ordem: { label: "Ordem", color: "#ff4d8a", hint: "Finanças em dia" },
 } as const;
 export type Attr = keyof typeof ATTRS;
 
@@ -19,7 +19,7 @@ export const RANKS = [
   { min: 10, name: "Warrior", pt: "A resistência", color: "#c93a3a", metal: "red", meaning: "Desenvolveu disciplina, resiliência e autocontrole. Vencer a si mesmo é uma das maiores conquistas.", motto: "Discipline conquers impulse." },
   { min: 15, name: "Elite", pt: "A excelência", color: "#d24545", metal: "red", meaning: "Transformou consistência em padrão. Não depende de motivação para cumprir suas responsabilidades.", motto: "Excellence is never an accident." },
   { min: 21, name: "Sentinel", pt: "A proteção", color: "#e05252", metal: "red", meaning: "Protege o que construiu: seus princípios, sua saúde, seus relacionamentos e suas responsabilidades.", motto: "Protect what matters." },
-  { min: 28, name: "Commander", pt: "O domínio", color: "#c6a15b", metal: "gold", meaning: "Aprendeu a comandar a si mesmo. Visão estratégica, responsabilidade e liderança pessoal.", motto: "First, master yourself." },
+  { min: 28, name: "Commander", pt: "O domínio", color: "#d12b65", metal: "gold", meaning: "Aprendeu a comandar a si mesmo. Visão estratégica, responsabilidade e liderança pessoal.", motto: "First, master yourself." },
   { min: 36, name: "Sovereign", pt: "A soberania", color: "#d4af6a", metal: "gold", meaning: "Governa a própria existência. Constrói autonomia e não vive refém de impulsos ou de aprovação externa.", motto: "Be sovereign over your choices." },
   { min: 45, name: "Ascendant", pt: "A transcendência", color: "#e0bd78", metal: "gold", meaning: "Ultrapassa os próprios limites, supera suas versões anteriores e amplia sua capacidade de contribuir.", motto: "Rise beyond who you were." },
   { min: 55, name: "Apex", pt: "O ápice", color: "#f0cf86", metal: "gold", meaning: "A integração entre capacidade, caráter, disciplina e propósito. Não é perfeição nem o fim da evolução: é o nível mais alto conquistado até aqui.", motto: "Build something greater than yourself." },
@@ -32,7 +32,7 @@ export const ASCENSION_CREED = "You are not competing against others. You are bu
 export const TITLES = [
   { id: "phoenix", name: "Phoenix", color: "#e2572b", meaning: "Reconstrução e renascimento: transformar uma queda em recomeço.", requires: ["assuma"], rule: "Chegue a 30 dias limpos depois de um recomeço honesto." },
   { id: "titan", name: "Titan", color: "#bfc3c9", meaning: "Força monumental e capacidade de sustentar grandes responsabilidades. Inspirado nos Titãs da mitologia grega.", requires: ["total600", "treino200"], rule: "Some 600 kg nos três levantamentos ou registre 200 treinos." },
-  { id: "archon", name: "Archon", color: "#c6a15b", meaning: "Liderança, sabedoria e autoridade. Do grego árkhōn, aquele que governa.", requires: ["biblia", "livro50"], rule: "Leia a Bíblia inteira ou conclua 50 livros." },
+  { id: "archon", name: "Archon", color: "#d12b65", meaning: "Liderança, sabedoria e autoridade. Do grego árkhōn, aquele que governa.", requires: ["biblia", "livro50"], rule: "Leia a Bíblia inteira ou conclua 50 livros." },
 ] as const;
 
 /** XP total para chegar ao nível n (nível 1 = 0). Cresce de forma quadrática. */
@@ -114,8 +114,8 @@ export function xpEvents(g: GameInput): XpEvent[] {
 }
 
 export const RARITY = {
-  comum: { label: "Comum", color: "#8e8e93" }, rara: { label: "Rara", color: "#0a84ff" },
-  epica: { label: "Épica", color: "#bf5af2" }, lendaria: { label: "Lendária", color: "#ffb340" },
+  comum: { label: "Comum", color: "#8e8e93" }, rara: { label: "Rara", color: "#f5f5f7" },
+  epica: { label: "Épica", color: "#d12b65" }, lendaria: { label: "Lendária", color: "#ff4d8a" },
 } as const;
 export type Rarity = keyof typeof RARITY;
 export type Achievement = { id: string; title: string; desc: string; source?: string; attr: Attr; rarity: Rarity; done: boolean; progress: number; value: number; target: number };

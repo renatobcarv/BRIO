@@ -7,7 +7,7 @@ import { dayStreak } from "@/lib/streak-days";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-const ACC = "#ffb340";
+const ACC = "#ff4d8a";
 const TABS = [["estudo", "Estudo"], ["biblia", "Bíblia"], ["diario", "Diário"]] as const;
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
@@ -42,7 +42,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           {Array.from({ length: dim }).map((_, i) => {
             const d = addDays(m, i), v = mins.get(d) ?? 0, a = v ? Math.min(1, 0.3 + v / 90) : 0;
             return <span key={d} title={v ? `${v} min` : undefined} className={`aspect-square rounded-lg grid place-items-center text-xs ${d === today ? "ring-1 ring-white/50" : ""}`}
-              style={{ background: v ? `rgba(255,179,64,${a})` : "rgba(255,255,255,.04)", color: a > .6 ? "#120f08" : undefined }}>{i + 1}</span>;
+              style={{ background: v ? `rgba(255,77,138,${a})` : "rgba(255,255,255,.04)", color: a > .6 ? "#120f08" : undefined }}>{i + 1}</span>;
           })}
         </div>
       </Card>

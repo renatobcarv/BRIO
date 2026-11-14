@@ -13,7 +13,7 @@ export const useXp = () => useContext(XpCtx);
 
 export function haptic(pattern: number | number[] = 12) { try { navigator.vibrate?.(pattern); } catch { /* sem suporte */ } }
 
-const CONFETTI = ["#ffb340", "#ffd27a", "#30d158", "#0a84ff", "#bf5af2", "#ff453a"];
+const CONFETTI = ["#ff4d8a", "#ff8fb5", "#30d158", "#f5f5f7", "#d12b65", "#ff453a"];
 
 /** Guarda o XP no cliente para a barra reagir na hora; o servidor recalcula no próximo carregamento. */
 export function XpProvider({ initialTotal, initialToday, children, trackLevel = true }: { initialTotal: number; initialToday: number; children: React.ReactNode; trackLevel?: boolean }) {
@@ -32,7 +32,7 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
     setTimeout(() => setBanner(null), insignia != null ? 3600 : 2600);
   }, []);
 
-  const gain = useCallback((xp: number, label?: string, color = "#ffb340") => {
+  const gain = useCallback((xp: number, label?: string, color = "#ff4d8a") => {
     setTotal((t) => {
       const next = Math.max(0, t + xp);
       if (trackLevel && xp > 0 && levelOf(next).level > levelOf(t).level) {
@@ -68,10 +68,10 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
           <div className="absolute inset-0 bg-black/60 sheet-fade" />
           <div className="relative grid place-items-center">
             <div className="absolute h-[420px] w-[420px] rays" aria-hidden />
-            <div className="level-pop relative text-center rounded-[32px] px-10 py-8 border border-[#ffb340]/40 bg-[#111113]" style={{ animationDuration: banner.insignia != null ? "3.6s" : undefined, boxShadow: "0 0 0 1px rgba(255,179,64,.15), 0 0 90px -10px rgba(255,179,64,.65)" }}>
+            <div className="level-pop relative text-center rounded-[32px] px-10 py-8 border border-[#ff4d8a]/40 bg-[#111113]" style={{ animationDuration: banner.insignia != null ? "3.6s" : undefined, boxShadow: "0 0 0 1px rgba(255,77,138,.15), 0 0 90px -10px rgba(255,77,138,.65)" }}>
               {banner.insignia != null && <div className="mx-auto w-fit emblem-spin mb-2"><Insignia index={banner.insignia} size={120} /></div>}
-              <p className="label" style={{ color: "#ffb340" }}>{banner.insignia != null ? "Nova patente · Ascension" : "Conquista"}</p>
-              <p className="font-display text-6xl mt-2 text-glow" style={{ ["--glow" as string]: "#ffb340" }}>{banner.title}</p>
+              <p className="label" style={{ color: "#ff4d8a" }}>{banner.insignia != null ? "Nova patente · Ascension" : "Conquista"}</p>
+              <p className="font-display text-6xl mt-2 text-glow" style={{ ["--glow" as string]: "#ff4d8a" }}>{banner.title}</p>
               {banner.sub && <p className="text-muted mt-2">{banner.sub}</p>}
             </div>
           </div>
@@ -105,7 +105,7 @@ export function StatusHud({ attrs }: { attrs: { key: string; label: string; colo
             <span className="ml-auto text-xs num" style={{ color: today ? "#30d158" : "#84848a" }}>+<CountUp value={today} /> XP hoje</span>
           </div>
           <div className="mt-2 h-2.5 rounded-full bg-white/[.07] overflow-hidden">
-            <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd27a)`, boxShadow: `0 0 14px -1px ${rank.color}`, transition: "width .9s cubic-bezier(.34,1.56,.64,1)" }} />
+            <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ff8fb5)`, boxShadow: `0 0 14px -1px ${rank.color}`, transition: "width .9s cubic-bezier(.34,1.56,.64,1)" }} />
           </div>
           <p className="text-[11px] text-muted mt-1 num">{lv.into.toLocaleString("pt-BR")} / {lv.need.toLocaleString("pt-BR")} XP para o nível {lv.level + 1}</p>
           <div className="grid grid-cols-6 gap-1.5 mt-2">

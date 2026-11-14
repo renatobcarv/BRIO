@@ -1,7 +1,7 @@
 export const CATEGORIES = {
-  campo: { label: "Campo comum", color: "#0a84ff" },
-  publico: { label: "Testemunho público", color: "#ffb340" },
-  assembleia: { label: "Assembleia", color: "#bf5af2" },
+  campo: { label: "Campo comum", color: "#f5f5f7" },
+  publico: { label: "Testemunho público", color: "#ff4d8a" },
+  assembleia: { label: "Assembleia", color: "#d12b65" },
   obra: { label: "Obra", color: "#30d158" },
 } as const;
 export type Category = keyof typeof CATEGORIES;

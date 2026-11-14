@@ -173,7 +173,7 @@ export function BookDetail({ book: b, notes, sessions, today }: { book: Book; no
         {notes.length === 0 ? <Empty>Marque as frases que valem guardar.</Empty> : (
           <ul className="grid gap-3">
             {notes.map((x) => (
-              <li key={x.id}><button className="w-full text-left rounded-2xl bg-white/[.03] hover:bg-white/[.05] transition-colors p-4 border-l-2" style={{ borderColor: x.kind === "citacao" ? B : x.kind === "reflexao" ? "#ffb340" : "#0a84ff" }} onClick={() => setSheet(x)}>
+              <li key={x.id}><button className="w-full text-left rounded-2xl bg-white/[.03] hover:bg-white/[.05] transition-colors p-4 border-l-2" style={{ borderColor: x.kind === "citacao" ? B : x.kind === "reflexao" ? "#ff4d8a" : "#f5f5f7" }} onClick={() => setSheet(x)}>
                 <p className="label">{NOTE_KINDS[x.kind]}{x.page != null ? ` · pág. ${x.page}` : ""}</p>
                 <p className={`mt-1.5 whitespace-pre-line ${x.kind === "citacao" ? "font-display italic text-[17px] leading-relaxed" : "text-[15px]"}`}>{x.kind === "citacao" ? `“${x.text}”` : x.text}</p>
               </button></li>
