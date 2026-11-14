@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Card, PageHeader, Verse } from "@/components/ui";
+import { Board, Card, PageHeader, Verse } from "@/components/ui";
+import { HI } from "@/components/hunt-icons";
 import { BibleTab, JournalTab, StudyTab } from "@/components/spirit/spirit";
 import { StudyQuizButton } from "@/components/quiz/study-button";
 import { addDays, daysInMonth, dow, monthEnd, monthStart, todayISO, weekdayShort } from "@/lib/date";
@@ -28,7 +29,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
 
   return (
     <div className="dash-auto" style={{ ["--accent" as string]: ACC }}>
-      <PageHeader eyebrow="Espiritual" title="Vida espiritual" />
+      <PageHeader eyebrow="Espiritual" title="Vida espiritual" icon={HI.book} line="Jeová em primeiro lugar. O resto se organiza." />
+      {(() => { const todayMin = st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0), monthMin = monthSt.reduce((a, x) => a + x.minutes, 0);
+        return <Board icon={HI.book} label="Estudo pessoal hoje" big={String(todayMin)} unit="min" bar={todayMin / 30} sub={todayMin >= 30 ? "Alimento espiritual do dia garantido." : `Meta de 30 min · faltam ${30 - todayMin}`}
+          stats={[[HI.flame, "Sequência", String(streak), "dias de estudo"], [HI.book, "Bíblia", String(bibleStreak), "dias seguidos"], [HI.clock, "No mês", String(Math.round(monthMin / 60 * 10) / 10), "horas"]]} />; })()}
       <StudyQuizButton today={today} minutesToday={st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0)} />
       <Card>
         <div className="grid grid-cols-3 gap-3">

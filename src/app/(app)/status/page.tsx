@@ -13,7 +13,7 @@ export default async function Page() {
   const g = await loadGame(sb, s, todayISO());
   return (
     <div className="dash-auto">
-      <PageHeader eyebrow="Status" title="Sua evolução" />
+      <PageHeader eyebrow="Status" title="Sua evolução" line="Constância vira prova. Aqui está a sua." />
       <StatusSheet g={g} />
       <Verse area="metas" />
     </div>

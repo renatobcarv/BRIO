@@ -35,9 +35,10 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
   return (
     <div style={{ ["--accent" as string]: V }}>
       {/* Cabeçalho */}
-      <header className="rise rounded-[8px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(220,0,0,.3)", background: "radial-gradient(120% 90% at 0% 0%, rgba(220,0,0,.2), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(245,245,247,.14), transparent 60%), #08070d" }}>
-        <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: V }}>CENTRAL DE ESTUDOS</p>
-        <h1 className="font-display text-[clamp(28px,9vw,40px)] leading-none mt-1">Aprender até fechar.</h1>
+      <header className="rise hunt-card p-5 pl-6 relative overflow-hidden">
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 18px #ff2800" }} />
+        <p className="label">Central de estudos</p>
+        <h1 className="font-display text-5xl mt-2">Aprender até fechar<span className="text-[#ffb21e]">.</span></h1>
         <div className="grid grid-cols-4 gap-2 mt-4">
           {([["⏱", hm(week), "na semana"], ["🔥", String(streak), streak === 1 ? "dia seguido" : "dias seguidos"], ["🧠", String(mastered), "dominados"], ["↻", String(dueAll.length), "revisões hoje"]] as const).map(([e, v, l]) => (
             <div key={l} className="rounded-[8px] p-2 text-center border border-white/10 bg-white/[.03]"><p className="text-sm">{e}</p><p className="num text-lg leading-tight">{v}</p><p className="text-[9px] text-muted leading-tight">{l}</p></div>))}
@@ -46,7 +47,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
         <div className="flex items-end gap-1 h-16 mt-4" aria-label="Minutos estudados nos últimos 14 dias">
           {days.map((d) => (
             <div key={d.date} className="flex-1 flex flex-col items-center justify-end h-full gap-1" title={`${br(d.date)}: ${d.min} min`}>
-              <div className="w-full rounded-md bar-grow" style={{ height: `${Math.max(3, (d.min / maxDay) * 100)}%`, background: d.date === today ? `linear-gradient(180deg, #e3a6ff, ${V})` : d.min ? V + "88" : "rgba(255,255,255,.07)", boxShadow: d.date === today && d.min ? `0 0 10px ${V}` : "none" }} />
+              <div className="w-full rounded-md bar-grow" style={{ height: `${Math.max(3, (d.min / maxDay) * 100)}%`, background: d.date === today ? `linear-gradient(180deg, #ffb21e, ${V})` : d.min ? V + "88" : "rgba(255,255,255,.07)", boxShadow: d.date === today && d.min ? `0 0 10px ${V}` : "none" }} />
             </div>))}
         </div>
         <div className="flex justify-between text-[9px] text-faint mt-1"><span>{br(days[0].date)}</span><span>hoje</span></div>

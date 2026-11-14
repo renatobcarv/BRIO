@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { PageHeader, Verse } from "@/components/ui";
+import { Board, PageHeader, Verse } from "@/components/ui";
+import { HI } from "@/components/hunt-icons";
 import { Boxes, NetWorth } from "@/components/finance/finance";
 import { Investments, type Inv, type Move } from "@/components/finance/invest";
 import { todayISO } from "@/lib/date";
@@ -84,22 +85,31 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   }
   const href = (t: string, m = month) => `/financas?aba=${t}&m=${m.slice(0, 7)}`;
 
+  const sumQ = await sb.from("finance_items").select("kind,amount,paid").eq("month", month);
+  const sumL = (sumQ.data ?? []).map((r) => ({ ...r, amount: Number(r.amount) }));
+  const inc = sumL.filter((r) => r.kind === "receita").reduce((a, r) => a + r.amount, 0), exp = sumL.filter((r) => r.kind !== "receita").reduce((a, r) => a + r.amount, 0);
+  const toPay = sumL.filter((r) => r.kind !== "receita" && !r.paid).reduce((a, r) => a + r.amount, 0);
+  const brl0 = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+
   return (
     <div style={{ ["--accent" as string]: "#ff2800" }}>
-      <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" color="#ff2800" />
-      <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
-        <div className="flex p-1 rounded-[8px] bg-white/[.04] border border-white/[.06] gap-1 overflow-x-auto" role="tablist">
-          {TABS.map(([k, l]) => (
-            <Link key={k} href={href(k)} role="tab" aria-selected={tab === k}
-              className={`min-h-10 px-4 rounded-xl text-sm whitespace-nowrap grid place-items-center shrink-0 transition-colors ${tab === k ? "bg-white/[.09] text-ink" : "text-muted hover:text-ink"}`}>{l}</Link>
-          ))}
+      <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" icon={HI.coin} line="Dinheiro é ferramenta. Ordem antes de conforto." />
+      <Board icon={HI.coin} label={`Saldo de ${monthLabel(month)}`} big={brl0(inc - exp)} bar={inc ? Math.min(1, exp / inc) : exp ? 1 : 0}
+        sub={inc ? `${Math.round((exp / inc) * 100)}% da renda já comprometida` : "Lance as entradas do mês para ver o saldo."}
+        stats={[[HI.up, "Entradas", brl0(inc)], [HI.down, "Saídas", brl0(exp)], [HI.clock, "A pagar", brl0(toPay)]]} />
+      <nav aria-label="Seções de finanças" className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-4 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent md:backdrop-blur-none">
+        <div className="flex gap-px bg-white/[.06] border border-white/[.06] rounded-[8px] overflow-x-auto">
+          {TABS.map(([k, l]) => { const on = tab === k; return (
+            <Link key={k} href={href(k)} aria-current={on ? "page" : undefined}
+              className={`relative flex-1 min-w-[88px] min-h-12 px-3 grid place-items-center text-[12px] uppercase tracking-[.14em] whitespace-nowrap transition-colors ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/55 hover:text-white"}`}>
+              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 12px #ff2800" }} />}{l}</Link>); })}
         </div>
-      </div>
+      </nav>
       {monthNav && (
-        <nav className="flex items-center justify-between mb-4">
-          <Link className="btn" href={href(tab, addMonths(month, -1))} aria-label="Mês anterior">‹</Link>
-          <p className="font-display text-xl capitalize">{monthLabel(month)}</p>
-          <Link className="btn" href={href(tab, addMonths(month, 1))} aria-label="Próximo mês">›</Link>
+        <nav className="flex items-stretch gap-px mb-4 border border-white/[.06] rounded-[8px] overflow-hidden bg-white/[.06]" aria-label="Mês">
+          <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={href(tab, addMonths(month, -1))} aria-label="Mês anterior">‹</Link>
+          <p className="flex-1 bg-[#080808] py-2.5 text-center num text-xl capitalize">{monthLabel(month)}</p>
+          <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={href(tab, addMonths(month, 1))} aria-label="Próximo mês">›</Link>
         </nav>
       )}
       <div key={tab + month}>{content}</div>

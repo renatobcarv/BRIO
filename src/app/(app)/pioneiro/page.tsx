@@ -1,4 +1,5 @@
-import { PageHeader, Verse } from "@/components/ui";
+import { Board, PageHeader, Verse } from "@/components/ui";
+import { HI } from "@/components/hunt-icons";
 import { Pioneer } from "@/components/pioneer/pioneer";
 import { FieldHub, type Contact } from "@/components/pioneer/field-hub";
 import { addMonths, isoMonthParam, monthEnd, serviceYearStart, todayISO } from "@/lib/date";
@@ -33,7 +34,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ m
 
   return (
     <div className="dash-auto">
-      <PageHeader eyebrow="Pioneiro" title="Serviço de campo" color="#f5f5f7" />
+      <PageHeader eyebrow="Pioneiro" title="Serviço de campo" icon={HI.pin} line="Cada hora no campo conta. Planeje, saia e registre." />
+      {(() => { const daysOut = new Set((year.data ?? []).filter((e) => e.date >= curMonth).map((e) => e.date)).size, dayN = Number(today.slice(8, 10)), dim = Number(monthEnd(curMonth).slice(8, 10));
+        const need = Math.max(0, goalMin - monthMin), perDay = dim - dayN + 1 > 0 ? need / (dim - dayN + 1) : need;
+        return <Board icon={HI.clock} label="Horas no mês" big={(monthMin / 60).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} unit={`/ ${Math.round(goalMin / 60)} h`} bar={goalMin ? monthMin / goalMin : 0}
+          sub={need > 0 ? `Faltam ${(need / 60).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} h · ${Math.round(perDay)} min por dia até o fim do mês` : "Meta do mês batida."}
+          stats={[[HI.calendar, "Dias no campo", String(daysOut), "este mês"], [HI.people, "Revisitas", String((contacts.data ?? []).filter((c: { status?: string }) => c.status !== "encerrado").length), "ativas"], [HI.chart, "Ano de serviço", String(Math.round(yearData.reduce((a, m) => a + m.minutes, 0) / 60)), "horas"]]} />; })()}
       <FieldHub today={today} contacts={(contacts.error ? [] : contacts.data ?? []) as Contact[]} todayEntries={todayRows.data ?? []} monthMinutes={monthMin} goal={goalMin} />
       <div className="mt-6" />
       <Pioneer key={month} month={month} today={today}

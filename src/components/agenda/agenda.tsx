@@ -70,12 +70,13 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
   return (
     <div style={{ ["--accent" as string]: "#f5f5f7" }}>
       {/* Cabeçalho */}
-      <header className="rise mb-4 rounded-[8px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(245,245,247,.25)", background: "radial-gradient(120% 90% at 0% 0%, rgba(245,245,247,.16), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(220,0,0,.12), transparent 60%), #07090f" }}>
+      <header className="rise mb-4 hunt-card p-5 pl-6 relative overflow-hidden">
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 18px #ff2800" }} />
         <div className="absolute inset-0 pointer-events-none opacity-[.07]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
         <div className="relative flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] font-bold tracking-[.35em] text-[#f5f5f7]">CENTRAL DE OPERAÇÕES</p>
-            <p className="num text-[40px] leading-none mt-1 tabular-nums">{now ? fmtMin(nowMin!) : "--:--"}<span className="text-lg text-muted ml-1">{now ? String(new Date(now).getUTCSeconds()).padStart(2, "0") : ""}</span></p>
+            <p className="label">Central de operações</p>
+            <p className="num text-6xl leading-none mt-2 tabular-nums">{now ? fmtMin(nowMin!) : "--:--"}<span className="text-lg text-muted ml-1">{now ? String(new Date(now).getUTCSeconds()).padStart(2, "0") : ""}</span></p>
             <p className="text-xs text-muted mt-1">{WD[new Date(today + "T12:00:00Z").getUTCDay()]}, {br(today)} · {todayBlocks.length} {todayBlocks.length === 1 ? "compromisso" : "compromissos"} · {Math.floor(busy / 60)}h{String(busy % 60).padStart(2, "0")} ocupadas</p>
           </div>
           <button onClick={() => setConn(true)} className="press shrink-0 rounded-[8px] px-3 py-2 border text-xs font-semibold flex items-center gap-2"

@@ -19,6 +19,17 @@ export const HI = {
   plus: "M12 5v14M5 12h14",
   dumbbell: "M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12",
   star: "M12 3l2.6 6 6.4.6-4.8 4.3 1.4 6.4L12 17l-5.6 3.3 1.4-6.4L3 9.6 9.4 9z",
+  book: "M3 6c3-1.5 6-1.5 9 0v13c-3-1.5-6-1.5-9 0zM21 6c-3-1.5-6-1.5-9 0v13c3-1.5 6-1.5 9 0z",
+  clock: "M12 7v5l3 2M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18z",
+  pin: "M12 21s-7-6-7-11a7 7 0 0 1 14 0c0 5-7 11-7 11zM12 8v4",
+  people: "M9 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM3 20a6 6 0 0 1 12 0M16 5a3 3 0 0 1 0 6M18 14a5 5 0 0 1 3 6",
+  coin: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM9 9h4.5a1.5 1.5 0 0 1 0 3h-3a1.5 1.5 0 0 0 0 3H15M12 7v2M12 15v2",
+  up: "M5 15l7-7 7 7",
+  down: "M5 9l7 7 7-7",
+  pen: "M4 20l1-4.5L15.5 5a2.1 2.1 0 0 1 3 3L8 18.5z",
+  calendar: "M4 6h16v14H4zM4 10h16M8 3v4M16 3v4",
+  trophy: "M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7",
+  flag: "M5 21V4M5 4h11l-2 4 2 4H5",
   list: "M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1",
 } as const;
 export function Ico({ d, size = 16, className = "", color = "currentColor" }: { d: string; size?: number; className?: string; color?: string }) {

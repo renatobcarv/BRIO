@@ -21,7 +21,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
   return (
     <div className="dream-board">
       <header className="rise mb-6 flex items-end justify-between gap-3">
-        <div><p className="label" style={{ color: "#ff2800" }}>Quadro de sonhos</p><h1 className="font-display text-4xl md:text-5xl mt-2 leading-tight">Por quem e para onde.</h1></div>
+        <div><p className="label" style={{ color: "#ff2800" }}>Quadro de sonhos</p><h1 className="font-display text-5xl mt-2">Por quem e para onde<span className="text-[#ffb21e]">.</span></h1></div>
         <button className="btn btn-accent shrink-0" onClick={() => setForm({ category: "experiencia" })}>+ Sonho</button>
       </header>
       {!ready && <p className="glass p-4 mb-4 text-sm text-[#ff6961]">Rode a migração <b>supabase/migrations/20261120000000_sonhos.sql</b> no Supabase.</p>}
