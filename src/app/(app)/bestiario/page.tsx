@@ -18,7 +18,7 @@ export default async function Bestiario() {
   return (
     <div className="war">
       <header className="rise mb-6">
-        <p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#e0393e" }}>ASCENSION · WAR ROOM</p>
+        <p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#e0393e" }}>ASCENSION · COVIL</p>
         <h1 className="font-display text-[clamp(36px,12vw,48px)] mt-2 leading-none tracking-tight uppercase">Bestiário</h1>
         <p className="text-sm text-muted mt-2">Cada semana da campanha traz uma fera a vencer ou um anjo como exemplo a seguir. Cumpra todos os treinos planejados da semana.</p>
         <div className="grid grid-cols-3 gap-2 mt-4">
@@ -38,7 +38,7 @@ export default async function Bestiario() {
         <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#e0393e" }}>FERAS · INTENSIFICAÇÃO, HELL WEEK, DELOAD E CHEFE</p>
         <div className="mt-3"><BestiaryGrid ids={FERAS} rec={rec} angel={false} /></div>
       </section>
-      <Link href="/corpo?aba=treino" className="btn w-full mt-8">Voltar à War Room</Link>
+      <Link href="/corpo?aba=treino" className="btn w-full mt-8">Voltar à Covil</Link>
     </div>
   );
 }

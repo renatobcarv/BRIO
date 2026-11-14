@@ -60,7 +60,7 @@ export function BodyToday(props: {
         <p className="label" style={{ color: R }}>Alvo de hoje · treino</p>
         <p className="font-display text-4xl mt-2">{props.split.label}<span className="eye">.</span></p>
         <p className="text-sm text-muted mt-1">{props.split.focus}{props.exercises ? ` · ${props.exercises} exercícios` : ""}</p>
-        <span className="btn btn-accent mt-4 inline-flex items-center">{props.exercises ? "Entrar na War Room →" : "Dia de descanso · ver plano"}</span>
+        <span className="btn btn-accent mt-4 inline-flex items-center">{props.exercises ? "Entrar no Covil →" : "Dia de descanso · ver plano"}</span>
       </Link>
 
       {/* Combustível */}

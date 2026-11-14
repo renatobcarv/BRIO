@@ -230,7 +230,7 @@ a, button, [role="button"], label, .chip, .tile { touch-action: manipulation; -w
 /* iOS dá zoom em campos com fonte menor que 16px: força 16px no celular */
 @media (max-width: 767px) { input, textarea, select, .field { font-size: 16px !important; } }
 
-/* ═══════════ War Room: tema vermelho sangue da aba de treino ═══════════ */
+/* ═══════════ Covil: tema vermelho sangue da aba de treino ═══════════ */
 .war { --accent: #e0393e; position: relative; }
 .war::before { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none;
   background: radial-gradient(120% 60% at 50% -10%, rgba(163,0,0,.32), transparent 60%), radial-gradient(80% 40% at 50% 110%, rgba(128,23,23,.22), transparent 70%), #050101; }

@@ -29,7 +29,7 @@ function Phone() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             <div className="rounded-[8px] p-2.5 border border-[#a3000066]" style={{ background: "linear-gradient(160deg,#250404,#0a0a0a)" }}>
-              <p className="text-[8px] tracking-[.25em] text-[#ff2800] font-bold">WAR ROOM</p><p className="text-[12px] font-semibold mt-0.5">Upper A</p>
+              <p className="text-[8px] tracking-[.25em] text-[#ff2800] font-bold">COVIL</p><p className="text-[12px] font-semibold mt-0.5">Upper A</p>
               <div className="flex gap-0.5 mt-2">{[1, 1, 1, 0, 0].map((x, i) => <i key={i} className="h-5 flex-1 rounded-sm" style={{ background: x ? "#dc0000" : "#ffffff14" }} />)}</div>
             </div>
             <div className="rounded-[8px] p-2.5 border border-white/10 bg-white/[.03]">
@@ -48,7 +48,7 @@ function Phone() {
 
 const BENTO = [
   { t: "Comece o dia sabendo o que importa", f: "missão diária", c: "#ff2800", big: true, d: "Uma lista curta de objetivos com sequência, recorde e contagem até a meia-noite. O fogo cresce com a sua constância.", tex: "radial-gradient(70% 60% at 30% 20%, rgba(220,0,0,.28), transparent 70%)" },
-  { t: "Treine com plano, não com palpite", f: "war room · periodização", c: "#ff2800", wide: true, d: "Campanha em fases, sugestão de carga por série e um treino guiado com cronômetro.", tex: "repeating-linear-gradient(90deg, rgba(163,0,0,.12) 0 2px, transparent 2px 14px)" },
+  { t: "Treine com plano, não com palpite", f: "covil · periodização", c: "#ff2800", wide: true, d: "Campanha em fases, sugestão de carga por série e um treino guiado com cronômetro.", tex: "repeating-linear-gradient(90deg, rgba(163,0,0,.12) 0 2px, transparent 2px 14px)" },
   { t: "Coma o que planejou (e registre o que não)", f: "dieta", c: "#ff2800", d: "Metas de macros, refeições salvas e o que foi fora do plano, sem culpa.", tex: "radial-gradient(60% 60% at 80% 100%, rgba(163,0,0,.24), transparent 70%)" },
   { t: "Fale e a agenda se organiza", f: "central de operações · IA", c: "#ff2800", d: "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso.", tex: "radial-gradient(50% 50% at 50% 50%, rgba(220,0,0,.2), transparent 60%)" },
   { t: "Seu dinheiro sem surpresa", f: "finanças · parcelas", c: "#ff2800", wide: true, d: "Orçamento por categoria, compras parceladas que fecham no centavo e um assistente que lê seus números.", tex: "linear-gradient(180deg, rgba(163,0,0,.16), transparent 60%)" },
@@ -56,7 +56,7 @@ const BENTO = [
 ];
 const FEATS = [
   ["Missão diária", "Comece o dia sabendo o que importa", "Poucos objetivos, o principal em destaque e contagem até a meia-noite. Bateu tudo? A sequência sobe."],
-  ["War Room", "Treine com plano, não com palpite", "Campanha em fases, carga sugerida por série e treino guiado com cronômetro de descanso."],
+  ["Covil", "Treine com plano, não com palpite", "Campanha em fases, carga sugerida por série e treino guiado com cronômetro de descanso."],
   ["Dieta", "Coma o que planejou", "Macros do dia, refeições salvas e o que saiu do plano registrado sem culpa, de cerveja a pão com ovo."],
   ["Central de Operações", "Fale e a agenda se organiza", "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso."],
   ["Finanças", "Dinheiro sem surpresa", "Orçamento por categoria, parcelas que fecham no centavo e assistente que lê os seus números."],

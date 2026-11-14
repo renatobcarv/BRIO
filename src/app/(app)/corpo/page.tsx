@@ -117,7 +117,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const sumMl = (sumW.data ?? []).reduce((a, w) => a + w.ml, 0);
   const SECT: Record<string, { n: string; title: string; line: string; stat: string; sub: string; icon: string }> = {
     hoje: { n: "01", title: "Hoje", line: "O corpo de hoje: água, sono, comida e treino num relance.", stat: `${(sumMl / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} L`, sub: "água", icon: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" },
-    treino: { n: "02", title: "War Room", line: "Disciplina conquista o impulso.", stat: todaySplit.label, sub: todaySplit.focus || "treino do dia", icon: "M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" },
+    treino: { n: "02", title: "Covil", line: "Onde a pantera fica mais forte. Disciplina conquista o impulso.", stat: todaySplit.label, sub: todaySplit.focus || "treino do dia", icon: "M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" },
     alimentacao: { n: "03", title: "Dieta", line: "Combustível medido. Nada de achismo no prato.", stat: `${sumKcal}`, sub: `de ${s.kcal_goal} kcal`, icon: "M7 3v8a3 3 0 0 0 6 0V3M10 3v18M17 3c-2 2-2 6 0 8v10" },
     peso: { n: "04", title: "Peso", line: "A balança não mente. Tendência acima de um dia ruim.", stat: sumKg.data ? `${N(sumKg.data.kg).toLocaleString("pt-BR")} kg` : "—", sub: s.weight_goal_kg ? `meta ${s.weight_goal_kg} kg` : "último registro", icon: "M5 20h14l-2-12H7zM9 8a3 3 0 0 1 6 0" },
   };
