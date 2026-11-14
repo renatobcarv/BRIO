@@ -69,9 +69,10 @@ export function Segmented<T extends string>({ value, options, onChange }: { valu
   );
 }
 
-export function Progress({ value, color, height = 8 }: { value: number; color?: string; height?: number }) {
+export function Progress({ value, color, height = 8, label = "Progresso" }: { value: number; color?: string; height?: number; label?: string }) {
   const v = Math.max(0, Math.min(1, value || 0));
-  return <div className="bar" style={{ height }}><i style={{ width: `${v * 100}%`, background: color }} /></div>;
+  // role=progressbar com rótulo e valores (biblioteca GEN-A11Y-02)
+  return <div className="bar" style={{ height }} role="progressbar" aria-label={label} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(v * 100)}><i style={{ width: `${v * 100}%`, background: color }} /></div>;
 }
 
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
