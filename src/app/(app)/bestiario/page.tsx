@@ -38,7 +38,7 @@ export default async function Bestiario() {
         <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#e0393e" }}>FERAS · INTENSIFICAÇÃO, HELL WEEK, DELOAD E CHEFE</p>
         <div className="mt-3"><BestiaryGrid ids={FERAS} rec={rec} angel={false} /></div>
       </section>
-      <Link href="/corpo?aba=treino" className="btn w-full mt-8">Voltar à Covil</Link>
+      <Link href="/corpo?aba=treino" className="btn w-full mt-8">Voltar ao Covil</Link>
     </div>
   );
 }
