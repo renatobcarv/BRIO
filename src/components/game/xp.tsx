@@ -102,7 +102,7 @@ export function StatusHud({ attrs }: { attrs: { key: string; label: string; colo
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <span className="text-sm font-semibold text-glow" style={{ color: rank.color, ["--glow" as string]: rank.color }}>{rank.name}</span>
-            <span className="ml-auto text-xs num" style={{ color: today ? "#30d158" : "#5a5a5f" }}>+<CountUp value={today} /> XP hoje</span>
+            <span className="ml-auto text-xs num" style={{ color: today ? "#30d158" : "#84848a" }}>+<CountUp value={today} /> XP hoje</span>
           </div>
           <div className="mt-2 h-2.5 rounded-full bg-white/[.07] overflow-hidden">
             <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd27a)`, boxShadow: `0 0 14px -1px ${rank.color}`, transition: "width .9s cubic-bezier(.34,1.56,.64,1)" }} />

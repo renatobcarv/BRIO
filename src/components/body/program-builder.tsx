@@ -121,7 +121,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
             <button key={d} onClick={() => { setDay(d); setOpen(null); haptic(6); }} className="press rounded-xl py-2 text-center border"
               style={{ borderColor: on ? R : "rgba(255,255,255,.06)", background: on ? "rgba(224,57,62,.16)" : "transparent", boxShadow: on ? `0 0 14px -6px ${R}` : "none" }}>
               <span className={`block text-[11px] ${on ? "text-ink font-semibold" : "text-muted"}`}>{weekdayShort[+d]}</span>
-              <span className="block num text-sm mt-0.5" style={{ color: n ? (on ? R : "#f5f5f7") : "#5a5a5f" }}>{n || "–"}</span>
+              <span className="block num text-sm mt-0.5" style={{ color: n ? (on ? R : "#f5f5f7") : "#84848a" }}>{n || "–"}</span>
             </button>
           );
         })}

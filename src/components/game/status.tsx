@@ -67,7 +67,7 @@ export function StatusSheet({ g }: { g: Game }) {
                     {cur && <span className="tag" style={{ color: r.color }}>você</span>}
                   </div>
                   <p className="text-[13px] text-muted mt-1 leading-snug">{r.meaning}</p>
-                  <p className="text-xs italic mt-1.5" style={{ color: got ? r.color : "#5a5a5f" }}>“{r.motto}”</p>
+                  <p className="text-xs italic mt-1.5" style={{ color: got ? r.color : "#84848a" }}>“{r.motto}”</p>
                   <p className="text-[10px] text-faint mt-1 num">Nível {r.min}{nextMin ? `–${nextMin - 1}` : "+"}</p>
                 </div>
               </li>
@@ -89,7 +89,7 @@ export function StatusSheet({ g }: { g: Game }) {
                 <div className="min-w-0">
                   <p className="font-bold tracking-[.12em] uppercase" style={{ color: earned ? t.color : "#8e8e93" }}>{t.name}</p>
                   <p className="text-[13px] text-muted leading-snug mt-0.5">{t.meaning}</p>
-                  <p className="text-[11px] mt-1" style={{ color: earned ? "#30d158" : "#5a5a5f" }}>{earned ? "Conquistado" : t.rule}</p>
+                  <p className="text-[11px] mt-1" style={{ color: earned ? "#30d158" : "#84848a" }}>{earned ? "Conquistado" : t.rule}</p>
                 </div>
               </div>
             );
@@ -133,7 +133,7 @@ export function StatusSheet({ g }: { g: Game }) {
                 style={{ borderColor: a.done ? r.color + "88" : "rgba(255,255,255,.06)", background: a.done ? `linear-gradient(160deg, ${r.color}26, #111113 70%)` : "#111113", boxShadow: a.done && a.rarity !== "comum" ? `0 8px 26px -12px ${r.color}` : undefined }}>
                 <div className="flex items-center gap-2">
                   <span className="h-8 w-8 rounded-[10px] grid place-items-center text-sm shrink-0"
-                    style={{ background: a.done ? r.color : "rgba(255,255,255,.05)", color: a.done ? "#000" : "#5a5a5f", boxShadow: a.done ? `0 0 16px ${r.color}` : undefined }}>{a.done ? "★" : "☆"}</span>
+                    style={{ background: a.done ? r.color : "rgba(255,255,255,.05)", color: a.done ? "#000" : "#84848a", boxShadow: a.done ? `0 0 16px ${r.color}` : undefined }}>{a.done ? "★" : "☆"}</span>
                   <div className="min-w-0"><p className={`text-sm font-semibold leading-tight ${a.done ? "" : "text-muted"}`}>{a.title}</p>
                     <p className="text-[10px] font-medium mt-0.5" style={{ color: r.color }}>{r.label}</p></div>
                 </div>
