@@ -5,28 +5,9 @@ import { addWater, saveSleep, undoWater } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
-import { Drumstick, EnergyFlame, Moon } from "@/components/meters";
 
 const G = "#30d158";
 const L = (ml: number) => fmt(ml / 1000, 2);
-
-function Bottle({ pct }: { pct: number }) {
-  const h = 160, fill = Math.max(0, Math.min(1, pct)) * (h - 22);
-  return (
-    <svg width="88" height={h + 10} viewBox={`0 0 88 ${h + 10}`} aria-hidden>
-      <defs>
-        <clipPath id="bt"><path d="M30 6h28v14c0 6 13 10 13 23v106a11 11 0 0 1-11 11H28a11 11 0 0 1-11-11V43c0-13 13-17 13-23z" /></clipPath>
-        <linearGradient id="wg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#7ee8a2" /><stop offset="1" stopColor="#1f9d48" /></linearGradient>
-      </defs>
-      <g clipPath="url(#bt)">
-        <rect width="88" height={h + 10} fill="rgba(255,255,255,.04)" />
-        <rect x="0" y={h + 2 - fill} width="88" height={fill + 10} fill="url(#wg)" style={{ transition: "all .9s cubic-bezier(.34,1.56,.64,1)" }} />
-        <rect x="24" y="30" width="5" height="110" rx="2.5" fill="rgba(255,255,255,.12)" />
-      </g>
-      <path d="M30 6h28v14c0 6 13 10 13 23v106a11 11 0 0 1-11 11H28a11 11 0 0 1-11-11V43c0-13 13-17 13-23z" fill="none" stroke="rgba(255,255,255,.25)" strokeWidth="1.5" />
-    </svg>
-  );
-}
 
 export function BodyToday(props: {
   today: string; waterMl: number; waterGoal: number; water7: { date: string; ml: number }[];
@@ -45,69 +26,94 @@ export function BodyToday(props: {
   const slept = props.sleep7.filter((s) => s.hours != null).map((s) => s.hours!);
   const avg = slept.length ? slept.reduce((a, b) => a + b, 0) / slept.length : null;
 
+  const R = "#ff2800";
+  const clamp = (x: number) => Math.max(0, Math.min(1, x || 0));
+  const parts = [
+    { k: "Água", v: clamp(ml / props.waterGoal) },
+    { k: "Sono", v: props.sleepHours != null ? clamp(props.sleepHours / 8) : 0 },
+    { k: "Energia", v: clamp(props.food.kcal / props.food.kcalGoal) },
+    { k: "Proteína", v: clamp(props.food.protein / props.food.proteinGoal) },
+  ];
+  const ready = Math.round((parts.reduce((a, x) => a + x.v, 0) / parts.length) * 100);
+  const verdict = ready >= 85 ? "Pronto para caçar." : ready >= 55 ? "Em posição. Feche as lacunas." : "Abastecimento baixo. Corrija agora.";
+  const Seg = ({ v, n = 10 }: { v: number; n?: number }) => (
+    <div className="flex gap-[3px]" aria-hidden>{Array.from({ length: n }, (_, i) => <i key={i} className="h-2 flex-1" style={{ background: i < Math.round(v * n) ? R : "rgba(255,255,255,.08)" }} />)}</div>);
+
   return (
-    <div style={{ ["--accent" as string]: G }}>
-      <Link href="/corpo?aba=treino" className="glass rise block p-5">
-        <div className="flex items-center justify-between"><p className="label" style={{ color: G }}>Treino de hoje</p><span className="text-sm text-muted">abrir ›</span></div>
-        <p className="font-display text-2xl mt-1">{props.split.label} · {props.split.focus}</p>
-        <p className="text-sm text-muted">{props.exercises ? `${props.exercises} exercícios planejados` : "Dia de descanso"}</p>
-      </Link>
-
-      <Link href="/corpo?aba=alimentacao" className="glass rise block p-5 mt-4">
-        <div className="flex items-center justify-between"><p className="label" style={{ color: G }}>Alimentação</p><span className="text-sm text-muted">abrir ›</span></div>
-        <div className="grid grid-cols-2 gap-4 mt-3">
-          <div className="col-span-2 flex justify-around items-end">
-            <span className="flex items-end gap-2"><EnergyFlame pct={props.food.kcal / props.food.kcalGoal} size={38} /><span className="text-xs text-muted pb-1">energia<br /><b className="num text-ink text-sm">{Math.round((props.food.kcal / props.food.kcalGoal) * 100) || 0}%</b></span></span>
-            <span className="flex items-end gap-2"><Drumstick pct={props.food.protein / props.food.proteinGoal} size={44} /><span className="text-xs text-muted pb-1">proteína<br /><b className="num text-ink text-sm">{Math.round((props.food.protein / props.food.proteinGoal) * 100) || 0}%</b></span></span>
-          </div>
-          <div><div className="flex justify-between text-sm"><span>Calorias</span><span className="num">{props.food.kcal}/{props.food.kcalGoal}</span></div><Progress value={props.food.kcal / props.food.kcalGoal} height={6} /></div>
-          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ff2800" height={6} /></div>
+    <div className="dash-auto" style={{ ["--accent" as string]: R }}>
+      {/* Prontidão: o placar do corpo hoje */}
+      <section className="hunt-card rise relative overflow-hidden p-5">
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
+        <div className="flex items-end justify-between gap-4">
+          <div><p className="label">Prontidão de hoje</p><p className="font-display text-2xl mt-1">{verdict}</p></div>
+          <p className="num text-6xl leading-none" style={{ color: R }}>{ready}<span className="text-2xl text-white/40">%</span></p>
         </div>
-      </Link>
-
-      <section className="glass rise p-5 mt-4">
-        <SectionTitle action={<LinkBtn onClick={() => setGoalSheet(true)}>Meta</LinkBtn>}>Água</SectionTitle>
-        <div className="flex items-center gap-5">
-          <Bottle pct={ml / props.waterGoal} />
-          <div className="flex-1 min-w-0">
-            <p><span className="num text-4xl">{L(ml)}</span> <span className="text-muted">/ {L(props.waterGoal)} L</span></p>
-            <p className="text-sm text-muted">{ml >= props.waterGoal ? "Meta batida. Boa." : `Faltam ${L(props.waterGoal - ml)} L`}</p>
-            <div className="grid grid-cols-3 gap-2 mt-3">
-              {[250, 500, 1000].map((v) => <button key={v} className="btn !px-1" onClick={() => water(v)}>+{v >= 1000 ? "1 L" : v}</button>)}
-            </div>
-            <div className="flex gap-2 mt-2">
-              <input className="field !min-h-11 num" inputMode="numeric" placeholder="ml" value={custom} onChange={(e) => setCustom(e.target.value)} aria-label="Quantidade personalizada em ml" />
-              <button className="btn" disabled={!n(custom)} onClick={() => { water(Math.round(n(custom))); setCustom(""); }}>+</button>
-              <button className="btn text-muted" disabled={pending} onClick={() => start(() => undoWater())} aria-label="Desfazer último">↶</button>
-            </div>
-          </div>
-        </div>
-        <div className="flex items-end gap-2 h-20 mt-5">
-          {props.water7.map((w) => (
-            <div key={w.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={`${L(w.ml)} L`}>
-              <div className="w-full rounded-md" style={{ height: `${(w.ml / max7) * 100}%`, minHeight: 2, background: w.ml >= props.waterGoal ? G : G + "55" }} />
-              <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
-            </div>
-          ))}
+        <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-5">
+          {parts.map((x) => <div key={x.k}><div className="flex justify-between"><span className="label !text-[9px]">{x.k}</span><span className="font-mono text-[11px] text-white/60">{Math.round(x.v * 100)}%</span></div><div className="mt-1.5"><Seg v={x.v} /></div></div>)}
         </div>
       </section>
 
+      {/* Treino de hoje */}
+      <Link href="/corpo?aba=treino" className="glass rise block p-5 mt-4 relative overflow-hidden">
+        <svg aria-hidden className="absolute -right-4 -bottom-6 opacity-[.07]" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.2"><path d="M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" /></svg>
+        <p className="label" style={{ color: R }}>Alvo de hoje · treino</p>
+        <p className="font-display text-4xl mt-2">{props.split.label}</p>
+        <p className="text-sm text-muted mt-1">{props.split.focus}{props.exercises ? ` · ${props.exercises} exercícios` : ""}</p>
+        <span className="btn btn-accent mt-4 inline-flex items-center">{props.exercises ? "Entrar na War Room →" : "Dia de descanso · ver plano"}</span>
+      </Link>
+
+      {/* Combustível */}
+      <Link href="/corpo?aba=alimentacao" className="glass rise block p-5 mt-4">
+        <div className="flex items-center justify-between"><p className="label">Combustível</p><span className="label !text-[10px]">dieta ›</span></div>
+        <div className="grid grid-cols-2 gap-px bg-white/[.08] mt-3 border border-white/[.08]">
+          <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><span className="label !text-[9px]">Calorias</span></div><p className="num text-3xl mt-2">{props.food.kcal}<span className="text-sm text-white/40"> / {props.food.kcalGoal}</span></p><div className="mt-2"><Seg v={clamp(props.food.kcal / props.food.kcalGoal)} /></div></div>
+          <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><span className="label !text-[9px]">Proteína</span></div><p className="num text-3xl mt-2">{Math.round(props.food.protein)}<span className="text-sm text-white/40"> / {props.food.proteinGoal} g</span></p><div className="mt-2"><Seg v={clamp(props.food.protein / props.food.proteinGoal)} /></div></div>
+        </div>
+      </Link>
+
+      {/* Água */}
       <section className="glass rise p-5 mt-4">
-        <div className="flex items-center justify-between"><SectionTitle>Sono</SectionTitle><Moon hours={props.sleepHours} size={44} /></div>
+        <SectionTitle action={<LinkBtn onClick={() => setGoalSheet(true)}>Meta</LinkBtn>}>Água</SectionTitle>
+        <div className="flex items-end justify-between">
+          <p><span className="num text-5xl">{L(ml)}</span> <span className="text-muted">/ {L(props.waterGoal)} L</span></p>
+          <p className="text-sm" style={{ color: ml >= props.waterGoal ? G : "#8a8a8f" }}>{ml >= props.waterGoal ? "Meta batida" : `faltam ${L(props.waterGoal - ml)} L`}</p>
+        </div>
+        <div className="mt-3"><Seg v={clamp(ml / props.waterGoal)} n={Math.max(4, Math.round(props.waterGoal / 250))} /></div>
+        <div className="grid grid-cols-4 gap-2 mt-4">
+          {[250, 500, 1000].map((v) => <button key={v} className="btn !px-1 num" onClick={() => water(v)}>+{v >= 1000 ? "1 L" : v}</button>)}
+          <button className="btn text-muted" disabled={pending} onClick={() => start(() => undoWater())} aria-label="Desfazer último">↶</button>
+        </div>
+        <div className="flex gap-2 mt-2">
+          <input className="field !min-h-11 num" inputMode="numeric" placeholder="outra quantidade (ml)" value={custom} onChange={(e) => setCustom(e.target.value)} aria-label="Quantidade personalizada em ml" />
+          <button className="btn" disabled={!n(custom)} onClick={() => { water(Math.round(n(custom))); setCustom(""); }}>Adicionar</button>
+        </div>
+      </section>
+
+      {/* Sono */}
+      <section className="glass rise p-5 mt-4">
+        <div className="flex items-center justify-between"><SectionTitle>Sono</SectionTitle></div>
         <div className="flex gap-2 items-center">
           <input className="field max-w-24 text-center num text-lg" inputMode="decimal" placeholder="7,5" value={sleep} onChange={(e) => setSleep(e.target.value)} aria-label="Horas dormidas na última noite" />
-          <span className="text-muted text-sm">horas na última noite</span>
+          <span className="text-muted text-sm">h na última noite</span>
           <button className="btn btn-accent ml-auto" disabled={pending || !sleep} onClick={() => start(() => saveSleep(props.today, n(sleep)))}>Salvar</button>
         </div>
-        <div className="flex items-end gap-2 h-16 mt-4">
-          {props.sleep7.map((s) => (
-            <div key={s.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={s.hours != null ? `${fmt(s.hours)} h` : "sem registro"}>
-              <div className="w-full rounded-md" style={{ height: `${((s.hours ?? 0) / 10) * 100}%`, minHeight: 2, background: (s.hours ?? 0) >= 7 ? "#f5f5f7" : "#f5f5f755" }} />
-              <span className="text-[10px] text-muted">{weekdayShort[dow(s.date)]}</span>
-            </div>
-          ))}
+        <p className="text-xs text-muted mt-3">{avg != null ? `Média ${fmt(avg)} h · ${slept.filter((h) => h >= 7).length} de ${slept.length} noites com 7h+` : "Registre o sono para ver sua média."}</p>
+      </section>
+
+      {/* Semana: água e sono lado a lado */}
+      <section className="glass rise p-5 mt-4">
+        <SectionTitle>Últimos 7 dias</SectionTitle>
+        <div className="grid grid-cols-7 gap-2 items-end h-28">
+          {props.water7.map((w, i) => { const sl = props.sleep7[i]?.hours ?? 0; return (
+            <div key={w.date} className="flex flex-col items-center gap-1 h-full justify-end" title={`${L(w.ml)} L · ${fmt(sl)} h`}>
+              <div className="flex items-end gap-[3px] h-full w-full justify-center">
+                <i className="w-2.5" style={{ height: `${(w.ml / max7) * 100}%`, minHeight: 2, background: w.ml >= props.waterGoal ? R : R + "55" }} />
+                <i className="w-2.5" style={{ height: `${(sl / 10) * 100}%`, minHeight: 2, background: sl >= 7 ? "#f5f5f7" : "#f5f5f744" }} />
+              </div>
+              <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
+            </div>); })}
         </div>
-        <p className="text-xs text-muted mt-2">{avg != null ? `Média: ${fmt(avg)} h · ${slept.filter((h) => h >= 7).length} de ${slept.length} noites com 7h+` : "Registre o sono para ver sua média."}</p>
+        <div className="flex gap-4 mt-3 text-[11px] text-muted"><span className="flex items-center gap-1.5"><i className="h-2 w-2" style={{ background: R }} />água (meta batida)</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 bg-[#f5f5f7]" />sono 7h+</span></div>
       </section>
 
       <Sheet open={goalSheet} onClose={() => setGoalSheet(false)} title="Meta de água" accent={G}>
