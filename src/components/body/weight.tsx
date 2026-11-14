@@ -1,10 +1,9 @@
 "use client";
-import { Scale } from "@/components/meters";
 import { useState, useTransition } from "react";
 import { deleteWeight, saveWeight } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Empty } from "@/components/ui";
-import { Field, LinkBtn, Progress, SectionTitle, Sheet, Stat, fmt, n } from "@/components/kit";
+import { Field, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { addDays, diffDays, shortDate } from "@/lib/date";
 
 const G = "#30d158";
@@ -47,50 +46,59 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
   const openLog = (l: Log | "new") => { setSheet(l); setF(l === "new" ? { date: today, kg: "" } : { date: l.date, kg: fmt(l.kg) }); };
   const editing = sheet && typeof sheet === "object" ? sheet : null;
 
+  const R = "#ff2800";
+  const pctPath = Math.round(Math.max(0, Math.min(1, progress)) * 100);
+  const onTrack = perWeek != null && rate > 0 ? (losing ? -perWeek >= rate * 0.8 : perWeek >= rate * 0.8) : null;
+  const last7 = sorted.at(-2) ? cur - sorted.at(-2)!.kg : null;
+
   return (
-    <div style={{ ["--accent" as string]: G }}>
-      <section className="glass rise p-5">
-        <SectionTitle action={<LinkBtn onClick={() => setSheet("goal")}>Editar meta</LinkBtn>}>Peso</SectionTitle>
-        <div className="grid grid-cols-3 gap-3">
-          <Stat big label="Atual" value={fmt(cur)} sub="kg" />
-          <Stat big label="Meta" value={fmt(goal)} sub={`início ${fmt(startKg)} kg`} />
-          <Stat big label="Falta" value={fmt(Math.abs(left))} color={G} sub={left === 0 ? "chegou!" : "kg"} />
+    <div className="dash-auto" style={{ ["--accent" as string]: R }}>
+      {/* Placar principal */}
+      <section className="hunt-card rise relative overflow-hidden p-5">
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
+        <div className="flex items-start justify-between gap-3">
+          <div><p className="label">Peso atual</p><p className="num text-7xl leading-none mt-2">{fmt(cur)}<span className="text-2xl text-white/40"> kg</span></p>
+            {last7 != null && <p className="font-mono text-xs mt-2" style={{ color: (last7 < 0) === losing ? G : "#ff453a" }}>{last7 > 0 ? "▲ +" : "▼ "}{fmt(last7)} kg desde o último registro</p>}</div>
+          <button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={() => setSheet("goal")}>meta</button>
         </div>
-        <div className="mt-4 flex items-center gap-3"><Scale pct={progress} size={56} /><div className="flex-1"><Progress value={progress} /></div></div>
-        <div className="flex justify-between text-xs text-muted mt-1.5">
-          <span>{Math.round(Math.max(0, progress) * 100)}% do caminho · {losing ? "perdeu" : "ganhou"} {fmt(Math.abs(lost))} kg</span>
-          <span>plano: {fmt(rate, 2)} kg/sem</span>
+        <div className="mt-5 flex justify-between label !text-[9px]"><span>início {fmt(startKg)}</span><span style={{ color: R }}>{pctPath}% do caminho</span><span>meta {fmt(goal)}</span></div>
+        <div className="flex gap-[3px] mt-1.5" aria-hidden>{Array.from({ length: 20 }, (_, i) => <i key={i} className="h-2.5 flex-1" style={{ background: i < Math.round(pctPath / 5) ? R : "rgba(255,255,255,.08)" }} />)}</div>
+        <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">
+          {[["Falta", left === 0 ? "0" : fmt(Math.abs(left)), "kg"], ["Ritmo", perWeek == null ? "—" : `${perWeek > 0 ? "+" : ""}${fmt(perWeek, 2)}`, "kg/sem"], ["Chegada", eta ? shortDate(eta) : "—", eta ? eta.slice(0, 4) : "previsão"]].map(([l, v, u]) => (
+            <div key={l} className="pt-3 text-center"><p className="label !text-[9px]">{l}</p><p className="num text-2xl mt-1">{v}</p><p className="text-[10px] text-white/45">{u}</p></div>))}
         </div>
-        <div className="grid grid-cols-2 gap-3 mt-4 text-sm">
-          <div className="rounded-xl bg-white/[.03] p-3"><p className="label">Ritmo real</p><p className="num text-lg mt-1">{perWeek == null ? "—" : `${perWeek > 0 ? "+" : ""}${fmt(perWeek, 2)} kg/sem`}</p></div>
-          <div className="rounded-xl bg-white/[.03] p-3"><p className="label">Previsão</p><p className="num text-lg mt-1">{eta ? `${shortDate(eta)} ${eta.slice(2, 4)}` : "—"}</p></div>
-        </div>
-        {sorted.length > 1 && (
-          <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-4" role="img" aria-label="Gráfico do peso com a linha ideal">
-            {[0, 0.5, 1].map((t) => { const v = min + (max - min) * t; return <g key={t}><line x1={P} x2={W - P} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,.05)" /><text x={4} y={py(v) + 4} fontSize="11" fill="#5d5b56">{fmt(v, 0)}</text></g>; })}
-            <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke={G} strokeDasharray="4 6" opacity=".5" />
-            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#ff2800" strokeDasharray="2 5" opacity=".6" />}
-            <path d={`${path} L${px(sorted.at(-1)!.date)},${H - P} L${px(t0)},${H - P} Z`} fill={G} opacity=".08" />
-            <path d={path} fill="none" stroke={G} strokeWidth="2.5" strokeLinejoin="round" strokeLinecap="round" />
-            {sorted.map((l) => <circle key={l.id} cx={px(l.date)} cy={py(l.kg)} r="3.5" fill="#07080b" stroke={G} strokeWidth="2" />)}
-          </svg>
-        )}
-        {sorted.length > 1 && <p className="text-[11px] text-faint mt-1">Verde: seu peso · dourado: plano ideal · tracejado: meta</p>}
+        {onTrack != null && <p className="text-[12px] mt-4" style={{ color: onTrack ? G : "#ff453a" }}>{onTrack ? `No ritmo do plano (${fmt(rate, 2)} kg/sem). Mantenha.` : `Abaixo do plano de ${fmt(rate, 2)} kg/sem. Ajuste dieta ou treino.`}</p>}
+        <button className="btn btn-accent w-full mt-5" onClick={() => openLog("new")}>+ Registrar peso</button>
       </section>
 
-      <button className="btn btn-accent w-full mt-4" onClick={() => openLog("new")}>+ Registrar peso</button>
+      {/* Gráfico */}
+      {sorted.length > 1 && (
+        <section className="glass rise p-5 mt-4">
+          <SectionTitle>Trajetória</SectionTitle>
+          <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Gráfico do peso com a linha do plano e a meta">
+            {[0, 0.5, 1].map((t) => { const v = min + (max - min) * t; return <g key={t}><line x1={P} x2={W - P} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,.06)" /><text x={4} y={py(v) + 4} fontSize="11" fill="#6b6b70" fontFamily="monospace">{fmt(v, 0)}</text></g>; })}
+            <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke="#f5f5f7" strokeDasharray="4 6" opacity=".35" />
+            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#f5f5f7" strokeDasharray="2 5" opacity=".5" />}
+            <path d={`${path} L${px(sorted.at(-1)!.date)},${H - P} L${px(t0)},${H - P} Z`} fill={R} opacity=".1" />
+            <path d={path} fill="none" stroke={R} strokeWidth="2.5" strokeLinejoin="miter" />
+            {sorted.map((l) => <rect key={l.id} x={px(l.date) - 3} y={py(l.kg) - 3} width="6" height="6" fill="#050505" stroke={R} strokeWidth="2" />)}
+          </svg>
+          <div className="flex flex-wrap gap-4 mt-2 text-[11px] text-muted"><span className="flex items-center gap-1.5"><i className="h-0.5 w-4" style={{ background: R }} />seu peso</span><span className="flex items-center gap-1.5"><i className="h-0 w-4 border-t border-dashed border-white/60" />plano e meta</span></div>
+        </section>
+      )}
 
+      {/* Histórico */}
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Histórico</SectionTitle>
+        <SectionTitle>Registros</SectionTitle>
         {sorted.length === 0 ? <Empty>Registre o peso uma vez por semana, no mesmo dia e horário.</Empty> : (
-          <ul>
+          <ul className="divide-y divide-white/[.06]">
             {[...sorted].reverse().map((l, i, arr) => {
               const prev = arr[i + 1], d = prev ? l.kg - prev.kg : null;
               return (
                 <li key={l.id}><button className="row-hover w-full flex items-center gap-3 min-h-12 px-2" onClick={() => openLog(l)}>
-                  <span className="text-sm text-muted flex-1 text-left">{shortDate(l.date)} {l.date.slice(0, 4)}</span>
-                  {d != null && <span className="text-xs num" style={{ color: (d < 0) === losing ? G : "#ff453a" }}>{d > 0 ? "+" : ""}{fmt(d)}</span>}
-                  <span className="num w-20 text-right">{fmt(l.kg)} kg</span>
+                  <span className="font-mono text-xs text-muted flex-1 text-left">{l.date.split("-").reverse().join("/")}</span>
+                  {d != null && <span className="text-xs font-mono" style={{ color: (d < 0) === losing ? G : "#ff453a" }}>{d > 0 ? "▲ +" : "▼ "}{fmt(d)}</span>}
+                  <span className="num text-lg w-24 text-right">{fmt(l.kg)} kg</span>
                 </button></li>
               );
             })}
