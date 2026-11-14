@@ -1,68 +1,163 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { BrioMark } from "@/components/brand";
+import { SiteMotion } from "@/components/site/motion";
+import { Pricing } from "@/components/site/pricing";
 
-export const metadata: Metadata = { title: "BRIO · Vigor com honra", description: "Um sistema pessoal de constância: vida espiritual, serviço, corpo, finanças e metas." };
+export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
-const PILARES = [
-  { c: "#ffb340", t: "Vida espiritual", d: "Estudo, leitura da Bíblia e reflexão em primeiro lugar. O resto se organiza em volta disso." },
-  { c: "#0a84ff", t: "Ministério", d: "Horas, revisitas e estudos com metas mensais claras e um registro sem atrito." },
-  { c: "#e0393e", t: "War Room", d: "Campanhas de treino periodizadas, progressão de carga e eventos que testam a execução." },
-  { c: "#30d158", t: "Corpo", d: "Água, dieta, peso e sono: o básico bem feito, todos os dias." },
-  { c: "#64d2ff", t: "Finanças", d: "Dinheiro como ferramenta: orçamento, reservas, investimentos e patrimônio." },
-  { c: "#bf5af2", t: "Metas", d: "Objetivos de longo prazo quebrados em passos que cabem na semana." },
-];
-const RANKS = ["Initiate", "Squire", "Sentinel", "Vanguard", "Paladin", "Warden", "Champion", "Sovereign", "Ascendant", "Apex"];
+const FIRE = "linear-gradient(160deg,#ff6a3d,#e0393e 55%,#8a1a1d)";
 
-export default function Sobre() {
+/** Celular com uma miniatura do app (desenhada em código, mostra o que o app faz de verdade). */
+function Phone() {
   return (
-    <main className="min-h-dvh brio-aura px-4 pb-16">
-      <div className="max-w-xl mx-auto">
-        <section className="flex flex-col items-center text-center pt-16 rise">
-          <BrioMark size={128} />
-          <h1 className="font-display text-6xl tracking-[.22em] mt-6 pl-[.22em]">BRIO</h1>
-          <p className="text-lg text-ink/85 mt-3">Vigor com honra.</p>
-          <p className="text-sm text-muted mt-4 max-w-sm">Um sistema pessoal de constância. Não é sobre motivação, é sobre estrutura: fazer o certo de novo amanhã.</p>
-          <Link href="/login" className="press mt-8 min-h-14 px-10 rounded-2xl grid place-items-center font-semibold text-white"
-            style={{ background: "linear-gradient(160deg,#ff6a3d,#e0393e 55%,#8a1a1d)", boxShadow: "0 14px 34px -14px #e0393e" }}>Entrar</Link>
-        </section>
-
-        <section className="mt-16 rise rise-1">
-          <p className="text-[11px] font-semibold tracking-[.3em] text-muted">O NOME</p>
-          <p className="font-display text-2xl mt-3 leading-snug"><b>brio</b> <span className="text-muted text-base">s.m.</span> amor-próprio, honra, coragem e determinação.</p>
-          <ul className="grid gap-3 mt-5 text-sm text-ink/80">
-            <li><b className="text-ink">Honra.</b> O que impede de aceitar a mediocridade e leva a cumprir o dever com responsabilidade.</li>
-            <li><b className="text-ink">Coragem.</b> A força interior para enfrentar obstáculos e derrotas sem baixar a cabeça.</li>
-            <li><b className="text-ink">Persistência.</b> A energia de não se conformar com o superficial e buscar o melhor de si.</li>
-          </ul>
-        </section>
-
-        <section className="mt-16">
-          <p className="text-[11px] font-semibold tracking-[.3em] text-muted">OS PILARES</p>
-          <div className="grid sm:grid-cols-2 gap-3 mt-4">
-            {PILARES.map((p, i) => (
-              <div key={p.t} className="rise rounded-3xl p-5 border" style={{ animationDelay: `${i * 60}ms`, borderColor: p.c + "33", background: `linear-gradient(160deg, ${p.c}14, #0a0a0c 60%)` }}>
-                <span className="block h-1.5 w-8 rounded-full" style={{ background: p.c, boxShadow: `0 0 12px ${p.c}` }} />
-                <p className="font-semibold mt-3">{p.t}</p>
-                <p className="text-sm text-muted mt-1">{p.d}</p>
-              </div>
-            ))}
+    <div className="hero-stage" style={{ perspective: "1400px" }}>
+      <div className="mx-auto w-[280px] sm:w-[310px] rounded-[44px] p-2.5 border border-white/15 bg-[#0b0b0d] shadow-[0_60px_120px_-40px_rgba(224,57,62,.6)]"
+        style={{ transform: "rotateX(calc((1 - var(--p, 0)) * 18deg)) rotateZ(calc((1 - var(--p, 0)) * -4deg))", transition: "transform .1s linear" }}>
+        <div className="rounded-[36px] overflow-hidden bg-black p-3.5 grid gap-2.5" aria-hidden>
+          <div className="flex justify-between text-[10px] text-white/60 px-1"><span>9:41</span><span>●●● 5G</span></div>
+          <div className="rounded-2xl p-3 border" style={{ borderColor: "#ff9f0a88", background: "radial-gradient(90% 60% at 50% 0%, #2a1a06, #0b0805)" }}>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">🔥</span>
+              <div><p className="text-[9px] tracking-[.3em] text-[#ff9f0a] font-bold">MISSÃO DIÁRIA · CHAMA</p><p className="text-[12px] font-semibold">Treinamento para ficar mais forte</p></div>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5 mt-2.5 text-center">
+              {[["5", "dias 100%"], ["12", "recorde"], ["4/6", "hoje"]].map(([v, l]) => <div key={l} className="rounded-lg bg-white/5 py-1.5"><p className="num text-base text-[#ffd27a]">{v}</p><p className="text-[8px] text-white/60">{l}</p></div>)}
+            </div>
+            {["Oração + estudo pessoal", "Treino feito", "Meta de água"].map((t, i) => (
+              <div key={t} className="flex items-center justify-between mt-1.5 rounded-lg px-2 py-1.5 bg-white/[.04] text-[11px]"><span className={i < 2 ? "line-through text-white/50" : ""}>{t}</span><span className="font-mono text-[10px]" style={{ color: i < 2 ? "#ff9f0a" : "#ffffff66" }}>[{i < 2 ? 1 : 0}/1]</span></div>))}
           </div>
-        </section>
-
-        <section className="mt-16">
-          <p className="text-[11px] font-semibold tracking-[.3em]" style={{ color: "#ffb340" }}>ASCENSION</p>
-          <p className="font-display text-2xl mt-3">Cada dia cumprido vira XP.</p>
-          <p className="text-sm text-muted mt-2">Dez patentes, atributos, insígnias e eventos. A gamificação está lá para tornar visível o que a constância constrói em silêncio.</p>
-          <div className="flex flex-wrap gap-1.5 mt-4">{RANKS.map((r, i) => <span key={r} className="tag" style={{ opacity: .45 + i * .06 }}>{r}</span>)}</div>
-        </section>
-
-        <section className="mt-16 text-center">
-          <p className="font-display italic text-xl text-ink/90 leading-snug">“O que a pessoa semear, isso também colherá.”</p>
-          <p className="text-xs text-muted mt-2">Gálatas 6:7</p>
-          <p className="text-[11px] text-faint mt-12">BRIO é um app pessoal e privado. O acesso é restrito.</p>
-        </section>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="rounded-2xl p-2.5 border border-[#e0393e55]" style={{ background: "linear-gradient(160deg,#2a0909,#0a0505)" }}>
+              <p className="text-[8px] tracking-[.25em] text-[#e0393e] font-bold">WAR ROOM</p><p className="text-[12px] font-semibold mt-0.5">Upper A</p>
+              <div className="flex gap-0.5 mt-2">{[1, 1, 1, 0, 0].map((x, i) => <i key={i} className="h-5 flex-1 rounded-sm" style={{ background: x ? "#e0393e" : "#ffffff14" }} />)}</div>
+            </div>
+            <div className="rounded-2xl p-2.5 border border-[#30d15855] bg-[#06120a]">
+              <p className="text-[8px] tracking-[.25em] text-[#30d158] font-bold">DIETA</p><p className="num text-[18px] mt-0.5">1.840</p><p className="text-[9px] text-white/60">de 2.500 kcal</p>
+            </div>
+          </div>
+          <div className="rounded-2xl p-2.5 border border-[#5ab0ff44] bg-[#060a12] flex items-center gap-2">
+            <span className="h-7 w-7 rounded-lg grid place-items-center text-xs" style={{ background: "linear-gradient(135deg,#5ab0ff,#bf5af2)" }}>✦</span>
+            <p className="text-[11px] text-white/80">“reunião quinta 19h30 e dentista sábado” → <b className="text-white">2 compromissos</b></p>
+          </div>
+        </div>
       </div>
+    </div>
+  );
+}
+
+const BENTO = [
+  { t: "Comece o dia sabendo o que importa", f: "missão diária", c: "#ffb340", big: true, d: "Uma lista curta de objetivos com sequência, recorde e contagem até a meia-noite. O fogo cresce com a sua constância.", tex: "radial-gradient(70% 60% at 30% 20%, rgba(255,179,64,.25), transparent 70%)" },
+  { t: "Treine com plano, não com palpite", f: "war room · periodização", c: "#e0393e", wide: true, d: "Campanha em fases, sugestão de carga por série e um treino guiado com cronômetro.", tex: "repeating-linear-gradient(90deg, rgba(224,57,62,.08) 0 2px, transparent 2px 14px)" },
+  { t: "Coma o que planejou (e registre o que não)", f: "dieta", c: "#30d158", d: "Metas de macros, refeições salvas e o que foi fora do plano, sem culpa.", tex: "radial-gradient(60% 60% at 80% 100%, rgba(48,209,88,.22), transparent 70%)" },
+  { t: "Fale e a agenda se organiza", f: "central de operações · IA", c: "#5ab0ff", d: "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso.", tex: "radial-gradient(50% 50% at 50% 50%, rgba(90,176,255,.18), transparent 60%)" },
+  { t: "Seu dinheiro sem surpresa", f: "finanças · parcelas", c: "#3ee6c1", wide: true, d: "Orçamento por categoria, compras parceladas que fecham no centavo e um assistente que lê seus números.", tex: "linear-gradient(180deg, rgba(62,230,193,.12), transparent 60%)" },
+  { t: "Estude até fechar", f: "central de estudos", c: "#bf5af2", wide: true, d: "Objetivo, fraquezas, plano feito pela IA, revisão espaçada e o próximo passo sempre à vista.", tex: "radial-gradient(70% 60% at 20% 100%, rgba(191,90,242,.22), transparent 70%)" },
+];
+const FAQ = [
+  ["Preciso de cartão para testar?", "Não. Você cria a conta, usa 14 dias com tudo liberado e decide depois."],
+  ["Funciona no celular?", "Foi feito primeiro para o celular. Abra no navegador e toque em “Adicionar à Tela de Início”: vira um app, sem loja."],
+  ["De onde vem o XP?", "Só do que você registra de verdade: treino feito, refeição marcada, estudo com tempo. Clique vazio não vale ponto."],
+  ["Meus dados ficam com quem?", "Com você. Cada conta só enxerga os próprios dados (bloqueio no banco), e você pode exportar tudo quando quiser."],
+  ["E a parte espiritual?", "Leitura da Bíblia, estudo pessoal, diário e registro de ministério com metas de pioneiro. Textos bíblicos na Tradução do Novo Mundo."],
+];
+
+export default function Site() {
+  return (
+    <main className="site min-h-dvh overflow-x-clip">
+      <SiteMotion />
+      {/* topo */}
+      <nav className="sticky top-0 z-40 backdrop-blur-xl bg-black/60 border-b border-white/5">
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+          <Link href="/sobre" className="flex items-center gap-2"><BrioMark size={30} glow={false} /><span className="font-display tracking-[.2em] text-lg">BRIO</span></Link>
+          <div className="flex items-center gap-1 sm:gap-2">
+            <a href="#planos" className="hidden sm:inline-flex min-h-11 items-center px-3 text-sm text-muted hover:text-ink">Planos</a>
+            <Link href="/login" className="min-h-11 inline-flex items-center px-3 text-sm">Entrar</Link>
+            <Link href="/cadastro?plano=essencial" className="min-h-11 inline-flex items-center px-4 rounded-full text-sm font-semibold text-white press" style={{ background: FIRE }}>Começar grátis</Link>
+          </div>
+        </div>
+      </nav>
+
+      {/* hero */}
+      <section className="relative max-w-6xl mx-auto px-4 pt-12 sm:pt-20 pb-10 grid lg:grid-cols-2 gap-10 items-center">
+        <div className="absolute inset-x-0 -top-20 h-[520px] -z-10 pointer-events-none" style={{ background: "radial-gradient(50% 50% at 30% 30%, rgba(255,106,61,.22), transparent 70%), radial-gradient(40% 40% at 80% 20%, rgba(191,90,242,.18), transparent 70%)" }} />
+        <div className="text-center lg:text-left">
+          <p className="in text-[11px] font-bold tracking-[.35em] text-[#ff9f0a]" data-i="0">CONSTÂNCIA COM PROPÓSITO</p>
+          <h1 className="in font-display text-[clamp(40px,8vw,72px)] leading-[1.02] mt-4" data-i="1">Faça o certo de novo amanhã.<br /><span className="bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#ffd27a,#ff6a3d,#e0393e)" }}>E veja isso crescer.</span></h1>
+          <p className="in text-lg text-white/75 mt-5 max-w-xl mx-auto lg:mx-0" data-i="2">Fé, treino, dieta, dinheiro e estudos num app só. Missões curtas todo dia, sequência que vira fogo e XP que vem do que você faz de verdade.</p>
+          <div className="in flex flex-col sm:flex-row gap-3 mt-8 justify-center lg:justify-start" data-i="3">
+            <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-2xl grid place-items-center font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -16px #e0393e" }}>Testar 14 dias grátis</Link>
+            <a href="#planos" className="min-h-14 px-8 rounded-2xl grid place-items-center border border-white/15 press">Ver planos · a partir de R$ 0</a>
+          </div>
+          <p className="in text-xs text-muted mt-4" data-i="4">Sem cartão. Funciona no celular e no computador.</p>
+        </div>
+        <div className="in" data-i="2"><Phone /></div>
+      </section>
+
+      {/* bento */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <p className="in text-center text-[11px] font-bold tracking-[.35em] text-muted">TUDO QUE VOCÊ CUIDA, NUM LUGAR</p>
+        <h2 className="in font-display text-[clamp(30px,5vw,48px)] text-center mt-3">Menos apps. Mais constância.</h2>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-10">
+          {BENTO.map((b, i) => (
+            <article key={b.t} data-i={i} className={`in tilt glowcard relative rounded-[26px] p-6 border border-white/10 overflow-hidden ${b.big ? "sm:col-span-2 lg:row-span-2" : b.wide ? "sm:col-span-2" : ""}`}
+              style={{ background: `${b.tex}, #0b0b0d` }}>
+              <p className="font-mono text-[11px] uppercase tracking-wider" style={{ color: b.c }}>{b.f}</p>
+              <h3 className={`font-display mt-2 leading-tight ${b.big ? "text-3xl" : "text-xl"}`}>{b.t}</h3>
+              <p className="text-sm text-white/70 mt-2">{b.d}</p>
+              {b.big && <div className="mt-6 flex items-end gap-3" aria-hidden>{["#f5f7ff", "#ffd27a", "#ff9f0a", "#ff6a1a", "#ff3b30", "#bf5af2"].map((c, k) => <span key={c} className="text-[28px] leading-none" style={{ filter: `drop-shadow(0 0 ${6 + k * 3}px ${c})`, fontSize: 18 + k * 6 }}>🔥</span>)}</div>}
+            </article>))}
+        </div>
+      </section>
+
+      {/* como funciona */}
+      <section className="max-w-6xl mx-auto px-4 py-16">
+        <h2 className="in font-display text-[clamp(30px,5vw,48px)] text-center">Três passos. Todo dia.</h2>
+        <ol className="grid md:grid-cols-3 gap-4 mt-10">
+          {[["1", "Abra e veja a missão", "Poucos objetivos, o principal em destaque e quanto tempo falta para o dia acabar."], ["2", "Faça e registre", "Treino guiado, refeição com um toque, estudo com cronômetro. Cada registro vira XP."], ["3", "Veja o fogo crescer", "Sequência que muda de cor, patentes, eventos semanais e um bestiário de vitórias."]].map(([n, t, d], i) => (
+            <li key={n} data-i={i} className="in rounded-[26px] p-6 border border-white/10 bg-white/[.03]">
+              <span className="num text-4xl bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#ffd27a,#ff6a3d)" }}>{n}</span>
+              <h3 className="font-display text-xl mt-2">{t}</h3><p className="text-sm text-white/70 mt-1">{d}</p>
+            </li>))}
+        </ol>
+      </section>
+
+      {/* planos */}
+      <section id="planos" className="max-w-6xl mx-auto px-4 py-16 scroll-mt-20">
+        <p className="in text-center text-[11px] font-bold tracking-[.35em] text-[#ff9f0a]">PLANOS</p>
+        <h2 className="in font-display text-[clamp(30px,5vw,48px)] text-center mt-3">Preço de hábito, não de luxo.</h2>
+        <p className="in text-center text-white/70 mt-2">Comece de graça. Suba de plano quando fizer sentido.</p>
+        <div className="mt-8"><Pricing /></div>
+      </section>
+
+      {/* faq */}
+      <section className="max-w-3xl mx-auto px-4 py-16">
+        <h2 className="in font-display text-[clamp(28px,4vw,40px)] text-center">Perguntas comuns</h2>
+        <div className="grid gap-2 mt-8">
+          {FAQ.map(([q, a], i) => (
+            <details key={q} data-i={i} className="in group rounded-2xl border border-white/10 bg-white/[.03] px-5 open:bg-white/[.05]">
+              <summary className="min-h-14 flex items-center justify-between gap-4 cursor-pointer list-none font-medium">{q}<span aria-hidden className="text-muted transition-transform group-open:rotate-45 text-xl">+</span></summary>
+              <p className="pb-5 text-white/75 text-[15px]">{a}</p>
+            </details>))}
+        </div>
+      </section>
+
+      {/* cta final */}
+      <section className="max-w-6xl mx-auto px-4 py-20">
+        <div className="in relative rounded-[36px] p-10 sm:p-16 text-center overflow-hidden border border-[#ff6a3d55]" style={{ background: "radial-gradient(80% 90% at 50% 120%, rgba(255,106,61,.45), transparent 60%), #0c0705" }}>
+          <div className="mx-auto w-fit"><BrioMark size={72} /></div>
+          <h2 className="font-display text-[clamp(30px,6vw,56px)] mt-6 leading-tight">Hoje é o dia 1.</h2>
+          <p className="text-white/75 mt-3 max-w-md mx-auto">O que você fizer de toda a alma hoje vira a base de amanhã.</p>
+          <Link href="/cadastro?plano=essencial" className="inline-grid place-items-center min-h-14 px-10 mt-8 rounded-2xl font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -16px #e0393e" }}>Criar minha conta grátis</Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/5">
+        <div className="max-w-6xl mx-auto px-4 py-8 flex flex-col sm:flex-row gap-3 items-center justify-between text-sm text-muted">
+          <span className="flex items-center gap-2"><BrioMark size={22} glow={false} /> BRIO · Vigor com honra</span>
+          <span className="flex gap-4"><Link href="/privacidade" className="hover:text-ink min-h-11 inline-flex items-center">Privacidade</Link><Link href="/termos" className="hover:text-ink min-h-11 inline-flex items-center">Termos</Link><Link href="/login" className="hover:text-ink min-h-11 inline-flex items-center">Entrar</Link></span>
+        </div>
+      </footer>
     </main>
   );
 }

@@ -102,11 +102,11 @@ export async function aiAgenda(text: string, today: string): Promise<{ reply: st
   const until = new Date(Date.parse(today + "T12:00:00Z") + 60 * 864e5).toISOString().slice(0, 10);
   const { data: evs } = await sb.from("calendar_events").select("id,title,date,start_time,end_time,category,location").gte("date", today).lte("date", until).order("date").limit(200);
   const wd = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"][new Date(today + "T12:00:00Z").getUTCDay()];
-  const system = `Você organiza a agenda pessoal do Renato (fuso America/Sao_Paulo). Hoje é ${wd}, ${today}.
-Interprete o que ele disser e proponha compromissos com a ferramenta "propor". Datas relativas ("amanhã", "quinta", "dia 20", "semana que vem") viram datas ISO a partir de hoje; "quinta" sem mais contexto é a próxima quinta (hoje conta se ainda for possível).
+  const system = `Você organiza a agenda pessoal do usuário (fuso America/Sao_Paulo). Hoje é ${wd}, ${today}.
+Interprete o que a pessoa disser e proponha compromissos com a ferramenta "propor". Datas relativas ("amanhã", "quinta", "dia 20", "semana que vem") viram datas ISO a partir de hoje; "quinta" sem mais contexto é a próxima quinta (hoje conta se ainda for possível).
 Sem horário = dia todo (start_time null). Sem fim = deixe end_time null. Categorias: pessoal, espiritual (reuniões, estudo, assembleia), campo (pregação, revisitas, estudos bíblicos), treino, financas (pagamentos, vencimentos), trabalho, familia.
 Lembrete padrão: 30 min para eventos com horário, 1440 (1 dia) para vencimentos e dia todo.
-Para mudar ou cancelar algo existente, use "alterar" ou "apagar" com o id da lista. Não invente compromissos que ele não pediu. "reply" é uma frase curta em PT-BR resumindo.
+Para mudar ou cancelar algo existente, use "alterar" ou "apagar" com o id da lista. Não invente compromissos que não foram pedidos. "reply" é uma frase curta em PT-BR resumindo.
 Compromissos existentes (próximos 60 dias):
 ${(evs ?? []).map((e) => `${e.id} | ${e.date} ${e.start_time?.slice(0, 5) ?? "dia todo"}${e.end_time ? "-" + e.end_time.slice(0, 5) : ""} | ${e.title} | ${e.category}`).join("\n") || "(nenhum)"}`;
   const CATS = ["pessoal", "espiritual", "campo", "treino", "financas", "trabalho", "familia"];

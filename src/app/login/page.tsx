@@ -39,7 +39,8 @@ export default function Login() {
             {pending ? "Entrando…" : "Entrar"}
           </button>
         </form>
-        <p className="text-center mt-6 rise rise-2"><Link href="/sobre" className="text-xs text-muted underline underline-offset-4">O que é o BRIO?</Link></p>
+        <p className="text-center mt-6 rise rise-2 text-sm text-muted">Novo por aqui? <Link href="/cadastro?plano=essencial" className="text-ink underline underline-offset-4">Criar conta grátis</Link></p>
+        <p className="text-center mt-2 rise rise-2"><Link href="/sobre" className="text-xs text-muted underline underline-offset-4">Conhecer o BRIO</Link></p>
         <p className="font-display italic text-faint text-center mt-12 text-sm rise rise-3">“Tudo o que fizerem, trabalhem nisso de toda a alma, como para Jeová, e não para homens.”<br /><span className="not-italic text-xs">Colossenses 3:23</span></p>
       </div>
     </main>

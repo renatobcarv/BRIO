@@ -28,7 +28,7 @@ export function financeTools(sb: SupabaseClient, ctx: { today: string; cats: Fin
     const { data, error } = await sb.from("finance_chat_proposals").insert({ kind, payload, summary }).select("id").single();
     if (error) return json({ error: error.message });
     return json({ proposal_id: data.id, status: "aguardando_confirmacao", summary,
-      instruction: "A alteração NÃO foi feita. O app mostra um botão Confirmar ao Renato. Diga o que vai mudar e peça para ele tocar em Confirmar." });
+      instruction: "A alteração NÃO foi feita. O app mostra um botão Confirmar ao usuário. Diga o que vai mudar e peça para ele tocar em Confirmar." });
   };
 
   return [
@@ -149,7 +149,7 @@ export function financeTools(sb: SupabaseClient, ctx: { today: string; cats: Fin
       },
     }),
     betaTool({
-      name: "propose_budget_change", description: "Propõe criar ou alterar o teto mensal de uma categoria. NÃO altera nada: cria um botão Confirmar no app. Só use quando o Renato pedir a mudança.",
+      name: "propose_budget_change", description: "Propõe criar ou alterar o teto mensal de uma categoria. NÃO altera nada: cria um botão Confirmar no app. Só use quando o usuário pedir a mudança.",
       inputSchema: { type: "object", additionalProperties: false, required: ["category", "monthly_limit"], properties: { category: { type: "string" }, monthly_limit: { type: "number", minimum: 0 } } },
       run: async ({ category, monthly_limit }) => {
         const c = cats.find((x) => x.key === catKey(category));

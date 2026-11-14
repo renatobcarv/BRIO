@@ -35,6 +35,9 @@ function Mini({ href, label, value, sub, color, pct, meter }: { href: string; la
 
 export default async function Hoje() {
   const sb = await createClient();
+  // Nome de quem está logado (cadastro grava em user_metadata.name); sem nome, usa o começo do e-mail.
+  const { data: me } = await sb.auth.getUser();
+  const firstName = String(me.user?.user_metadata?.name ?? me.user?.email?.split("@")[0] ?? "").trim().split(/\s+/)[0] || "você";
   const today = todayISO();
   const month = monthStart(today);
   const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goals, refl, cleanQ] = await Promise.all([
@@ -96,7 +99,7 @@ export default async function Hoje() {
   return (
     <XpProvider initialTotal={game.total} initialToday={game.today}>
       <div className="stagger">
-      <Greeting name="Renato" />
+      <Greeting name={firstName} />
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
       {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>

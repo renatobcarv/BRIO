@@ -139,7 +139,7 @@ export async function deleteInvestment(id: string) {
   const sb = await createClient(); await sb.from("investments").delete().eq("id", z.string().uuid().parse(id)); done();
 }
 
-// ── Assistente: aplica uma proposta só quando o Renato confirma ──
+// ── Assistente: aplica uma proposta só quando o usuário confirma ──
 export async function resolveProposal(id: string, confirm: boolean) {
   const pid = z.string().uuid().parse(id);
   const sb = await createClient();

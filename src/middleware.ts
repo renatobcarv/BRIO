@@ -28,7 +28,8 @@ export async function middleware(req: NextRequest) {
     // getClaims valida o token localmente (sem ida ao servidor de auth a cada página).
     const { data } = await supabase.auth.getClaims();
     const user = data?.claims?.sub ?? null;
-    if (!user && !isLogin) return NextResponse.redirect(new URL("/login", req.url));
+    // Visitante na raiz vê o site de vendas; nas outras rotas, o login.
+    if (!user && !isLogin) return NextResponse.redirect(new URL(req.nextUrl.pathname === "/" ? "/sobre" : "/login", req.url));
     if (user && isLogin) return NextResponse.redirect(new URL("/", req.url));
     return res;
   } catch {
@@ -39,5 +40,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|apple-touch-icon.png|icon-192.png|icon-512.png|sobre|privacidade|termos|api/agenda).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|apple-touch-icon.png|icon-192.png|icon-512.png|sobre|cadastro|privacidade|termos|api/agenda).*)"],
 };
