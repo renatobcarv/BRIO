@@ -82,7 +82,7 @@ export function SignUpFlow() {
           <div className="grid grid-cols-2 gap-2.5">
             {AREAS.map((a) => { const on = focus.includes(a.id); return (
               <button key={a.id} type="button" aria-pressed={on} onClick={() => setFocus(on ? focus.filter((x) => x !== a.id) : [...focus, a.id])}
-                className="press min-h-20 rounded-2xl p-3 text-left border transition-all"
+                className="press min-h-20 rounded-[8px] p-3 text-left border transition-all"
                 style={{ borderColor: on ? a.c : "rgba(255,255,255,.1)", background: on ? `linear-gradient(160deg, ${a.c}33, transparent 80%)` : "rgba(255,255,255,.03)", boxShadow: on ? `0 10px 30px -18px ${a.c}` : "none" }}>
                 <span className="text-2xl">{a.e}</span>
                 <span className="flex items-center justify-between mt-1"><span className="font-semibold text-sm">{a.t}</span><span aria-hidden className="h-5 w-5 rounded-full border grid place-items-center text-[11px]" style={{ borderColor: on ? a.c : "rgba(255,255,255,.3)", background: on ? a.c : "transparent", color: "#000" }}>{on ? "✓" : ""}</span></span>
@@ -95,7 +95,7 @@ export function SignUpFlow() {
           <div className="grid gap-2.5" role="radiogroup" aria-label="Plano">
             {PLANS.map((p) => { const on = plan === p.id; return (
               <button key={p.id} type="button" role="radio" aria-checked={on} onClick={() => setPlan(p.id)}
-                className="press relative rounded-2xl p-4 text-left border transition-all"
+                className="press relative rounded-[8px] p-4 text-left border transition-all"
                 style={{ borderColor: on ? "#dc0000" : "rgba(255,255,255,.1)", background: on ? "linear-gradient(160deg, rgba(220,0,0,.18), transparent 80%)" : "rgba(255,255,255,.03)" }}>
                 <span className="flex items-center justify-between gap-3">
                   <span><span className="font-semibold">{p.name}</span>{p.highlight && <span className="ml-2 text-[10px] font-bold tracking-wider text-[#ff2800]">MAIS ESCOLHIDO</span>}<span className="block text-xs text-muted mt-0.5">{p.tagline}</span></span>
@@ -107,12 +107,12 @@ export function SignUpFlow() {
           <p className="text-[11px] text-muted">Ao criar a conta você aceita os <Link href="/termos" className="underline">Termos</Link> e a <Link href="/privacidade" className="underline">Política de Privacidade</Link>.</p>
         </div>
 
-        {state?.error && <p role="alert" className="rounded-2xl border border-[#ff453a55] bg-[#ff453a14] p-3 text-sm text-[#ff8a80]">{state.error}</p>}
+        {state?.error && <p role="alert" className="rounded-[8px] border border-[#ff453a55] bg-[#ff453a14] p-3 text-sm text-[#ff8a80]">{state.error}</p>}
 
         <div className="flex gap-2">
           {step > 0 && <button type="button" className="btn !min-h-14 px-5" onClick={() => setStep(step - 1)}>Voltar</button>}
           <button type="submit" disabled={pending || (step === 0 && !can0) || (step === 1 && !focus.length)}
-            className="flex-1 min-h-14 rounded-2xl font-semibold text-white press disabled:opacity-40" style={{ background: FIRE, boxShadow: "0 14px 34px -14px #dc0000" }}>
+            className="flex-1 min-h-14 rounded-[8px] font-semibold text-white press disabled:opacity-40" style={{ background: FIRE, boxShadow: "0 14px 34px -14px #dc0000" }}>
             {pending ? "Criando sua conta…" : step < 2 ? "Continuar" : `Criar conta${plan !== "gratis" ? " e testar grátis" : ""}`}
           </button>
         </div>

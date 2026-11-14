@@ -111,7 +111,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
         <div className="grid grid-cols-3 mt-4 border-y border-white/[.08] divide-x divide-white/[.08]">
           {[[streak, streak === 1 ? "dia 100%" : "dias 100%"], [best, "recorde"], [`${doneCount}/${items.length}`, "hoje"]].map(([v, l], i) => (
             <div key={String(l)} className="py-3 text-center">
-              <p className="num text-3xl leading-none" style={{ color: i === 0 ? SYS : "#f5f5f7" }}>{v}</p>
+              <p className="num text-3xl leading-none" style={{ color: i === 0 ? SYS : i === 1 ? "#ffb21e" : "#f5f5f7" }}>{v}</p>
               <p className="label !text-[9px] mt-1.5">{l}</p>
             </div>))}
         </div>
@@ -141,7 +141,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
                     {main && <span className="label !text-[9px] block" style={{ color: on ? undefined : SYS }}>Principal</span>}
                     <span className={`block text-[14px] leading-snug ${on ? "text-[#6b6b70] line-through decoration-1" : "text-[#f5f5f7]"}`}>{it.label}</span>
                   </span>
-                  <span className="font-mono text-[11px] shrink-0 tabular-nums" style={{ color: on ? SYS : "#6b6b70" }}>{on ? "+10" : "10"} XP</span>
+                  <span className="font-mono text-[11px] shrink-0 tabular-nums" style={{ color: on ? "#ffb21e" : "#6b6b70" }}>{on ? "+10" : "10"} XP</span>
                 </button>
               </li>
             );
@@ -150,7 +150,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
 
         <div className="flex items-start justify-between gap-3 mt-4 text-[12px]">
           <p className="text-white/60 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} zera.`}</p>
-          {!full && <p className="font-mono shrink-0" style={{ color: SYS }}>+{(items.length - doneCount) * 10 + 50} XP</p>}
+          {!full && <p className="font-mono shrink-0" style={{ color: "#ffb21e" }}>+{(items.length - doneCount) * 10 + 50} XP</p>}
         </div>
       </div>
       <Sheet open={editing} onClose={() => setEditing(false)} title="Editar missões"><Editor items={items} onClose={() => setEditing(false)} /></Sheet>

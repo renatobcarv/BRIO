@@ -9,7 +9,8 @@
   --color-ink: #f5f5f7;
   --color-muted: #8e8e93;
   --color-faint: #84848a; /* era #5a5a5f (3,06:1). Agora ≥4,5:1 sobre preto e cards (biblioteca GEN-A11Y-03) */
-  --color-gold: #ff2800;
+  --color-gold: #ffb21e;
+  --color-eye: #ffb21e;
   --color-pioneer: #f5f5f7;
   --color-body: #30d158;
   --color-money: #f5f5f7;
@@ -481,3 +482,30 @@ body { font-variant-emoji: text; }
 .hunt-card { background: #080808; border: 1px solid #1c1c1c; border-radius: 8px; }
 .ex-media { background: #e9e9ea; border-radius: 6px; }
 .ex-media img { mix-blend-mode: multiply; filter: grayscale(1) contrast(1.1); }
+
+/* Olho da pantera: âmbar como contraste do vermelho. Vermelho = ação/fogo, âmbar = foco/informação-chave */
+::selection { background: #ffb21e; color: #000; }
+:focus-visible { outline-color: #ffb21e; }
+.label > svg, .label svg[aria-hidden] { color: #ffb21e; }
+.eye { color: #ffb21e; }
+.eye-glow { color: #ffb21e; text-shadow: 0 0 14px rgba(255,178,30,.55); }
+.panther-hero::after { background: linear-gradient(90deg, #dc0000, #ff2800 45%, #ffb21e 75%, transparent); }
+.glass::before { background: linear-gradient(#dc0000, #ffb21e); }
+.hunt-card { box-shadow: inset 0 0 0 1px rgba(255,178,30,0), 0 0 0 0 transparent; }
+
+/* Visual fino: fios de cabelo, pesos leves, barras finas, respiro */
+.glass, .hunt-card, .tile { border-color: rgba(255,255,255,.06) !important; }
+.hunt-card > span[aria-hidden].w-\[3px\] { width: 2px; }
+.label { font-weight: 500; letter-spacing: .24em; color: #7c7c82; }
+.text-muted { color: #8a8a90; }
+p, li, span { -webkit-font-smoothing: antialiased; }
+.btn { border-color: rgba(255,255,255,.1); font-weight: 500; }
+.btn-accent { font-weight: 600; letter-spacing: .12em; font-size: 13px; box-shadow: 0 10px 30px -14px #dc0000, inset 0 1px 0 rgba(255,255,255,.18); }
+.field { border-color: rgba(255,255,255,.08); background: #0c0c0c; }
+.field:focus { border-color: #ffb21e; }
+.h-2.flex-1, .h-2\.5.flex-1, .h-3.flex-1 { height: 5px; }
+.divide-white\/\[\.08\] > * + * { border-color: rgba(255,255,255,.06); }
+.num { font-weight: 600; }
+h1.font-display, h2.font-display { font-weight: 700; }
+.site h1, .site h2 { font-weight: 700; }
+.site article, .site details { border-color: rgba(255,255,255,.07); }

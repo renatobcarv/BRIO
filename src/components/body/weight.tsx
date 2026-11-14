@@ -66,7 +66,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
         <div className="flex gap-[3px] mt-1.5" aria-hidden>{Array.from({ length: 20 }, (_, i) => <i key={i} className="h-2.5 flex-1" style={{ background: i < Math.round(pctPath / 5) ? R : "rgba(255,255,255,.08)" }} />)}</div>
         <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">
           {[["Falta", left === 0 ? "0" : fmt(Math.abs(left)), "kg"], ["Ritmo", perWeek == null ? "—" : `${perWeek > 0 ? "+" : ""}${fmt(perWeek, 2)}`, "kg/sem"], ["Chegada", eta ? shortDate(eta) : "—", eta ? eta.slice(0, 4) : "previsão"]].map(([l, v, u]) => (
-            <div key={l} className="pt-3 text-center"><p className="label !text-[9px]">{l}</p><p className="num text-2xl mt-1">{v}</p><p className="text-[10px] text-white/45">{u}</p></div>))}
+            <div key={l} className="pt-3 text-center"><p className="label !text-[9px]">{l}</p><p className="num text-2xl mt-1 eye">{v}</p><p className="text-[10px] text-white/45">{u}</p></div>))}
         </div>
         {onTrack != null && <p className="text-[12px] mt-4" style={{ color: onTrack ? G : "#ff453a" }}>{onTrack ? `No ritmo do plano (${fmt(rate, 2)} kg/sem). Mantenha.` : `Abaixo do plano de ${fmt(rate, 2)} kg/sem. Ajuste dieta ou treino.`}</p>}
         <button className="btn btn-accent w-full mt-5" onClick={() => openLog("new")}>+ Registrar peso</button>
@@ -78,13 +78,13 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
           <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.chart} size={14} />Trajetória</span></SectionTitle>
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Gráfico do peso com a linha do plano e a meta">
             {[0, 0.5, 1].map((t) => { const v = min + (max - min) * t; return <g key={t}><line x1={P} x2={W - P} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,.06)" /><text x={4} y={py(v) + 4} fontSize="11" fill="#6b6b70" fontFamily="monospace">{fmt(v, 0)}</text></g>; })}
-            <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke="#f5f5f7" strokeDasharray="4 6" opacity=".35" />
-            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#f5f5f7" strokeDasharray="2 5" opacity=".5" />}
+            <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke="#ffb21e" strokeDasharray="4 6" opacity=".6" />
+            {planEta && <line x1={px(t0)} y1={py(startKg)} x2={px(planEta)} y2={py(goal)} stroke="#ffb21e" strokeDasharray="2 5" opacity=".7" />}
             <path d={`${path} L${px(sorted.at(-1)!.date)},${H - P} L${px(t0)},${H - P} Z`} fill={R} opacity=".1" />
             <path d={path} fill="none" stroke={R} strokeWidth="2.5" strokeLinejoin="miter" />
             {sorted.map((l) => <rect key={l.id} x={px(l.date) - 3} y={py(l.kg) - 3} width="6" height="6" fill="#050505" stroke={R} strokeWidth="2" />)}
           </svg>
-          <div className="flex flex-wrap gap-4 mt-2 text-[11px] text-muted"><span className="flex items-center gap-1.5"><i className="h-0.5 w-4" style={{ background: R }} />seu peso</span><span className="flex items-center gap-1.5"><i className="h-0 w-4 border-t border-dashed border-white/60" />plano e meta</span></div>
+          <div className="flex flex-wrap gap-4 mt-2 text-[11px] text-muted"><span className="flex items-center gap-1.5"><i className="h-0.5 w-4" style={{ background: R }} />seu peso</span><span className="flex items-center gap-1.5"><i className="h-0 w-4 border-t border-dashed border-[#ffb21e]" />plano e meta</span></div>
         </section>
       )}
 

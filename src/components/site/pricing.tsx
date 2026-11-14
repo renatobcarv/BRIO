@@ -16,7 +16,7 @@ export function Pricing() {
       </div>
       <div className="grid md:grid-cols-3 gap-4 mt-8 items-stretch">
         {PLANS.map((p, i) => (
-          <div key={p.id} data-i={i} className={`in tilt relative rounded-[28px] p-6 border flex flex-col ${p.highlight ? "md:-translate-y-3" : ""}`}
+          <div key={p.id} data-i={i} className={`in tilt relative rounded-[10px] p-6 border flex flex-col ${p.highlight ? "md:-translate-y-3" : ""}`}
             style={{ borderColor: p.highlight ? "#dc0000" : "rgba(255,255,255,.1)", background: p.highlight ? "radial-gradient(120% 80% at 50% 0%, rgba(220,0,0,.24), #0d0707 70%)" : "linear-gradient(170deg, rgba(255,255,255,.06), #0b0b0d 60%)", boxShadow: p.highlight ? "0 30px 80px -40px #dc0000" : "none" }}>
             {p.highlight && <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[11px] font-bold tracking-[.2em] rounded-full px-3 py-1 text-black" style={{ background: "linear-gradient(90deg,#ff2800,#dc0000)" }}>MAIS ESCOLHIDO</span>}
             <p className="font-display text-2xl">{p.name}</p>
@@ -29,7 +29,7 @@ export function Pricing() {
             <ul className="grid gap-2 mt-5 text-sm flex-1">
               {p.features.map((f) => <li key={f} className="flex gap-2"><span aria-hidden className="text-[#30d158] mt-0.5">✓</span><span>{f}</span></li>)}
             </ul>
-            <Link href={`/cadastro?plano=${p.id}`} className="mt-6 min-h-12 rounded-2xl grid place-items-center font-semibold press"
+            <Link href={`/cadastro?plano=${p.id}`} className="mt-6 min-h-12 rounded-[8px] grid place-items-center font-semibold press"
               style={p.highlight ? { background: "linear-gradient(135deg,#dc0000,#a30000 70%)", color: "#fff", boxShadow: "0 14px 34px -14px #dc0000" } : { border: "1px solid rgba(255,255,255,.15)" }}>
               {p.price ? "Testar 14 dias grátis" : "Começar grátis"}</Link>
           </div>))}

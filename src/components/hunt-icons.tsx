@@ -22,6 +22,6 @@ export const HI = {
   list: "M9 6h11M9 12h11M9 18h11M4 6h1M4 12h1M4 18h1",
 } as const;
 export function Ico({ d, size = 16, className = "", color = "currentColor" }: { d: string; size?: number; className?: string; color?: string }) {
-  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="square" strokeLinejoin="miter" aria-hidden className={`shrink-0 ${className}`}><path d={d} /></svg>;
+  return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="square" strokeLinejoin="miter" aria-hidden className={`shrink-0 ${className}`}><path d={d} /></svg>;
 }
 export const slotIcon = (label: string) => /caf[eé]|manh/i.test(label) ? HI.sunrise : /almo/i.test(label) ? HI.sun : /janta|ceia|noite/i.test(label) ? HI.moon : /lanche|tarde/i.test(label) ? HI.snack : /pr[eé]|p[oó]s.?treino/i.test(label) ? HI.bolt : HI.fork;

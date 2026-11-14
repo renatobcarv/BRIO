@@ -12,11 +12,11 @@ const FIRE = "linear-gradient(135deg,#dc0000,#a30000 70%)";
 function Phone() {
   return (
     <div className="hero-stage" style={{ perspective: "1400px" }}>
-      <div className="mx-auto w-[280px] sm:w-[310px] rounded-[44px] p-2.5 border border-white/15 bg-[#0b0b0d] shadow-[0_60px_120px_-40px_rgba(220,0,0,.6)]"
+      <div className="mx-auto w-[280px] sm:w-[310px] rounded-[10px] p-2.5 border border-white/15 bg-[#0b0b0d] shadow-[0_60px_120px_-40px_rgba(220,0,0,.6)]"
         style={{ transform: "rotateX(calc((1 - var(--p, 0)) * 18deg)) rotateZ(calc((1 - var(--p, 0)) * -4deg))", transition: "transform .1s linear" }}>
-        <div className="rounded-[36px] overflow-hidden bg-black p-3.5 grid gap-2.5" aria-hidden>
+        <div className="rounded-[10px] overflow-hidden bg-black p-3.5 grid gap-2.5" aria-hidden>
           <div className="flex justify-between text-[10px] text-white/60 px-1"><span>9:41</span><span>●●● 5G</span></div>
-          <div className="rounded-2xl p-3 border" style={{ borderColor: "#dc000099", background: "radial-gradient(90% 60% at 50% 0%, #3a0505, #0d0707)" }}>
+          <div className="rounded-[8px] p-3 border" style={{ borderColor: "#dc000099", background: "radial-gradient(90% 60% at 50% 0%, #3a0505, #0d0707)" }}>
             <div className="flex items-center gap-2">
               <span className="text-2xl">🔥</span>
               <div><p className="text-[9px] tracking-[.3em] text-[#ff2800] font-bold">MISSÃO DIÁRIA · CHAMA</p><p className="text-[12px] font-semibold">Treinamento para ficar mais forte</p></div>
@@ -28,15 +28,15 @@ function Phone() {
               <div key={t} className="flex items-center justify-between mt-1.5 rounded-lg px-2 py-1.5 bg-white/[.04] text-[11px]"><span className={i < 2 ? "line-through text-white/50" : ""}>{t}</span><span className="font-mono text-[10px]" style={{ color: i < 2 ? "#ff2800" : "#ffffff66" }}>[{i < 2 ? 1 : 0}/1]</span></div>))}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-2xl p-2.5 border border-[#a3000066]" style={{ background: "linear-gradient(160deg,#250404,#0a0a0a)" }}>
+            <div className="rounded-[8px] p-2.5 border border-[#a3000066]" style={{ background: "linear-gradient(160deg,#250404,#0a0a0a)" }}>
               <p className="text-[8px] tracking-[.25em] text-[#ff2800] font-bold">WAR ROOM</p><p className="text-[12px] font-semibold mt-0.5">Upper A</p>
               <div className="flex gap-0.5 mt-2">{[1, 1, 1, 0, 0].map((x, i) => <i key={i} className="h-5 flex-1 rounded-sm" style={{ background: x ? "#dc0000" : "#ffffff14" }} />)}</div>
             </div>
-            <div className="rounded-2xl p-2.5 border border-white/10 bg-white/[.03]">
+            <div className="rounded-[8px] p-2.5 border border-white/10 bg-white/[.03]">
               <p className="text-[8px] tracking-[.25em] text-[#ff2800] font-bold">DIETA</p><p className="num text-[18px] mt-0.5">1.840</p><p className="text-[9px] text-white/60">de 2.500 kcal</p>
             </div>
           </div>
-          <div className="rounded-2xl p-2.5 border border-[#dc000044] bg-[#0d0707] flex items-center gap-2">
+          <div className="rounded-[8px] p-2.5 border border-[#dc000044] bg-[#0d0707] flex items-center gap-2">
             <span className="h-7 w-7 rounded-lg grid place-items-center text-xs" style={{ background: "linear-gradient(135deg,#dc0000,#a30000)" }}>✦</span>
             <p className="text-[11px] text-white/80">“reunião quinta 19h30 e dentista sábado” → <b className="text-white">2 compromissos</b></p>
           </div>
@@ -102,21 +102,21 @@ export default function Site() {
         <div className="absolute inset-0 -z-20" style={{ background: "radial-gradient(45% 50% at 75% 35%, rgba(220,0,0,.22), transparent 70%)" }} />
         <div className="max-w-6xl mx-auto px-4 pt-14 sm:pt-24 pb-16 grid lg:grid-cols-[1.1fr_.9fr] gap-10 items-center">
           <div>
-            <span className="in inline-flex items-center gap-2 rounded-full border border-[#dc000066] bg-black/60 px-3 py-1.5 text-xs text-white/80" data-i="0"><i className="h-2 w-2 rounded-full bg-[#ff2800] shadow-[0_0_10px_#ff2800]" />14 dias grátis · sem cartão</span>
-            <h1 className="in font-display text-[clamp(42px,8.5vw,84px)] leading-[.98] mt-5" data-i="1">Pare de começar.<br /><span className={em}>Comece a continuar.</span></h1>
+            <span className="in inline-flex items-center gap-2 rounded-full border border-[#dc000066] bg-black/60 px-3 py-1.5 text-xs text-white/80" data-i="0"><i className="h-2 w-2 rounded-full bg-[#ffb21e] shadow-[0_0_10px_#ffb21e]" />14 dias grátis · sem cartão</span>
+            <h1 className="in font-display text-[clamp(42px,8.5vw,84px)] leading-[.98] mt-5" data-i="1">Pare de começar.<br /><span className={em}>Comece a continuar</span><span className="text-[#ffb21e]">.</span></h1>
             <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Motivação acaba na quarta-feira. A pantera não caça por motivação, caça por instinto. O BRIO transforma fé, treino, dieta, dinheiro e estudos numa rotina que você repete até virar quem você é.</p>
             <div className="in flex flex-col sm:flex-row gap-3 mt-8" data-i="3">
-              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-2xl grid place-items-center font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #dc0000" }}>Quero minha rotina de pantera →</Link>
-              <a href="#produto" className="min-h-14 px-8 rounded-2xl grid place-items-center border border-white/15 bg-black/40 press">Ver o que tem dentro</a>
+              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #dc0000" }}>Quero minha rotina de pantera →</Link>
+              <a href="#produto" className="min-h-14 px-8 rounded-[8px] grid place-items-center border border-white/15 bg-black/40 press">Ver o que tem dentro</a>
             </div>
-            <ul className="in flex flex-wrap gap-x-5 gap-y-2 mt-6 text-sm text-white/65" data-i="4">{["A partir de R$ 0", "Celular e computador", "Seus dados só seus"].map((t) => <li key={t} className="flex items-center gap-1.5"><span className="text-[#ff2800]">✓</span>{t}</li>)}</ul>
+            <ul className="in flex flex-wrap gap-x-5 gap-y-2 mt-6 text-sm text-white/65" data-i="4">{["A partir de R$ 0", "Celular e computador", "Seus dados só seus"].map((t) => <li key={t} className="flex items-center gap-1.5"><span className="text-[#ffb21e]">✓</span>{t}</li>)}</ul>
           </div>
           <div className="in" data-i="2"><Phone /></div>
         </div>
         <div className="max-w-6xl mx-auto px-4 pb-14">
           <p className="text-center text-[11px] tracking-[.3em] uppercase text-white/50 mb-4">O dia que você já entende</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {["Oração", "Leitura da Bíblia", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Sono"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#dc0000", background: "#dc000022" } : undefined}>{p}</span>)}
+            {["Oração", "Leitura da Bíblia", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Sono"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#dc0000", background: "#dc000022" } : i === 5 ? { borderColor: "#ffb21e", color: "#ffb21e" } : undefined}>{p}</span>)}
           </div>
         </div>
       </section>
@@ -124,7 +124,7 @@ export default function Site() {
       {/* marquee */}
       <div className="border-y border-white/5 py-4 overflow-hidden" aria-hidden>
         <div className="flex gap-10 whitespace-nowrap w-max animate-[marq_40s_linear_infinite] text-white/50 font-mono text-sm uppercase tracking-widest">
-          {[...FEATS, ...FEATS].map(([k], i) => <span key={i}><span className="text-[#ff2800] mr-3">●</span>{k}</span>)}
+          {[...FEATS, ...FEATS].map(([k], i) => <span key={i}><span className="text-[#ffb21e] mr-3">●</span>{k}</span>)}
         </div>
       </div>
 
@@ -135,13 +135,13 @@ export default function Site() {
             <p className={label}>Instinto, não humor</p>
             <h2 className={h2}>Enquanto você espera vontade,<br /><span className={em}>a pantera já caçou.</span></h2>
             <p className="in text-lg text-white/75 mt-6">Ela não pensa se está a fim. Ela observa, espera o momento e age. O BRIO faz o mesmo com você: mostra a próxima ação, conta o tempo até a meia-noite e transforma cada dia cumprido em sequência. Disciplina repetida vira caráter.</p>
-            <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-2xl font-semibold text-white press" style={{ background: FIRE }}>Começar hoje →</Link>
+            <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-[8px] font-semibold text-white press" style={{ background: FIRE }}>Começar hoje →</Link>
           </div>
           <div className="in relative mx-auto w-full max-w-[440px] aspect-[4/5]">
-            <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o mascote do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[32px] border border-white/10" />
-            <div className="absolute inset-0 rounded-[32px]" style={{ background: "radial-gradient(60% 40% at 50% 100%, rgba(220,0,0,.35), transparent 70%)" }} />
+            <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o mascote do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[10px] border border-white/10" />
+            <div className="absolute inset-0 rounded-[10px]" style={{ background: "radial-gradient(60% 40% at 50% 100%, rgba(220,0,0,.35), transparent 70%)" }} />
             {[["21 dias", "sequência", "left-[-6%] top-[14%]"], ["+40 XP", "treino feito", "right-[-6%] top-[42%]"], ["6/6", "missões hoje", "left-[4%] bottom-[8%]"]].map(([b, t, pos]) => (
-              <span key={t} className={`absolute ${pos} rounded-2xl border border-[#dc000066] bg-black/75 backdrop-blur px-4 py-2.5`}><b className="num block text-xl text-[#ff2800]">{b}</b><span className="text-xs text-white/70">{t}</span></span>))}
+              <span key={t} className={`absolute ${pos} rounded-[8px] border border-[#dc000066] bg-black/75 backdrop-blur px-4 py-2.5`}><b className="num block text-xl text-[#ffb21e]">{b}</b><span className="text-xs text-white/70">{t}</span></span>))}
           </div>
         </div>
       </section>
@@ -152,8 +152,8 @@ export default function Site() {
         <h2 className={h2}>Menos apps. <span className={em}>Mais constância.</span></h2>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-10">
           {FEATS.map(([k, t, d], i) => (
-            <article key={k} data-i={i % 3} className="in tilt glowcard relative rounded-[26px] p-6 border border-white/10 bg-[#0b0b0b] overflow-hidden">
-              <span className="font-mono text-xs text-white/35">{String(i + 1).padStart(3, "0")}</span>
+            <article key={k} data-i={i % 3} className="in tilt glowcard relative rounded-[10px] p-6 border border-white/10 bg-[#0b0b0b] overflow-hidden">
+              <span className="font-mono text-xs text-[#ffb21e]">{String(i + 1).padStart(3, "0")}</span>
               <h3 className="font-display text-xl mt-3 leading-tight">{t}</h3>
               <p className="font-mono text-[11px] uppercase tracking-wider text-[#ff2800] mt-1">{k}</p>
               <p className="text-sm text-white/70 mt-3">{d}</p>
@@ -166,15 +166,15 @@ export default function Site() {
         <div>
           <p className={label}>Gamificação de verdade</p>
           <h2 className={h2}>Quem se vê evoluir, continua. <span className={em}>Quem continua, vence.</span></h2>
-          <div className="in mt-6 rounded-2xl border-l-4 border-[#dc0000] bg-white/[.04] p-5 text-white/85"><b>XP só sai de ação real.</b> Treino registrado, refeição marcada, estudo com tempo, leitura feita. Clique vazio não vale ponto.</div>
+          <div className="in mt-6 rounded-[8px] border-l-4 border-[#dc0000] bg-white/[.04] p-5 text-white/85"><b>XP só sai de ação real.</b> Treino registrado, refeição marcada, estudo com tempo, leitura feita. Clique vazio não vale ponto.</div>
           <ul className="grid gap-4 mt-6">
             {[["Missões do dia", "Poucos objetivos, tirados do seu plano. Você sabe por onde começar."], ["Sequência e fogo", "Dias seguidos mudam a cor do fogo, da brasa ao rubi."], ["Eventos e bestiário", "Desafios semanais que viram troféus guardados."]].map(([t, d], i) => (
-              <li key={t} data-i={i} className="in flex gap-3"><span className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full bg-[#ff2800]" /><div><b>{t}</b><p className="text-sm text-white/65">{d}</p></div></li>))}
+              <li key={t} data-i={i} className="in flex gap-3"><span className="mt-1 h-2.5 w-2.5 shrink-0 bg-[#ffb21e]" /><div><b>{t}</b><p className="text-sm text-white/65">{d}</p></div></li>))}
           </ul>
         </div>
-        <div className="in tilt relative rounded-[30px] border border-white/10 bg-[#0b0b0b] p-6">
-          <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full bg-white/10 px-3 py-1">Nível 7 · 1.240 XP</span><span className="rounded-full px-3 py-1 text-white" style={{ background: FIRE }}>+40 XP treino feito</span></div>
-          <p className="text-xs text-white/50 mt-6 uppercase tracking-widest">Seu fogo</p><p className="font-display text-3xl mt-1">Fogueira</p>
+        <div className="in tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] p-6">
+          <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full px-3 py-1 text-black font-semibold bg-[#ffb21e]">Nível 7 · 1.240 XP</span><span className="rounded-full px-3 py-1 text-white" style={{ background: FIRE }}>+40 XP treino feito</span></div>
+          <p className="text-xs text-white/50 mt-6 uppercase tracking-widest">Seu fogo</p><p className="font-display text-3xl mt-1">Fogueira<span className="text-[#ffb21e]">.</span></p>
           <div className="h-2 rounded-full bg-white/10 mt-4 overflow-hidden"><i className="block h-full w-[62%]" style={{ background: FIRE }} /></div>
           <ol className="grid gap-1.5 mt-6">{LADDER.map((n, i) => <li key={n} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-[#dc000026] border border-[#dc000066]" : "bg-white/[.03]"}`}><span className="font-mono text-xs text-white/40">{String(i + 1).padStart(2, "0")}</span>{n}</li>)}</ol>
         </div>
@@ -186,7 +186,7 @@ export default function Site() {
         <h2 className={h2}>Hoje à noite <span className={em}>você já tem uma rotina.</span></h2>
         <ol className="grid md:grid-cols-3 gap-4 mt-10">
           {[["Monte", "Diga o que quer cuidar: fé, corpo, dinheiro, estudos. O BRIO sugere as missões."], ["Cumpra", "Abra de manhã, faça e registre com um toque. Cada registro vira XP."], ["Ajuste", "Veja a semana, os recordes e onde travou. Corte o que não serve."]].map(([t, d], i) => (
-            <li key={t} data-i={i} className="in rounded-[26px] p-6 border border-white/10 bg-white/[.03]">
+            <li key={t} data-i={i} className="in rounded-[10px] p-6 border border-white/10 bg-white/[.03]">
               <span className={`num text-4xl ${em}`}>{i + 1}</span><h3 className="font-display text-xl mt-2">{t}</h3><p className="text-sm text-white/70 mt-1">{d}</p>
             </li>))}
         </ol>
@@ -199,7 +199,7 @@ export default function Site() {
           <h2 className="in font-display text-[clamp(30px,5vw,48px)] mt-3">Sua vida é sua.</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
             {[["Só você vê", "Cada conta enxerga apenas os próprios dados, com bloqueio no banco."], ["Fotos privadas", "As fotos ficam num cofre privado, com link temporário."], ["Chaves no servidor", "Chaves de IA e de integração nunca chegam ao navegador."], ["Sai quando quiser", "Seus registros podem ser exportados a qualquer momento."]].map(([t, d], i) => (
-              <div key={t} data-i={i} className="in rounded-2xl bg-white p-5 border border-black/10"><b>{t}</b><p className="text-sm text-black/65 mt-1">{d}</p></div>))}
+              <div key={t} data-i={i} className="in rounded-[8px] bg-white p-5 border border-black/10"><b>{t}</b><p className="text-sm text-black/65 mt-1">{d}</p></div>))}
           </div>
         </div>
       </section>
@@ -210,7 +210,7 @@ export default function Site() {
         <h2 className={h2}>Nasceu de uma rotina real, <span className={em}>não de uma sala de reunião.</span></h2>
         <div className="grid md:grid-cols-3 gap-4 mt-10">
           {[["O problema", "Um app para treino, outro para dieta, planilha para dinheiro, caderno para estudo. Tudo separado, nada constante."], ["A virada", "Juntar tudo num lugar só, com uma missão por dia e um fogo que mostra a constância. O que é medido, é cuidado."], ["A missão", "Ajudar quem quer viver com ordem: cuidar da fé, do corpo, da família e do dinheiro com responsabilidade antes do conforto."]].map(([t, d], i) => (
-            <article key={t} data-i={i} className={`in tilt relative rounded-[26px] p-6 border ${i === 2 ? "border-[#dc000088]" : "border-white/10"} bg-[#0b0b0b]`} style={i === 2 ? { background: "radial-gradient(80% 80% at 50% 120%, rgba(220,0,0,.3), #0b0b0b)" } : undefined}>
+            <article key={t} data-i={i} className={`in tilt relative rounded-[10px] p-6 border ${i === 2 ? "border-[#dc000088]" : "border-white/10"} bg-[#0b0b0b]`} style={i === 2 ? { background: "radial-gradient(80% 80% at 50% 120%, rgba(220,0,0,.3), #0b0b0b)" } : undefined}>
               <span className="font-mono text-xs uppercase tracking-wider text-[#ff2800]">{t}</span><p className="text-white/80 mt-3">{d}</p>
             </article>))}
         </div>
@@ -221,7 +221,7 @@ export default function Site() {
         <h2 className={`${h2} text-center`}>Mito <span className={em}>×</span> fato</h2>
         <div className="grid sm:grid-cols-2 gap-3 mt-10">
           {[["Mito", "“Preciso de motivação para começar.”"], ["Fato", "Motivação vem depois da ação. Comece pequeno e repita."], ["Mito", "“Segunda-feira eu começo.”"], ["Fato", "O BRIO conta até a meia-noite de hoje. O dia 1 é agora."]].map(([k, t], i) => (
-            <div key={i} data-i={i} className={`in rounded-2xl p-5 border ${k === "Fato" ? "border-[#dc000088] bg-[#dc000014]" : "border-white/10 bg-white/[.03] text-white/60"}`}>
+            <div key={i} data-i={i} className={`in rounded-[8px] p-5 border ${k === "Fato" ? "border-[#dc000088] bg-[#dc000014]" : "border-white/10 bg-white/[.03] text-white/60"}`}>
               <span className={`text-xs font-bold uppercase tracking-widest ${k === "Fato" ? "text-[#ff2800]" : "text-white/40"}`}>{k === "Fato" ? "✓ Fato" : "✕ Mito"}</span><p className="mt-2 text-lg">{t}</p>
             </div>))}
         </div>
@@ -240,7 +240,7 @@ export default function Site() {
         <div><p className={label}>Dúvidas</p><h2 className={h2}>Perguntas frequentes</h2></div>
         <div className="grid gap-2">
           {FAQ.map(([q, a], i) => (
-            <details key={q} data-i={i} className="in group rounded-2xl border border-white/10 bg-white/[.03] px-5 open:bg-white/[.05]">
+            <details key={q} data-i={i} className="in group rounded-[8px] border border-white/10 bg-white/[.03] px-5 open:bg-white/[.05]">
               <summary className="min-h-14 flex items-center justify-between gap-4 cursor-pointer list-none font-medium">{q}<span aria-hidden className="text-muted transition-transform group-open:rotate-45 text-xl">+</span></summary>
               <p className="pb-5 text-white/75 text-[15px]">{a}</p>
             </details>))}
@@ -249,12 +249,12 @@ export default function Site() {
 
       {/* cta final com e-mail */}
       <section className="max-w-6xl mx-auto px-4 py-20">
-        <div className="in relative rounded-[36px] p-8 sm:p-16 text-center overflow-hidden border border-[#dc000066]" style={{ background: "radial-gradient(80% 90% at 50% 120%, rgba(163,0,0,.55), transparent 60%), #0a0505" }}>
+        <div className="in relative rounded-[10px] p-8 sm:p-16 text-center overflow-hidden border border-[#dc000066]" style={{ background: "radial-gradient(80% 90% at 50% 120%, rgba(163,0,0,.55), transparent 60%), #0a0505" }}>
           <img src="/pantera/olhar.webp" alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-25 -z-0" />
           <div className="relative">
             <p className="text-xs uppercase tracking-[.3em] text-white/60">14 dias grátis · sem cartão · cancele quando quiser</p>
             <h2 className="font-display text-[clamp(32px,6vw,60px)] mt-4 leading-tight">A próxima versão de você <span className={em}>começa com seu e-mail.</span></h2>
-            <form action="/cadastro" method="get" className="mt-8 mx-auto max-w-lg flex flex-col sm:flex-row gap-2 rounded-2xl sm:rounded-full border border-white/15 bg-black/70 p-2">
+            <form action="/cadastro" method="get" className="mt-8 mx-auto max-w-lg flex flex-col sm:flex-row gap-2 rounded-[8px] sm:rounded-full border border-white/15 bg-black/70 p-2">
               <input type="hidden" name="plano" value="essencial" />
               <label htmlFor="cta-email" className="sr-only">E-mail</label>
               <input id="cta-email" name="email" type="email" inputMode="email" autoComplete="email" required placeholder="voce@email.com" className="flex-1 min-h-12 bg-transparent px-4 outline-none text-white placeholder:text-white/40" />

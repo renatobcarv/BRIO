@@ -345,7 +345,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
             <div key={l} className={`pt-3 ${i ? "pl-3" : ""} ${i < 2 ? "pr-3" : ""}`}>
               <p className="label !text-[9px] flex items-center gap-1"><Ico d={ic} size={12} />{l}</p>
               <p className="num text-2xl mt-1">{fmt(v, 0)}<span className="text-xs text-white/40"> / {g} g</span></p>
-              <div className="mt-1.5"><Seg v={v / g} n={8} c={i === 0 ? R : "#f5f5f7"} /></div>
+              <div className="mt-1.5"><Seg v={v / g} n={8} c={i === 0 ? R : "#ffb21e"} /></div>
             </div>))}
         </div>
         {(offKcal > 0 || pendingKcal > 0) && <p className="text-[12px] text-white/55 mt-4">{offKcal ? `${offKcal.toLocaleString("pt-BR")} kcal fora do plano. ` : ""}{pendingKcal > 0 ? `${pendingKcal.toLocaleString("pt-BR")} kcal planejadas esperando você marcar a refeição como feita.` : ""}</p>}

@@ -58,7 +58,7 @@ export function BodyToday(props: {
       <Link href="/corpo?aba=treino" className="glass rise block p-5 mt-4 relative overflow-hidden">
         <svg aria-hidden className="absolute -right-4 -bottom-6 opacity-[.07]" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.2"><path d="M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" /></svg>
         <p className="label" style={{ color: R }}>Alvo de hoje · treino</p>
-        <p className="font-display text-4xl mt-2">{props.split.label}</p>
+        <p className="font-display text-4xl mt-2">{props.split.label}<span className="eye">.</span></p>
         <p className="text-sm text-muted mt-1">{props.split.focus}{props.exercises ? ` · ${props.exercises} exercícios` : ""}</p>
         <span className="btn btn-accent mt-4 inline-flex items-center">{props.exercises ? "Entrar na War Room →" : "Dia de descanso · ver plano"}</span>
       </Link>
@@ -109,12 +109,12 @@ export function BodyToday(props: {
             <div key={w.date} className="flex flex-col items-center gap-1 h-full justify-end" title={`${L(w.ml)} L · ${fmt(sl)} h`}>
               <div className="flex items-end gap-[3px] h-full w-full justify-center">
                 <i className="w-2.5" style={{ height: `${(w.ml / max7) * 100}%`, minHeight: 2, background: w.ml >= props.waterGoal ? R : R + "55" }} />
-                <i className="w-2.5" style={{ height: `${(sl / 10) * 100}%`, minHeight: 2, background: sl >= 7 ? "#f5f5f7" : "#f5f5f744" }} />
+                <i className="w-2.5" style={{ height: `${(sl / 10) * 100}%`, minHeight: 2, background: sl >= 7 ? "#ffb21e" : "#ffb21e44" }} />
               </div>
               <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
             </div>); })}
         </div>
-        <div className="flex gap-4 mt-3 text-[11px] text-muted"><span className="flex items-center gap-1.5"><i className="h-2 w-2" style={{ background: R }} />água (meta batida)</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 bg-[#f5f5f7]" />sono 7h+</span></div>
+        <div className="flex gap-4 mt-3 text-[11px] text-muted"><span className="flex items-center gap-1.5"><i className="h-2 w-2" style={{ background: R }} />água (meta batida)</span><span className="flex items-center gap-1.5"><i className="h-2 w-2 bg-[#ffb21e]" />sono 7h+</span></div>
       </section>
 
       <Sheet open={goalSheet} onClose={() => setGoalSheet(false)} title="Meta de água" accent={G}>
