@@ -479,3 +479,5 @@ body::before { background: radial-gradient(55% 32% at 85% 0%, rgba(220,0,0,.13),
 h1.font-display, h2.font-display, .font-display.text-4xl, .font-display.text-3xl, .font-display.text-5xl, .num { font-family: var(--font-hunt), var(--font-emoji), var(--font-sans); }
 body { font-variant-emoji: text; }
 .hunt-card { background: #080808; border: 1px solid #1c1c1c; border-radius: 8px; }
+.ex-media { background: #e9e9ea; border-radius: 6px; }
+.ex-media img { mix-blend-mode: multiply; filter: grayscale(1) contrast(1.1); }

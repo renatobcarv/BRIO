@@ -1,4 +1,5 @@
 "use client";
+import { ExerciseHero } from "@/components/body/exercise-media";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { saveWorkout } from "@/app/(app)/corpo/actions";
 import { useXp, haptic } from "@/components/game/xp";
@@ -141,6 +142,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `Série ${cur.k + 1} de ${ex.sets.length}${ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
           {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min${Number(x.kg) ? ` · ${fmt(Number(x.kg))} km` : ""}` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}
+          <ExerciseHero name={ex.name} />
           {timed ? (
             <div className="grid grid-cols-2 gap-2.5 mt-4">
               <Big label="Duração" value={set.reps} onChange={(v) => upd({ reps: v })} step={5} unit="minutos" />

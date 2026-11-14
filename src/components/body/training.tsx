@@ -1,4 +1,5 @@
 "use client";
+import { ExerciseThumb } from "@/components/body/exercise-media";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -151,7 +152,8 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
           const best = Math.max(0, ...e.sets.map((x) => e1rm(n(x.kg), n(x.reps))));
           return (
             <div key={ei} className="rounded-[8px] border border-white/[.07] bg-white/[.02] p-4">
-              <div className="flex items-start gap-2">
+              <div className="flex items-start gap-3">
+                <ExerciseThumb name={e.name} size={52} />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium">{e.name}</p>
                   <p className="text-xs text-muted mt-0.5">
@@ -398,7 +400,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                           const timed = isTimed(x.name, (x as { muscle?: string }).muscle);
                           return (
                             <li key={i} className="rounded-xl bg-white/[.03] px-3 py-2.5">
-                              <div className="flex justify-between gap-3 text-sm"><span className="font-medium">{x.name}</span>
+                              <div className="flex items-center justify-between gap-3 text-sm"><ExerciseThumb name={x.name} size={36} /><span className="font-medium flex-1 min-w-0">{x.name}</span>
                                 <span className="num text-muted shrink-0">{timed ? x.reps : `${x.sets}×${x.reps}`}{x.rpe ? ` @${fmt(x.rpe)}` : ""}</span></div>
                               {!timed && (x.kg != null || sg) && (
                                 <p className="text-xs mt-1"><span className="num font-semibold" style={{ color: G }}>{fmt(x.kg ?? sg!.kg)} kg</span>

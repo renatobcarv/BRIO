@@ -6,7 +6,7 @@ const csp = [
   "default-src 'self'",
   "script-src 'self' 'unsafe-inline'", // Next injeta scripts inline de hidratação
   "style-src 'self' 'unsafe-inline'",
-  `img-src 'self' data: blob: ${supabase} https://*.supabase.co`,
+  `img-src 'self' data: blob: ${supabase} https://*.supabase.co https://wger.de`,
   "font-src 'self' data:",
   `connect-src 'self' ${supabase} https://*.supabase.co wss://*.supabase.co`,
   "frame-ancestors 'none'",
