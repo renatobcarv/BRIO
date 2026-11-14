@@ -1,12 +1,11 @@
 "use client";
 import Link from "next/link";
+import { HI, Ico, slotIcon } from "@/components/hunt-icons";
 import { useState, useTransition } from "react";
 import { copyMeals, deleteFood, deleteMealItem, saveFood, saveMealItem, setMealDone } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
-import { Ring } from "@/components/ui";
-import { Avocado, Bread, Drumstick, EnergyFlame } from "@/components/meters";
-import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
-import { addDays, shortDate, weekdayShort, dow } from "@/lib/date";
+import { Field, SectionTitle, Sheet, fmt, n } from "@/components/kit";
+import { addDays, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
 import { MealQuiz } from "@/components/quiz/meal-quiz";
 
@@ -317,116 +316,107 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   const off = items.filter((i) => isExtra(i.slot)).sort((a, b) => extraInfo(a.slot).time.localeCompare(extraInfo(b.slot).time));
   const offKcal = sum(off, "kcal");
 
+  const R = "#ff2800";
+  const over = kcal > goals.kcal * 1.05;
+  const Seg = ({ v, n = 12, c = R }: { v: number; n?: number; c?: string }) => (
+    <div className="flex gap-[3px]" aria-hidden>{Array.from({ length: n }, (_, i) => <i key={i} className="h-2 flex-1" style={{ background: i < Math.round(Math.min(1, v || 0) * n) ? c : "rgba(255,255,255,.08)" }} />)}</div>);
+  const allSlots = [...slots, ...extraSlots];
+
   return (
-    <div style={{ ["--accent" as string]: G }}>
-      <nav className="flex items-center justify-between mb-4">
-        <Link className="btn" href={`/corpo?aba=alimentacao&d=${addDays(date, -1)}`} aria-label="Dia anterior">‹</Link>
-        <p className="font-display text-xl">{isToday ? "Hoje" : `${weekdayShort[dow(date)]}, ${shortDate(date)}`}</p>
-        <Link className="btn" href={`/corpo?aba=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
+    <div className="dash-auto" style={{ ["--accent" as string]: R }}>
+      <nav className="span-all flex items-stretch gap-px mb-4 border border-white/[.08] rounded-[8px] overflow-hidden bg-white/[.08]" aria-label="Dia">
+        <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/corpo?aba=alimentacao&d=${addDays(date, -1)}`} aria-label="Dia anterior">‹</Link>
+        <div className="flex-1 bg-[#080808] px-3 py-2 text-center"><p className="label !text-[9px]">{isToday ? "Hoje" : weekdayShort[dow(date)]}</p><p className="num text-xl leading-tight">{date.split("-").reverse().slice(0, 2).join("/")}</p></div>
+        <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/corpo?aba=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
       </nav>
 
-      <button onClick={() => setSheet({ kind: "quiz" })} className="press w-full rounded-[8px] p-4 mb-4 flex items-center gap-4 text-left border" style={{ borderColor: G + "55", background: `linear-gradient(160deg, ${G}26, #0f0f11 70%)` }}>
-        <span className="h-12 w-12 rounded-[8px] grid place-items-center glow shrink-0" style={{ background: G, ["--glow" as string]: G } as React.CSSProperties}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg></span>
-        <span className="flex-1"><span className="block font-semibold text-[16px]">Registrar refeição</span><span className="text-sm text-muted">{doneSlots.length}/{slots.length} refeições · +10 XP cada</span></span>
-      </button>
-      <section className="glass rise p-5">
-        <SectionTitle action={<LinkBtn onClick={() => setSheet({ kind: "goals" })}>Metas</LinkBtn>}>Resumo do dia</SectionTitle>
-        <div className="flex items-center gap-6">
-          <Ring value={kcal / goals.kcal} size={130} stroke={11} color={kcal > goals.kcal * 1.05 ? "#ff453a" : G}>
-            <span><span className="num text-3xl block">{Math.abs(remaining).toLocaleString("pt-BR")}</span><span className="label">{remaining >= 0 ? "kcal restam" : "kcal acima"}</span></span>
-          </Ring>
-          <div className="flex-1 grid gap-3">
-            {([["Proteína", prot, goals.protein, P], ["Carboidrato", carb, goals.carbs, C], ["Gordura", fat, goals.fat, F]] as const).map(([l, v, g, c]) => (
-              <div key={l}>
-                <div className="flex justify-between text-sm"><span>{l}</span><span className="num text-muted"><span className="text-ink">{fmt(v, 0)}</span> / {g} g</span></div>
-                <Progress value={v / g} color={c} height={6} />
-              </div>
-            ))}
-          </div>
+      {/* Placar do combustível */}
+      <section className="hunt-card rise relative overflow-hidden p-5">
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: over ? "#ff453a" : R, boxShadow: `0 0 18px ${R}` }} />
+        <div className="flex items-start justify-between gap-3">
+          <div><p className="label flex items-center gap-1.5"><Ico d={HI.flame} size={13} color={R} />{remaining >= 0 ? "Restam hoje" : "Acima da meta"}</p>
+            <p className="num text-7xl leading-none mt-2" style={{ color: over ? "#ff453a" : undefined }}>{Math.abs(remaining).toLocaleString("pt-BR")}<span className="text-2xl text-white/40"> kcal</span></p></div>
+          <button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={() => setSheet({ kind: "goals" })}>metas</button>
         </div>
-        <p className="text-xs text-muted mt-3">{kcal.toLocaleString("pt-BR")} de {goals.kcal.toLocaleString("pt-BR")} kcal consumidas{offKcal ? ` · ${offKcal.toLocaleString("pt-BR")} fora do plano` : ""}</p>
-        {pendingKcal > 0 && <p className="text-xs mt-1" style={{ color: "#8e8e93" }}>📋 Planejado no dia: {plannedKcal.toLocaleString("pt-BR")} kcal · marque cada refeição como feita para contar ({pendingKcal.toLocaleString("pt-BR")} kcal a confirmar)</p>}
-        <div className="grid grid-cols-4 gap-1 mt-4 pt-4 border-t border-white/[.06]">
-          {([["Energia", <EnergyFlame key="f" pct={kcal / goals.kcal} size={40} />, kcal / goals.kcal], ["Proteína", <Drumstick key="s" pct={prot / goals.protein} size={46} />, prot / goals.protein],
-            ["Carbo", <Bread key="g" pct={carb / goals.carbs} size={48} />, carb / goals.carbs], ["Gordura", <Avocado key="d" pct={fat / goals.fat} size={38} />, fat / goals.fat]] as const).map(([l, m, v]) => (
-            <div key={l} className="flex flex-col items-center justify-end gap-1">
-              <div className="h-[56px] flex items-end">{m}</div>
-              <p className="num text-sm leading-none">{Math.round(v * 100) || 0}%</p>
-              <p className="text-[10px] text-muted">{l}</p>
+        <div className="mt-4 flex justify-between label !text-[9px]"><span>{kcal.toLocaleString("pt-BR")} comidas</span><span>meta {goals.kcal.toLocaleString("pt-BR")}</span></div>
+        <div className="mt-1.5"><Seg v={kcal / goals.kcal} n={20} c={over ? "#ff453a" : R} /></div>
+        <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">
+          {([["Proteína", prot, goals.protein, HI.protein], ["Carbo", carb, goals.carbs, HI.carb], ["Gordura", fat, goals.fat, HI.fat]] as const).map(([l, v, g, ic], i) => (
+            <div key={l} className={`pt-3 ${i ? "pl-3" : ""} ${i < 2 ? "pr-3" : ""}`}>
+              <p className="label !text-[9px] flex items-center gap-1"><Ico d={ic} size={12} />{l}</p>
+              <p className="num text-2xl mt-1">{fmt(v, 0)}<span className="text-xs text-white/40"> / {g} g</span></p>
+              <div className="mt-1.5"><Seg v={v / g} n={8} c={i === 0 ? R : "#f5f5f7"} /></div>
             </div>))}
         </div>
+        {(offKcal > 0 || pendingKcal > 0) && <p className="text-[12px] text-white/55 mt-4">{offKcal ? `${offKcal.toLocaleString("pt-BR")} kcal fora do plano. ` : ""}{pendingKcal > 0 ? `${pendingKcal.toLocaleString("pt-BR")} kcal planejadas esperando você marcar a refeição como feita.` : ""}</p>}
+        <div className="grid grid-cols-[1fr_auto] gap-2 mt-5">
+          <button className="btn btn-accent inline-flex items-center justify-center gap-2" onClick={() => setSheet({ kind: "quiz" })}><Ico d={HI.plus} size={16} />Refeição</button>
+          <button className="btn inline-flex items-center gap-2" onClick={() => setSheet({ kind: "off" })}><Ico d={HI.cup} size={15} />Fora do plano</button>
+        </div>
       </section>
 
-      {items.length === 0 && (
-        <button className="btn w-full mt-4" disabled={pending} onClick={() => start(() => copyMeals(addDays(date, -1), date))}>Copiar refeições do dia anterior</button>
-      )}
+      {/* Refeições do dia em linha do tempo */}
+      <section className="glass rise p-5 mt-4">
+        <div className="flex items-center justify-between mb-3"><p className="label flex items-center gap-1.5"><Ico d={HI.list} size={13} />Refeições · {doneSlots.length}/{slots.length} feitas</p><button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={() => setSheet({ kind: "slots" })}>editar</button></div>
+        {items.length === 0 && <button className="btn w-full mb-3" disabled={pending} onClick={() => start(() => copyMeals(addDays(date, -1), date))}>Copiar refeições de ontem</button>}
+        <ol className="relative">
+          <span aria-hidden className="absolute left-[13px] top-2 bottom-2 w-px bg-white/10" />
+          {allSlots.map((s) => {
+            const list = items.filter((i) => i.slot === s.key), on = doneSlots.includes(s.key);
+            return (
+              <li key={s.key} className="relative pl-10 py-2.5">
+                <button aria-pressed={on} aria-label={`Marcar ${s.label} como feita`} onClick={() => start(() => setMealDone(date, s.key, !on))}
+                  className="absolute left-0 top-2.5 h-7 w-7 grid place-items-center border bg-[#080808] transition-colors" style={{ borderColor: on ? R : "rgba(255,255,255,.25)", background: on ? R : "#080808" }}>
+                  {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>}
+                </button>
+                <div className="flex items-baseline gap-2">
+                  <p className={`font-semibold flex-1 flex items-center gap-2 ${on ? "text-white/55" : ""}`}><Ico d={slotIcon(s.label)} size={15} color={on ? R : "#a1a1a6"} />{s.label}</p>
+                  <p className="font-mono text-[11px] text-white/55">{sum(list, "kcal")} kcal · {fmt(sum(list, "protein_g"), 0)} g P</p>
+                </div>
+                {list.length > 0 && (
+                  <ul className="mt-1">
+                    {list.map((i) => (
+                      <li key={i.id}><button className="row-hover w-full flex items-center gap-3 min-h-10 px-2 -mx-2 text-left" onClick={() => setSheet({ kind: "edit", item: i })}>
+                        <span className="flex-1 text-[14px] text-white/80 min-w-0 truncate">{i.name}</span>
+                        <span className="text-[10px] font-mono text-white/35 hidden sm:inline">P{fmt(Number(i.protein_g), 0)} C{fmt(Number(i.carbs_g), 0)} G{fmt(Number(i.fat_g), 0)}</span>
+                        <span className="num text-sm w-12 text-right">{i.kcal}</span>
+                      </button></li>))}
+                  </ul>)}
+                <button className="text-[12px] text-white/50 hover:text-white mt-1 min-h-9 inline-flex items-center gap-1" onClick={() => setSheet({ kind: "add", slot: s.key })}><Ico d={HI.plus} size={12} />alimento</button>
+              </li>);
+          })}
+        </ol>
+      </section>
 
-      {[...slots, ...extraSlots].map((s) => {
-        const list = items.filter((i) => i.slot === s.key), on = doneSlots.includes(s.key);
-        return (
-          <section key={s.key} className="glass rise p-5 mt-4">
-            <div className="flex items-center gap-3">
-              <button aria-pressed={on} aria-label={`Marcar ${s.label} como feita`} onClick={() => start(() => setMealDone(date, s.key, !on))}
-                className="h-9 w-9 shrink-0 grid place-items-center rounded-xl border transition-colors" style={{ borderColor: on ? G : "rgba(255,255,255,.18)", background: on ? G : "transparent" }}>
-                {on && <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#120f08" strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>}
-              </button>
-              <p className="font-display text-xl flex-1">{s.label}</p>
-              <p className="num text-sm text-muted">{sum(list, "kcal")} kcal · {fmt(sum(list, "protein_g"), 0)} g P</p>
-            </div>
-            {list.length > 0 && (
-              <ul className="mt-3">
-                {list.map((i) => (
-                  <li key={i.id}><button className="row-hover w-full flex items-center gap-3 min-h-11 px-2 text-left" onClick={() => setSheet({ kind: "edit", item: i })}>
-                    <span className="flex-1 text-[15px]">{i.name}</span>
-                    <span className="text-xs text-faint hidden sm:inline">P{fmt(Number(i.protein_g), 0)} · C{fmt(Number(i.carbs_g), 0)} · G{fmt(Number(i.fat_g), 0)}</span>
-                    <span className="num text-sm w-14 text-right">{i.kcal}</span>
-                  </button></li>
-                ))}
-              </ul>
-            )}
-            <button className="btn w-full mt-3 text-muted" onClick={() => setSheet({ kind: "add", slot: s.key })}>+ Adicionar alimento</button>
-          </section>
-        );
-      })}
-
-      <section className="rise mt-4 rounded-[8px] p-5 border" style={{ borderColor: "rgba(255,90,110,.3)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0f0f11 60%)" }}>
-        <div className="flex items-center gap-3">
-          <span className="text-2xl" aria-hidden>🍕</span>
-          <div className="flex-1"><p className="font-display text-xl">Fora do plano</p><p className="text-xs text-muted">Lanches, bebidas, férias, imprevistos</p></div>
-          {off.length > 0 && <p className="num text-sm" style={{ color: "#ff4d3d" }}>{offKcal} kcal</p>}
-        </div>
-        {off.length > 0 && (
-          <ul className="mt-3">
+      {/* Fora do plano */}
+      <section className="glass rise p-5 mt-4">
+        <div className="flex items-center justify-between"><p className="label flex items-center gap-1.5"><Ico d={HI.cup} size={13} />Fora do plano</p>{off.length > 0 && <p className="num text-lg" style={{ color: "#ff453a" }}>{offKcal} kcal</p>}</div>
+        {off.length === 0 ? <p className="text-sm text-white/50 mt-2">Nada fora do plano hoje. Assim que se caça.</p> : (
+          <ul className="mt-2 divide-y divide-white/[.06]">
             {off.map((i) => { const x = extraInfo(i.slot); return (
               <li key={i.id}><button className="row-hover w-full flex items-center gap-3 min-h-11 px-2 text-left" onClick={() => setSheet({ kind: "edit", item: i })}>
-                <span className="num text-xs text-muted w-11">{x.time}</span>
-                <span aria-hidden>{x.kind === "bebida" ? "🥤" : "🍽️"}</span>
-                <span className="flex-1 text-[15px] min-w-0 truncate">{i.name}</span>
-                <span className="num text-sm w-14 text-right">{i.kcal}</span>
+                <span className="font-mono text-[11px] text-white/45 w-11">{x.time}</span>
+                <Ico d={x.kind === "bebida" ? HI.cup : HI.fork} size={15} color="#a1a1a6" />
+                <span className="flex-1 text-[14px] min-w-0 truncate">{i.name}</span>
+                <span className="num text-sm w-12 text-right">{i.kcal}</span>
               </button></li>); })}
-          </ul>
-        )}
-        <button className="btn w-full mt-3" style={{ borderColor: "rgba(255,90,110,.35)" }} onClick={() => setSheet({ kind: "off" })}>+ Registrar comida ou bebida</button>
+          </ul>)}
+        <button className="btn w-full mt-3" onClick={() => setSheet({ kind: "off" })}>+ Comida ou bebida</button>
       </section>
 
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <button className="btn" onClick={() => setSheet({ kind: "foods" })}>Favoritos ({foods.length})</button>
-        <button className="btn" onClick={() => setSheet({ kind: "slots" })}>Editar refeições</button>
-      </div>
-
+      {/* Semana */}
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Últimos 7 dias</SectionTitle>
-        <div className="relative flex items-end gap-2 h-36">
-          <div className="absolute inset-x-0 border-t border-dashed border-white/20" style={{ bottom: `${(goals.kcal / maxW) * 100}%` }} />
+        <p className="label flex items-center gap-1.5 mb-3"><Ico d={HI.chart} size={13} />Últimos 7 dias</p>
+        <div className="relative grid grid-cols-7 gap-2 items-end h-36">
+          <div className="absolute inset-x-0 border-t border-dashed border-white/25" style={{ bottom: `calc(${(goals.kcal / maxW) * 100}% * (1 - 18 / 144) + 18px)` }} />
           {week.map((w) => (
-            <Link key={w.date} href={`/corpo?aba=alimentacao&d=${w.date}`} className="flex-1 flex flex-col items-center gap-1 h-full justify-end" title={`${w.kcal} kcal · ${w.protein} g`}>
-              <div className="w-full rounded-md" style={{ height: `${(w.kcal / maxW) * 100}%`, minHeight: 2, background: w.date === date ? G : G + "55" }} />
-              <span className="text-[10px] text-muted">{weekdayShort[dow(w.date)]}</span>
-            </Link>
-          ))}
+            <Link key={w.date} href={`/corpo?aba=alimentacao&d=${w.date}`} className="flex flex-col items-center gap-1 h-full justify-end" title={`${w.kcal} kcal · ${w.protein} g`}>
+              <i className="w-full max-w-6" style={{ height: `${(w.kcal / maxW) * 100}%`, minHeight: 2, background: w.date === date ? R : w.kcal > goals.kcal * 1.05 ? "#ff453a66" : "#ffffff33" }} />
+              <span className={`text-[10px] ${w.date === date ? "text-white" : "text-muted"}`}>{weekdayShort[dow(w.date)]}</span>
+            </Link>))}
         </div>
-        <p className="text-xs text-muted mt-2">Média: {Math.round(week.reduce((a, w) => a + w.kcal, 0) / 7).toLocaleString("pt-BR")} kcal · {Math.round(week.reduce((a, w) => a + w.protein, 0) / 7)} g de proteína por dia</p>
+        <p className="text-xs text-muted mt-3">Média {Math.round(week.reduce((a, w) => a + w.kcal, 0) / 7).toLocaleString("pt-BR")} kcal · {Math.round(week.reduce((a, w) => a + w.protein, 0) / 7)} g de proteína por dia. Tracejado: meta.</p>
+        <button className="btn w-full mt-4" onClick={() => setSheet({ kind: "foods" })} ><span className="inline-flex items-center gap-2"><Ico d={HI.star} size={14} />Alimentos favoritos ({foods.length})</span></button>
       </section>
 
       <Sheet accent={G} open={sheet?.kind === "add" || sheet?.kind === "edit"} onClose={close}

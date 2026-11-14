@@ -1,4 +1,5 @@
 "use client";
+import { HI, Ico } from "@/components/hunt-icons";
 import { useState, useTransition } from "react";
 import { deleteWeight, saveWeight } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -57,7 +58,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
       <section className="hunt-card rise relative overflow-hidden p-5">
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
         <div className="flex items-start justify-between gap-3">
-          <div><p className="label">Peso atual</p><p className="num text-7xl leading-none mt-2">{fmt(cur)}<span className="text-2xl text-white/40"> kg</span></p>
+          <div><p className="label flex items-center gap-1.5"><Ico d={HI.scale} size={13} color={R} />Peso atual</p><p className="num text-7xl leading-none mt-2">{fmt(cur)}<span className="text-2xl text-white/40"> kg</span></p>
             {last7 != null && <p className="font-mono text-xs mt-2" style={{ color: (last7 < 0) === losing ? G : "#ff453a" }}>{last7 > 0 ? "▲ +" : "▼ "}{fmt(last7)} kg desde o último registro</p>}</div>
           <button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={() => setSheet("goal")}>meta</button>
         </div>
@@ -74,7 +75,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
       {/* Gráfico */}
       {sorted.length > 1 && (
         <section className="glass rise p-5 mt-4">
-          <SectionTitle>Trajetória</SectionTitle>
+          <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.chart} size={14} />Trajetória</span></SectionTitle>
           <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img" aria-label="Gráfico do peso com a linha do plano e a meta">
             {[0, 0.5, 1].map((t) => { const v = min + (max - min) * t; return <g key={t}><line x1={P} x2={W - P} y1={py(v)} y2={py(v)} stroke="rgba(255,255,255,.06)" /><text x={4} y={py(v) + 4} fontSize="11" fill="#6b6b70" fontFamily="monospace">{fmt(v, 0)}</text></g>; })}
             <line x1={P} x2={W - P} y1={py(goal)} y2={py(goal)} stroke="#f5f5f7" strokeDasharray="4 6" opacity=".35" />
@@ -89,7 +90,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
 
       {/* Histórico */}
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Registros</SectionTitle>
+        <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />Registros</span></SectionTitle>
         {sorted.length === 0 ? <Empty>Registre o peso uma vez por semana, no mesmo dia e horário.</Empty> : (
           <ul className="divide-y divide-white/[.06]">
             {[...sorted].reverse().map((l, i, arr) => {

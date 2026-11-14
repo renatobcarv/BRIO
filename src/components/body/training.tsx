@@ -1,16 +1,16 @@
 "use client";
+import { HI, Ico } from "@/components/hunt-icons";
 import { ExerciseThumb } from "@/components/body/exercise-media";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Empty } from "@/components/ui";
-import { Field, LinkBtn, SectionTitle, Sheet, Stat, fmt, n } from "@/components/kit";
+import { Field, LinkBtn, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShort } from "@/lib/date";
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, dayShort, dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
 import { BattleIntro } from "./battle-intro";
-import { Barbell, Forge } from "@/components/meters";
 import { beastFor, type Beast } from "@/lib/bestiary";
 import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
@@ -305,43 +305,30 @@ export function Training({ today, split, plan, workouts, program = null, program
   const viewing = sheet && typeof sheet === "object" ? sheet : null;
 
   return (
-    <div style={{ ["--accent" as string]: G }}>
-      {programSlot && (
-        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[8px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(163,0,0,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #a30000" }}>
-          {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
-            <>
-              <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold truncate min-w-0">{program.name}</p><span className="text-xs text-muted whitespace-nowrap shrink-0">ver ›</span></div>
-              <p className="text-xs mt-0.5" style={{ color: ph ? PHASE_KINDS[ph.kind].color : "#8e8e93" }}>{pos.status === "andamento" ? `Semana ${pos.week} de ${pos.total} · ${ph?.name}` : pos.status === "futuro" ? `Começa em ${pos.startsIn} dias` : "Programa concluído"}</p>
-              <div className="mt-3"><Timeline p={program} today={today} /></div>
-            </>); })() : (
-            <div className="flex items-center justify-between"><div><p className="text-sm font-semibold">Monte sua campanha</p><p className="text-xs text-muted mt-0.5">Fases, semanas e progressão de carga</p></div><span className="text-xs text-muted">criar ›</span></div>
-          )}
-        </button>
-      )}
+    <div className="dash-auto" style={{ ["--accent" as string]: G }}>
       {intro && <BattleIntro title={intro.s.label.split(" · ")[0]} beast={intro.beast} onDone={() => { setMode("guiado"); setSession(intro.s); setIntro(null); }} />}
-      <section className="glass rise p-5">
-        {(() => {
-          const total = program ? weekDays.filter((w) => w.dp.list.length).length : planned, done = new Set(weekW.map((w) => w.date)).size;
-          const prevStart = addDays(weekStart, -7), lastVol = workouts.filter((w) => w.date >= prevStart && w.date < weekStart).reduce((a, w) => a + volume(w.sets), 0);
-          const vol = weekW.reduce((a, w) => a + volume(w.sets), 0);
-          return (
-            <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-white/[.06]">
-              <div className="min-w-0">
-                <Barbell done={done} total={total} width={150} />
-                <p className="text-[11px] text-muted mt-1">{done >= total && total ? "Barra cheia: semana cumprida 🔥" : `${Math.max(0, total - done)} ${total - done === 1 ? "sessão" : "sessões"} para carregar a barra`}</p>
-              </div>
-              <div className="flex flex-col items-center shrink-0">
-                <Forge pct={lastVol ? vol / lastVol : vol ? 1 : 0} size={48} />
-                <p className="text-[10px] text-muted mt-1 text-center leading-tight">{lastVol ? `${Math.round((vol / lastVol) * 100)}% da` : "volume"}<br />{lastVol ? "semana passada" : "da semana"}</p>
-              </div>
-            </div>);
-        })()}
-        <div className="grid grid-cols-3 gap-3">
-          <Stat big label="Semana" value={`${new Set(weekW.map((w) => w.date)).size}/${program ? weekDays.filter((w) => w.dp.list.length).length : planned}`} sub="treinos" />
-          <Stat big label="Mês" value={monthW.length} sub="sessões" />
-          {(() => { const v = weekW.reduce((a, w) => a + volume(w.sets), 0); return <Stat big label="Volume" value={v >= 1000 ? `${fmt(v / 1000)} t` : `${Math.round(v)} kg`} sub="na semana" />; })()}
-        </div>
-      </section>
+      {(() => {
+        const total = program ? weekDays.filter((w) => w.dp.list.length).length : planned, done = new Set(weekW.map((w) => w.date)).size;
+        const prevStart = addDays(weekStart, -7), lastVol = workouts.filter((w) => w.date >= prevStart && w.date < weekStart).reduce((a, w) => a + volume(w.sets), 0);
+        const vol = weekW.reduce((a, w) => a + volume(w.sets), 0), R = "#ff2800";
+        const pos = program ? programPosition(program, today) : null, ph = program && pos ? program.phases[pos.phaseIndex] : null;
+        return (
+          <section className="hunt-card rise relative overflow-hidden p-5">
+            <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
+            <button onClick={() => programSlot && setSheet("program")} className="w-full text-left">
+              <p className="label flex items-center gap-1.5"><Ico d={HI.target} size={13} color={R} />Campanha{program && pos?.status === "andamento" ? ` · semana ${pos.week} de ${pos.total}` : ""}</p>
+              <p className="font-display text-3xl mt-1 truncate">{program ? program.name : "Monte sua campanha"}</p>
+              <p className="text-sm mt-1" style={{ color: ph ? PHASE_KINDS[ph.kind].color : "#8a8a8f" }}>{program && pos ? (pos.status === "andamento" ? ph?.name : pos.status === "futuro" ? `Começa em ${pos.startsIn} dias` : "Campanha concluída") : "Fases, semanas e progressão de carga · criar ›"}</p>
+              {program && <div className="mt-3"><Timeline p={program} today={today} /></div>}
+            </button>
+            <div className="mt-5 flex justify-between label !text-[9px]"><span>Sessões da semana</span><span style={{ color: R }}>{done}/{total}</span></div>
+            <div className="flex gap-1 mt-1.5" aria-hidden>{Array.from({ length: Math.max(total, 1) }, (_, i) => <i key={i} className="h-3 flex-1" style={{ background: i < done ? R : "rgba(255,255,255,.08)" }} />)}</div>
+            <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">
+              {[[HI.dumbbell, "Semana", `${done}/${total}`, "treinos"], [HI.list, "Mês", String(monthW.length), "sessões"], [HI.bolt, "Volume", vol >= 1000 ? `${fmt(vol / 1000)} t` : `${Math.round(vol)} kg`, lastVol ? `${Math.round((vol / lastVol) * 100)}% da passada` : "na semana"]].map(([ic, l, v, u]) => (
+                <div key={l} className="pt-3 text-center"><p className="label !text-[9px] flex items-center justify-center gap-1"><Ico d={ic} size={11} />{l}</p><p className="num text-2xl mt-1">{v}</p><p className="text-[10px] text-white/45">{u}</p></div>))}
+            </div>
+          </section>);
+      })()}
 
       <section className="glass rise p-5 mt-4">
         <SectionTitle action={<LinkBtn onClick={() => setSheet(program ? "program" : "plan")}>{program ? "Editar campanha" : "Editar plano"}</LinkBtn>}>{session ? "Missão em andamento" : "Esta semana"}</SectionTitle>
@@ -428,7 +415,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Recordes pessoais</SectionTitle>
+        <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.star} size={14} />Recordes pessoais</span></SectionTitle>
         <div className="grid grid-cols-3 gap-3">
           {plan.prs.map((name) => { const { top, est } = prOf(name); return (
             <button key={name} className="text-left rounded-[8px] bg-white/[.03] p-3" onClick={() => setExSel(names.find((x) => x.toLowerCase() === name.toLowerCase()) ?? names.find((x) => new RegExp(name.split(/\s+/)[0].slice(0, 6), "i").test(x)) ?? name)}>
@@ -442,7 +429,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       </section>
 
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Evolução</SectionTitle>
+        <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.chart} size={14} />Evolução</span></SectionTitle>
         {names.length === 0 ? <Empty>Registre treinos para ver sua evolução.</Empty> : (
           <>
             <select className="field" value={exSel} onChange={(e) => setExSel(e.target.value)} aria-label="Exercício">
@@ -463,7 +450,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       </section>
 
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Frequência no mês</SectionTitle>
+        <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />Frequência no mês</span></SectionTitle>
         <div className="grid grid-cols-7 gap-1.5 text-center">
           {weekdayShort.map((d) => <span key={d} className="label text-[10px]">{d}</span>)}
           {Array.from({ length: dow(m) }).map((_, i) => <span key={"b" + i} />)}
@@ -474,7 +461,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       </section>
 
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Histórico</SectionTitle>
+        <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />Histórico</span></SectionTitle>
         {workouts.length === 0 ? <Empty>Sua primeira sessão aparecerá aqui.</Empty> : (
           <ul>
             {workouts.slice(0, 30).map((w) => (

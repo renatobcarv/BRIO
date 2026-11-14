@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { HI, Ico } from "@/components/hunt-icons";
 import { useOptimistic, useState, useTransition } from "react";
 import { addWater, saveSleep, undoWater } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -45,7 +46,7 @@ export function BodyToday(props: {
       <section className="hunt-card rise relative overflow-hidden p-5">
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
         <div className="flex items-end justify-between gap-4">
-          <div><p className="label">Prontidão de hoje</p><p className="font-display text-2xl mt-1">{verdict}</p></div>
+          <div><p className="label flex items-center gap-1.5"><Ico d={HI.target} size={13} color={R} />Prontidão de hoje</p><p className="font-display text-2xl mt-1">{verdict}</p></div>
           <p className="num text-6xl leading-none" style={{ color: R }}>{ready}<span className="text-2xl text-white/40">%</span></p>
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-5">
@@ -64,16 +65,16 @@ export function BodyToday(props: {
 
       {/* Combustível */}
       <Link href="/corpo?aba=alimentacao" className="glass rise block p-5 mt-4">
-        <div className="flex items-center justify-between"><p className="label">Combustível</p><span className="label !text-[10px]">dieta ›</span></div>
+        <div className="flex items-center justify-between"><p className="label flex items-center gap-1.5"><Ico d={HI.flame} size={13} />Combustível</p><span className="label !text-[10px]">dieta ›</span></div>
         <div className="grid grid-cols-2 gap-px bg-white/[.08] mt-3 border border-white/[.08]">
-          <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><span className="label !text-[9px]">Calorias</span></div><p className="num text-3xl mt-2">{props.food.kcal}<span className="text-sm text-white/40"> / {props.food.kcalGoal}</span></p><div className="mt-2"><Seg v={clamp(props.food.kcal / props.food.kcalGoal)} /></div></div>
-          <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><span className="label !text-[9px]">Proteína</span></div><p className="num text-3xl mt-2">{Math.round(props.food.protein)}<span className="text-sm text-white/40"> / {props.food.proteinGoal} g</span></p><div className="mt-2"><Seg v={clamp(props.food.protein / props.food.proteinGoal)} /></div></div>
+          <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><Ico d={HI.flame} size={13} /><span className="label !text-[9px]">Calorias</span></div><p className="num text-3xl mt-2">{props.food.kcal}<span className="text-sm text-white/40"> / {props.food.kcalGoal}</span></p><div className="mt-2"><Seg v={clamp(props.food.kcal / props.food.kcalGoal)} /></div></div>
+          <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><Ico d={HI.protein} size={13} /><span className="label !text-[9px]">Proteína</span></div><p className="num text-3xl mt-2">{Math.round(props.food.protein)}<span className="text-sm text-white/40"> / {props.food.proteinGoal} g</span></p><div className="mt-2"><Seg v={clamp(props.food.protein / props.food.proteinGoal)} /></div></div>
         </div>
       </Link>
 
       {/* Água */}
       <section className="glass rise p-5 mt-4">
-        <SectionTitle action={<LinkBtn onClick={() => setGoalSheet(true)}>Meta</LinkBtn>}>Água</SectionTitle>
+        <SectionTitle action={<LinkBtn onClick={() => setGoalSheet(true)}>Meta</LinkBtn>}><span className="inline-flex items-center gap-1.5"><Ico d={HI.drop} size={14} />Água</span></SectionTitle>
         <div className="flex items-end justify-between">
           <p><span className="num text-5xl">{L(ml)}</span> <span className="text-muted">/ {L(props.waterGoal)} L</span></p>
           <p className="text-sm" style={{ color: ml >= props.waterGoal ? G : "#8a8a8f" }}>{ml >= props.waterGoal ? "Meta batida" : `faltam ${L(props.waterGoal - ml)} L`}</p>
@@ -91,7 +92,7 @@ export function BodyToday(props: {
 
       {/* Sono */}
       <section className="glass rise p-5 mt-4">
-        <div className="flex items-center justify-between"><SectionTitle>Sono</SectionTitle></div>
+        <div className="flex items-center justify-between"><SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.bed} size={14} />Sono</span></SectionTitle></div>
         <div className="flex gap-2 items-center">
           <input className="field max-w-24 text-center num text-lg" inputMode="decimal" placeholder="7,5" value={sleep} onChange={(e) => setSleep(e.target.value)} aria-label="Horas dormidas na última noite" />
           <span className="text-muted text-sm">h na última noite</span>
@@ -102,7 +103,7 @@ export function BodyToday(props: {
 
       {/* Semana: água e sono lado a lado */}
       <section className="glass rise p-5 mt-4">
-        <SectionTitle>Últimos 7 dias</SectionTitle>
+        <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.chart} size={14} />Últimos 7 dias</span></SectionTitle>
         <div className="grid grid-cols-7 gap-2 items-end h-28">
           {props.water7.map((w, i) => { const sl = props.sleep7[i]?.hours ?? 0; return (
             <div key={w.date} className="flex flex-col items-center gap-1 h-full justify-end" title={`${L(w.ml)} L · ${fmt(sl)} h`}>
