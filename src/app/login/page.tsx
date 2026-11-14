@@ -3,7 +3,7 @@ import Link from "next/link";
 import { Suspense, useActionState, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "@/app/actions";
-import { BrioMark } from "@/components/brand";
+import { BrioMark, BrioWordmark } from "@/components/brand";
 
 const AVISOS: Record<string, string> = {
   config: "Faltam as variáveis do Supabase na Vercel. Adicione e faça um novo deploy.",
@@ -22,8 +22,8 @@ export default function Login() {
     <main className="min-h-dvh brio-aura grid place-items-center px-4 py-10">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center rise">
-          <BrioMark size={112} />
-          <h1 className="font-display text-5xl tracking-[.2em] mt-5 pl-[.2em]">BRIO</h1>
+          <BrioMark size={84} />
+          <h1 className="mt-6"><span className="sr-only">BRIO</span><BrioWordmark height={44} /></h1>
           <p className="text-muted mt-2 text-sm tracking-wide">Vigor com honra.</p>
         </div>
         <Suspense><Aviso /></Suspense>
@@ -35,7 +35,7 @@ export default function Login() {
           </div>
           {error && <p role="alert" className="text-sm text-[#ff6961]">{error}</p>}
           <button disabled={pending} className="press min-h-14 rounded-2xl text-base font-semibold text-white disabled:opacity-60 mt-1"
-            style={{ background: "linear-gradient(160deg,#ff6a3d,#e0393e 55%,#8a1a1d)", boxShadow: "0 14px 34px -14px #e0393e" }}>
+            style={{ background: "linear-gradient(135deg,#d12b65,#b51224 70%)", boxShadow: "0 14px 34px -14px #d12b65" }}>
             {pending ? "Entrando…" : "Entrar"}
           </button>
         </form>
