@@ -66,7 +66,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
   return (
     <div style={{ ["--accent" as string]: A }} className="flex flex-col">
       <div className="sticky top-0 z-20 -mx-4 px-4 pt-1 pb-3 mb-3 bg-gradient-to-b from-base via-base/95 to-transparent">
-        <div className="flex items-center justify-between rounded-3xl p-3 border border-white/10" style={{ background: "radial-gradient(120% 120% at 0% 0%, rgba(255,40,0,.16), transparent 60%), radial-gradient(90% 90% at 100% 100%, rgba(255,40,0,.12), transparent 60%), #0b0d0d" }}>
+        <div className="flex items-center justify-between rounded-[8px] p-3 border border-white/10" style={{ background: "radial-gradient(120% 120% at 0% 0%, rgba(255,40,0,.16), transparent 60%), radial-gradient(90% 90% at 100% 100%, rgba(255,40,0,.12), transparent 60%), #0b0d0d" }}>
           <div className="flex items-center gap-3">
             <span className="relative"><Avatar size={42} /><span className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-[#0b0d0d] war-pulse" style={{ background: "#30d158" }} /></span>
             <div><p className="font-display text-lg leading-tight">Assistente financeiro</p><p className="text-[11px] text-muted">online · lê lançamentos, metas e tetos</p></div>
@@ -83,7 +83,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
             <p className="text-sm text-muted mt-1 max-w-sm mx-auto">Respondo com os números que você lança no BRIO. Para mudar tetos, metas ou categorias, eu proponho e você confirma.</p>
             <div className="grid grid-cols-2 gap-2 mt-5 text-left">
               {STARTERS.map(([e, q, sub]) => (
-                <button key={q} disabled={busy} onClick={() => send(q)} className="press text-left rounded-2xl p-3 border border-white/10 bg-white/[.03] hover:bg-white/[.06]">
+                <button key={q} disabled={busy} onClick={() => send(q)} className="press text-left rounded-[8px] p-3 border border-white/10 bg-white/[.03] hover:bg-white/[.06]">
                   <span className="text-xl">{e}</span><span className="block text-sm font-semibold mt-1 leading-snug">{q}</span><span className="block text-[11px] text-muted mt-0.5">{sub}</span>
                 </button>))}
             </div>
@@ -92,7 +92,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
         {msgs.map((m, i) => (
           <div key={i} className={`flex items-end gap-2 msg-in ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             {m.role === "assistant" && <Avatar size={26} />}
-            <div className={`max-w-[82%] rounded-[22px] px-4 py-3 text-[15px] leading-relaxed ${m.role === "user"
+            <div className={`max-w-[82%] rounded-[8px] px-4 py-3 text-[15px] leading-relaxed ${m.role === "user"
               ? "rounded-br-md text-[#06201a] font-medium" : `rounded-bl-md border ${m.error ? "border-[#ff453a]/40 text-[#ff6961] bg-[#ff453a]/10" : "border-white/10"}`}`}
               style={m.role === "user" ? { background: "linear-gradient(135deg, #5ff5d3, #ff2800 50%, #2bb89a)", boxShadow: "0 8px 22px -12px #ff2800" } : m.error ? undefined : { background: "linear-gradient(160deg, rgba(255,255,255,.07), rgba(255,255,255,.025))" }}>
               {m.role === "user" ? <p className="whitespace-pre-wrap">{m.content}</p> : <Rich text={m.content} />}
@@ -100,7 +100,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
           </div>
         ))}
         {proposals.map((p) => (
-          <div key={p.id} className="msg-in ml-8 rounded-2xl p-4 border" style={{ borderColor: p.status === "confirmed" ? "#30d15566" : p.status === "cancelled" ? "rgba(255,255,255,.08)" : A + "55", background: p.status === "pending" ? `linear-gradient(160deg, ${A}14, transparent 70%)` : "rgba(255,255,255,.02)", opacity: p.status === "cancelled" ? 0.6 : 1 }}>
+          <div key={p.id} className="msg-in ml-8 rounded-[8px] p-4 border" style={{ borderColor: p.status === "confirmed" ? "#30d15566" : p.status === "cancelled" ? "rgba(255,255,255,.08)" : A + "55", background: p.status === "pending" ? `linear-gradient(160deg, ${A}14, transparent 70%)` : "rgba(255,255,255,.02)", opacity: p.status === "cancelled" ? 0.6 : 1 }}>
             <p className="flex items-center gap-2 text-[10px] font-bold tracking-[.2em]" style={{ color: p.status === "confirmed" ? "#30d158" : p.status === "cancelled" ? "#8e8e93" : A }}>
               <span className="text-base">{KIND[p.kind]?.[0] ?? "✏️"}</span>{(p.status === "pending" ? `PROPOSTA · ${KIND[p.kind]?.[1] ?? "Alteração"}` : p.status === "confirmed" ? "APLICADA ✓" : "CANCELADA").toUpperCase()}</p>
             <p className="mt-1.5 text-[15px]">{p.summary}</p>
@@ -112,7 +112,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
             )}
           </div>
         ))}
-        {busy && <div className="flex items-end gap-2 justify-start msg-in"><Avatar size={26} /><div className="rounded-[22px] rounded-bl-md border border-white/10 bg-white/[.04]"><Typing /></div></div>}
+        {busy && <div className="flex items-end gap-2 justify-start msg-in"><Avatar size={26} /><div className="rounded-[8px] rounded-bl-md border border-white/10 bg-white/[.04]"><Typing /></div></div>}
         <div ref={end} />
       </div>
 
@@ -121,7 +121,7 @@ export function FinanceChat({ initial, pending }: { initial: Msg[]; pending: Pro
           <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1">
             {msgs.length > 0 && SUGGESTIONS.map((s) => <button key={s} className="chip shrink-0 !bg-base/60 backdrop-blur !min-h-9 text-xs" disabled={busy} onClick={() => send(s)}>{s}</button>)}
           </div>
-          <form className="flex items-end gap-2 rounded-3xl border border-white/10 bg-[#0e1111]/90 backdrop-blur-xl p-1.5 pl-4 transition-shadow focus-within:border-[#ff2800]/50 focus-within:shadow-[0_0_0_4px_rgba(255,40,0,.12)]"
+          <form className="flex items-end gap-2 rounded-[8px] border border-white/10 bg-[#0e1111]/90 backdrop-blur-xl p-1.5 pl-4 transition-shadow focus-within:border-[#ff2800]/50 focus-within:shadow-[0_0_0_4px_rgba(255,40,0,.12)]"
             onSubmit={(e) => { e.preventDefault(); send(text); }}>
             <textarea ref={area} rows={1} value={text} placeholder="Pergunte algo…" aria-label="Mensagem para o assistente"
               className="flex-1 resize-none bg-transparent outline-none py-2.5 text-[15px] max-h-32"

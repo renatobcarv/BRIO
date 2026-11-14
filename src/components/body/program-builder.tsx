@@ -75,18 +75,18 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         {p.phases.map((f, i) => {
           const on = i === ph, cur = i === pos.phaseIndex && pos.status === "andamento", c = PHASE_KINDS[f.kind].color;
           return (
-            <button key={f.id} onClick={() => { setPh(i); setOpen(null); setTune(false); haptic(6); }} className="press shrink-0 rounded-2xl px-3 py-2 text-left border min-w-[76px]"
+            <button key={f.id} onClick={() => { setPh(i); setOpen(null); setTune(false); haptic(6); }} className="press shrink-0 rounded-[8px] px-3 py-2 text-left border min-w-[76px]"
               style={{ borderColor: on ? c : "rgba(255,255,255,.08)", background: on ? `${c}26` : "#140808", boxShadow: on ? `0 0 16px -6px ${c}` : "none" }}>
               <span className="block text-[13px] font-semibold truncate max-w-[110px]">{f.name}</span>
               <span className="block text-[10px]" style={{ color: c }}>{f.name.trim() === PHASE_KINDS[f.kind].label ? `${f.weeks} sem` : PHASE_KINDS[f.kind].label}{cur ? " · agora" : ""}</span>
             </button>
           );
         })}
-        <button onClick={addPhase} className="press shrink-0 rounded-2xl px-3 border border-dashed text-sm text-muted whitespace-nowrap" style={{ borderColor: "rgba(224,57,62,.35)" }}>+ Fase</button>
+        <button onClick={addPhase} className="press shrink-0 rounded-[8px] px-3 border border-dashed text-sm text-muted whitespace-nowrap" style={{ borderColor: "rgba(224,57,62,.35)" }}>+ Fase</button>
       </div>
 
       {/* Fase selecionada */}
-      <div key={phase.id} className="mt-3 rounded-2xl border p-3 step-in-right" style={{ borderColor: PHASE_KINDS[phase.kind].color + "55", background: "#120707" }}>
+      <div key={phase.id} className="mt-3 rounded-[8px] border p-3 step-in-right" style={{ borderColor: PHASE_KINDS[phase.kind].color + "55", background: "#120707" }}>
         <div className="flex items-center gap-2">
           <input className="bg-transparent outline-none font-semibold text-lg flex-1 min-w-0" value={phase.name} onChange={(e) => setPhase({ name: e.target.value })} aria-label="Nome da fase" />
           <button className="text-xs font-semibold shrink-0" style={{ color: R }} onClick={() => setTune(!tune)} aria-expanded={tune}>{tune ? "Fechar" : "Ajustar ▸"}</button>
@@ -141,7 +141,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
               style={{ background: String(cur) === String(v) ? R : "#1a0909", color: String(cur) === String(v) ? "#fff" : undefined, borderColor: String(cur) === String(v) ? R : "rgba(224,57,62,.25)", boxShadow: String(cur) === String(v) ? `0 0 14px -4px ${R}` : "none" }}>{fmtv(v)}</button>)}</div>
           );
           return (
-            <div key={i} className="rounded-2xl border step-in-right min-w-0 overflow-hidden" style={{ borderColor: isOpen ? R : "rgba(224,57,62,.18)", background: "#140808", boxShadow: isOpen ? `0 0 22px -10px ${R}` : "none", animationDelay: `${i * 30}ms` }}>
+            <div key={i} className="rounded-[8px] border step-in-right min-w-0 overflow-hidden" style={{ borderColor: isOpen ? R : "rgba(224,57,62,.18)", background: "#140808", boxShadow: isOpen ? `0 0 22px -10px ${R}` : "none", animationDelay: `${i * 30}ms` }}>
               <button className="w-full flex items-center gap-3 p-3 text-left" onClick={() => { setOpen(isOpen ? null : i); haptic(6); }} aria-expanded={isOpen}>
                 <span className="num text-xs text-faint w-4">{i + 1}</span>
                 <span className="flex-1 min-w-0"><span className="block font-semibold leading-snug line-clamp-2 break-words">{e.name || "Novo exercício"}</span>
@@ -185,7 +185,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
       </div>
 
       {/* Volume da fase */}
-      <div className="mt-4 rounded-2xl p-3 bg-white/[.03]">
+      <div className="mt-4 rounded-[8px] p-3 bg-white/[.03]">
         <p className="text-[10px] font-semibold tracking-[.25em] text-muted">SÉRIES DIRETAS / SEMANA NESTA FASE</p>
         <div className="flex flex-wrap gap-1.5 mt-2">{Object.entries(vol).filter(([, v]) => v).sort((a, b) => b[1]! - a[1]!).map(([m, v]) => <span key={m} className="tag">{MUSCLES[m as Muscle]} <b className="text-ink">{v}</b></span>)}</div>
       </div>

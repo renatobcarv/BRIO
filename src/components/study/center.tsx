@@ -35,12 +35,12 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
   return (
     <div style={{ ["--accent" as string]: V }}>
       {/* Cabeçalho */}
-      <header className="rise rounded-[26px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(220,0,0,.3)", background: "radial-gradient(120% 90% at 0% 0%, rgba(220,0,0,.2), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(245,245,247,.14), transparent 60%), #08070d" }}>
+      <header className="rise rounded-[8px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(220,0,0,.3)", background: "radial-gradient(120% 90% at 0% 0%, rgba(220,0,0,.2), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(245,245,247,.14), transparent 60%), #08070d" }}>
         <p className="text-[10px] font-bold tracking-[.35em]" style={{ color: V }}>CENTRAL DE ESTUDOS</p>
         <h1 className="font-display text-[clamp(28px,9vw,40px)] leading-none mt-1">Aprender até fechar.</h1>
         <div className="grid grid-cols-4 gap-2 mt-4">
           {([["⏱", hm(week), "na semana"], ["🔥", String(streak), streak === 1 ? "dia seguido" : "dias seguidos"], ["🧠", String(mastered), "dominados"], ["↻", String(dueAll.length), "revisões hoje"]] as const).map(([e, v, l]) => (
-            <div key={l} className="rounded-2xl p-2 text-center border border-white/10 bg-white/[.03]"><p className="text-sm">{e}</p><p className="num text-lg leading-tight">{v}</p><p className="text-[9px] text-muted leading-tight">{l}</p></div>))}
+            <div key={l} className="rounded-[8px] p-2 text-center border border-white/10 bg-white/[.03]"><p className="text-sm">{e}</p><p className="num text-lg leading-tight">{v}</p><p className="text-[9px] text-muted leading-tight">{l}</p></div>))}
         </div>
         {/* gráfico 14 dias */}
         <div className="flex items-end gap-1 h-16 mt-4" aria-label="Minutos estudados nos últimos 14 dias">
@@ -56,7 +56,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
 
       {/* Revisões de hoje (todas as trilhas) */}
       {dueAll.length > 0 && (
-        <section className="rise mt-4 rounded-[22px] p-4 border" style={{ borderColor: "rgba(255,90,110,.35)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0d0b08 70%)" }}>
+        <section className="rise mt-4 rounded-[8px] p-4 border" style={{ borderColor: "rgba(255,90,110,.35)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0d0b08 70%)" }}>
           <p className="text-[10px] font-bold tracking-[.3em] text-[#ff4d3d]">↻ REVISÕES DE HOJE · {dueAll.length}</p>
           <ul className="grid gap-2 mt-2">{dueAll.slice(0, 6).map((i) => <ReviewRow key={i.id} i={i} track={tracks.find((t) => t.id === i.track_id)} />)}</ul>
         </section>
@@ -65,13 +65,13 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
       {/* Objetivos */}
       <div className="flex items-center justify-between mt-5 mb-2"><p className="label">Objetivos</p><button className="text-xs font-semibold" style={{ color: V }} onClick={() => setSheet({ k: "track" })}>+ Novo objetivo</button></div>
       {tracks.length === 0 ? (
-        <button onClick={() => setSheet({ k: "track" })} className="press w-full rounded-[22px] p-5 border border-dashed text-left" style={{ borderColor: V + "66" }}>
+        <button onClick={() => setSheet({ k: "track" })} className="press w-full rounded-[8px] p-5 border border-dashed text-left" style={{ borderColor: V + "66" }}>
           <p className="font-display text-xl">Comece por um objetivo</p><p className="text-sm text-muted mt-1">Ex.: “Inglês para conversação”, “Passar em Cálculo I”, “Dominar Excel”. Depois a IA monta o plano a partir das suas fraquezas.</p>
         </button>
       ) : (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
           {tracks.map((t) => { const ti = items.filter((i) => i.track_id === t.id), p = progress(ti), on = t.id === sel; return (
-            <button key={t.id} onClick={() => setSel(t.id)} className="press snap-start shrink-0 w-44 text-left rounded-2xl p-3 border" style={{ borderColor: on ? t.color : "rgba(255,255,255,.08)", background: on ? `linear-gradient(160deg, ${t.color}26, transparent 75%)` : "rgba(255,255,255,.03)", opacity: t.status === "concluido" ? 0.6 : 1 }}>
+            <button key={t.id} onClick={() => setSel(t.id)} className="press snap-start shrink-0 w-44 text-left rounded-[8px] p-3 border" style={{ borderColor: on ? t.color : "rgba(255,255,255,.08)", background: on ? `linear-gradient(160deg, ${t.color}26, transparent 75%)` : "rgba(255,255,255,.03)", opacity: t.status === "concluido" ? 0.6 : 1 }}>
               <p className="text-sm font-semibold leading-snug line-clamp-2">{t.status === "concluido" ? "🏆 " : ""}{t.title}</p>
               <div className="h-1.5 rounded-full bg-white/10 mt-2 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${p * 100}%`, background: t.color }} /></div>
               <p className="text-[10px] text-muted mt-1 num">{Math.round(p * 100)}% · {ti.length} conteúdos{t.deadline ? ` · ${br(t.deadline)}` : ""}</p>
@@ -101,7 +101,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
 
             {/* Próximo passo */}
             {tItems.length > 0 && (step ? (
-              <div className="mt-4 rounded-2xl p-3.5 border-2" style={{ borderColor: track.color, background: `linear-gradient(160deg, ${track.color}22, transparent 75%)`, boxShadow: `0 10px 30px -18px ${track.color}` }}>
+              <div className="mt-4 rounded-[8px] p-3.5 border-2" style={{ borderColor: track.color, background: `linear-gradient(160deg, ${track.color}22, transparent 75%)`, boxShadow: `0 10px 30px -18px ${track.color}` }}>
                 <p className="text-[10px] font-bold tracking-[.3em]" style={{ color: track.color }}>{step.review_at && step.review_at <= today ? "↻ REVISAR AGORA" : "▶ PRÓXIMO PASSO"}</p>
                 <p className="font-semibold text-[16px] mt-1 leading-snug">{step.weak ? "⚠ " : ""}{step.title}</p>
                 <p className="text-xs text-muted mt-0.5">{step.module}{step.est_min ? ` · ~${step.est_min} min` : ""}</p>
@@ -112,7 +112,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
                 </div>)}
               </div>
             ) : (
-              <div className="mt-4 rounded-2xl p-4 text-center border" style={{ borderColor: "#30d15566", background: "rgba(48,209,88,.08)" }}>
+              <div className="mt-4 rounded-[8px] p-4 text-center border" style={{ borderColor: "#30d15566", background: "rgba(48,209,88,.08)" }}>
                 <p className="text-2xl">🏆</p><p className="font-display text-lg mt-1">Plano concluído</p>
                 {track.status !== "concluido" && <CloseTrack id={track.id} />}
               </div>
@@ -142,7 +142,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
             </section>
           )}
           {tItems.length === 0 && (
-            <button onClick={() => setSheet({ k: "ai" })} className="press mt-4 w-full rounded-[22px] p-5 text-left border" style={{ borderColor: V + "55", background: `linear-gradient(160deg, ${V}1f, transparent 70%)` }}>
+            <button onClick={() => setSheet({ k: "ai" })} className="press mt-4 w-full rounded-[8px] p-5 text-left border" style={{ borderColor: V + "55", background: `linear-gradient(160deg, ${V}1f, transparent 70%)` }}>
               <p className="font-display text-xl">✦ Gerar o plano com IA</p><p className="text-sm text-muted mt-1">A IA monta módulos e conteúdos a partir do seu objetivo e das suas fraquezas. Você revisa antes de salvar.</p>
             </button>
           )}
@@ -344,10 +344,10 @@ function AiPlan({ track, onDone }: { track: STrack; onDone: () => void }) {
         {err && <p className="text-sm text-[#ff6961]">{err}</p>}
         <button className="btn btn-accent !min-h-12" disabled={pending} onClick={gen}>{pending ? "Montando o plano…" : "✦ Gerar plano"}</button>
       </> : <>
-        {plan.tip && <p className="text-sm rounded-2xl p-3 border border-white/10" style={{ background: `linear-gradient(160deg, ${V}14, transparent)` }}>✦ {plan.tip}</p>}
+        {plan.tip && <p className="text-sm rounded-[8px] p-3 border border-white/10" style={{ background: `linear-gradient(160deg, ${V}14, transparent)` }}>✦ {plan.tip}</p>}
         <div className="grid gap-2 max-h-[45dvh] overflow-y-auto pr-1">
           {plan.modules.map((m, mi) => (
-            <div key={mi} className="rounded-2xl border border-white/10 p-3">
+            <div key={mi} className="rounded-[8px] border border-white/10 p-3">
               <p className="font-semibold text-sm">{m.module}</p>
               <ul className="mt-1.5 grid gap-1">{m.items.map((i, ii) => (
                 <li key={ii} className="flex items-center gap-2 text-sm">

@@ -62,7 +62,7 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
           <div className="grid gap-4">
             {plan.length > 0 && (
               <button onClick={() => { haptic(15); if (asPlanned) { setUsed(null); setPicked([]); } else { setUsed("plano"); setPicked(plan.map((i) => ({ ...i }))); } }} aria-pressed={asPlanned}
-                className="press w-full text-left rounded-2xl p-4 border-2 transition-colors" style={{ borderColor: asPlanned ? G : `${G}55`, background: asPlanned ? `${G}22` : `${G}0d` }}>
+                className="press w-full text-left rounded-[8px] p-4 border-2 transition-colors" style={{ borderColor: asPlanned ? G : `${G}55`, background: asPlanned ? `${G}22` : `${G}0d` }}>
                 <span className="flex items-center justify-between"><span className="font-semibold">✓ Comi o que estava planejado</span>{asPlanned && <span style={{ color: G }}>selecionado</span>}</span>
                 <span className="block text-sm text-muted mt-1 leading-snug">{plan.map((i) => i.name).join(" · ")}</span>
                 <span className="block num text-xs text-muted mt-1">{plan.reduce((a, i) => a + i.kcal, 0)} kcal · {Math.round(plan.reduce((a, i) => a + i.protein_g, 0))} g P</span>
@@ -71,7 +71,7 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
               <p className="label mb-2">Refeições salvas</p>
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
                 {savedSorted.map((g) => { const k = `${g.date}|${g.slot}`, on = used === k, kc = g.items.reduce((a, i) => a + i.kcal, 0), pr = g.items.reduce((a, i) => a + i.protein_g, 0), st = slotStyle(slots.find((x) => x.key === g.slot)?.label ?? g.slot); return (
-                  <button key={k} onClick={() => useSaved(g, k)} aria-pressed={on} className="press snap-start shrink-0 w-56 text-left rounded-2xl p-3 border transition-colors"
+                  <button key={k} onClick={() => useSaved(g, k)} aria-pressed={on} className="press snap-start shrink-0 w-56 text-left rounded-[8px] p-3 border transition-colors"
                     style={{ borderColor: on ? G : st.color + "44", background: on ? `${G}1f` : `linear-gradient(160deg, ${st.color}14, transparent 70%)` }}>
                     <span className="flex items-center justify-between text-[11px]"><span style={{ color: st.color }}>{slots.find((x) => x.key === g.slot)?.label ?? g.slot}</span><span className="text-muted">{br(g.date)}</span></span>
                     <span className="block text-sm mt-1 leading-snug line-clamp-2">{g.items.map((i) => i.name).join(" · ")}</span>
@@ -83,7 +83,7 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
               <button key={f.id} className="chip !min-h-11" aria-pressed={picked.some((p) => p.name === f.name)} onClick={() => toggleFood(f)}>{f.name}<span className="ml-1.5 opacity-60 num">{Math.round(f.protein_g)}g</span></button>))}</div>}
             {picked.filter((p) => !foods.some((f) => f.name === p.name)).map((p, k) => (
               <div key={k} className="flex items-center justify-between rounded-xl bg-white/[.04] px-3 min-h-11 text-sm"><span>{p.name}</span><span className="text-muted num">{p.kcal} kcal · {Math.round(p.protein_g)} g</span></div>))}
-            <div className="grid gap-2 rounded-2xl border border-white/[.07] p-3">
+            <div className="grid gap-2 rounded-[8px] border border-white/[.07] p-3">
               <input className="field" placeholder="Alimento (ex.: frango com arroz)" value={d.name} onChange={(e) => setD({ ...d, name: e.target.value })} />
               <div className="grid grid-cols-2 gap-2">
                 <input className="field num" inputMode="numeric" placeholder="kcal" value={d.kcal} onChange={(e) => setD({ ...d, kcal: e.target.value })} />
@@ -96,8 +96,8 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
         { title: "Resumo da refeição", content: (
           <div className="grid gap-4">
             <div className="grid grid-cols-2 gap-2.5">
-              <div className="rounded-2xl bg-[#141416] p-4 text-center"><p className="num text-4xl">{kcal}</p><p className="text-xs text-muted">kcal</p></div>
-              <div className="rounded-2xl p-4 text-center" style={{ background: "#ff280018" }}><p className="num text-4xl" style={{ color: "#ff2800" }}>{Math.round(prot)}</p><p className="text-xs text-muted">g de proteína</p></div>
+              <div className="rounded-[8px] bg-[#141416] p-4 text-center"><p className="num text-4xl">{kcal}</p><p className="text-xs text-muted">kcal</p></div>
+              <div className="rounded-[8px] p-4 text-center" style={{ background: "#ff280018" }}><p className="num text-4xl" style={{ color: "#ff2800" }}>{Math.round(prot)}</p><p className="text-xs text-muted">g de proteína</p></div>
             </div>
             <div>
               <div className="flex justify-between text-xs text-muted mb-1"><span>Proteína do dia</span><span className="num">{Math.round(proteinSoFar + prot)} / {proteinGoal} g</span></div>

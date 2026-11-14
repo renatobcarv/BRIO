@@ -17,7 +17,7 @@ export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
   const { total, today } = useXp();
   const lv = levelOf(total), rank = rankOf(lv.level), next = RANKS.find((r) => r.min > lv.level);
   return (
-    <Link href="/status" className="press block relative overflow-hidden rounded-[30px] p-5 border" aria-label={`Nível ${lv.level}, ${rank.name}`}
+    <Link href="/status" className="press block relative overflow-hidden rounded-[8px] p-5 border" aria-label={`Nível ${lv.level}, ${rank.name}`}
       style={{ borderColor: rank.color + "40", background: `radial-gradient(130% 90% at 15% 0%, ${rank.color}30, #0f0f11 60%)`, boxShadow: `0 20px 50px -30px ${rank.color}` }}>
       <p className="text-[10px] font-semibold tracking-[.32em] text-muted">ASCENSION</p>
       <div className="flex items-center gap-4 mt-2">
@@ -82,7 +82,7 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
         {ACTIONS.map((a) => {
           const inner = (
             <>
-              <span className="h-11 w-11 rounded-[14px] grid place-items-center" style={{ background: a.color, boxShadow: `0 8px 22px -8px ${a.color}` }}>
+              <span className="h-11 w-11 rounded-[8px] grid place-items-center" style={{ background: a.color, boxShadow: `0 8px 22px -8px ${a.color}` }}>
                 <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={a.icon} /></svg>
               </span>
               <span className="text-[13px] font-semibold mt-2">{a.label}</span>

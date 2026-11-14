@@ -70,7 +70,7 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
   return (
     <div style={{ ["--accent" as string]: "#f5f5f7" }}>
       {/* Cabeçalho */}
-      <header className="rise mb-4 rounded-[26px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(245,245,247,.25)", background: "radial-gradient(120% 90% at 0% 0%, rgba(245,245,247,.16), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(220,0,0,.12), transparent 60%), #07090f" }}>
+      <header className="rise mb-4 rounded-[8px] p-4 border relative overflow-hidden" style={{ borderColor: "rgba(245,245,247,.25)", background: "radial-gradient(120% 90% at 0% 0%, rgba(245,245,247,.16), transparent 55%), radial-gradient(90% 80% at 100% 100%, rgba(220,0,0,.12), transparent 60%), #07090f" }}>
         <div className="absolute inset-0 pointer-events-none opacity-[.07]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
         <div className="relative flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -78,17 +78,17 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
             <p className="num text-[40px] leading-none mt-1 tabular-nums">{now ? fmtMin(nowMin!) : "--:--"}<span className="text-lg text-muted ml-1">{now ? String(new Date(now).getUTCSeconds()).padStart(2, "0") : ""}</span></p>
             <p className="text-xs text-muted mt-1">{WD[new Date(today + "T12:00:00Z").getUTCDay()]}, {br(today)} · {todayBlocks.length} {todayBlocks.length === 1 ? "compromisso" : "compromissos"} · {Math.floor(busy / 60)}h{String(busy % 60).padStart(2, "0")} ocupadas</p>
           </div>
-          <button onClick={() => setConn(true)} className="press shrink-0 rounded-2xl px-3 py-2 border text-xs font-semibold flex items-center gap-2"
+          <button onClick={() => setConn(true)} className="press shrink-0 rounded-[8px] px-3 py-2 border text-xs font-semibold flex items-center gap-2"
             style={{ borderColor: linked ? "#30d15866" : "rgba(255,255,255,.15)", background: linked ? "rgba(48,209,88,.1)" : "transparent" }}>
             <span className={`h-2 w-2 rounded-full ${linked ? "war-pulse" : ""}`} style={{ background: linked ? "#30d158" : "#8e8e93" }} />{google?.connected ? "Google ✓" : linked ? "Conectado" : "Conectar"}</button>
         </div>
         <div className="relative grid grid-cols-2 gap-2 mt-3">
-          <div className="rounded-2xl p-2.5 border" style={{ borderColor: current ? current.color + "66" : "rgba(255,255,255,.08)", background: current ? current.color + "14" : "rgba(255,255,255,.03)" }}>
+          <div className="rounded-[8px] p-2.5 border" style={{ borderColor: current ? current.color + "66" : "rgba(255,255,255,.08)", background: current ? current.color + "14" : "rgba(255,255,255,.03)" }}>
             <p className="text-[9px] font-bold tracking-[.25em] text-muted">AGORA</p>
             <p className="text-sm font-semibold truncate mt-0.5">{current ? current.title : "Livre"}</p>
             <p className="text-[11px] text-muted num">{current ? `até ${fmtMin(current.end)}` : upcoming ? `até ${fmtMin(upcoming.start)}` : "resto do dia"}</p>
           </div>
-          <div className="rounded-2xl p-2.5 border" style={{ borderColor: upcoming ? upcoming.color + "55" : "rgba(255,255,255,.08)", background: "rgba(255,255,255,.03)" }}>
+          <div className="rounded-[8px] p-2.5 border" style={{ borderColor: upcoming ? upcoming.color + "55" : "rgba(255,255,255,.08)", background: "rgba(255,255,255,.03)" }}>
             <p className="text-[9px] font-bold tracking-[.25em] text-muted">PRÓXIMO</p>
             <p className="text-sm font-semibold truncate mt-0.5">{upcoming ? upcoming.title : "Nada mais hoje"}</p>
             <p className="text-[11px] text-muted num">{upcoming && nowMin != null ? `${fmtMin(upcoming.start)} · em ${upcoming.start - nowMin >= 60 ? `${Math.floor((upcoming.start - nowMin) / 60)}h${String((upcoming.start - nowMin) % 60).padStart(2, "0")}` : `${upcoming.start - nowMin} min`}` : "—"}</p>
@@ -102,7 +102,7 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
 
       {/* Visões */}
       <div className="flex items-center gap-2 mt-4 mb-3">
-        <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1">
+        <div className="inline-flex p-1 rounded-[8px] bg-white/[.04] border border-white/[.06] gap-1">
           {(["dia", "semana", "mes"] as const).map((v) => <button key={v} onClick={() => setView(v)} className={`min-h-9 px-3.5 rounded-xl text-sm capitalize ${view === v ? "bg-white/[.1] text-ink" : "text-muted"}`}>{v === "mes" ? "Mês" : v}</button>)}
         </div>
         <span className="flex-1" />
@@ -255,8 +255,8 @@ function AiBar({ today }: { today: string }) {
   const ask = () => start(async () => { setErr(null); setOff(new Set()); const r = await aiAgenda(text, today); if ("error" in r) { setErr(r.error); setRes(null); } else setRes(r); });
   const apply = () => start(async () => { const list = res!.proposals.filter((_, i) => !off.has(i)); const e = await applyProposals(list); if (e) setErr(e); else { haptic([20, 40, 20]); setRes(null); setText(""); } });
   return (
-    <section className="rise rounded-[22px] p-[1px]" style={{ background: "linear-gradient(120deg, #f5f5f7, #dc0000, #ff6b81)" }}>
-      <div className="rounded-[21px] p-3 bg-[#07080d]">
+    <section className="rise rounded-[8px] p-[1px]" style={{ background: "linear-gradient(120deg, #f5f5f7, #dc0000, #ff6b81)" }}>
+      <div className="rounded-[8px] p-3 bg-[#07080d]">
         <div className="flex items-center gap-2">
           <span className="text-lg" aria-hidden>✦</span>
           <p className="text-[10px] font-bold tracking-[.3em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#f5f5f7,#dc0000)" }}>ASSISTENTE DE AGENDA</p>
@@ -272,13 +272,13 @@ function AiBar({ today }: { today: string }) {
           <div className="mt-3 grid gap-2">
             {res.reply && <div className="flex items-end gap-2 msg-in">
               <span className="h-7 w-7 shrink-0 rounded-xl grid place-items-center text-sm text-white" style={{ background: "linear-gradient(135deg,#f5f5f7,#dc0000)", boxShadow: "0 0 14px -4px #dc0000" }}>✦</span>
-              <p className="rounded-[20px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(245,245,247,.10), rgba(220,0,0,.06))" }}>{res.reply}</p>
+              <p className="rounded-[8px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(245,245,247,.10), rgba(220,0,0,.06))" }}>{res.reply}</p>
             </div>}
             {res.proposals.length === 0 ? <p className="text-xs text-muted">Nada para marcar.</p> : res.proposals.map((p, i) => {
               const c = CAT[p.category] ?? CAT.pessoal, on = !off.has(i);
               return (
                 <button key={i} onClick={() => setOff((s) => { const n = new Set(s); if (n.has(i)) n.delete(i); else n.add(i); return n; })}
-                  className="press flex items-center gap-3 text-left rounded-2xl px-3 py-2.5 border" style={{ borderColor: on ? c.color + "66" : "rgba(255,255,255,.08)", background: on ? c.color + "14" : "transparent", opacity: on ? 1 : 0.5 }}>
+                  className="press flex items-center gap-3 text-left rounded-[8px] px-3 py-2.5 border" style={{ borderColor: on ? c.color + "66" : "rgba(255,255,255,.08)", background: on ? c.color + "14" : "transparent", opacity: on ? 1 : 0.5 }}>
                   <span className="text-[10px] font-bold rounded-md px-1.5 py-0.5 shrink-0" style={{ background: p.action === "apagar" ? "#ff453a33" : p.action === "alterar" ? "#ffffff33" : "#30d15833", color: p.action === "apagar" ? "#ff6961" : p.action === "alterar" ? "#ffffff" : "#30d158" }}>{p.action.toUpperCase()}</span>
                   <span className="flex-1 min-w-0"><span className="block text-sm font-medium truncate">{c.e} {p.title}</span>
                     <span className="block text-[11px] text-muted num">{WD[new Date(p.date + "T12:00:00Z").getUTCDay()].slice(0, 3)} {br(p.date)} · {p.start_time ? `${p.start_time}${p.end_time ? `–${p.end_time}` : ""}` : "dia todo"}{p.location ? ` · ${p.location}` : ""}</span></span>
@@ -299,7 +299,7 @@ function AiBar({ today }: { today: string }) {
 function EventRow({ e, onClick, showDate }: { e: CalEvent; onClick: () => void; showDate?: boolean }) {
   const c = CAT[e.category] ?? CAT.pessoal;
   return (
-    <li><button onClick={onClick} className="press w-full flex items-center gap-3 text-left rounded-2xl px-3 py-2.5 border" style={{ borderColor: c.color + "33", background: `linear-gradient(90deg, ${c.color}14, transparent 70%)` }}>
+    <li><button onClick={onClick} className="press w-full flex items-center gap-3 text-left rounded-[8px] px-3 py-2.5 border" style={{ borderColor: c.color + "33", background: `linear-gradient(90deg, ${c.color}14, transparent 70%)` }}>
       <span className="w-1 self-stretch rounded-full" style={{ background: c.color }} />
       <span className="w-14 shrink-0 num text-xs text-muted leading-tight">{showDate && <span className="block text-ink">{br(e.date)}</span>}{e.start_time ? `${hm(e.start_time)}${e.end_time ? `–${hm(e.end_time)}` : ""}` : "dia todo"}</span>
       <span className="flex-1 min-w-0"><span className="block font-medium truncate">{c.e} {e.title}</span>{e.location && <span className="block text-xs text-muted truncate">📍 {e.location}</span>}</span>
@@ -354,7 +354,7 @@ function Connection({ feed, google }: { feed: string | null; google?: GoogleStat
   const copy = async () => { try { await navigator.clipboard.writeText(https); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch { setErr("Não deu para copiar. Segure o link e copie."); } };
   return (
     <div className="grid gap-4">
-      <div className="rounded-2xl border p-4" style={{ borderColor: feed ? "#30d15855" : "rgba(255,255,255,.1)", background: feed ? "rgba(48,209,88,.07)" : "transparent" }}>
+      <div className="rounded-[8px] border p-4" style={{ borderColor: feed ? "#30d15855" : "rgba(255,255,255,.1)", background: feed ? "rgba(48,209,88,.07)" : "transparent" }}>
         <p className="text-sm font-semibold flex items-center gap-2"><span className="h-2 w-2 rounded-full" style={{ background: feed ? "#30d158" : "#8e8e93" }} />{feed ? "Link de assinatura ativo" : "Nenhum calendário conectado"}</p>
         <p className="text-xs text-muted mt-1">Seus compromissos do BRIO aparecem no Calendário do iPhone, Google Agenda ou Outlook e atualizam sozinhos (a cada hora, mais ou menos).</p>
         {feed && <p className="mt-3 text-[11px] font-mono break-all rounded-xl bg-black/40 p-2.5 select-all">{https}</p>}
@@ -375,7 +375,7 @@ function Connection({ feed, google }: { feed: string | null; google?: GoogleStat
         <button className="btn" disabled={pending} onClick={() => { if (confirm("Trocar o link? O antigo para de funcionar e você precisa assinar de novo.")) start(async () => setErr(await rotateCalendarToken())); }}>Trocar link</button>
         <button className="btn text-muted" disabled={pending} onClick={() => { if (confirm("Desconectar? Os calendários assinados param de atualizar.")) start(async () => setErr(await disableCalendarToken())); }}>Desconectar</button>
       </div>}
-      <div className="rounded-2xl border p-4" style={{ borderColor: google?.connected ? "#4285f455" : "rgba(255,255,255,.1)", background: google?.connected ? "rgba(66,133,244,.08)" : "transparent" }}>
+      <div className="rounded-[8px] border p-4" style={{ borderColor: google?.connected ? "#4285f455" : "rgba(255,255,255,.1)", background: google?.connected ? "rgba(66,133,244,.08)" : "transparent" }}>
         <p className="text-sm font-semibold flex items-center gap-2"><span className="grid place-items-center h-5 w-5 rounded bg-white text-[11px] font-black text-[#4285f4]">G</span>Google Agenda · 2 vias
           {google?.connected && <span className="text-[10px] text-[#30d158] font-normal">conectado</span>}</p>
         <p className="text-xs text-muted mt-1">{google?.connected ? `Conta ${google.email ?? ""}. O que você cria aqui vai para o Google; os eventos do Google aparecem aqui com a marca G.` : "Cria, edita e apaga no Google automaticamente, e mostra seus eventos do Google aqui."}</p>

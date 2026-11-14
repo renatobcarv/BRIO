@@ -44,7 +44,7 @@ export function StatusSheet({ g }: { g: Game }) {
         {nextRank && <p className="text-sm text-muted mt-3 relative">Próxima patente: <span style={{ color: nextRank.color }}>{nextRank.name}</span> no nível {nextRank.min}</p>}
       </section>
 
-      <section className="rise mt-4 rounded-[24px] p-5 text-center border border-white/[.06]" style={{ background: "linear-gradient(160deg, #1a0b0b, #0d0d0d 70%)" }}>
+      <section className="rise mt-4 rounded-[8px] p-5 text-center border border-white/[.06]" style={{ background: "linear-gradient(160deg, #1a0b0b, #0d0d0d 70%)" }}>
         <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#dc0000" }}>O CREDO</p>
         <p className="font-display text-xl mt-2 leading-snug">{ASCENSION_CREED}</p>
         <p className="text-xs text-muted mt-2">Você não compete com ninguém. Está construindo alguém que possa respeitar.</p>
@@ -56,7 +56,7 @@ export function StatusSheet({ g }: { g: Game }) {
           {RANKS.map((r, i) => {
             const cur = i === rankIndex(g.level), got = g.level >= r.min, nextMin = RANKS[i + 1]?.min;
             return (
-              <li key={r.name} className={`relative flex gap-4 rounded-2xl p-3.5 border transition-all ${got ? "" : "opacity-55"}`}
+              <li key={r.name} className={`relative flex gap-4 rounded-[8px] p-3.5 border transition-all ${got ? "" : "opacity-55"}`}
                 style={{ borderColor: cur ? r.color : "rgba(255,255,255,.06)", background: cur ? `linear-gradient(160deg, ${r.color}24, #0f0f11 70%)` : "#0f0f11", boxShadow: cur ? `0 0 30px -12px ${r.color}` : undefined }}>
                 <div className="shrink-0"><Insignia index={i} size={58} locked={!got} glow={cur} /></div>
                 <div className="min-w-0">
@@ -83,7 +83,7 @@ export function StatusSheet({ g }: { g: Game }) {
           {TITLES.map((t) => {
             const earned = g.titles?.find((x) => x.id === t.id)?.earned ?? false;
             return (
-              <div key={t.id} className={`flex items-center gap-4 rounded-2xl p-3.5 border ${earned ? "achv-shine relative overflow-hidden" : ""}`}
+              <div key={t.id} className={`flex items-center gap-4 rounded-[8px] p-3.5 border ${earned ? "achv-shine relative overflow-hidden" : ""}`}
                 style={{ borderColor: earned ? t.color : "rgba(255,255,255,.06)", background: earned ? `linear-gradient(160deg, ${t.color}26, #0f0f11 70%)` : "#0f0f11" }}>
                 <TitleBadge id={t.id} size={58} locked={!earned} />
                 <div className="min-w-0">
@@ -129,7 +129,7 @@ export function StatusSheet({ g }: { g: Game }) {
           {[...g.achievements].sort((x, y) => Number(y.done) - Number(x.done) || (["lendaria", "epica", "rara", "comum"].indexOf(x.rarity) - ["lendaria", "epica", "rara", "comum"].indexOf(y.rarity)) || y.progress - x.progress).map((a) => {
             const r = RARITY[a.rarity];
             return (
-              <div key={a.id} className={`relative overflow-hidden rounded-2xl p-3 border ${a.done ? "achv-shine" : ""}`}
+              <div key={a.id} className={`relative overflow-hidden rounded-[8px] p-3 border ${a.done ? "achv-shine" : ""}`}
                 style={{ borderColor: a.done ? r.color + "88" : "rgba(255,255,255,.06)", background: a.done ? `linear-gradient(160deg, ${r.color}26, #111113 70%)` : "#111113", boxShadow: a.done && a.rarity !== "comum" ? `0 8px 26px -12px ${r.color}` : undefined }}>
                 <div className="flex items-center gap-2">
                   <span className="h-8 w-8 rounded-[10px] grid place-items-center text-sm shrink-0"

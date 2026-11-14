@@ -113,7 +113,7 @@ export function PartnerEditor({ phrase, photo }: { phrase: string; photo: string
       <form action={(fd) => start(async () => { setErr(""); try { await savePartner(fd); setOk(true); } catch (e) { setErr((e as Error).message); } })} className="grid gap-3">
         <div className="flex items-center gap-4">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          {preview ? <img src={preview} alt="Maria Luisa" className="h-20 w-20 rounded-2xl object-cover" /> : <span className="h-20 w-20 rounded-2xl bg-white/5 grid place-items-center text-muted text-xs">sem foto</span>}
+          {preview ? <img src={preview} alt="Maria Luisa" className="h-20 w-20 rounded-[8px] object-cover" /> : <span className="h-20 w-20 rounded-[8px] bg-white/5 grid place-items-center text-muted text-xs">sem foto</span>}
           <label className="btn cursor-pointer">Escolher foto
             <input type="file" name="photo" accept="image/*" className="sr-only"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)); setOk(false); }} /></label>

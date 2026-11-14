@@ -68,7 +68,7 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
           <div className="absolute inset-0 bg-black/60 sheet-fade" />
           <div className="relative grid place-items-center">
             <div className="absolute h-[420px] w-[420px] rays" aria-hidden />
-            <div className="level-pop relative text-center rounded-[32px] px-10 py-8 border border-[#ff2800]/40 bg-[#111113]" style={{ animationDuration: banner.insignia != null ? "3.6s" : undefined, boxShadow: "0 0 0 1px rgba(255,40,0,.15), 0 0 90px -10px rgba(255,40,0,.65)" }}>
+            <div className="level-pop relative text-center rounded-[8px] px-10 py-8 border border-[#ff2800]/40 bg-[#111113]" style={{ animationDuration: banner.insignia != null ? "3.6s" : undefined, boxShadow: "0 0 0 1px rgba(255,40,0,.15), 0 0 90px -10px rgba(255,40,0,.65)" }}>
               {banner.insignia != null && <div className="mx-auto w-fit emblem-spin mb-2"><Insignia index={banner.insignia} size={120} /></div>}
               <p className="label" style={{ color: "#ff2800" }}>{banner.insignia != null ? "Nova patente · Ascension" : "Conquista"}</p>
               <p className="font-display text-6xl mt-2 text-glow" style={{ ["--glow" as string]: "#ff2800" }}>{banner.title}</p>

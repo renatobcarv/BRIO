@@ -28,7 +28,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[160px] sm:auto-rows-[190px]">
         {/* Maria Luisa em destaque */}
-        <section className="rise relative col-span-2 row-span-2 rounded-[28px] overflow-hidden border border-white/10" style={{ background: maria.photo ? undefined : FALLBACK[0] }}>
+        <section className="rise relative col-span-2 row-span-2 rounded-[8px] overflow-hidden border border-white/10" style={{ background: maria.photo ? undefined : FALLBACK[0] }}>
           {maria.photo && <img src={maria.photo} alt="Maria Luisa" className="absolute inset-0 h-full w-full object-cover" />}
           <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 35%, rgba(10,10,10,.85))" }} />
           <div className="absolute inset-x-0 bottom-0 p-5">
@@ -40,7 +40,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
         </section>
 
         {open.map((d, i) => (
-          <button key={d.id} onClick={() => setForm(d)} className={`rise press relative text-left rounded-[24px] overflow-hidden border border-white/10 ${i % 5 === 1 ? "row-span-2" : ""}`}
+          <button key={d.id} onClick={() => setForm(d)} className={`rise press relative text-left rounded-[8px] overflow-hidden border border-white/10 ${i % 5 === 1 ? "row-span-2" : ""}`}
             style={{ background: d.image ? undefined : FALLBACK[(i + 1) % FALLBACK.length], animationDelay: `${(i + 1) * 60}ms` }}>
             {d.image && <img src={d.image} alt="" className="absolute inset-0 h-full w-full object-cover" />}
             <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 30%, rgba(10,10,10,.88))" }} />
@@ -52,7 +52,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
           </button>
         ))}
 
-        <button onClick={() => setForm({ category: "experiencia" })} className="rise press rounded-[24px] border border-dashed border-[#dc000077] grid place-items-center text-center p-4 hover:bg-white/[.03]">
+        <button onClick={() => setForm({ category: "experiencia" })} className="rise press rounded-[8px] border border-dashed border-[#dc000077] grid place-items-center text-center p-4 hover:bg-white/[.03]">
           <span><span className="block text-3xl text-[#ff2800]">+</span><span className="block text-sm mt-1">Novo sonho</span><span className="block text-[11px] text-muted">com foto, prazo e porquê</span></span>
         </button>
       </div>
@@ -62,7 +62,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
           <p className="label mb-3" style={{ color: "#30d158" }}>Realizados · {done.length}</p>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
             {done.map((d) => (
-              <button key={d.id} onClick={() => setForm(d)} className="press relative h-32 rounded-2xl overflow-hidden border border-[#30d15866] text-left">
+              <button key={d.id} onClick={() => setForm(d)} className="press relative h-32 rounded-[8px] overflow-hidden border border-[#30d15866] text-left">
                 {d.image && <img src={d.image} alt="" className="absolute inset-0 h-full w-full object-cover grayscale-[.3]" />}
                 <div className="absolute inset-0 bg-black/55" />
                 <span className="absolute top-2 right-2 text-[10px] font-bold rounded-full px-2 py-1 bg-[#30d158] text-black">✓ REALIZADO</span>
@@ -87,7 +87,7 @@ function DreamForm({ d, onDone }: { d: Partial<Dream>; onDone: () => void }) {
   const { celebrate } = useXp();
   return (
     <form className="grid gap-3" action={(fd) => start(async () => { fd.set("category", cat); if (d.id) fd.set("id", d.id); const e = await saveDream(fd); if (e) setErr(e); else { haptic(15); onDone(); } })}>
-      <label className="relative block h-40 rounded-2xl overflow-hidden border border-dashed border-white/20 cursor-pointer" style={{ background: preview ? undefined : FALLBACK[0] }}>
+      <label className="relative block h-40 rounded-[8px] overflow-hidden border border-dashed border-white/20 cursor-pointer" style={{ background: preview ? undefined : FALLBACK[0] }}>
         {preview && <img src={preview} alt="" className="absolute inset-0 h-full w-full object-cover" />}
         <span className="absolute inset-0 grid place-items-center bg-black/30 text-sm font-semibold">{preview ? "Trocar foto" : "📷 Escolher foto do sonho"}</span>
         <input type="file" name="image" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)); }} />

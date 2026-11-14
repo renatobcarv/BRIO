@@ -96,8 +96,8 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const SYS = T.a, ALT = T.b;
 
   return (
-    <section className="relative rise rounded-[22px] p-[1px] overflow-hidden min-w-0 w-full" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
-      <div className="relative isolate rounded-[21px] p-4 sys-scan" style={{ background: `radial-gradient(90% 55% at 50% 0%, ${T.bg}, transparent 65%), radial-gradient(${60 + T.heat * 10}% ${30 + T.heat * 8}% at 50% 105%, ${SYS}${["10", "1c", "2a", "3a", "4d", "66"][T.heat]}, transparent 70%), #08080a` }}>
+    <section className="relative rise rounded-[8px] p-[1px] overflow-hidden min-w-0 w-full" style={{ background: `linear-gradient(150deg, ${SYS}, ${ALT}55 45%, ${SYS}33 70%, ${ALT})`, boxShadow: `0 0 44px -16px ${SYS}, 0 0 60px -30px ${ALT}` }}>
+      <div className="relative isolate rounded-[8px] p-4 sys-scan" style={{ background: `radial-gradient(90% 55% at 50% 0%, ${T.bg}, transparent 65%), radial-gradient(${60 + T.heat * 10}% ${30 + T.heat * 8}% at 50% 105%, ${SYS}${["10", "1c", "2a", "3a", "4d", "66"][T.heat]}, transparent 70%), #08080a` }}>
         {T.heat > 0 && <div aria-hidden className="pointer-events-none absolute -z-10 inset-x-0 bottom-0 h-1/3 overflow-hidden rounded-b-[21px]">
           {Array.from({ length: T.heat * 4 }, (_, i) => <span key={i} className="absolute bottom-2 rounded-full fire-ember" style={{ left: `${((i + 0.5) / (T.heat * 4)) * 100}%`, width: 2 + (i % 2), height: 2 + (i % 2), background: i % 2 ? SYS : ALT, animationDelay: `${(i % 7) * 0.3}s` }} />)}
         </div>}

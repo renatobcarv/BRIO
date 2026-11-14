@@ -95,7 +95,7 @@ function InvDetail({ inv, moves, today, onEdit, onDone }: { inv: Inv; moves: Mov
           {inv.is_reserve && <span className="tag" style={{ color: UP }}>reserva</span>}
         </div>
       </div>
-      <div className="rounded-2xl bg-white/[.03] p-4 grid gap-3">
+      <div className="rounded-[8px] bg-white/[.03] p-4 grid gap-3">
         <Segmented value={kind} onChange={setKind} options={[["aporte", "Aportar"], ["resgate", "Resgatar"], ["atualizacao", "Atualizar saldo"]]} />
         <div className="grid grid-cols-[minmax(0,1fr)_9.5rem] gap-2">
           <Field label={kind === "atualizacao" ? "Saldo atual na corretora" : "Valor (R$)"}>

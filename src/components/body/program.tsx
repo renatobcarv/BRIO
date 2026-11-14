@@ -88,7 +88,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         {list.length === 0 && <p className="font-display italic text-muted">Dia de descanso. Adicione exercícios se houver treino.</p>}
         {list.map((e, i) => (
-          <div key={`${day}-${i}`} className="rounded-2xl border p-3 grid grid-cols-[minmax(0,1fr)] gap-2 step-in-right" style={{ borderColor: "rgba(224,57,62,.18)", background: "#120808" }}>
+          <div key={`${day}-${i}`} className="rounded-[8px] border p-3 grid grid-cols-[minmax(0,1fr)] gap-2 step-in-right" style={{ borderColor: "rgba(224,57,62,.18)", background: "#120808" }}>
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,8.5rem)] gap-2">
               <input className="field !min-h-11" placeholder="Exercício" value={e.name} aria-label="Exercício"
                 onChange={(ev) => upd(i, { name: ev.target.value, muscle: e.muscle === "outro" || e.muscle === guessMuscle(e.name, overrides) ? guessMuscle(ev.target.value, overrides) : e.muscle })} />
@@ -112,7 +112,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
             </div>
           </div>
         ))}
-        <div className="rounded-2xl border p-3" style={{ borderColor: "rgba(224,57,62,.25)", background: "#120707" }}>
+        <div className="rounded-[8px] border p-3" style={{ borderColor: "rgba(224,57,62,.25)", background: "#120707" }}>
           <p className="text-[10px] font-semibold tracking-[.25em]" style={{ color: G }}>BIBLIOTECA · TOQUE PARA ADICIONAR</p>
           <div className="flex gap-1.5 overflow-x-auto mt-2 pb-1">
             {LIBRARY.map(([g]) => <button key={g} className="chip shrink-0" aria-pressed={lib === g} onClick={() => setLib(lib === g ? null : g)}>{g}</button>)}
@@ -131,7 +131,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
         </div>
       </div>
 
-      <div className="rounded-2xl bg-white/[.03] p-3">
+      <div className="rounded-[8px] bg-white/[.03] p-3">
         <p className="label mb-2">Séries diretas por semana</p>
         <div className="flex flex-wrap gap-1.5">
           {Object.entries(vol).filter(([, v]) => v).sort((a, b) => b[1]! - a[1]!).map(([m, v]) => <span key={m} className="tag">{MUSCLES[m as Muscle]} <b className="text-ink">{v}</b></span>)}

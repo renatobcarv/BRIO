@@ -82,7 +82,7 @@ function RestTimer({ until, onDone, onAdd }: { until: number; onDone: () => void
   }, [left, onDone]);
   return (
     <div className="fixed left-3 right-3 md:left-auto md:right-6 md:w-80 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 sheet-up">
-      <div className="rounded-2xl border border-white/10 bg-[#111113]/95 backdrop-blur-xl p-3 flex items-center gap-3 shadow-2xl">
+      <div className="rounded-[8px] border border-white/10 bg-[#111113]/95 backdrop-blur-xl p-3 flex items-center gap-3 shadow-2xl">
         <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#ff2800" }}>{mmss(left)}</p></div>
         <button className="btn !px-3" onClick={() => onAdd(15)}>+15s</button>
         <button className="btn" onClick={onDone}>Pular</button>
@@ -150,7 +150,7 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
           const last = lastFor(workouts.filter((w) => w.id !== s.editingId), e.name, s.editingId ? addDays(s.date, -1) : s.date);
           const best = Math.max(0, ...e.sets.map((x) => e1rm(n(x.kg), n(x.reps))));
           return (
-            <div key={ei} className="rounded-2xl border border-white/[.07] bg-white/[.02] p-4">
+            <div key={ei} className="rounded-[8px] border border-white/[.07] bg-white/[.02] p-4">
               <div className="flex items-start gap-2">
                 <div className="flex-1 min-w-0">
                   <p className="font-medium">{e.name}</p>
@@ -305,7 +305,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   return (
     <div style={{ ["--accent" as string]: G }}>
       {programSlot && (
-        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[24px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(163,0,0,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #a30000" }}>
+        <button onClick={() => setSheet("program")} className="press w-full text-left rounded-[8px] p-4 mb-4 border" style={{ borderColor: "rgba(224,57,62,.35)", background: "linear-gradient(160deg, rgba(163,0,0,.3), #0d0606 70%)", boxShadow: "0 16px 40px -24px #a30000" }}>
           {program ? (() => { const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex]; return (
             <>
               <div className="flex items-center justify-between gap-3"><p className="text-sm font-semibold truncate min-w-0">{program.name}</p><span className="text-xs text-muted whitespace-nowrap shrink-0">ver ›</span></div>
@@ -346,7 +346,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         {session ? (
           <>
             {!session.editingId && (
-              <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 mb-4">
+              <div className="inline-flex p-1 rounded-[8px] bg-white/[.04] border border-white/[.06] gap-1 mb-4">
                 {(["guiado", "lista"] as const).map((m) => <button key={m} onClick={() => setMode(m)} className={`min-h-9 px-4 rounded-xl text-sm ${mode === m ? "bg-white/[.1] text-ink" : "text-muted"}`}>{m === "guiado" ? "Guiado" : "Lista completa"}</button>)}
               </div>
             )}
@@ -362,7 +362,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                 const c = w.status === "done" ? G : w.status === "missed" ? "#5a1414" : w.status === "rest" ? "rgba(255,255,255,.06)" : "rgba(224,57,62,.18)";
                 return (
                   <button key={w.date} onClick={() => setSelDate(w.date)} aria-pressed={on} aria-label={`${weekdayShort[w.d]} ${w.label}`}
-                    className="press flex flex-col items-center gap-1 rounded-2xl py-2 border transition-all"
+                    className="press flex flex-col items-center gap-1 rounded-[8px] py-2 border transition-all"
                     style={{ borderColor: on ? G : "rgba(255,255,255,.06)", background: on ? "rgba(224,57,62,.14)" : "transparent", boxShadow: on ? `0 0 18px -6px ${G}` : "none" }}>
                     <span className={`text-[10px] ${w.date === today ? "text-ink font-semibold" : "text-muted"}`}>{weekdayShort[w.d]}</span>
                     <span className="h-8 w-8 rounded-full grid place-items-center text-[10px] font-bold"
@@ -429,7 +429,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         <SectionTitle>Recordes pessoais</SectionTitle>
         <div className="grid grid-cols-3 gap-3">
           {plan.prs.map((name) => { const { top, est } = prOf(name); return (
-            <button key={name} className="text-left rounded-2xl bg-white/[.03] p-3" onClick={() => setExSel(names.find((x) => x.toLowerCase() === name.toLowerCase()) ?? names.find((x) => new RegExp(name.split(/\s+/)[0].slice(0, 6), "i").test(x)) ?? name)}>
+            <button key={name} className="text-left rounded-[8px] bg-white/[.03] p-3" onClick={() => setExSel(names.find((x) => x.toLowerCase() === name.toLowerCase()) ?? names.find((x) => new RegExp(name.split(/\s+/)[0].slice(0, 6), "i").test(x)) ?? name)}>
               <p className="text-xs text-muted leading-tight min-h-[2lh]">{name}</p>
               <p className="num text-2xl mt-1" style={{ color: G }}>{top ? fmt(top.kg) : "—"}</p>
               {top && <p className="text-[11px] text-muted">{top.reps} reps · {shortDate(top.date)}</p>}
@@ -529,7 +529,7 @@ function PlanVsDone({ w }: { w: Workout }) {
         const rpes = done.filter((s) => s.rpe).map((s) => Number(s.rpe));
         const timed = isTimed(name, p?.muscle);
         return (
-          <div key={name} className="rounded-2xl bg-white/[.03] p-3">
+          <div key={name} className="rounded-[8px] bg-white/[.03] p-3">
             <div className="flex items-center gap-2"><p className="font-medium flex-1">{name}</p><span className="tag" style={{ color }}>{status}</span></div>
             <table className="w-full text-sm mt-2 num">
               <thead><tr className="label text-left"><th className="font-normal py-1"></th><th className="font-normal">Plan.</th><th className="font-normal">Feito</th></tr></thead>

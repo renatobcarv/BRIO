@@ -12,7 +12,7 @@ const AVISOS: Record<string, string> = {
 
 function Aviso() {
   const erro = useSearchParams().get("erro");
-  return erro && AVISOS[erro] ? <p role="alert" className="rounded-2xl border border-[#ff453a]/40 bg-[#ff453a]/10 p-4 mt-6 text-sm text-[#ff6961]">{AVISOS[erro]}</p> : null;
+  return erro && AVISOS[erro] ? <p role="alert" className="rounded-[8px] border border-[#ff453a]/40 bg-[#ff453a]/10 p-4 mt-6 text-sm text-[#ff6961]">{AVISOS[erro]}</p> : null;
 }
 
 export default function Login() {
@@ -34,7 +34,7 @@ export default function Login() {
             <button type="button" onClick={() => setShow(!show)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted px-2 py-1">{show ? "Ocultar" : "Mostrar"}</button>
           </div>
           {error && <p role="alert" className="text-sm text-[#ff6961]">{error}</p>}
-          <button disabled={pending} className="press min-h-14 rounded-2xl text-base font-semibold text-white disabled:opacity-60 mt-1"
+          <button disabled={pending} className="press min-h-14 rounded-[8px] text-base font-semibold text-white disabled:opacity-60 mt-1"
             style={{ background: "linear-gradient(135deg,#dc0000,#a30000 70%)", boxShadow: "0 14px 34px -14px #dc0000" }}>
             {pending ? "Entrando…" : "Entrar"}
           </button>

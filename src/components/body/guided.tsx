@@ -38,7 +38,7 @@ function Rest({ total, onDone }: { total: number; onDone: () => void }) {
 function Big({ label, value, onChange, step, unit }: { label: string; value: string; onChange: (v: string) => void; step: number; unit: string }) {
   const v = n(value);
   return (
-    <div className="rounded-2xl bg-[#141416] border border-white/[.06] p-3">
+    <div className="rounded-[8px] bg-[#141416] border border-white/[.06] p-3">
       <p className="label text-center">{label}</p>
       <div className="grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-1 mt-1">
         <button className="press h-11 w-11 rounded-full bg-white/[.07] text-2xl grid place-items-center" onClick={() => { haptic(6); onChange(String(Math.max(0, +(v - step).toFixed(2)))); }} aria-label={`Menos ${label}`}>−</button>
@@ -113,11 +113,11 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
       </div>
       <p className="font-display text-3xl mt-4">Treino concluído</p>
       <div className="grid grid-cols-3 gap-2 mt-5">
-        <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.sets} /></p><p className="text-xs text-muted">séries</p></div>
-        <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.vol / 1000} format={(v) => v.toFixed(1).replace(".", ",")} /> t</p><p className="text-xs text-muted">volume</p></div>
-        <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.min} /></p><p className="text-xs text-muted">minutos</p></div>
+        <div className="rounded-[8px] bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.sets} /></p><p className="text-xs text-muted">séries</p></div>
+        <div className="rounded-[8px] bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.vol / 1000} format={(v) => v.toFixed(1).replace(".", ",")} /> t</p><p className="text-xs text-muted">volume</p></div>
+        <div className="rounded-[8px] bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={finished.min} /></p><p className="text-xs text-muted">minutos</p></div>
       </div>
-      {finished.prs.length > 0 && <p className="mt-4 rounded-2xl p-3 text-sm font-semibold" style={{ background: "#ff280022", color: "#ff2800", boxShadow: "0 0 24px -8px #ff2800" }}>🏆 Recorde em {finished.prs.join(", ")}</p>}
+      {finished.prs.length > 0 && <p className="mt-4 rounded-[8px] p-3 text-sm font-semibold" style={{ background: "#ff280022", color: "#ff2800", boxShadow: "0 0 24px -8px #ff2800" }}>🏆 Recorde em {finished.prs.join(", ")}</p>}
       <p className="mt-5"><span className="num text-5xl text-glow" style={{ color: G, ["--glow" as string]: G } as React.CSSProperties}>+<CountUp value={finished.xp} /></span> <span className="text-muted">XP de Força</span></p>
       <button className="btn btn-accent w-full mt-6 !min-h-12" onClick={() => { onSaved(); }}>Continuar</button>
     </div>

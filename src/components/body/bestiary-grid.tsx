@@ -22,7 +22,7 @@ export function BestiaryGrid({ ids, rec, angel }: { ids: BeastId[]; rec: Record<
         {ids.map((id) => {
           const x = ALL(id), y = rec[id], open = y.won > 0, seen = open || y.met > 0;
           return (
-            <button key={id} onClick={() => setSel(id)} className="press rounded-3xl p-3 border text-center relative overflow-hidden"
+            <button key={id} onClick={() => setSel(id)} className="press rounded-[8px] p-3 border text-center relative overflow-hidden"
               style={{ borderColor: open ? x.color + "66" : "rgba(255,255,255,.07)", background: open ? `radial-gradient(90% 70% at 50% 25%, ${x.color}30, #0b0b0d 70%)` : "#0b0b0d" }}>
               <div className="mx-auto w-full aspect-square max-w-[140px]" style={{ filter: open ? `drop-shadow(0 0 12px ${x.color}88)` : seen ? "grayscale(.6) brightness(.5)" : "grayscale(1) brightness(.16)" }}>
                 <Art id={id} size="w-full h-full" />
@@ -45,7 +45,7 @@ export function BeastSheet({ sel, rec, onClose }: { sel: BeastId | null; rec: Re
     <Sheet tone="war" accent={b?.color} open={!!sel} onClose={onClose} title={known && b ? b.name : "???"}>
         {b && r && (
           <div className="text-center">
-            <div className="relative mx-auto w-full max-w-[320px] aspect-square rounded-[28px] overflow-hidden" style={{ background: `radial-gradient(80% 70% at 50% 45%, ${b.color}33, #050505 75%)` }}>
+            <div className="relative mx-auto w-full max-w-[320px] aspect-square rounded-[8px] overflow-hidden" style={{ background: `radial-gradient(80% 70% at 50% 45%, ${b.color}33, #050505 75%)` }}>
               <div className="absolute inset-0 grid place-items-center" style={{ filter: known ? `drop-shadow(0 0 18px ${b.color}99)` : "grayscale(1) brightness(.16)" }}>
                 <Art id={sel!} size="w-[92%] h-[92%]" />
               </div>
@@ -53,9 +53,9 @@ export function BeastSheet({ sel, rec, onClose }: { sel: BeastId | null; rec: Re
             <p className="text-[11px] font-semibold tracking-[.3em] mt-4" style={{ color: b.color }}>{angel ? `EXEMPLO · ${b.virtue?.toUpperCase()}` : `AMEAÇA · ${b.epithet.toUpperCase()}`}</p>
             {known ? <p className="text-[15px] text-ink/85 mt-2 leading-snug">{b.line}</p> : <p className="text-sm text-muted mt-2">Aparece numa semana da sua campanha. Cumpra todos os treinos dela para desbloquear.</p>}
             <div className="grid grid-cols-3 gap-2 mt-4">
-              <div className="rounded-2xl bg-white/[.05] p-3"><p className="num text-2xl" style={{ color: b.color }}>{r.won}</p><p className="text-[11px] text-muted">{angel ? "conquistas" : "abates"}</p></div>
-              <div className="rounded-2xl bg-white/[.05] p-3"><p className="num text-2xl">{r.met}</p><p className="text-[11px] text-muted">encontros</p></div>
-              <div className="rounded-2xl bg-white/[.05] p-3"><p className="num text-lg mt-1">{r.last ? br(r.last) : "—"}</p><p className="text-[11px] text-muted">última</p></div>
+              <div className="rounded-[8px] bg-white/[.05] p-3"><p className="num text-2xl" style={{ color: b.color }}>{r.won}</p><p className="text-[11px] text-muted">{angel ? "conquistas" : "abates"}</p></div>
+              <div className="rounded-[8px] bg-white/[.05] p-3"><p className="num text-2xl">{r.met}</p><p className="text-[11px] text-muted">encontros</p></div>
+              <div className="rounded-[8px] bg-white/[.05] p-3"><p className="num text-lg mt-1">{r.last ? br(r.last) : "—"}</p><p className="text-[11px] text-muted">última</p></div>
             </div>
           </div>
         )}
@@ -71,7 +71,7 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
   const SLOTS = [[50, 30, 28], [24, 38, 24], [76, 38, 24], [16, 56, 22], [84, 56, 22], [34, 64, 25], [66, 64, 25], [50, 80, 28], [20, 80, 24], [80, 80, 24], [36, 92, 20], [64, 92, 20], [14, 94, 18], [86, 94, 18]];
   return (
     <>
-    <section className="relative isolate rounded-[28px] overflow-hidden border border-white/10 aspect-[4/5] max-h-[78dvh] mx-auto w-full"
+    <section className="relative isolate rounded-[8px] overflow-hidden border border-white/10 aspect-[4/5] max-h-[78dvh] mx-auto w-full"
       style={{ background: "radial-gradient(70% 40% at 50% 100%, rgba(255,106,61,.28), transparent 70%), radial-gradient(90% 60% at 50% 0%, #0d1a2e, #04060a 70%)" }}>
       {/* céu, lua e estrelas */}
       <div className="absolute right-[12%] top-[7%] w-12 h-12 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #fff, #cfd8ea 60%, #8796b3)", boxShadow: "0 0 40px rgba(207,216,234,.5)" }} />

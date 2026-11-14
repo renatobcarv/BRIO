@@ -66,7 +66,7 @@ export function Choices<T extends string>({ value, onChange, options, cols = 2 }
         const on = value === o.value;
         return (
           <button key={o.value} onClick={() => { haptic(10); onChange(o.value); }} aria-pressed={on}
-            className="press text-left rounded-2xl p-3.5 border transition-all duration-300 min-h-[84px] flex flex-col justify-between"
+            className="press text-left rounded-[8px] p-3.5 border transition-all duration-300 min-h-[84px] flex flex-col justify-between"
             style={{ background: on ? `linear-gradient(160deg, ${o.color}33, #141416)` : "#141416", borderColor: on ? o.color : "rgba(255,255,255,.07)", boxShadow: on ? `0 0 0 1px ${o.color}55, 0 10px 26px -12px ${o.color}` : "none" }}>
             {o.icon && <span className="h-8 w-8 rounded-[10px] grid place-items-center" style={{ background: o.color }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={o.icon} /></svg></span>}
@@ -83,7 +83,7 @@ export function QuickPick({ values, value, onChange, format = (v: number) => Str
   return (
     <div className="flex flex-wrap gap-2">
       {values.map((v) => (
-        <button key={v} onClick={() => { haptic(8); onChange(v); }} className="press rounded-2xl px-4 min-h-12 text-[15px] font-semibold border transition-all"
+        <button key={v} onClick={() => { haptic(8); onChange(v); }} className="press rounded-[8px] px-4 min-h-12 text-[15px] font-semibold border transition-all"
           style={{ background: value === v ? color : "#141416", color: value === v ? "#000" : undefined, borderColor: value === v ? color : "rgba(255,255,255,.08)", boxShadow: value === v ? `0 0 18px -4px ${color}` : "none" }}>{format(v)}</button>
       ))}
     </div>

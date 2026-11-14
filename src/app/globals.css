@@ -438,3 +438,39 @@ a.glass:hover, .glass:focus-within { border-color: rgba(220,0,0,.45); }
 .panther-img { position: absolute; right: -10%; top: -18%; height: 150%; width: auto; z-index: -1; opacity: .75;
   -webkit-mask-image: linear-gradient(90deg, transparent, #000 45%); mask-image: linear-gradient(90deg, transparent, #000 45%); }
 @media (min-width: 768px) { .panther-hero { padding: 36px 32px; } .panther-img { right: 0; } }
+
+/* ===== Modo caçador: foco total, nada de fofo. Cantos retos, tipografia condensada, vermelho como mira ===== */
+:root { --radius-sm: 2px; --radius-md: 3px; --radius-lg: 4px; --radius-xl: 6px; }
+.glass, .tile { border-radius: 8px !important; }
+.btn, .field, .chip, .tag { border-radius: 4px !important; }
+.btn-accent { border-radius: 4px; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
+.bar, .bar > i { border-radius: 0; }
+.bar { height: 6px; background: rgba(255,255,255,.08); }
+.row-hover { border-radius: 4px; }
+:focus-visible { border-radius: 2px; outline-color: #ff2800; }
+/* Títulos: condensado, pesado, caixa alta, levemente inclinado (velocidade) */
+h1.font-display, h2.font-display, .font-display.text-4xl, .font-display.text-3xl, .font-display.text-5xl {
+  font-family: var(--font-hunt), var(--font-sans); font-weight: 800; text-transform: uppercase; font-style: italic; letter-spacing: .005em; line-height: .95; }
+.font-display.italic { font-family: var(--font-sans); font-style: normal; text-transform: none; }
+.num { font-family: var(--font-hunt), var(--font-sans); font-weight: 700; letter-spacing: 0; }
+/* Rótulos: mono, caixa alta, espaçados — leitura de painel */
+.label { font-family: var(--font-mono); font-size: 10.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; }
+/* Cartões: sem brilho de vidro, borda seca, marca vermelha à esquerda ao focar/passar */
+.glass { background: #0b0b0b; box-shadow: none; border: 1px solid #1c1c1c; }
+.glass::before { left: 0; right: auto; top: 12px; bottom: 12px; width: 2px; height: auto; background: #dc0000; opacity: 0; transition: opacity .15s; }
+a.glass:hover::before, .glass:focus-within::before { opacity: 1; }
+a.glass:hover { border-color: #2a2a2a; background: #0e0e0e; }
+.tile { background: #0e0e0e; border: 1px solid #1c1c1c; }
+/* Movimento seco, sem quique */
+.rise { animation-timing-function: cubic-bezier(.2,.7,0,1) !important; }
+.press:active { transform: scale(.985); }
+/* Painel da pantera mais duro */
+.panther-hero { border-radius: 8px; border-color: #2a0000; }
+.panther-hero h1 { font-size: clamp(40px, 9vw, 64px); }
+.panther-img { opacity: 1; filter: brightness(1.9) contrast(1.15); top: -30%; height: 175%; }
+.panther-hero { border-color: #3a0000; min-height: 190px; }
+/* Lição das referências: escuridão domina, uma luz só, vermelho só onde está o foco (como os olhos da pantera), textura fina de pelo */
+body::after { content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: .05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+body::before { background: radial-gradient(55% 32% at 85% 0%, rgba(220,0,0,.13), transparent 70%), radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(0,0,0,.85)), #040404; }
+.glass .label, .tile .label { color: #8a8a8f; }

@@ -325,8 +325,8 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         <Link className="btn" href={`/corpo?aba=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
       </nav>
 
-      <button onClick={() => setSheet({ kind: "quiz" })} className="press w-full rounded-[22px] p-4 mb-4 flex items-center gap-4 text-left border" style={{ borderColor: G + "55", background: `linear-gradient(160deg, ${G}26, #0f0f11 70%)` }}>
-        <span className="h-12 w-12 rounded-2xl grid place-items-center glow shrink-0" style={{ background: G, ["--glow" as string]: G } as React.CSSProperties}>
+      <button onClick={() => setSheet({ kind: "quiz" })} className="press w-full rounded-[8px] p-4 mb-4 flex items-center gap-4 text-left border" style={{ borderColor: G + "55", background: `linear-gradient(160deg, ${G}26, #0f0f11 70%)` }}>
+        <span className="h-12 w-12 rounded-[8px] grid place-items-center glow shrink-0" style={{ background: G, ["--glow" as string]: G } as React.CSSProperties}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.2" strokeLinecap="round" aria-hidden><path d="M12 5v14M5 12h14" /></svg></span>
         <span className="flex-1"><span className="block font-semibold text-[16px]">Registrar refeição</span><span className="text-sm text-muted">{doneSlots.length}/{slots.length} refeições · +10 XP cada</span></span>
       </button>
@@ -390,7 +390,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         );
       })}
 
-      <section className="rise mt-4 rounded-[22px] p-5 border" style={{ borderColor: "rgba(255,90,110,.3)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0f0f11 60%)" }}>
+      <section className="rise mt-4 rounded-[8px] p-5 border" style={{ borderColor: "rgba(255,90,110,.3)", background: "linear-gradient(160deg, rgba(255,90,110,.10), #0f0f11 60%)" }}>
         <div className="flex items-center gap-3">
           <span className="text-2xl" aria-hidden>🍕</span>
           <div className="flex-1"><p className="font-display text-xl">Fora do plano</p><p className="text-xs text-muted">Lanches, bebidas, férias, imprevistos</p></div>

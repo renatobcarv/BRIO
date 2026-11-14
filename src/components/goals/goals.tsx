@@ -17,7 +17,7 @@ function GoalCard({ g, today, objectives, boxes }: { g: GoalRow; today: string; 
   const s = goalStats(g, today), color = AREAS[g.area].color;
   if (editing) return <GoalForm goal={g} onDone={() => setEditing(false)} objectives={objectives} boxes={boxes} />;
   return (
-    <div className="rounded-2xl border border-white/[.06] p-4" style={{ ["--accent" as string]: color }}>
+    <div className="rounded-[8px] border border-white/[.06] p-4" style={{ ["--accent" as string]: color }}>
       <div className="flex items-start gap-2">
         <div className="flex-1">
           <p className="label" style={{ color }}>{AREAS[g.area].label}{g.featured ? " · destaque" : ""}{g.auto_source ? " · automática" : ""}</p>
@@ -66,7 +66,7 @@ function GoalForm({ goal, objectives, boxes, onDone }: { goal?: GoalRow; objecti
     onDone();
   });
   return (
-    <div className="grid gap-2 rounded-2xl border border-white/10 p-4">
+    <div className="grid gap-2 rounded-[8px] border border-white/10 p-4">
       <input className="field" placeholder="Meta (ex.: Ler a Bíblia inteira)" value={f.title} onChange={(e) => set({ title: e.target.value })} />
       <div className="flex flex-wrap gap-2">
         {(Object.keys(AREAS) as AreaKey[]).map((a) => <button key={a} className="chip" aria-pressed={f.area === a} onClick={() => set({ area: a })}

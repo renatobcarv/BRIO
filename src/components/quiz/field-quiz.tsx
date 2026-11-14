@@ -55,7 +55,7 @@ export function FieldQuiz({ today, contacts, onClose }: { today: string; contact
         { title: "Como foi o serviço hoje?", content: <Choices value={cat} onChange={(v) => { setCat(v); if (v === "obra") { setMode("duracao"); setDur(480); } }} options={[...CATS]} />, canNext: !!cat },
         { title: "De que horas até que horas?", hint: "O app calcula a duração. Cada hora vale 30 XP de Serviço.", canNext: minutes > 0 && minutes <= 16 * 60, content: (
           <div className="grid gap-4">
-            <div className="inline-flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1">
+            <div className="inline-flex p-1 rounded-[8px] bg-white/[.04] border border-white/[.06] gap-1">
               {(["horario", "duracao"] as const).map((m) => <button key={m} onClick={() => setMode(m)} className={`min-h-10 px-4 rounded-xl text-sm ${mode === m ? "bg-white/[.1] text-ink" : "text-muted"}`}>{m === "horario" ? "Horário" : "Só a duração"}</button>)}
             </div>
             {mode === "horario" ? (
@@ -92,7 +92,7 @@ export function FieldQuiz({ today, contacts, onClose }: { today: string; contact
           </div>) },
         { title: "Relatório do dia", hint: "Confira e conclua.", content: (
           <div className="grid gap-3">
-            <div className="rounded-2xl p-4 border" style={{ borderColor: C + "55", background: `linear-gradient(160deg, ${C}22, #141416)` }}>
+            <div className="rounded-[8px] p-4 border" style={{ borderColor: C + "55", background: `linear-gradient(160deg, ${C}22, #141416)` }}>
               {report.map((l) => <p key={l} className="text-[15px] py-1">{l}</p>)}
             </div>
             <textarea className="field" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Anotações do dia (opcional): uma experiência, um texto usado…" />

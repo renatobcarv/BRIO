@@ -66,13 +66,13 @@ export function TxForm({ tx, month, cats, onDone }: { tx?: Tx; month: string; ca
         </Field>
       </div>
       {tx?.inst_group && tx.inst_no && (
-        <div className="rounded-2xl p-3 border" style={{ borderColor: A + "44", background: A + "0f" }}>
+        <div className="rounded-[8px] p-3 border" style={{ borderColor: A + "44", background: A + "0f" }}>
           <p className="text-sm">💳 Parcela <b>{tx.inst_no}/{tx.inst_total}</b> de uma compra parcelada.</p>
           <button className="text-xs text-[#ff6961] underline mt-2" disabled={pending} onClick={() => { if (confirm(`Apagar a parcela ${tx.inst_no} e as seguintes? (ex.: quitou antes)`)) start(async () => { await deleteInstallmentsFrom(tx.inst_group!, tx.inst_no!); onDone(); }); }}>Apagar esta e as próximas parcelas</button>
         </div>
       )}
       {!tx && type === "despesa" && (
-        <div className="rounded-2xl border p-3 grid gap-3" style={{ borderColor: inst.on ? A + "66" : "rgba(255,255,255,.08)", background: inst.on ? A + "0d" : "transparent" }}>
+        <div className="rounded-[8px] border p-3 grid gap-3" style={{ borderColor: inst.on ? A + "66" : "rgba(255,255,255,.08)", background: inst.on ? A + "0d" : "transparent" }}>
           <label className="flex items-center gap-3 min-h-10"><input type="checkbox" className="h-5 w-5 accent-[#ff2800]" checked={inst.on} onChange={(e) => setInst({ ...inst, on: e.target.checked })} />
             <span>💳 Parcelado</span></label>
           {inst.on && <>

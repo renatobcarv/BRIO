@@ -20,9 +20,9 @@ export function FieldHub({ today, contacts, todayEntries, monthMinutes, goal }: 
 
   return (
     <div style={{ ["--accent" as string]: C }}>
-      <section className="rounded-[26px] p-5 overflow-hidden relative border" style={{ borderColor: C + "44", background: `linear-gradient(160deg, ${C}2a, #0f0f11 65%)` }}>
+      <section className="rounded-[8px] p-5 overflow-hidden relative border" style={{ borderColor: C + "44", background: `linear-gradient(160deg, ${C}2a, #0f0f11 65%)` }}>
         <div className="flex items-center gap-4">
-          <span className="h-14 w-14 rounded-2xl grid place-items-center shrink-0 glow" style={{ background: C, ["--glow" as string]: C }}>
+          <span className="h-14 w-14 rounded-[8px] grid place-items-center shrink-0 glow" style={{ background: C, ["--glow" as string]: C }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinejoin="round" aria-hidden><path d={FIELD_ICON} /></svg>
           </span>
           <div className="flex-1">
@@ -57,7 +57,7 @@ export function FieldHub({ today, contacts, todayEntries, monthMinutes, goal }: 
             {active.map((c) => {
               const due = c.next_visit && c.next_visit <= today;
               return (
-                <li key={c.id} className="flex items-center gap-3 rounded-2xl p-3 border" style={{ borderColor: due ? C + "66" : "rgba(255,255,255,.06)", background: due ? `${C}14` : "#141416" }}>
+                <li key={c.id} className="flex items-center gap-3 rounded-[8px] p-3 border" style={{ borderColor: due ? C + "66" : "rgba(255,255,255,.06)", background: due ? `${C}14` : "#141416" }}>
                   <button className="flex items-center gap-3 flex-1 min-w-0 text-left" onClick={() => setEdit(c)}>
                     <span className="h-10 w-10 rounded-full grid place-items-center font-semibold text-black shrink-0" style={{ background: c.status === "estudo" ? "#30d158" : C }}>{c.name[0]?.toUpperCase()}</span>
                     <span className="min-w-0"><span className="block truncate">{c.name}{c.status === "estudo" && <span className="tag ml-2" style={{ color: "#30d158" }}>estudo</span>}</span>

@@ -88,7 +88,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     <div style={{ ["--accent" as string]: "#ff2800" }}>
       <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" color="#ff2800" />
       <div className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-3 bg-base/80 backdrop-blur-xl md:static md:bg-transparent md:backdrop-blur-none md:p-0 md:mx-0">
-        <div className="flex p-1 rounded-2xl bg-white/[.04] border border-white/[.06] gap-1 overflow-x-auto" role="tablist">
+        <div className="flex p-1 rounded-[8px] bg-white/[.04] border border-white/[.06] gap-1 overflow-x-auto" role="tablist">
           {TABS.map(([k, l]) => (
             <Link key={k} href={href(k)} role="tab" aria-selected={tab === k}
               className={`min-h-10 px-4 rounded-xl text-sm whitespace-nowrap grid place-items-center shrink-0 transition-colors ${tab === k ? "bg-white/[.09] text-ink" : "text-muted hover:text-ink"}`}>{l}</Link>

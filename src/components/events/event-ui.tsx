@@ -44,7 +44,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
   const stepIdx = e.stage === "anunciado" ? 0 : e.stage === "contagem" ? 1 : e.stage === "ativo" ? 2 : 3;
   const endLabel = e.end.split("-").reverse().slice(0, 2).join("/"), startLabel = e.start.split("-").reverse().slice(0, 2).join("/");
   return (
-    <section className={`relative overflow-hidden rounded-[28px] p-5 border ${hot ? "event-hot" : ""}`}
+    <section className={`relative overflow-hidden rounded-[8px] p-5 border ${hot ? "event-hot" : ""}`}
       style={{ borderColor: e.color + (live ? "aa" : "44"), background: `radial-gradient(120% 80% at 50% 0%, ${e.color}${live ? "40" : "1f"}, #0b0606 65%)`, boxShadow: live ? `0 20px 60px -24px ${e.color}` : undefined }}>
       {hot && <FireLayer contained />}
       <div className="relative">
@@ -70,7 +70,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
         {(e.stage === "anunciado" || e.stage === "contagem") && <div className="mt-4"><p className="label mb-2">Começa em</p><Countdown to={e.start} color={e.color} /></div>}
         {e.stage === "ativo" && <div className="mt-4"><p className="label mb-2">Termina em</p><Countdown to={new Date(Date.parse(e.end + "T12:00:00Z") + 864e5).toISOString().slice(0, 10)} color={e.color} /></div>}
 
-        {e.stage === "pausado" && <p className="text-sm text-ink/80 mt-4 rounded-2xl p-3 border border-white/10">✈ Pausado por viagem. Sem prêmio e sem cicatriz: o que não dependia de você não conta contra você.</p>}
+        {e.stage === "pausado" && <p className="text-sm text-ink/80 mt-4 rounded-[8px] p-3 border border-white/10">✈ Pausado por viagem. Sem prêmio e sem cicatriz: o que não dependia de você não conta contra você.</p>}
         {!compact && e.stage !== "pausado" && (
           <>
             <div className="flex gap-1 mt-5">{STEPS.map((st, i) => <div key={st} className="flex-1"><div className="h-1 rounded-full" style={{ background: i <= stepIdx ? e.color : "rgba(255,255,255,.08)", boxShadow: i === stepIdx ? `0 0 10px ${e.color}` : "none" }} /><p className="text-[9px] text-muted mt-1 capitalize">{st}</p></div>)}</div>
@@ -85,7 +85,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
             </ul>
           </>
         )}
-        <div className="mt-4 rounded-2xl p-3 border" style={{ borderColor: e.color + "44", background: "#0d0606" }}>
+        <div className="mt-4 rounded-[8px] p-3 border" style={{ borderColor: e.color + "44", background: "#0d0606" }}>
           <p className="text-[10px] font-semibold tracking-[.25em]" style={{ color: e.color }}>RECOMPENSA</p>
           <p className="text-sm mt-1">{e.boost}</p>
         </div>
@@ -94,7 +94,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
             {[e.glory, e.scar].map((b) => {
               const got = (b.kind === "glory" && e.stage === "vitoria") || (b.kind === "scar" && e.stage === "falha");
               return (
-                <div key={b.id} className={`rounded-2xl p-3 border ${got ? "achv-shine relative overflow-hidden" : ""}`} style={{ borderColor: got ? b.color : "rgba(255,255,255,.06)", background: "#0d0606", opacity: got || e.stage !== "vitoria" && e.stage !== "falha" ? 1 : 0.35 }}>
+                <div key={b.id} className={`rounded-[8px] p-3 border ${got ? "achv-shine relative overflow-hidden" : ""}`} style={{ borderColor: got ? b.color : "rgba(255,255,255,.06)", background: "#0d0606", opacity: got || e.stage !== "vitoria" && e.stage !== "falha" ? 1 : 0.35 }}>
                   <div className="flex items-center gap-2"><EventBadge b={b} size={40} locked={!got && (e.stage === "vitoria" || e.stage === "falha")} />
                     <div className="min-w-0"><p className="text-[11px] font-bold tracking-wider" style={{ color: b.kind === "glory" ? b.color : "#a30000" }}>{b.name}</p><p className="text-[10px] text-muted">{b.kind === "glory" ? "se vencer" : "se falhar"}</p></div></div>
                   <p className="text-[11px] text-muted mt-1.5 leading-snug">{b.desc}</p>
