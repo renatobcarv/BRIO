@@ -37,7 +37,8 @@ export default async function Hoje() {
   const sb = await createClient();
   // Nome de quem está logado (cadastro grava em user_metadata.name); sem nome, usa o começo do e-mail.
   const { data: me } = await sb.auth.getUser();
-  const firstName = String(me.user?.user_metadata?.name ?? me.user?.email?.split("@")[0] ?? "").trim().split(/\s+/)[0] || "você";
+  const raw = String(me.user?.user_metadata?.name ?? me.user?.email?.split("@")[0].split(/[._\-\d]/)[0] ?? "").trim().split(/\s+/)[0];
+  const firstName = raw ? raw[0].toUpperCase() + raw.slice(1) : "você";
   const today = todayISO();
   const month = monthStart(today);
   const [s, checks, streakQ, pioneer, pGoal, water, weight, fin, goals, refl, cleanQ] = await Promise.all([
