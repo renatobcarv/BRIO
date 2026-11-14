@@ -1,0 +1,28 @@
+# Checagens a cada push e PR (biblioteca GEN-SEG-06 e lição KLS-GAP-02 do Klasso: teste que só roda local não protege).
+name: CI
+on:
+  push: { branches: [main] }
+  pull_request:
+permissions: { contents: read }
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - name: Tipos
+        run: npx tsc --noEmit
+      - name: Testes de regra
+        run: npm test
+      - name: Dependências vulneráveis (produção)
+        run: npm audit --omit=dev --audit-level=high
+  segredos:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Varredura de segredos (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}" }
