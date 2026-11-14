@@ -1,11 +1,11 @@
 import { diffDays } from "./date";
 
 export const AREAS = {
-  espiritual: { label: "Espiritual", color: "#ff4d8a" },
+  espiritual: { label: "Espiritual", color: "#ff2800" },
   financeira: { label: "Financeira", color: "#f5f5f7" },
   fisica: { label: "Física", color: "#30d158" },
   carreira: { label: "Carreira", color: "#f5f5f7" },
-  pessoal: { label: "Pessoal", color: "#d12b65" },
+  pessoal: { label: "Pessoal", color: "#dc0000" },
 } as const;
 export type AreaKey = keyof typeof AREAS;
 export const AUTO = {

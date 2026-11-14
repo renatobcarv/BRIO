@@ -61,7 +61,7 @@ export function BodyToday(props: {
             <span className="flex items-end gap-2"><Drumstick pct={props.food.protein / props.food.proteinGoal} size={44} /><span className="text-xs text-muted pb-1">proteína<br /><b className="num text-ink text-sm">{Math.round((props.food.protein / props.food.proteinGoal) * 100) || 0}%</b></span></span>
           </div>
           <div><div className="flex justify-between text-sm"><span>Calorias</span><span className="num">{props.food.kcal}/{props.food.kcalGoal}</span></div><Progress value={props.food.kcal / props.food.kcalGoal} height={6} /></div>
-          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ff4d8a" height={6} /></div>
+          <div><div className="flex justify-between text-sm"><span>Proteína</span><span className="num">{Math.round(props.food.protein)}/{props.food.proteinGoal} g</span></div><Progress value={props.food.protein / props.food.proteinGoal} color="#ff2800" height={6} /></div>
         </div>
       </Link>
 

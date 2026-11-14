@@ -50,24 +50,24 @@ export function TrainingSystem({ sessions, today, bodyweight, plannedPerWeek, pr
         <p className="text-[10px] font-semibold tracking-[.3em] text-muted">REVISÃO DA SEMANA</p>
         <div className="grid grid-cols-3 gap-2 mt-3">
           <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={review.current.sessions} /></p><p className="text-[11px] text-muted">treinos · antes {review.previous.sessions}</p></div>
-          <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl">{fmtT(review.current.volume)}</p><p className="text-[11px]" style={{ color: vd == null ? "#8e8e93" : vd >= 0 ? "#30d158" : "#ff5a6e" }}>{vd == null ? "volume" : `${vd >= 0 ? "▲" : "▼"} ${Math.abs(vd)}% volume`}</p></div>
+          <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl">{fmtT(review.current.volume)}</p><p className="text-[11px]" style={{ color: vd == null ? "#8e8e93" : vd >= 0 ? "#30d158" : "#ff4d3d" }}>{vd == null ? "volume" : `${vd >= 0 ? "▲" : "▼"} ${Math.abs(vd)}% volume`}</p></div>
           <div className="rounded-2xl bg-[#141416] p-3"><p className="num text-2xl"><CountUp value={review.current.cardio} /></p><p className="text-[11px] text-muted">min de cardio</p></div>
         </div>
         {review.prs.length > 0 && (
           <ul className="mt-3 grid gap-1.5">
-            {review.prs.map((p, i) => <li key={i} className="flex items-center gap-2 rounded-xl px-3 min-h-10 text-sm" style={{ background: "#ff4d8a14" }}>
-              <span>🏆</span><span className="flex-1">{p.exercise}</span><span className="num" style={{ color: "#ff4d8a" }}>{p.kg} × {p.reps}</span><span className="text-xs text-muted num">1RM ~{p.e1rm}</span></li>)}
+            {review.prs.map((p, i) => <li key={i} className="flex items-center gap-2 rounded-xl px-3 min-h-10 text-sm" style={{ background: "#ff280014" }}>
+              <span>🏆</span><span className="flex-1">{p.exercise}</span><span className="num" style={{ color: "#ff2800" }}>{p.kg} × {p.reps}</span><span className="text-xs text-muted num">1RM ~{p.e1rm}</span></li>)}
           </ul>
         )}
       </section>
 
       <section className="rise mt-4 rounded-[22px] p-5 border border-white/[.07]" style={{ background: "linear-gradient(160deg, #1a0b0b, #0f0f11 60%)" }}>
-        <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full breathe" style={{ background: "#b51224", boxShadow: "0 0 10px #b51224" }} />
+        <div className="flex items-center gap-2"><span className="h-2 w-2 rounded-full breathe" style={{ background: "#a30000", boxShadow: "0 0 10px #a30000" }} />
           <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#e05252" }}>ASCENSION INTELLIGENCE</p></div>
         {insights.length === 0 ? <p className="text-sm text-muted mt-3">Ainda não há histórico suficiente para análises. Elas aparecem conforme você registra treinos (tendências pedem algumas semanas).</p> : (
           <ul className="grid gap-2.5 mt-3">
             {insights.map((x, i) => (
-              <li key={i} className="rounded-2xl p-3.5 border-l-2" style={{ background: "#141416", borderColor: x.kind === "progresso" ? "#30d158" : x.kind === "atencao" ? "#ff5a6e" : "#f5f5f7" }}>
+              <li key={i} className="rounded-2xl p-3.5 border-l-2" style={{ background: "#141416", borderColor: x.kind === "progresso" ? "#30d158" : x.kind === "atencao" ? "#ff4d3d" : "#f5f5f7" }}>
                 <p className="text-sm font-semibold">{x.title}</p><p className="text-[13px] text-muted mt-1 leading-snug">{x.text}</p>
               </li>
             ))}

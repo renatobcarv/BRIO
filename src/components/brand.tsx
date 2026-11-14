@@ -1,10 +1,10 @@
 /** Marca BRIO (preto + vermelho): "b" geométrico com o círculo vermelho. Vetorial, sem depender de fonte. */
-export const BRAND_RED = "#d12b65";
+export const BRAND_RED = "#dc0000";
 
 /** Símbolo: B angular em forma de "play" (traço claro) com o arco inferior em magenta. */
 export function BrioMark({ size = 96, glow = true }: { size?: number; glow?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="14 6 96 112" aria-hidden style={glow ? { filter: "drop-shadow(0 0 18px rgba(209,43,101,.5))" } : undefined}>
+    <svg width={size} height={size} viewBox="14 6 96 112" aria-hidden style={glow ? { filter: "drop-shadow(0 0 18px rgba(220,0,0,.5))" } : undefined}>
       <g fill="none" strokeWidth="13" strokeLinejoin="round">
         <path d="M52 12 L91 34 Q99 39 91 45 L27 82" stroke="currentColor" />
         <path d="M27 82 V40 Q27 29 37 34 L60 47" stroke="currentColor" />

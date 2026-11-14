@@ -6,7 +6,7 @@ import { Field, Progress, SectionTitle, Segmented, Sheet, Stat, fmt, n } from "@
 import { brl, monthLabel, shortDate } from "@/lib/date";
 import { INV_TYPES, LIQUIDITY, monthsToTarget, projection, reserveMonths, type InvType, type Liquidity } from "@/lib/invest";
 
-const A = "#ff4d8a", UP = "#30d158", DOWN = "#ff453a";
+const A = "#ff2800", UP = "#30d158", DOWN = "#ff453a";
 export type Inv = { id: string; name: string; type: InvType; institution: string | null; amount: number; invested: number; rate_aa: number; monthly: number;
   liquidity: Liquidity; maturity: string | null; notes: string | null; is_reserve: boolean };
 export type Move = { id: string; investment_id: string; date: string; kind: "aporte" | "resgate" | "atualizacao"; amount: number; balance_after: number };
@@ -146,7 +146,7 @@ function Simulator({ initial, monthly, rate }: { initial: number; monthly: numbe
         <Field label="% ao ano"><input className="field num !px-2" inputMode="decimal" value={f.rate} onChange={(e) => setF({ ...f, rate: e.target.value })} /></Field>
       </div>
       <label className="grid gap-1 mt-3"><span className="label">Prazo: {f.years} {f.years === 1 ? "ano" : "anos"}</span>
-        <input type="range" min={1} max={35} value={f.years} onChange={(e) => setF({ ...f, years: +e.target.value })} className="w-full accent-[#ff4d8a] min-h-11" /></label>
+        <input type="range" min={1} max={35} value={f.years} onChange={(e) => setF({ ...f, years: +e.target.value })} className="w-full accent-[#ff2800] min-h-11" /></label>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-2" role="img" aria-label="Projeção do patrimônio">
         <path d={area("total")} fill={A} opacity=".35" />
         <path d={area("contributed")} fill="#f5f5f7" opacity=".45" />

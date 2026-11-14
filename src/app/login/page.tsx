@@ -35,7 +35,7 @@ export default function Login() {
           </div>
           {error && <p role="alert" className="text-sm text-[#ff6961]">{error}</p>}
           <button disabled={pending} className="press min-h-14 rounded-2xl text-base font-semibold text-white disabled:opacity-60 mt-1"
-            style={{ background: "linear-gradient(135deg,#d12b65,#b51224 70%)", boxShadow: "0 14px 34px -14px #d12b65" }}>
+            style={{ background: "linear-gradient(135deg,#dc0000,#a30000 70%)", boxShadow: "0 14px 34px -14px #dc0000" }}>
             {pending ? "Entrando…" : "Entrar"}
           </button>
         </form>

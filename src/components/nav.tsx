@@ -23,20 +23,20 @@ const dreamI = I("M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4-3.9-
 const gear = I("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z");
 
 const primary: Item[] = [
-  { href: "/", label: "Início", color: "#ff4d8a", icon: home },
-  { href: "/espiritual", label: "Espiritual", color: "#ff4d8a", icon: spirit },
+  { href: "/", label: "Início", color: "#ff2800", icon: home },
+  { href: "/espiritual", label: "Espiritual", color: "#ff2800", icon: spirit },
   { href: "/pioneiro", label: "Pioneiro", color: "#f5f5f7", icon: pioneer },
   { href: "/corpo", label: "Corpo", color: "#30d158", icon: body },
 ];
 const secondary: Item[] = [
-  { href: "/status", label: "Status", color: "#ff4d8a", icon: star },
+  { href: "/status", label: "Status", color: "#ff2800", icon: star },
   { href: "/agenda", label: "Agenda", color: "#f5f5f7", icon: cal },
-  { href: "/sonhos", label: "Sonhos", color: "#d12b65", icon: dreamI },
-  { href: "/estudos", label: "Estudos", color: "#d12b65", icon: studyI },
+  { href: "/sonhos", label: "Sonhos", color: "#dc0000", icon: dreamI },
+  { href: "/estudos", label: "Estudos", color: "#dc0000", icon: studyI },
   { href: "/eventos", label: "Eventos", color: "#e0393e", icon: flame },
-  { href: "/financas", label: "Finanças", color: "#ff4d8a", icon: money },
-  { href: "/livros", label: "Livros", color: "#ff5a6e", icon: book },
-  { href: "/metas", label: "Metas", color: "#d12b65", icon: goals },
+  { href: "/financas", label: "Finanças", color: "#ff2800", icon: money },
+  { href: "/livros", label: "Livros", color: "#ff4d3d", icon: book },
+  { href: "/metas", label: "Metas", color: "#dc0000", icon: goals },
   { href: "/configuracoes", label: "Configurações", color: "#9a978f", icon: gear },
 ];
 
@@ -54,7 +54,7 @@ export function Nav() {
           const on = isActive(path, it.href);
           return (
             <Link key={it.href} href={it.href} aria-current={on ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-xl px-3 min-h-11 text-sm transition-colors ${on ? "bg-[#d12b65]/[.14] text-ink shadow-[inset_3px_0_0_#d12b65]" : "text-muted hover:text-ink hover:bg-white/[.04]"}`}>
+              className={`flex items-center gap-3 rounded-xl px-3 min-h-11 text-sm transition-colors ${on ? "bg-[#dc0000]/[.14] text-ink shadow-[inset_3px_0_0_#dc0000]" : "text-muted hover:text-ink hover:bg-white/[.04]"}`}>
               <span style={{ color: on ? it.color : undefined }}>{it.icon}</span>{it.label}
             </Link>
           );
@@ -63,12 +63,12 @@ export function Nav() {
       {/* Mobile: cápsula flutuante */}
       <nav className="md:hidden fixed inset-x-0 bottom-0 z-40 px-4 pb-[calc(env(safe-area-inset-bottom)+10px)] pointer-events-none" aria-label="Navegação principal">
         <ul className="pointer-events-auto mx-auto max-w-md flex items-center justify-between gap-1 rounded-full p-1.5 border border-white/[.09] bg-[#161618]/90 backdrop-blur-xl shadow-[0_20px_40px_-16px_rgba(0,0,0,1)]">
-          {[...primary, { href: "/mais", label: "Mais", color: "#d12b65", icon: more }].map((it) => {
+          {[...primary, { href: "/mais", label: "Mais", color: "#dc0000", icon: more }].map((it) => {
             const on = it.href === "/mais" ? moreActive : isActive(path, it.href);
             return (
               <li key={it.href} className={on ? "flex-[1.6]" : "flex-1"} style={{ transition: "flex .35s cubic-bezier(.34,1.56,.64,1)" }}>
                 <Link href={it.href} aria-current={on ? "page" : undefined} aria-label={it.label}
-                  className={`flex items-center justify-center gap-2 h-12 rounded-full transition-colors ${on ? "bg-gradient-to-br from-[#d12b65] to-[#b51224] text-white shadow-[0_0_24px_-4px_rgba(209,43,101,.7)]" : "text-muted hover:text-ink"}`}>
+                  className={`flex items-center justify-center gap-2 h-12 rounded-full transition-colors ${on ? "bg-gradient-to-br from-[#dc0000] to-[#a30000] text-white shadow-[0_0_24px_-4px_rgba(220,0,0,.7)]" : "text-muted hover:text-ink"}`}>
                   {it.icon}
                   {on && <span className="text-[12px] font-semibold nav-label">{it.label}</span>}
                 </Link>

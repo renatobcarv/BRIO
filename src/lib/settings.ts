@@ -42,9 +42,9 @@ export const DEFAULT_CATEGORIES: FinCategory[] = [
   cat("moradia", "Moradia", "fixo", "#f5f5f7"), cat("contas", "Contas da casa", "fixo", "#3a7bd5"),
   cat("transporte", "Transporte", "fixo", "#5aa9ff"), cat("faculdade", "Faculdade", "fixo", "#2f6fd6"),
   cat("assinaturas", "Assinaturas", "fixo", "#8ec5ff"),
-  cat("alimentacao", "Alimentação", "variavel", "#f5f5f7"), cat("ofertas", "Ofertas (Congregação)", "variavel", "#ff4d8a"),
-  cat("saude", "Saúde", "variavel", "#d12b65"), cat("lazer", "Lazer", "variavel", "#d49bff"),
-  cat("roupas", "Roupas", "variavel", "#ff5a6e"), cat("outros", "Outros", "variavel", "#9a978f"),
+  cat("alimentacao", "Alimentação", "variavel", "#f5f5f7"), cat("ofertas", "Ofertas (Congregação)", "variavel", "#ff2800"),
+  cat("saude", "Saúde", "variavel", "#dc0000"), cat("lazer", "Lazer", "variavel", "#d49bff"),
+  cat("roupas", "Roupas", "variavel", "#ff4d3d"), cat("outros", "Outros", "variavel", "#9a978f"),
 ];
 
 export const DEFAULT_CHECKLIST: ChecklistItem[] = [

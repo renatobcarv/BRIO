@@ -10,7 +10,7 @@ import { addDays, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
 import { MealQuiz } from "@/components/quiz/meal-quiz";
 
-const G = "#30d158", P = "#ff4d8a", C = "#f5f5f7", F = "#d12b65";
+const G = "#30d158", P = "#ff2800", C = "#f5f5f7", F = "#dc0000";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 export type SavedMeal = { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] };
 export type Food = { id: string; name: string; portion: string | null; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
@@ -394,7 +394,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         <div className="flex items-center gap-3">
           <span className="text-2xl" aria-hidden>🍕</span>
           <div className="flex-1"><p className="font-display text-xl">Fora do plano</p><p className="text-xs text-muted">Lanches, bebidas, férias, imprevistos</p></div>
-          {off.length > 0 && <p className="num text-sm" style={{ color: "#ff5a6e" }}>{offKcal} kcal</p>}
+          {off.length > 0 && <p className="num text-sm" style={{ color: "#ff4d3d" }}>{offKcal} kcal</p>}
         </div>
         {off.length > 0 && (
           <ul className="mt-3">
@@ -434,7 +434,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         {sheet?.kind === "add" && <ItemForm key={"a" + sheet.slot} date={date} slot={sheet.slot} foods={foods} onDone={close} />}
         {sheet?.kind === "edit" && <ItemForm key={sheet.item.id} date={date} slot={sheet.item.slot} item={sheet.item} foods={foods} onDone={close} />}
       </Sheet>
-      <Sheet accent="#ff5a6e" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
+      <Sheet accent="#ff4d3d" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
         {sheet?.kind === "off" && <OffPlanForm date={date} onDone={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "quiz"} onClose={close} title="Refeição">

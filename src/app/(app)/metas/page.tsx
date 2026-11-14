@@ -34,7 +34,7 @@ export default async function Page() {
 
   return (
     <div className="dash-auto">
-      <PageHeader eyebrow="Metas" title="Metas e objetivos" color="#d12b65" />
+      <PageHeader eyebrow="Metas" title="Metas e objetivos" color="#dc0000" />
       <Goals today={today} objectives={obj.data ?? []} goals={list} boxes={(boxes.data ?? []).map(({ id, name }) => ({ id, name }))} />
       <Verse area="metas" />
     </div>

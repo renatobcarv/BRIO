@@ -116,14 +116,14 @@ export default async function Hoje() {
       </div>
 
       {/* Relatório financeiro */}
-      <Link href="/financas" className="glass rise block p-5 mt-4" style={{ ["--accent" as string]: "#ff4d8a" }}>
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ff4d8a" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
+      <Link href="/financas" className="glass rise block p-5 mt-4" style={{ ["--accent" as string]: "#ff2800" }}>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ff2800" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
           <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#30d158" }}>{brl(income)}</p></div>
           <div><p className="label">Saiu</p><p className="num text-lg md:text-xl">{brl(spent)}</p></div>
           <div className="col-span-2 sm:col-span-1"><p className="label">Sobra</p><p className="num text-2xl md:text-xl" style={{ color: left >= 0 ? "#f5f5f7" : "#ff453a" }}>{brl(left)}</p></div>
         </div>
-        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#ff4d8a" }} /></div>
+        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#ff2800" }} /></div>
         <div className="flex justify-between text-xs text-muted mt-1.5">
           <span>{income ? `${Math.round((spent / income) * 100)}% da renda usada` : "Sem receitas lançadas"}</span>
           <span>Poupança {income ? Math.round((left / income) * 100) : 0}%</span>
@@ -138,11 +138,11 @@ export default async function Hoje() {
 
       {/* Metas */}
       <Link href="/metas" className="glass rise block p-5 mt-4">
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#d12b65" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#dc0000" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
         {goalList.length === 0 ? <p className="font-display italic text-muted text-lg mt-2">Defina sua primeira meta.</p> : (
           <ul className="grid gap-4 mt-3">
             {goalList.map((g) => {
-              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#d12b65";
+              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#dc0000";
               return (
                 <li key={g.id}>
                   <div className="flex justify-between gap-3 text-sm"><span className="truncate">{g.title}</span><span className="num shrink-0" style={{ color: c }}>{Math.round(st.pct * 100)}%</span></div>
