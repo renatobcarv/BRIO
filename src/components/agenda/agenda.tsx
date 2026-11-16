@@ -68,7 +68,7 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
   const weekStart = add(sel, -((new Date(sel + "T12:00:00Z").getUTCDay() + 6) % 7));
 
   return (
-    <div style={{ ["--accent" as string]: "#f5f5f7" }}>
+    <div className="dash-auto" style={{ ["--accent" as string]: "#f5f5f7" }}>
       {/* Cabeçalho */}
       <header className="rise mb-4 hunt-card p-5 pl-6 relative overflow-hidden">
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 18px #ff2800" }} />

@@ -214,3 +214,14 @@ export async function evaluateProject(id: string): Promise<{ result?: Assessment
   refresh();
   return error ? { error: err(error)! } : { result: r };
 }
+
+// ───────── Flashcards a partir de um texto (aprovação manual) ─────────
+export async function generateCards(text: string, count = 8): Promise<{ notes?: NoteSuggestion[]; error?: string }> {
+  const t = text.trim();
+  if (t.length < 40) return { error: "Cole um texto maior (resumo, capítulo, aula) para gerar os cards." };
+  const r = await aiJSON<{ notes: NoteSuggestion[] }>(null,
+    `Crie ${Math.min(20, Math.max(3, count))} cards de recuperação ativa a partir do texto. title = pergunta objetiva que exige lembrar ou explicar (não sim/não); body = resposta correta e completa em até 400 caracteres, fiel ao texto. Varie: definições, porquês, comparações, aplicação. kind: conceito, definicao, exemplo ou pergunta.`,
+    t.slice(0, 30000), { type: "object", properties: { notes: { type: "array", items: { type: "object", properties: { kind: { type: "string", enum: [...KINDS] }, title: { type: "string" }, body: { type: "string" } }, required: ["kind", "title", "body"] } } }, required: ["notes"] });
+  if ("error" in r) return { error: r.error };
+  return { notes: (r.notes ?? []).filter((x) => x.title).slice(0, 20) };
+}

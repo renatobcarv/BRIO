@@ -34,7 +34,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
   const close = () => setSheet(null);
 
   return (
-    <div style={{ ["--accent" as string]: V }}>
+    <div className="dash-auto" style={{ ["--accent" as string]: V }}>
       {/* Cabeçalho */}
       <header className="rise hunt-card p-5 pl-6 relative overflow-hidden">
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 18px #ff2800" }} />

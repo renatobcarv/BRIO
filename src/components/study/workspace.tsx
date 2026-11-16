@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 import { assessSession, endSession, reopenSession, saveNote, suggestNotes, updateSession, type Assessment, type NoteSuggestion } from "@/app/(app)/estudos/ia-actions";
-import { MODES, type Mode } from "@/lib/ai/pedagogy";
+import { MODES, type Mode, type Prefs } from "@/lib/ai/pedagogy";
 import { MASTERY, masteryFromLevel } from "@/lib/learning";
 import { HI, Ico } from "@/components/hunt-icons";
 import { Sheet } from "@/components/kit";
@@ -13,7 +13,21 @@ import { Md } from "./md";
 type Msg = { id?: string; role: "user" | "assistant"; content: string };
 type Session = { id: string; title: string; subject: string | null; goal: string | null; level: string | null; outcome: string | null; mode: Mode; provider: "claude" | "gemini"; stage: string | null; summary: string | null; status: string };
 type P = { id: string; label: string; ready: boolean; model: string };
-const PENDING_KEY = "brio-ia-first";
+const PENDING_KEY = "brio-ia-first", PREFS_KEY = "brio-ia-prefs";
+const QUICK: [string, string, Mode?][] = [
+  ["Mais simples", "Explique de novo, mais simples, como se eu nunca tivesse visto isso."],
+  ["Exemplo real", "Me dê um exemplo concreto do mundo real para o último ponto."],
+  ["Analogia", "Faça uma analogia do cotidiano para o último conceito."],
+  ["Me teste", "Agora me teste: uma pergunta por vez sobre o que vimos, sem dar a resposta.", "avaliar"],
+  ["Exercício", "Me dê um exercício prático sobre isso, sem a solução.", "praticar"],
+  ["Explico eu (Feynman)", "Vou explicar com minhas palavras. Corrija com rigor o que eu errar ou deixar vago. Minha explicação: "],
+  ["Erros comuns", "Quais são os erros e confusões mais comuns sobre esse assunto? Como evitar cada um?"],
+  ["Resumo", "Resuma o que vimos até aqui em 5 tópicos objetivos."],
+  ["Mapa do assunto", "Monte um mapa do assunto: tópicos principais, como se conectam e o que estudar em seguida."],
+  ["Próximo passo", "Qual é o próximo passo mais importante para eu avançar daqui?"],
+  ["Aplicação prática", "Como eu aplico isso numa situação real ou num projeto? Proponha uma mini tarefa.", "construir"],
+  ["Onde aprofundar", "Indique tipos de fontes e termos de busca para aprofundar (sem inventar títulos específicos)."],
+];
 const KIND_LABEL: Record<string, string> = { conceito: "Conceito", definicao: "Definição", exemplo: "Exemplo", insight: "Insight", resumo: "Resumo", referencia: "Referência", pergunta: "Pergunta", erro: "Erro a corrigir" };
 
 export function Workspace({ session, initial, notes, evidence, providers, links }: {
@@ -32,6 +46,19 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
   const [panel, setPanel] = useState(false);
   const [sugg, setSugg] = useState<(NoteSuggestion & { state: "nova" | "salva" | "descartada" })[] | null>(null);
   const [assess, setAssess] = useState<Assessment | null>(null);
+  const [prefs, setPrefs] = useState<Prefs>({});
+  const [title, setTitle] = useState(session.title);
+  useEffect(() => { try { const v = localStorage.getItem(PREFS_KEY); if (v) setPrefs(JSON.parse(v)); } catch { /* sem storage */ } }, []);
+  const savePrefs = (p: Prefs) => { setPrefs(p); try { localStorage.setItem(PREFS_KEY, JSON.stringify(p)); } catch { /* ignora */ } };
+  const exportMd = () => {
+    const md = `# ${title}\n\n${session.goal ? `Objetivo: ${session.goal}\n\n` : ""}${msgs.map((m) => `## ${m.role === "user" ? "Eu" : "Tutor"}\n\n${m.content}`).join("\n\n")}\n`;
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([md], { type: "text/markdown" })); a.download = `${title.replace(/[^\w\-À-ú ]+/g, "").slice(0, 60) || "sessao"}.md`; a.click(); URL.revokeObjectURL(a.href);
+  };
+  const rename = () => { const t = prompt("Nome da sessão", title)?.trim(); if (t && t !== title) { setTitle(t); start(async () => { await updateSession(session.id, { title: t }); }); } };
+  const quick = (q: (typeof QUICK)[number]) => {
+    if (q[2] && q[2] !== mode) changeMode(q[2]);
+    if (q[1].endsWith(": ")) { setText(q[1]); taRef.current?.focus(); } else send(q[1], q[2]);
+  };
   const [pending, start] = useTransition();
   const endRef = useRef<HTMLDivElement>(null);
   const taRef = useRef<HTMLTextAreaElement>(null);
@@ -39,13 +66,13 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
 
   useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [msgs.length, busy]);
 
-  async function send(content: string) {
+  async function send(content: string, modeOverride?: Mode) {
     const m = content.trim();
     if (!m || busy) return;
     setError(null); setBusy(true); setText("");
     setMsgs((x) => [...x, { role: "user", content: m }, { role: "assistant", content: "" }]);
     try {
-      const r = await fetch("/api/estudar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session_id: session.id, message: m, mode, provider }) });
+      const r = await fetch("/api/estudar", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ session_id: session.id, message: m, mode: modeOverride ?? mode, provider, prefs }) });
       if (!r.ok || !r.body) {
         const j = await r.json().catch(() => ({ error: "Falha ao falar com a IA." }));
         setMsgs((x) => x.slice(0, -1)); setError(j.error ?? "Falha ao falar com a IA."); return;
@@ -97,6 +124,15 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
       </div>
 
       <div>
+        <p className="label !text-[9px] mb-2">Como o tutor responde</p>
+        {([["depth", [["rapido", "Rápido"], ["equilibrado", "Médio"], ["profundo", "Profundo"]]], ["style", [["direto", "Direto"], ["analogias", "Analogias"], ["pratico", "Prático"], ["tecnico", "Técnico"]]], ["language", [["simples", "Simples"], ["tecnica", "Técnica"]]]] as const).map(([k, opts]) => (
+          <div key={k} className="flex gap-px bg-white/[.06] border border-white/[.06] mb-1.5">
+            {opts.map(([v, l]) => { const on = (prefs as Record<string, string>)[k] === v; return <button key={v} aria-pressed={on} onClick={() => savePrefs({ ...prefs, [k]: on ? undefined : v })} className={`flex-1 min-h-9 text-[11px] ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/50 hover:text-white"}`}>{l}</button>; })}
+          </div>))}
+        <p className="text-[10.5px] text-white/40">Vale para todas as sessões, a partir da próxima mensagem.</p>
+      </div>
+
+      <div>
         <p className="label !text-[9px] mb-2">IA</p>
         <div className="flex gap-px bg-white/[.06] border border-white/[.06]">
           {providers.map((p) => <button key={p.id} disabled={!p.ready || busy} aria-pressed={provider === p.id} onClick={() => changeProvider(p.id as "claude" | "gemini")} title={p.model}
@@ -140,8 +176,9 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
           <Link href="/estudos/ia" className="text-white/50 hover:text-white min-h-11 min-w-8 grid place-items-center" aria-label="Voltar às sessões">‹</Link>
           <div className="min-w-0 flex-1">
             <p className="label !text-[9px] flex items-center gap-1.5"><Ico d={HI.bolt} size={11} />{MODES[mode].label} · {providers.find((p) => p.id === provider)?.label}{closed ? " · encerrada" : ""}</p>
-            <h1 className="font-semibold text-[17px] truncate mt-0.5">{session.title}</h1>
+            <button onClick={rename} className="block font-semibold text-[17px] truncate mt-0.5 text-left hover:text-[#ffb21e]" title="Renomear">{title}</button>
           </div>
+          <button className="btn !min-h-10 hidden sm:inline-flex" onClick={exportMd} disabled={!msgs.length} title="Baixar a conversa em Markdown">Exportar</button>
           <div className="lg:hidden"><button className="btn !min-h-10 inline-flex items-center gap-1.5" onClick={() => setPanel(true)}><Ico d={HI.list} size={14} />Painel</button></div>
         </header>
 
@@ -157,6 +194,13 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
             <div key={i} className="max-w-[72ch] min-w-0">
               <p className="label !text-[9px] mb-1.5 flex items-center gap-1.5"><span className="h-1.5 w-1.5 bg-[#ff2800]" />Tutor</p>
               {m.content ? <Md text={m.content} /> : <span className="inline-flex gap-1.5 py-2" aria-label="Pensando">{[0, 1, 2].map((k) => <i key={k} className="h-1.5 w-1.5 bg-white/50 typing-dot" style={{ animationDelay: `${k * .18}s` }} />)}</span>}
+              {m.content && !(busy && i === msgs.length - 1) && (
+                <div className="flex flex-wrap gap-3 mt-3 text-[11px] text-white/40 border-t border-white/[.05] pt-1">
+                  <button className="hover:text-white min-h-8" onClick={() => { navigator.clipboard?.writeText(m.content); }}>Copiar</button>
+                  <button className="hover:text-white min-h-8" onClick={() => setSugg([{ kind: "conceito", title: (msgs[i - 1]?.content ?? title).slice(0, 180), body: m.content.slice(0, 2000), state: "nova" }])}>Salvar como anotação</button>
+                  {!closed && <button className="hover:text-white min-h-8" onClick={() => send(`Aprofunde este ponto, com mais detalhe e um exemplo: "${m.content.replace(/\s+/g, " ").slice(0, 220)}…"`)}>Aprofundar</button>}
+                  {!closed && <button className="hover:text-white min-h-8" onClick={() => send("Não entendi bem. Explique de outro jeito, passo a passo.")}>Não entendi</button>}
+                </div>)}
             </div>))}
           {error && <p className="text-[13px] text-[#ff453a] border border-[#ff453a44] px-3 py-2" role="alert">{error}</p>}
           {assess && (
@@ -173,6 +217,9 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
 
         {!closed && (
           <form className="sticky bottom-0 bg-[#050505] pt-2 pb-[max(env(safe-area-inset-bottom),8px)] border-t border-white/[.06]" onSubmit={(e) => { e.preventDefault(); send(text); }}>
+            <div className="flex gap-1.5 overflow-x-auto pb-2 -mx-1 px-1" role="toolbar" aria-label="Ações rápidas">
+              {QUICK.map((q) => <button key={q[0]} type="button" disabled={busy} onClick={() => quick(q)} className="shrink-0 min-h-9 px-3 border border-white/10 bg-[#0b0b0b] text-[12px] text-white/70 hover:text-white hover:border-[#ffb21e66] disabled:opacity-40">{q[0]}</button>)}
+            </div>
             <div className="flex items-end gap-2">
               <textarea ref={taRef} rows={1} className="field flex-1 !min-h-12 max-h-48 py-3 !resize-none leading-relaxed" placeholder={mode === "socratico" || mode === "avaliar" || mode === "revisar" ? "Sua resposta, com suas palavras…" : "Pergunte, responda ou cole seu código…"}
                 value={text} onChange={(e) => { setText(e.target.value); e.target.style.height = "auto"; e.target.style.height = Math.min(192, e.target.scrollHeight) + "px"; }}

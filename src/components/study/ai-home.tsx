@@ -41,7 +41,11 @@ export function AiHome({ ready, sessions, tracks, projects, providers, preset }:
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
         <p className="label flex items-center gap-1.5"><Ico d={HI.bolt} size={13} />Nova sessão</p>
         <h1 className="font-display text-4xl mt-2">O que você quer aprender<span className="text-[#ffb21e]">?</span></h1>
-        <textarea className="field mt-4 !min-h-28 py-3 text-[15px] leading-relaxed" placeholder="Ex.: quero entender recursão de verdade, sei o básico de JavaScript e travo quando a função chama ela mesma."
+        <div className="flex flex-wrap gap-1.5 mt-4" role="group" aria-label="Pontos de partida">
+          {([["Aprender do zero", "Quero aprender do zero: ", "ensinar"], ["Preparar para prova", "Tenho prova sobre: . Quero revisar e treinar questões.", "praticar"], ["Revisar matéria", "Quero revisar o que já estudei sobre: ", "revisar"], ["Entender um texto", "Me ajude a entender este texto (vou colar a seguir): ", "investigar"], ["Resolver um problema", "Estou travado neste problema: ", "socratico"], ["Projeto prático", "Quero construir um projeto para aplicar: ", "construir"], ["Testar meu nível", "Avalie meu nível em: ", "avaliar"]] as const).map(([l, t, m]) => (
+            <button key={l} type="button" className={`min-h-9 px-3 border text-[12px] ${f.mode === m && f.text.startsWith(t.slice(0, 12)) ? "border-[#ffb21e] text-white" : "border-white/10 text-white/65 hover:text-white"}`} onClick={() => setF({ ...f, text: t, mode: m })}>{l}</button>))}
+        </div>
+        <textarea className="field mt-3 !min-h-28 py-3 text-[15px] leading-relaxed" placeholder="Ex.: quero entender recursão de verdade, sei o básico de JavaScript e travo quando a função chama ela mesma."
           value={f.text} onChange={(e) => setF({ ...f, text: e.target.value })} aria-label="O que você quer aprender" />
 
         <p className="label !text-[9px] mt-4 mb-2">Modo</p>

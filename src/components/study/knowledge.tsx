@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
-import { deleteNote, gradeReview, saveNote } from "@/app/(app)/estudos/ia-actions";
+import { deleteNote, generateCards, gradeReview, saveNote, type NoteSuggestion } from "@/app/(app)/estudos/ia-actions";
 import { MASTERY, type Mastery } from "@/lib/learning";
 import { HI, Ico } from "@/components/hunt-icons";
 import { Sheet } from "@/components/kit";
@@ -18,6 +18,7 @@ export function Knowledge({ today, ready, notes, tracks, evidence }: { today: st
   const [kind, setKind] = useState("todos");
   const [edit, setEdit] = useState<Note | "new" | null>(null);
   const [reviewing, setReviewing] = useState(false);
+  const [cards, setCards] = useState(false);
   const due = useMemo(() => notes.filter((n) => n.in_review && n.review_at && n.review_at <= today), [notes, today]);
   const list = notes.filter((n) => (kind === "todos" || n.kind === kind) && (!q || `${n.title} ${n.body}`.toLowerCase().includes(q.toLowerCase())));
   const byMastery = (Object.keys(MASTERY) as Mastery[]).map((m) => [m, notes.filter((n) => n.mastery === m).length] as const);
@@ -40,6 +41,7 @@ export function Knowledge({ today, ready, notes, tracks, evidence }: { today: st
         {/* Lista */}
         <div className="flex flex-wrap items-center gap-2 mt-6 mb-3">
           <p className="label flex items-center gap-1.5 mr-auto"><Ico d={HI.book} size={13} />Base de conhecimento · {notes.length}</p>
+          <button className="btn !min-h-10 inline-flex items-center gap-1.5" onClick={() => setCards(true)}><Ico d={HI.bolt} size={14} />Gerar cards com IA</button>
           <button className="btn !min-h-10 inline-flex items-center gap-1.5" onClick={() => setEdit("new")}><Ico d={HI.plus} size={14} />Anotação</button>
         </div>
         <div className="grid sm:grid-cols-[1fr_auto] gap-2 mb-3">
@@ -87,6 +89,9 @@ export function Knowledge({ today, ready, notes, tracks, evidence }: { today: st
 
       <Sheet open={!!edit} onClose={() => setEdit(null)} title={edit === "new" ? "Nova anotação" : "Anotação"}>
         {edit && <NoteForm note={edit === "new" ? null : edit} tracks={tracks} onDone={() => setEdit(null)} />}
+      </Sheet>
+      <Sheet open={cards} onClose={() => setCards(false)} title="Gerar cards com IA">
+        {cards && <CardGen tracks={tracks} />}
       </Sheet>
       <Sheet open={reviewing} onClose={() => setReviewing(false)} title={`Revisão · ${due.length}`}>
         {reviewing && <Review queue={due} onDone={() => setReviewing(false)} />}
@@ -163,4 +168,37 @@ function Review({ queue, onDone }: { queue: Note[]; onDone: () => void }) {
         </div>)}
     </div>
   );
+}
+
+function CardGen({ tracks }: { tracks: { id: string; title: string }[] }) {
+  const [text, setText] = useState(""), [n, setN] = useState(8), [track, setTrack] = useState("");
+  const [list, setList] = useState<(NoteSuggestion & { state: "nova" | "salva" | "descartada" })[] | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, start] = useTransition();
+  if (list) return (
+    <div className="grid gap-3">
+      <p className="text-[12.5px] text-white/55">Revise cada card. Só os salvos entram na revisão espaçada.</p>
+      {list.map((c, i) => (
+        <div key={i} className={`border p-3 ${c.state === "salva" ? "border-[#30d15855]" : c.state === "descartada" ? "border-white/5 opacity-40" : "border-white/10"}`}>
+          <input className="field font-semibold" value={c.title} disabled={c.state !== "nova"} onChange={(e) => setList((x) => x!.map((y, k) => k === i ? { ...y, title: e.target.value } : y))} aria-label="Pergunta" />
+          <textarea className="field mt-2 !min-h-16 py-2 text-[13.5px]" value={c.body} disabled={c.state !== "nova"} onChange={(e) => setList((x) => x!.map((y, k) => k === i ? { ...y, body: e.target.value } : y))} aria-label="Resposta" />
+          {c.state === "nova" ? <div className="flex gap-2 mt-2">
+            <button className="btn btn-accent flex-1" disabled={pending} onClick={() => start(async () => { const e = await saveNote({ kind: c.kind as never, title: c.title, body: c.body, track_id: track || null }); if (e) setError(e); else setList((x) => x!.map((y, k) => k === i ? { ...y, state: "salva" } : y)); })}>Salvar</button>
+            <button className="btn" onClick={() => setList((x) => x!.map((y, k) => k === i ? { ...y, state: "descartada" } : y))}>Descartar</button></div>
+            : <p className="text-[12px] mt-2 text-white/55">{c.state === "salva" ? "✓ Salvo" : "Descartado"}</p>}
+        </div>))}
+      <button className="btn btn-accent" disabled={pending} onClick={() => start(async () => { for (const [i, c] of list.entries()) if (c.state === "nova") { const e = await saveNote({ kind: c.kind as never, title: c.title, body: c.body, track_id: track || null }); if (!e) setList((x) => x!.map((y, k) => k === i ? { ...y, state: "salva" } : y)); } })}>Salvar todos os restantes</button>
+      {error && <p className="text-[12.5px] text-[#ff453a]" role="alert">{error}</p>}
+    </div>);
+  return (
+    <div className="grid gap-3">
+      <p className="text-[12.5px] text-white/55">Cole um resumo, capítulo, aula ou artigo. A IA cria perguntas de recuperação ativa; você aprova uma a uma.</p>
+      <textarea className="field !min-h-48 py-2.5 leading-relaxed" placeholder="Cole o texto aqui…" value={text} onChange={(e) => setText(e.target.value)} />
+      <div className="grid grid-cols-2 gap-2">
+        <label className="grid gap-1"><span className="label !text-[9px]">Quantidade</span><select className="field" value={n} onChange={(e) => setN(Number(e.target.value))}>{[5, 8, 12, 20].map((x) => <option key={x} value={x}>{x} cards</option>)}</select></label>
+        <label className="grid gap-1"><span className="label !text-[9px]">Trilha</span><select className="field" value={track} onChange={(e) => setTrack(e.target.value)}><option value="">Nenhuma</option>{tracks.map((t) => <option key={t.id} value={t.id}>{t.title}</option>)}</select></label>
+      </div>
+      {error && <p className="text-[12.5px] text-[#ff453a]" role="alert">{error}</p>}
+      <button className="btn btn-accent" disabled={pending || text.trim().length < 40} onClick={() => start(async () => { setError(null); const r: { notes?: NoteSuggestion[]; error?: string } = await generateCards(text, n).catch(() => ({ error: "Falha de conexão." })); if (r.error) setError(r.error); else setList((r.notes ?? []).map((x) => ({ ...x, state: "nova" as const }))); })}>{pending ? "Gerando…" : "Gerar cards"}</button>
+    </div>);
 }

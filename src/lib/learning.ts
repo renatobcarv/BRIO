@@ -48,3 +48,26 @@ export function evidenceXp(e: { kind: string; level: number; score?: number | nu
   const quality = e.score != null ? e.score / 100 : e.level / 5;
   return Math.max(1, Math.round(base * (0.4 + quality) + e.level * 2));
 }
+
+export type LearnStats = { sessions: number; evidence: { kind: string; level: number; score: number | null; date: string }[]; notes: number; reviewsOk: number; projectsDone: number; certificates: number; hoursCert: number };
+export type LearnAch = { id: string; title: string; desc: string; got: boolean; cur: number; goal: number; tier: "bronze" | "prata" | "ouro" };
+/** Conquistas de aprendizado: só contam evidências e entregas, não tempo de tela. */
+export function learningAchievements(s: LearnStats): LearnAch[] {
+  const ev = s.evidence, lvl = (n: number, k?: string) => ev.filter((e) => e.level >= n && (!k || e.kind === k)).length;
+  const a = (id: string, title: string, desc: string, cur: number, goal: number, tier: LearnAch["tier"]): LearnAch => ({ id, title, desc, cur: Math.min(cur, goal), goal, got: cur >= goal, tier });
+  return [
+    a("primeira-sessao", "Primeiro passo", "Abrir a primeira sessão com o tutor", s.sessions, 1, "bronze"),
+    a("dez-sessoes", "Estudante constante", "10 sessões de estudo com IA", s.sessions, 10, "prata"),
+    a("primeira-avaliacao", "Posto à prova", "Fazer a primeira avaliação de domínio", ev.filter((e) => e.kind === "avaliacao").length, 1, "bronze"),
+    a("explica", "Explica com as próprias palavras", "Atingir nível 2+ numa avaliação", lvl(2, "avaliacao"), 1, "bronze"),
+    a("resolve", "Resolve problemas", "Atingir nível 3+ em 3 avaliações", lvl(3, "avaliacao"), 3, "prata"),
+    a("dominio", "Domínio comprovado", "Atingir nível 5 numa avaliação", lvl(5, "avaliacao"), 1, "ouro"),
+    a("base-20", "Biblioteca mental", "20 anotações na base de conhecimento", s.notes, 20, "bronze"),
+    a("revisor-25", "Memória de aço", "25 revisões corretas", s.reviewsOk, 25, "prata"),
+    a("revisor-100", "Recuperação ativa", "100 revisões corretas", s.reviewsOk, 100, "ouro"),
+    a("construtor", "Construtor", "Concluir um projeto no Build Lab", s.projectsDone, 1, "prata"),
+    a("projeto-aprovado", "Aplicou no mundo real", "Projeto avaliado com nível 4+", lvl(4, "projeto"), 1, "ouro"),
+    a("certificado-1", "Formação registrada", "Indexar o primeiro certificado", s.certificates, 1, "bronze"),
+    a("cem-horas", "Cem horas certificadas", "Somar 100 horas em certificados", Math.round(s.hoursCert), 100, "ouro"),
+  ];
+}

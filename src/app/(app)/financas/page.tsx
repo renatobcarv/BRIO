@@ -92,7 +92,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const brl0 = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
   return (
-    <div style={{ ["--accent" as string]: "#ff2800" }}>
+    <div className="dash-auto" style={{ ["--accent" as string]: "#ff2800" }}>
       <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" icon={HI.coin} line="Dinheiro é ferramenta. Ordem antes de conforto." />
       <Board icon={HI.coin} label={`Saldo de ${monthLabel(month)}`} big={brl0(inc - exp)} bar={inc ? Math.min(1, exp / inc) : exp ? 1 : 0}
         sub={inc ? `${Math.round((exp / inc) * 100)}% da renda já comprometida` : "Lance as entradas do mês para ver o saldo."}
@@ -112,7 +112,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={href(tab, addMonths(month, 1))} aria-label="Próximo mês">›</Link>
         </nav>
       )}
-      <div key={tab + month}>{content}</div>
+      <div key={tab + month} className="contents">{content}</div>
       <Verse area="financas" />
     </div>
   );

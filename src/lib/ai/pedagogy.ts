@@ -35,7 +35,20 @@ export type SessionCtx = {
   track?: string | null; item?: string | null; project?: string | null;
   notes?: { kind: string; title: string; body: string }[];
   evidence?: { topic: string; level: number; justification?: string | null }[];
+  prefs?: Prefs | null;
 };
+
+export type Prefs = { depth?: "rapido" | "equilibrado" | "profundo"; style?: "direto" | "analogias" | "pratico" | "tecnico"; language?: "simples" | "tecnica" };
+export const PREF_TEXT = {
+  depth: { rapido: "Respostas curtas: no máximo ~120 palavras por mensagem.", equilibrado: "Respostas de tamanho médio (~250 palavras).", profundo: "Pode aprofundar bastante, com detalhes, casos-limite e nuances." },
+  style: { direto: "Estilo direto, sem rodeios.", analogias: "Use analogias do cotidiano para cada ideia nova.", pratico: "Ancore tudo em exemplos práticos e situações reais.", tecnico: "Use rigor técnico, termos corretos e notação precisa." },
+  language: { simples: "Linguagem simples, como para um iniciante inteligente.", tecnica: "Linguagem técnica, presumindo base no assunto." },
+} as const;
+export function prefsText(p?: Prefs | null): string {
+  if (!p) return "";
+  const t = [p.depth && PREF_TEXT.depth[p.depth], p.style && PREF_TEXT.style[p.style], p.language && PREF_TEXT.language[p.language]].filter(Boolean);
+  return t.length ? `\n# Preferências da pessoa\n${t.map((x) => `- ${x}`).join("\n")}` : "";
+}
 
 export function systemPrompt(c: SessionCtx): string {
   const m = MODES[c.mode] ?? MODES.ensinar;
@@ -54,7 +67,7 @@ export function systemPrompt(c: SessionCtx): string {
     c.notes?.length ? `\n# Anotações relevantes da pessoa\n${c.notes.slice(0, 8).map((n) => `- [${n.kind}] ${n.title}: ${n.body.slice(0, 280)}`).join("\n")}` : null,
     c.evidence?.length ? `\n# Avaliações anteriores (nível 0–5)\n${c.evidence.slice(0, 6).map((e) => `- ${e.topic}: ${e.level}${e.justification ? ` — ${e.justification.slice(0, 160)}` : ""}`).join("\n")}` : null,
   ].filter(Boolean);
-  return lines.join("\n");
+  return lines.join("\n") + prefsText(c.prefs);
 }
 
 export type Msg = { role: "user" | "assistant"; content: string };

@@ -14,6 +14,7 @@ const Body = z.object({
   message: z.string().trim().min(1).max(12000),
   mode: z.enum(Object.keys(MODES) as [Mode, ...Mode[]]).optional(),
   provider: z.enum(["claude", "gemini"]).optional(),
+  prefs: z.object({ depth: z.enum(["rapido", "equilibrado", "profundo"]).optional(), style: z.enum(["direto", "analogias", "pratico", "tecnico"]).optional(), language: z.enum(["simples", "tecnica"]).optional() }).optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -50,7 +51,7 @@ export async function POST(req: NextRequest) {
   const system = systemPrompt({
     title: s.title, subject: s.subject, goal: s.goal, level: s.level, outcome: s.outcome, mode, stage: s.stage, summary: s.summary,
     track: track.data?.title, item: item.data?.title, project: project.data?.title,
-    notes: notes.data ?? [], evidence: ev.data ?? [],
+    notes: notes.data ?? [], evidence: ev.data ?? [], prefs: p.data.prefs ?? null,
   });
 
   // Inicia o stream; se o provedor escolhido falhar logo de cara, tenta o outro.

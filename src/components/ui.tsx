@@ -18,7 +18,7 @@ export function Board({ icon, label, big, unit, sub, bar, stats = [], note, chil
 }) {
   const R = "#ff2800";
   return (
-    <section className="hunt-card rise relative overflow-hidden p-5 mb-4">
+    <section className="hunt-card rise relative overflow-hidden p-5 mb-4 span-all board">
       <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
       <p className="label flex items-center gap-1.5"><Ico d={icon} size={13} />{label}</p>
       <p className="num text-6xl leading-none mt-2">{big}{unit && <span className="text-xl text-white/40"> {unit}</span>}</p>
