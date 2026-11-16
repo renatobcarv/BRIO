@@ -1,3 +1,4 @@
+import { evidenceXp } from "./learning.ts";
 import { cleanXpByDay } from "./clean.ts";
 // Progressão do BRIO: XP e conquistas calculados só a partir de registros reais. Sem dependências.
 
@@ -51,6 +52,7 @@ export type GameInput = {
   checks: { date: string }[];                 // um por item feito
   fullDays: string[];                         // dias 100%
   study: { date: string; minutes: number }[];
+  learning?: { date: string; kind: string; level: number; score: number | null; topic: string }[]; // evidências de aprendizagem (Estudar com IA)
   chapters: { date: string }[];
   pioneer: { date: string; minutes: number }[];
   workouts: { date: string; sets: { exercise: string; kg: number; reps: number }[]; cardio: boolean }[];
@@ -83,6 +85,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
   for (const c of cleanXpByDay(g.cleanDays ?? [], g.relapses ?? [])) ev.push({ date: c.date, attr: "disciplina", xp: c.xp, label: `Dia limpo · ${c.day}º seguido` });
   for (const d of g.fullDays) ev.push({ date: d, attr: "disciplina", xp: 50, label: "Dia 100% completo" });
   for (const s of g.study) if (s.minutes > 0) ev.push({ date: s.date, attr: "sabedoria", xp: Math.min(s.minutes, 180), label: `${s.minutes} min de estudo` });
+  for (const e of g.learning ?? []) ev.push({ date: e.date, attr: "sabedoria", xp: evidenceXp(e), label: `${{ avaliacao: "Avaliação", explicacao: "Explicou", desafio: "Desafio", revisao: "Revisão", projeto: "Projeto" }[e.kind] ?? "Estudo"}: ${e.topic.slice(0, 40)}` });
   for (const c of g.chapters) ev.push({ date: c.date, attr: "sabedoria", xp: 15, label: "Capítulo da Bíblia" });
   for (const r of g.readingPages) if (r.pages > 0) ev.push({ date: r.date, attr: "sabedoria", xp: Math.min(150, Math.round(r.pages / 2)), label: `${r.pages} páginas lidas` });
   for (const b of g.booksFinished) ev.push({ date: b.date, attr: "sabedoria", xp: 150, label: `Livro concluído: ${b.title}` });

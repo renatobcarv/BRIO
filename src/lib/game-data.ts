@@ -8,7 +8,8 @@ import type { Settings } from "./settings";
 /** Junta os registros reais de todas as áreas e calcula o progresso. Tabelas ausentes contam como vazias. */
 export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const q = async <T,>(p: PromiseLike<{ data: T[] | null; error: unknown }>) => { const r = await p; return r.error ? [] : r.data ?? []; };
-  const [checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal, mealRows, programs, mealsDone] = await Promise.all([
+  const [learning, checks, study, bible, pioneer, workouts, water, sleep, sessions, books, fin, weights, cleanDays, timed, journal, mealRows, programs, mealsDone] = await Promise.all([
+    q<{ date: string; kind: string; level: number; score: number | null; topic: string }>(sb.from("study_evidence").select("date,kind,level,score,topic").limit(5000)),
     q<{ date: string; item_key: string }>(sb.from("daily_checks").select("date,item_key").eq("done", true).limit(20000)),
     q<{ date: string; minutes: number }>(sb.from("study_entries").select("date,minutes").limit(10000)),
     q<{ date_read: string }>(sb.from("bible_reading").select("date_read").limit(2000)),
@@ -40,6 +41,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     checks: checks.map((c) => ({ date: c.date })),
     fullDays: [...perDay].filter(([, set]) => keys.every((k) => set.has(k))).map(([d]) => d),
     study: study.map((x) => ({ date: x.date, minutes: Number(x.minutes) })),
+    learning: learning.map((x) => ({ ...x, level: Number(x.level), score: x.score == null ? null : Number(x.score) })),
     chapters: bible.map((b) => ({ date: b.date_read })),
     pioneer: pioneer.map((p) => ({ date: p.date, minutes: Number(p.minutes) })),
     workouts: workouts.map((w) => ({ date: w.date, sets: (w.workout_sets ?? []).map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: Number(x.reps) })),

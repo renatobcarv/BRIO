@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { aiStudyPlan, applyPlan, deleteItem, deleteTrack, logStudy, reviewItem, saveItem, saveTrack, setItemStatus, setTrackStatus, toggleWeak, type PlanModule } from "@/app/(app)/estudos/actions";
 import { Field, Sheet } from "@/components/kit";
@@ -111,6 +112,7 @@ export function StudyCenter({ today, ready, tracks, items, logs }: { today: stri
                   <button className="btn btn-accent" onClick={() => setSheet({ k: "timer", i: step })}>⏱ Estudar agora</button>
                   <StatusButton i={step} />
                 </div>)}
+                <Link href={`/estudos/ia?track=${track.id}&item=${step.id}&t=${encodeURIComponent(step.title)}`} className="btn w-full mt-2 inline-flex items-center justify-center gap-2">Estudar esta etapa com IA →</Link>
               </div>
             ) : (
               <div className="mt-4 rounded-[8px] p-4 text-center border" style={{ borderColor: "#30d15566", background: "rgba(48,209,88,.08)" }}>

@@ -1,4 +1,5 @@
 import { StudyCenter } from "@/components/study/center";
+import { StudyNav } from "@/components/study/nav";
 import { todayISO } from "@/lib/date";
 import { createClient } from "@/lib/supabase/server";
 import type { SItem, SLog, STrack } from "@/lib/study";
@@ -14,5 +15,5 @@ export default async function Page() {
     sb.from("study_items").select("id,track_id,module,title,position,est_min,status,weak,confidence,link,notes,review_at,review_step,done_at").order("position"),
     sb.from("study_logs").select("date,track_id,item_id,minutes,kind").gte("date", from),
   ]);
-  return <StudyCenter today={today} ready={!t.error} tracks={(t.data ?? []) as STrack[]} items={(i.data ?? []) as SItem[]} logs={(l.data ?? []) as SLog[]} />;
+  return <><StudyNav current="/estudos" /><StudyCenter today={today} ready={!t.error} tracks={(t.data ?? []) as STrack[]} items={(i.data ?? []) as SItem[]} logs={(l.data ?? []) as SLog[]} /></>;
 }
