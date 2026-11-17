@@ -9,7 +9,7 @@ import { Streak } from "@/components/home/streak";
 import { addDays, brl, monthLabel, monthStart, todayISO, toHMM } from "@/lib/date";
 import { getSettings } from "@/lib/settings";
 import { computeStreak } from "@/lib/streak";
-import { cleanStats, type Mark } from "@/lib/clean";
+import { cleanDays, cleanStats, type Mark } from "@/lib/clean";
 import { signedPhoto } from "@/lib/storage";
 import { goalStats, AREAS, type GoalRow } from "@/lib/goals";
 import { createClient } from "@/lib/supabase/server";
@@ -69,11 +69,12 @@ export default async function Hoje() {
   // Dias limpos + semana atual (seg → dom)
   const marks = (cleanQ.error ? [] : cleanQ.data ?? []) as Mark[];
   const clean = cleanStats(marks, today);
+  const cleanSet = new Set(cleanDays(marks, today));
   const monday = addDays(today, -((new Date(today + "T12:00:00Z").getUTCDay() + 6) % 7));
   const week = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(monday, i), m = marks.find((x) => x.date === d);
     return { date: d, label: ["S", "T", "Q", "Q", "S", "S", "D"][i], today: d === today,
-      state: (d > today ? "future" : m?.kind === "limpo" ? "done" : m?.kind === "recaida" ? "relapse" : "none") as "done" | "relapse" | "none" | "future" };
+      state: (d > today ? "future" : m?.kind === "recaida" ? "relapse" : cleanSet.has(d) ? "done" : "none") as "done" | "relapse" | "none" | "future" };
   });
 
   // Finanças do mês
@@ -131,7 +132,7 @@ export default async function Hoje() {
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
       </div>
       <div className="dash-side min-w-0">
-      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} />
+      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} />
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
         <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />

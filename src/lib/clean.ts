@@ -1,19 +1,31 @@
-// Dias limpos: cada dia marcado conta; uma recaída zera a sequência e o recorde fica. Sem dependências.
+// Dias limpos: a partir do primeiro registro, todo dia sem recaída conta (esquecer de marcar não zera). Só a recaída quebra a sequência; o recorde fica. Sem dependências.
 export type Mark = { date: string; kind: "limpo" | "recaida" };
 const prev = (iso: string) => new Date(Date.parse(iso + "T12:00:00Z") - 864e5).toISOString().slice(0, 10);
 export const MILESTONES = [1, 3, 7, 14, 30, 60, 90, 180, 365];
 
-export function cleanStats(marks: Mark[], today: string) {
-  const clean = new Set(marks.filter((m) => m.kind === "limpo").map((m) => m.date));
+/** Dias limpos implícitos: a partir do primeiro registro, todo dia sem recaída conta como limpo
+ * (não precisa marcar todo dia; esquecer de marcar não zera). Recaída é o único evento que quebra. */
+const next = (d: string) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + 1); return x.toISOString().slice(0, 10); };
+
+export function cleanDays(marks: Mark[], today: string): string[] {
+  if (!marks.length) return [];
   const relapse = new Set(marks.filter((m) => m.kind === "recaida").map((m) => m.date));
-  // Sequência atual: termina hoje (se já marcado) ou ontem.
+  const start = marks.map((m) => m.date).sort()[0];
+  const out: string[] = [];
+  for (let d = start; d <= today; d = next(d)) if (!relapse.has(d)) out.push(d);
+  return out;
+}
+
+export function cleanStats(marks: Mark[], today: string) {
+  const days = cleanDays(marks, today), clean = new Set(days);
+  const relapse = new Set(marks.filter((m) => m.kind === "recaida").map((m) => m.date));
+  // Sequência atual: termina hoje (o dia conta até você marcar recaída).
   let count = 0;
-  for (let d = clean.has(today) ? today : prev(today); clean.has(d) && !relapse.has(d); d = prev(d)) count++;
-  // Recorde: maior sequência de dias limpos consecutivos.
+  for (let d = today; clean.has(d); d = prev(d)) count++;
   let best = 0, run = 0, last = "";
-  for (const d of [...clean].sort()) { run = last && prev(d) === last && !relapse.has(d) ? run + 1 : 1; best = Math.max(best, run); last = d; }
-  const next = MILESTONES.find((m) => m > count) ?? count + 30;
-  return { count, best: Math.max(best, count), todayDone: clean.has(today), relapsedToday: relapse.has(today), total: clean.size, next };
+  for (const d of days) { run = last && prev(d) === last ? run + 1 : 1; best = Math.max(best, run); last = d; }
+  const nextM = MILESTONES.find((m) => m > count) ?? count + 30;
+  return { count, best: Math.max(best, count), todayDone: clean.has(today), relapsedToday: relapse.has(today), total: clean.size, next: nextM, started: days.length > 0 || relapse.size > 0 };
 }
 
 /** XP de um dia limpo pelo tamanho da sequência: começa em 10, cresce rápido e estabiliza em 30. */

@@ -76,3 +76,18 @@ export async function relapse(): Promise<string | null> {
   revalidatePath("/"); revalidatePath("/status");
   return null;
 }
+/** Define desde quando você está limpo. A partir daí todo dia sem recaída conta sozinho. */
+export async function startClean(date: string): Promise<string | null> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || date > todayISO()) return "Escolha uma data até hoje.";
+  const sb = await createClient();
+  const { data: last } = await sb.from("clean_marks").select("date").eq("kind", "recaida").order("date", { ascending: false }).limit(1).maybeSingle();
+  if (last && date <= last.date) return `Escolha um dia depois da última recaída (${last.date.split("-").reverse().join("/")}).`;
+  // Início da sequência atual = o dia escolhido: tira marcas anteriores da mesma sequência.
+  let del = sb.from("clean_marks").delete().eq("kind", "limpo").lt("date", date);
+  if (last) del = del.gt("date", last.date);
+  await del;
+  const { error } = await sb.from("clean_marks").upsert({ date, kind: "limpo" }, { onConflict: "user_id,date" });
+  if (error) return /relation|does not exist|schema cache/i.test(error.message) ? CLEAN_MISSING : error.message;
+  revalidatePath("/"); revalidatePath("/status");
+  return null;
+}

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useTransition } from "react";
-import { markClean, relapse } from "@/app/(app)/home-actions";
+import { relapse, startClean } from "@/app/(app)/home-actions";
 import { useXp } from "@/components/game/xp";
 import { MILESTONES, cleanXp, fireTier, nextFire } from "@/lib/clean";
 import { CountUp } from "@/components/count-up";
@@ -31,7 +31,7 @@ function Fire({ n }: { n: number }) {
 }
 
 /** Dias limpos: +1 por dia vencido, recomeço honesto em caso de queda. */
-export function Streak({ count: initial, best, todayDone: done0, week: week0, next, ready = true }: { count: number; best: number; todayDone: boolean; week: DayState[]; next: number; ready?: boolean }) {
+export function Streak({ count: initial, best, todayDone: done0, week: week0, next, ready = true, started = true }: { count: number; best: number; todayDone: boolean; week: DayState[]; next: number; ready?: boolean; started?: boolean }) {
   const [pending, start] = useTransition();
   const { gain, celebrate } = useXp();
   const [count, setCount] = useState(initial);
@@ -42,15 +42,17 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
   void lit;
   const setToday = (state: DayState["state"]) => setWeek((w) => w.map((d) => (d.today ? { ...d, state } : d)));
 
-  const plusOne = () => {
-    const c = count + 1;
-    setCount(c); setDone(true); setToday("done");
-    gain(cleanXp(c), `Dia limpo · ${c}º seguido`, fireTier(c).color);
-    if (fireTier(c).from === c && c > 1) setTimeout(() => celebrate(`O fogo virou ${fireTier(c).name}`, `${c} dias limpos · +${cleanXp(c)} XP por dia`), 900);
+  const [since, setSince] = useState("");
+  const [editing, setEditing] = useState(!started);
+  const todayIso = week.find((d) => d.today)?.date ?? "";
+  const begin = (date: string) => {
+    const c = Math.max(1, Math.round((Date.parse(todayIso + "T12:00:00Z") - Date.parse(date + "T12:00:00Z")) / 864e5) + 1);
+    setCount(c); setDone(true); setEditing(false);
+    setWeek((w) => w.map((d) => (d.date >= date && d.date <= todayIso ? { ...d, state: "done" } : d)));
+    gain(cleanXp(c), `Dias limpos · ${c}`, fireTier(c).color);
     if (MILESTONES.includes(c) && c > 1) setTimeout(() => celebrate(`${c} dias limpos`, c >= best ? "Novo recorde. Continue firme." : "Firme. Um dia de cada vez."), 400);
-    start(async () => { const e = await markClean(true); if (e) { setErr(e); setCount(c - 1); setDone(false); setToday("none"); gain(-cleanXp(c)); } });
+    start(async () => { const e = await startClean(date); if (e) setErr(e); });
   };
-  const undo = () => { gain(-cleanXp(count)); setCount((c) => Math.max(0, c - 1)); setDone(false); setToday("none"); start(async () => { const e = await markClean(false); if (e) setErr(e); }); };
   const restart = () => {
     if (!confirm("Recomeçar do zero? Seu recorde fica guardado. O que importa é levantar.")) return;
     setCount(0); setDone(false); setToday("relapse"); start(async () => { const e = await relapse(); if (e) setErr(e); });
@@ -84,10 +86,21 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
 
       {err && <p role="alert" className="mx-5 mb-3 rounded-xl p-3 text-sm text-[#ff453a] bg-[#ff453a]/10 border border-[#ff453a]/30">{err}</p>}
       <div className="px-5 pb-5 grid gap-2">
-        {done ? (
-          <button className="btn w-full" disabled={pending} onClick={undo}>Hoje já contado ✓ <span className="text-faint text-xs">desfazer</span></button>
+        {editing ? (
+          <div className="grid gap-2">
+            <p className="text-[13px] text-white/70">Desde quando você está limpo? A partir daí o BRIO conta sozinho: todo dia sem recaída vale, mesmo sem abrir o app.</p>
+            <div className="flex gap-2">
+              <input type="date" className="field flex-1" max={todayIso} value={since} onChange={(e) => setSince(e.target.value)} aria-label="Limpo desde" />
+              <button className="btn btn-accent" disabled={pending || !since} onClick={() => begin(since)}>Contar</button>
+            </div>
+            <button className="btn w-full" disabled={pending} onClick={() => begin(todayIso)}>Começar hoje</button>
+            {started && <button className="text-[12px] text-white/45 min-h-9" onClick={() => setEditing(false)}>cancelar</button>}
+          </div>
         ) : (
-          <button className="btn btn-accent w-full !min-h-12 text-[15px]" disabled={pending} onClick={plusOne}>+1 dia limpo <span className="opacity-60 text-sm ml-1">+{cleanXp(count + 1)} XP</span></button>
+          <div className="flex items-center justify-between gap-3 border border-white/[.06] px-3 py-2.5">
+            <p className="text-[12.5px] text-white/65">{done ? "Contando sozinho: cada dia sem recaída já soma." : "Sem recaída marcada, o dia conta."}</p>
+            <button className="text-[11px] text-white/45 underline underline-offset-4 shrink-0 min-h-9" onClick={() => setEditing(true)}>ajustar início</button>
+          </div>
         )}
         <button className="text-sm text-muted min-h-11" disabled={pending} onClick={restart}>Recomeço honesto</button>
       </div>

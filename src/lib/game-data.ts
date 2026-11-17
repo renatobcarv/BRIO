@@ -1,3 +1,4 @@
+import { cleanDays as implicitClean, type Mark } from "./clean.ts";
 import "server-only";
 import { eaten } from "./meals.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -52,7 +53,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     booksFinished: books.filter((b) => b.finished_at).map((b) => ({ date: b.finished_at!, title: b.title })),
     finance: [...finByMonth].map(([month, v]) => ({ month, ...v })),
     weights: weights.map((w) => ({ date: w.date, kg: Number(w.kg) })),
-    cleanDays: cleanDays.filter((c) => c.kind === "limpo").map((c) => c.date),
+    cleanDays: implicitClean(cleanDays as Mark[], today),
     relapses: cleanDays.filter((c) => c.kind === "recaida").map((c) => c.date),
     // Hora local de São Paulo (UTC−3) em que a missão principal foi marcada
     morningDays: timed.filter((c) => c.item_key === (s.checklist.find((x) => x.primary) ?? s.checklist[0])?.key)
