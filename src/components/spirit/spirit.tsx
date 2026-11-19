@@ -72,62 +72,7 @@ export function StudyTab({ today, studies }: { today: string; studies: Study[] }
   );
 }
 
-export function BibleTab({ read, streak, notes = [] }: { read: { book: number; chapter: number }[]; streak: number; notes?: { id: string; title: string; book: number; chapter: number | null }[] }) {
-  const [last, setLast] = useState<number | null>(null);
-  const [, start] = useTransition();
-  const [set, toggle] = useOptimistic(new Set(read.map((r) => `${r.book}:${r.chapter}`)),
-    (s: Set<string>, k: { key: string; on: boolean }) => { const n = new Set(s); if (k.on) n.add(k.key); else n.delete(k.key); return n; });
-  const [open, setOpen] = useState<number | null>(null);
-  const total = set.size;
-  return (
-    <>
-      <Card>
-        <div className="flex items-end justify-between">
-          <div><p className="label">Bíblia inteira</p><p className="mt-1"><span className="num text-4xl">{total}</span> <span className="text-muted">/ {TOTAL_CHAPTERS} capítulos</span></p></div>
-          <div className="text-right"><Scroll pct={total / TOTAL_CHAPTERS} size={70} /><p className="label mt-1">Sequência <span className="num text-gold">{streak} d</span></p></div>
-        </div>
-        <div className="bar mt-3"><i style={{ width: `${(total / TOTAL_CHAPTERS) * 100}%` }} /></div>
-        <p className="text-xs text-muted mt-1">{((total / TOTAL_CHAPTERS) * 100).toFixed(1).replace(".", ",")}%</p>
-      </Card>
-      <Card className="mt-4">
-        <p className="label mb-3">Livros</p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-          {BOOKS.map(([name, n], i) => {
-            const b = i + 1, done = Array.from({ length: n }, (_, c) => set.has(`${b}:${c + 1}`)).filter(Boolean).length;
-            return (
-              <button key={b} onClick={() => setOpen(open === b ? null : b)} aria-expanded={open === b}
-                className={`text-left rounded-xl p-3 min-h-14 border transition-colors ${open === b ? "border-gold/50 bg-white/[.05]" : "border-white/5"}`}>
-                <span className="text-sm block">{name}</span>
-                <span className="bar block mt-2 !h-1"><i style={{ width: `${(done / n) * 100}%` }} /></span>
-                <span className="text-[11px] text-muted">{done}/{n}</span>
-              </button>
-            );
-          })}
-        </div>
-        {open && (
-          <div className="mt-4">
-            <p className="font-display text-xl mb-2">{BOOKS[open - 1][0]}</p>
-            <div className="grid grid-cols-8 sm:grid-cols-10 gap-1.5">
-              {Array.from({ length: BOOKS[open - 1][1] }, (_, c) => {
-                const key = `${open}:${c + 1}`, on = set.has(key);
-                return <button key={key} aria-pressed={on} aria-label={`Capítulo ${c + 1}`}
-                  onClick={() => { if (!on) setLast(c + 1); start(async () => { toggle({ key, on: !on }); await toggleChapter(open, c + 1, !on); }); }}
-                  className="relative aspect-square min-h-9 rounded-lg text-xs" style={{ background: on ? ACC : "rgba(255,255,255,.05)", color: on ? "#120f08" : undefined }}>{c + 1}{notes.some((x) => x.book === open && x.chapter === c + 1) && <i className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-[#f2dfae]" aria-label="tem anotação" />}</button>;
-              })}
-            </div>
-            <div className="mt-4 border-t border-white/[.06] pt-3">
-              {last && <div className="mb-3"><NewPageButton kind="capitulo" book={open} chapter={last} label={`Anotar ${BOOKS[open - 1][0]} ${last} →`} /></div>}
-              <p className="label !text-[9px] mb-2">Anotações de {BOOKS[open - 1][0]}</p>
-              {notes.filter((x) => x.book === open).length === 0 ? <p className="text-[12.5px] text-white/45">Marque um capítulo como lido e toque em “Anotar” para guardar o que aprendeu.</p> : (
-                <ul className="grid gap-1">{notes.filter((x) => x.book === open).sort((a, b) => (a.chapter ?? 0) - (b.chapter ?? 0)).map((x) => (
-                  <li key={x.id}><Link href={`/espiritual/pagina/${x.id}`} className="flex items-center gap-3 min-h-10 px-2 hover:bg-white/[.04]"><span className="font-mono text-[11px] text-[#f2dfae] w-10">{x.chapter ? `cap ${x.chapter}` : "livro"}</span><span className="flex-1 truncate" style={{ fontFamily: "var(--font-serif)" }}>{x.title}</span><span className="text-white/35">›</span></Link></li>))}</ul>)}
-            </div>
-          </div>
-        )}
-      </Card>
-    </>
-  );
-}
+export { BibleTab } from "./bible";
 
 export function JournalTab({ entries }: { entries: Journal[] }) {
   const [pending, start] = useTransition();
