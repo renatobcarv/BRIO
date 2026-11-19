@@ -51,7 +51,7 @@ export function Nav() {
   return (
     <>
       {/* Desktop */}
-      <aside className="hidden md:flex fixed inset-y-0 left-0 w-60 flex-col gap-1 p-5 border-r border-white/5">
+      <aside className="side-nav hidden md:flex fixed inset-y-0 left-0 w-60 flex-col gap-1 p-5 border-r border-white/5 overflow-y-auto overscroll-contain z-30">
         <Link href="/" className="text-ink mb-8 px-3 block w-fit" aria-label="Início — brio"><BrioWordmark height={26} /></Link>
         {[...primary, ...secondary].map((it) => {
           const on = isActive(path, it.href);
