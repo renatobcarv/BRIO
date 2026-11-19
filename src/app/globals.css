@@ -780,3 +780,10 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
   .pet-habitat-backdrop, .pet-habitat-animal, .pet-habitat-wash { animation: none !important; }
   .pet-habitat-particles { display: none; }
 }
+/* Página de vendas (/sobre): mantém o estilo e os efeitos (títulos condensados, revelar ao rolar, inclinação, brilho, faixa rolando); só a cor muda para preto, branco e âmbar. */
+.site h1.font-display, .site h2.font-display, .site .font-display.text-4xl, .site .font-display.text-3xl, .site .font-display.text-5xl, .site .font-display.text-2xl, .site .font-display.text-6xl, .site h3.font-display {
+  font-family: var(--font-hunt), var(--font-sans) !important; font-style: italic !important; text-transform: uppercase !important; font-weight: 800 !important; letter-spacing: .005em !important; line-height: .95 !important; }
+.site h3.font-display { font-style: normal !important; text-transform: none !important; font-family: var(--font-sans) !important; font-weight: 600 !important; letter-spacing: -0.02em !important; line-height: 1.15 !important; }
+.site .num { font-family: var(--font-hunt), var(--font-sans) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
+.site .glowcard, .site .tilt { border-radius: 10px; }
+.site .press:active { transform: scale(.98); }

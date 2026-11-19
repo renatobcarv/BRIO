@@ -3,10 +3,12 @@ import type { Metadata } from "next";
 import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
+import { RANKS } from "@/lib/game";
+import { SPECIES } from "@/lib/pet";
 
 export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
-const FIRE = "linear-gradient(135deg,#ff9f0a,#b7791f 70%)";
+const FIRE = "linear-gradient(135deg,#ffd28a,#ffb21e 55%,#ff9f0a)";
 
 /** Celular com uma miniatura do app (desenhada em código, mostra o que o app faz de verdade). */
 function Phone() {
@@ -55,15 +57,24 @@ const BENTO = [
   { t: "Estude até fechar", f: "central de estudos", c: "#ffb21e", wide: true, d: "Objetivo, fraquezas, plano feito pela IA, revisão espaçada e o próximo passo sempre à vista.", tex: "radial-gradient(70% 60% at 20% 100%, rgba(255,159,10,.22), transparent 70%)" },
 ];
 const FEATS = [
-  ["Missão diária", "Comece o dia sabendo o que importa", "Poucos objetivos, o principal em destaque e contagem até a meia-noite. Bateu tudo? A sequência sobe."],
-  ["Covil", "Treine com plano, não com palpite", "Campanha em fases, carga sugerida por série e treino guiado com cronômetro de descanso."],
-  ["Dieta", "Coma o que planejou", "Macros do dia, refeições salvas e o que saiu do plano registrado sem culpa, de cerveja a pão com ovo."],
-  ["Central de Operações", "Fale e a agenda se organiza", "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso."],
-  ["Finanças", "Dinheiro sem surpresa", "Orçamento por categoria, parcelas que fecham no centavo e assistente que lê os seus números."],
-  ["Central de Estudos", "Estude até fechar", "Objetivo, pontos fracos, plano feito pela IA e revisão espaçada no momento certo."],
-  ["Espiritual", "Fé com rotina", "Leitura da Bíblia, estudo pessoal, diário e registro de ministério com metas de pioneiro."],
-  ["Quadro de sonhos", "Lembre por quem você luta", "Fotos de quem você ama e do que quer conquistar, com prazo e o porquê de cada sonho."],
-  ["Status", "Veja a sua evolução", "Patentes, XP, recordes e o bestiário de vitórias semanais. Constância vira prova."],
+  ["Missão diária", "Comece o dia sabendo o que importa", "Poucos objetivos, o principal em destaque e contagem até a meia-noite. Bateu tudo? A sequência sobe e o fogo cresce."],
+  ["Treino · Covil", "Treine como nos melhores apps", "Campanha em fases, calendário da semana, fotos de cada exercício, mapa muscular, carga sugerida, treino guiado com descanso e troca de exercício na hora."],
+  ["Biblioteca e ferramentas", "Tudo que a academia pede", "Mais de 60 exercícios por músculo e equipamento, calculadora de 1RM, anilhas por lado e aquecimento automático."],
+  ["Plano alimentar", "Uma dieta que você define em minutos", "Quiz com objetivo, corpo, rotina, gostos, suplementos, remédios e água. A IA monta o cardápio e as calorias se ajustam à fase do treino."],
+  ["Dieta do dia", "Registrar dá vontade", "“Comi o planejado” com um toque, busca na tabela nutricional, fora do plano sem culpa e checklist de suplementos."],
+  ["Corpo", "Prontidão, água, sono e peso", "Placar de prontidão do dia, água em copos, sono, peso com tendência, ritmo real e data prevista para a meta."],
+  ["Estudar com IA", "Um tutor que faz você pensar", "Claude ou Gemini em 7 modos: ensinar, investigar, socrático, praticar, construir, avaliar e revisar. Domínio medido por evidência."],
+  ["Conhecimento e Build Lab", "Lembre e construa", "Anotações com revisão espaçada de verdade, cards gerados de qualquer texto e projetos práticos avaliados pela IA."],
+  ["Conquistas de estudo", "Certificados que contam", "Medalhas por evidência, certificados do BRIO para imprimir e um índice dos seus certificados com arquivo e link."],
+  ["Espiritual", "Fé com rotina e beleza", "Momento do dia, leitura da Bíblia por capítulo, páginas estilo caderno com capa e imagens, diário e gratidão."],
+  ["Pioneiro", "Horas que fecham o mês", "Registro de campo, revisitas, ritmo do mês e sugestões de como completar as horas que faltam."],
+  ["Central de Operações", "Fale e a agenda se organiza", "Linha do tempo do dia, Google Agenda nas duas vias e IA que transforma frase em compromisso."],
+  ["Finanças", "Dinheiro sem surpresa", "Saldo do mês, orçamento por categoria, parcelas que fecham no centavo, caixinhas, investimentos e um assistente que lê os seus números."],
+  ["Livros", "Leia mais, com medalhas", "Estante, sessões de leitura, notas e 11 medalhas de Bronze a Lenda que dizem exatamente o que fazer."],
+  ["Metas e Sonhos", "Lembre por quem você luta", "Metas com progresso automático e um quadro de sonhos com as fotos de quem você ama."],
+  ["Mascote", "Um companheiro que cresce com você", `Explore os lares de ${SPECIES.length} mascotes, do lobo ao dragão lendário. Seu companheiro cresce com o XP das suas ações.`],
+  ["Dias limpos", "Constância que conta sozinha", "Todo dia sem recaída conta, sem precisar marcar. Recomeço honesto quando precisar."],
+  ["Status, eventos e bestiário", "Veja a sua evolução", "Patentes, atributos, 42 conquistas, eventos semanais e um bestiário de vitórias. Constância vira prova."],
 ];
 const LADDER = ["Brasa", "Chama", "Fogueira", "Inferno", "Fogo branco", "Rubi"];
 const FAQ = [
@@ -90,7 +101,7 @@ export default function Site() {
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
             <Link href="/login" className="min-h-11 inline-flex items-center px-3 text-sm">Entrar</Link>
-            <Link href="/cadastro?plano=essencial" className="min-h-11 inline-flex items-center px-4 rounded-full text-sm font-semibold text-white press" style={{ background: FIRE }}>Teste grátis</Link>
+            <Link href="/cadastro?plano=essencial" className="min-h-11 inline-flex items-center px-4 rounded-full text-sm font-semibold text-black press" style={{ background: FIRE }}>Teste grátis</Link>
           </div>
         </div>
       </header>
@@ -106,7 +117,7 @@ export default function Site() {
             <h1 className="in font-display text-[clamp(42px,8.5vw,84px)] leading-[.98] mt-5" data-i="1">Pare de começar.<br /><span className={em}>Comece a continuar</span><span className="text-[#ffb21e]">.</span></h1>
             <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Motivação acaba na quarta-feira. A pantera não caça por motivação, caça por instinto. O BRIO transforma fé, treino, dieta, dinheiro e estudos numa rotina que você repete até virar quem você é.</p>
             <div className="in flex flex-col sm:flex-row gap-3 mt-8" data-i="3">
-              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #ff9f0a" }}>Quero minha rotina de pantera →</Link>
+              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-black press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #ff9f0a" }}>Quero minha rotina de pantera →</Link>
               <a href="#produto" className="min-h-14 px-8 rounded-[8px] grid place-items-center border border-white/15 bg-black/40 press">Ver o que tem dentro</a>
             </div>
             <ul className="in flex flex-wrap gap-x-5 gap-y-2 mt-6 text-sm text-white/65" data-i="4">{["A partir de R$ 0", "Celular e computador", "Seus dados só seus"].map((t) => <li key={t} className="flex items-center gap-1.5"><span className="text-[#ffb21e]">✓</span>{t}</li>)}</ul>
@@ -135,7 +146,7 @@ export default function Site() {
             <p className={label}>Instinto, não humor</p>
             <h2 className={h2}>Enquanto você espera vontade,<br /><span className={em}>a pantera já caçou.</span></h2>
             <p className="in text-lg text-white/75 mt-6">Ela não pensa se está a fim. Ela observa, espera o momento e age. O BRIO faz o mesmo com você: mostra a próxima ação, conta o tempo até a meia-noite e transforma cada dia cumprido em sequência. Disciplina repetida vira caráter.</p>
-            <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-[8px] font-semibold text-white press" style={{ background: FIRE }}>Começar hoje →</Link>
+            <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-[8px] font-semibold text-black press" style={{ background: FIRE }}>Começar hoje →</Link>
           </div>
           <div className="in relative mx-auto w-full max-w-[440px] aspect-[4/5]">
             <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o mascote do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[10px] border border-white/10" />
@@ -173,10 +184,48 @@ export default function Site() {
           </ul>
         </div>
         <div className="in tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] p-6">
-          <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full px-3 py-1 text-black font-semibold bg-[#ffb21e]">Nível 7 · 1.240 XP</span><span className="rounded-full px-3 py-1 text-white" style={{ background: FIRE }}>+40 XP treino feito</span></div>
+          <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full px-3 py-1 text-black font-semibold bg-[#ffb21e]">Nível 7 · 1.240 XP</span><span className="rounded-full px-3 py-1 text-black" style={{ background: FIRE }}>+40 XP treino feito</span></div>
           <p className="text-xs text-white/50 mt-6 uppercase tracking-widest">Seu fogo</p><p className="font-display text-3xl mt-1">Fogueira<span className="text-[#ffb21e]">.</span></p>
           <div className="h-2 rounded-full bg-white/10 mt-4 overflow-hidden"><i className="block h-full w-[62%]" style={{ background: FIRE }} /></div>
           <ol className="grid gap-1.5 mt-6">{LADDER.map((n, i) => <li key={n} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-[#ff9f0a26] border border-[#ff9f0a66]" : "bg-white/[.03]"}`}><span className="font-mono text-xs text-white/40">{String(i + 1).padStart(2, "0")}</span>{n}</li>)}</ol>
+        </div>
+      </section>
+
+      {/* patentes e conquistas */}
+      <section className="max-w-6xl mx-auto px-4 py-20">
+        <p className={label}>Patentes e conquistas</p>
+        <h2 className={h2}>Do despertar <span className={em}>ao ápice.</span></h2>
+        <p className="in text-lg text-white/75 mt-4 max-w-2xl">Cada ação real vira XP. O XP sobe seu nível, e o nível te leva por 10 patentes. No caminho, conquistas que provam o que você construiu.</p>
+        <ol className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2 mt-10">
+          {RANKS.map((r, i) => (
+            <li key={r.name} data-i={i % 5} className="in tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] p-4 overflow-hidden">
+              <span aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full" style={{ background: `radial-gradient(circle, ${r.color}40, transparent 70%)` }} />
+              <span className="font-mono text-[11px] text-white/40">{String(i + 1).padStart(2, "0")} · nível {r.min}+</span>
+              <p className="font-display text-2xl mt-2" style={{ color: i >= 6 ? "#ffb21e" : "#f5f5f7" }}>{r.name}</p>
+              <p className="text-[12.5px] text-white/60 mt-1">{r.pt}</p>
+            </li>))}
+        </ol>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
+          {[["42", "conquistas de Status", "Treino, fé, estudo, dinheiro, constância e recomeços."], ["11", "medalhas de leitura", "De Bronze a Lenda, cada uma diz o que fazer."], ["13", "medalhas de estudo", "Só por evidência: avaliações, revisões e projetos."], [String(SPECIES.length), "mascotes para colecionar", "Do lobo comum ao dragão lendário."]].map(([n, t, d], i) => (
+            <div key={t} data-i={i} className="in rounded-[10px] border border-white/10 bg-[#0b0b0b] p-5">
+              <p className={`num text-5xl ${em}`}>{n}</p><p className="font-semibold mt-2">{t}</p><p className="text-[13px] text-white/60 mt-1">{d}</p>
+            </div>))}
+        </div>
+      </section>
+
+      {/* mascote */}
+      <section className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-10 items-center">
+        <div>
+          <p className={label}>Mascote</p>
+          <h2 className={h2}>Ele cresce com o que você faz. <span className={em}>E às vezes retribui.</span></h2>
+          <p className="in text-lg text-white/75 mt-6">Sorteie seu mascote e visite seu lar, da floresta da Pantera ao aquário do Tubarão. Entre os companheiros míticos estão Kitsune, Qilin, Grifo e Genbu. Ele se alimenta do XP real de treino, estudo, Bíblia, campo e finanças, passa por 6 fases e, em alguns dias, te dá bônus de XP. Se você some, ele fica com fome. Nunca morre: basta voltar.</p>
+          <ul className="in flex flex-wrap gap-2 mt-6 text-[13px]">{["5 sorteios por mês", `${SPECIES.length} espécies`, "Lares animados", "Dragão lendário", "Bônus variável"].map((t) => <li key={t} className="rounded-full border border-white/15 px-3 py-1.5">{t}</li>)}</ul>
+        </div>
+        <div className="in grid grid-cols-5 gap-3 text-center">
+          {["🐺", "🦉", "🐻", "🦅", "🦈", "🐍", "🦁", "🐆", "🐦‍🔥", "🐉"].map((g, i) => (
+            <div key={g} className={`tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] aspect-square grid place-items-center ${i === 9 ? "col-span-1 border-[#ffb21e]" : ""}`}>
+              <span className="pet-glyph text-[clamp(28px,5vw,44px)]" style={i === 9 ? { textShadow: "0 0 18px #ffb21e" } : undefined}>{g}</span>
+            </div>))}
         </div>
       </section>
 
@@ -258,7 +307,7 @@ export default function Site() {
               <input type="hidden" name="plano" value="essencial" />
               <label htmlFor="cta-email" className="sr-only">E-mail</label>
               <input id="cta-email" name="email" type="email" inputMode="email" autoComplete="email" required placeholder="voce@email.com" className="flex-1 min-h-12 bg-transparent px-4 outline-none text-white placeholder:text-white/40" />
-              <button type="submit" className="min-h-12 px-6 rounded-full font-semibold text-white press" style={{ background: FIRE }}>Criar conta →</button>
+              <button type="submit" className="min-h-12 px-6 rounded-full font-semibold text-black press" style={{ background: FIRE }}>Criar conta →</button>
             </form>
             <a href="#planos" className="inline-block mt-4 text-sm text-white/60 underline">Ou compare os planos</a>
           </div>
