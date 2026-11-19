@@ -1,10 +1,14 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
 import { SPECIES } from "@/lib/pet";
-import { Chapter, DietMock, PetGallery, PetMock, RankMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
+import { Chapter, DietMock, PetGallery, PetMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
+
+import { AchievementGallery, AreaPreview, MoreAreas, StatusPreview } from "@/components/site/product-visuals";
+import { missionArt } from "@/components/site/showcase-art";
 
 export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
@@ -20,7 +24,7 @@ function Phone() {
           <div className="flex justify-between text-[10px] text-white/60 px-1"><span>9:41</span><span>●●● 5G</span></div>
           <div className="rounded-[8px] p-3 border" style={{ borderColor: "#ff9f0a99", background: "radial-gradient(90% 60% at 50% 0%, #3a0505, #0d0707)" }}>
             <div className="flex items-center gap-2">
-              <span className="text-2xl">🔥</span>
+              <Image src={missionArt} alt="" width={34} height={34} unoptimized />
               <div><p className="text-[9px] tracking-[.3em] text-[#ffb21e] font-bold">MISSÃO DIÁRIA · CHAMA</p><p className="text-[12px] font-semibold">Treinamento para ficar mais forte</p></div>
             </div>
             <div className="grid grid-cols-3 gap-1.5 mt-2.5 text-center">
@@ -48,14 +52,6 @@ function Phone() {
   );
 }
 
-const BENTO = [
-  { t: "Comece o dia sabendo o que importa", f: "missão diária", c: "#ffb21e", big: true, d: "Uma lista curta de objetivos com sequência, recorde e contagem até a meia-noite. O fogo cresce com a sua constância.", tex: "radial-gradient(70% 60% at 30% 20%, rgba(255,178,30,.28), transparent 70%)" },
-  { t: "Treine com plano, não com palpite", f: "covil · periodização", c: "#ffb21e", wide: true, d: "Campanha em fases, sugestão de carga por série e um treino guiado com cronômetro.", tex: "repeating-linear-gradient(90deg, rgba(255,159,10,.12) 0 2px, transparent 2px 14px)" },
-  { t: "Coma o que planejou (e registre o que não)", f: "dieta", c: "#ffb21e", d: "Metas de macros, refeições salvas e o que foi fora do plano, sem culpa.", tex: "radial-gradient(60% 60% at 80% 100%, rgba(255,159,10,.24), transparent 70%)" },
-  { t: "Fale e a agenda se organiza", f: "central de operações · IA", c: "#ffb21e", d: "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso.", tex: "radial-gradient(50% 50% at 50% 50%, rgba(255,178,30,.2), transparent 60%)" },
-  { t: "Seu dinheiro sem surpresa", f: "finanças · parcelas", c: "#ffb21e", wide: true, d: "Orçamento por categoria, compras parceladas que fecham no centavo e um assistente que lê seus números.", tex: "linear-gradient(180deg, rgba(255,159,10,.16), transparent 60%)" },
-  { t: "Estude até fechar", f: "central de estudos", c: "#ffb21e", wide: true, d: "Objetivo, fraquezas, plano feito pela IA, revisão espaçada e o próximo passo sempre à vista.", tex: "radial-gradient(70% 60% at 20% 100%, rgba(255,159,10,.22), transparent 70%)" },
-];
 const FEATS = [
   ["Missão diária", "Comece o dia sabendo o que importa", "Poucos objetivos, o principal em destaque e contagem até a meia-noite. Bateu tudo? A sequência sobe e o fogo cresce."],
   ["Treino · Covil", "Treine como nos melhores apps", "Campanha em fases, calendário da semana, fotos de cada exercício, mapa muscular, carga sugerida, treino guiado com descanso e troca de exercício na hora."],
@@ -76,7 +72,6 @@ const FEATS = [
   ["Dias limpos", "Constância que conta sozinha", "Todo dia sem recaída conta, sem precisar marcar. Recomeço honesto quando precisar."],
   ["Status, eventos e bestiário", "Veja a sua evolução", "Patentes, atributos, 42 conquistas, eventos semanais e um bestiário de vitórias. Constância vira prova."],
 ];
-const LADDER = ["Brasa", "Chama", "Fogueira", "Inferno", "Fogo branco", "Rubi"];
 const FAQ = [
   ["Preciso de cartão para testar?", "Não. Você cria a conta, usa 14 dias com tudo liberado e decide depois."],
   ["Funciona no celular?", "Foi feito primeiro para o celular. Abra no navegador e toque em “Adicionar à Tela de Início”: vira um app, sem loja."],
@@ -97,7 +92,7 @@ export default function Site() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <Link href="/sobre" aria-label="BRIO, início"><BrioWordmark height={26} /></Link>
           <nav aria-label="Seções" className="hidden md:flex gap-6 text-sm text-white/70">
-            <a href="#produto" className="hover:text-white">Produto</a><a href="#pantera" className="hover:text-white">Por que</a><a href="#planos" className="hover:text-white">Planos</a><a href="#faq" className="hover:text-white">Dúvidas</a>
+            <a href="#produto" className="hover:text-white">Produto</a><a href="#conquistas" className="hover:text-white">Conquistas</a><a href="#pantera" className="hover:text-white">Por que</a><a href="#planos" className="hover:text-white">Planos</a><a href="#faq" className="hover:text-white">Dúvidas</a>
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
             <Link href="/login" className="min-h-11 inline-flex items-center px-3 text-sm">Entrar</Link>
@@ -157,24 +152,20 @@ export default function Site() {
         </div>
       </section>
 
-      {/* capítulos: cada área do app com uma prévia grande da tela real */}
       <div id="produto" className="scroll-mt-20">
-        <Chapter n="01" kicker="Treino · Covil" title={<>Treine como<br /><span className={em}>nos melhores apps.</span></>} text="Campanha em fases, foto de cada exercício, músculos do dia, carga sugerida e treino guiado com descanso. Aparelho ocupado? Troque o exercício na hora." visual={<WorkoutMock />} />
-        <Chapter n="02" flip kicker="Plano alimentar" title={<>Sua dieta,<br /><span className={em}>montada em minutos.</span></>} text="Um quiz com objetivo, rotina, gostos, suplementos e remédios. A IA monta o cardápio, as calorias seguem a fase do treino e registrar é um toque: comi o planejado." visual={<DietMock />} />
-        <Chapter n="03" kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Claude ou Gemini em sete modos, do socrático ao avaliar. Revisão espaçada de verdade, projetos práticos e domínio medido por evidência, não por tempo de tela." visual={<StudyMock />} />
-        <Chapter n="04" flip kicker="Vida espiritual" title={<>Fé com rotina.<br /><span className="text-[#9fd0f5]">E com beleza.</span></>} text="Leitura da Bíblia por capítulo, páginas com capa e imagens, diário, gratidão e o pioneiro com o caminho para fechar as horas do mês." visual={<SpiritMock />} />
-        <Chapter n="05" kicker="Mascote" title={<>Ele cresce com<br /><span className={em}>o que você faz.</span></>} text={`Sorteie entre ${SPECIES.length} espécies, de lobo e pantera a Kitsune, Grifo e o dragão lendário, cada uma com seu lar. Ele come o XP das suas ações, passa por seis fases e, em alguns dias, retribui com bônus.`} visual={<PetMock />} />
+        <Chapter kicker="Status · Ascension" title={<>Veja sua evolução<br /><span className={em}>tomar forma.</span></>} text="Registre o que você fez e acompanhe seu XP, seus atributos e sua próxima patente. Cada etapa tem seu próprio brasão." visual={<StatusPreview />} />
+        <AchievementGallery />
+        <Chapter flip kicker="Agenda · Central de Operações" title={<>Da conversa<br /><span className={em}>para a agenda.</span></>} text="Escreva “reunião quinta às 14h e estudo às 19h30”. A IA organiza os compromissos em uma linha do tempo, com integração ao Google Agenda nos dois sentidos." visual={<AreaPreview cover="agenda" />} />
+        <Chapter kicker="Sonhos e metas" title={<>Dê um lugar<br /><span className={em}>aos seus sonhos.</span></>} text="Reúna fotos e ideias em um quadro privado. Acompanhe seus objetivos em Metas e volte ao quadro para lembrar o que você quer construir." visual={<AreaPreview cover="sonhos" />} />
+        <Chapter flip kicker="Livros" title={<>Uma estante que<br /><span className={em}>cresce com você.</span></>} text="Organize o que está lendo, registre páginas e guarde suas notas. As 11 medalhas de leitura mostram o próximo objetivo, do Bronze à Lenda." visual={<AreaPreview cover="livros" />} />
+        <Chapter kicker="Treino · Covil" title={<>Chegue à academia<br /><span className={em}>com um plano.</span></>} text="Campanha em fases, foto de cada exercício, músculos do dia, carga sugerida e treino guiado com descanso. Se o aparelho estiver ocupado, troque o exercício na hora." visual={<WorkoutMock />} />
+        <Chapter flip kicker="Plano alimentar" title={<>Um plano alimentar<br /><span className={em}>para a sua rotina.</span></>} text="Informe seu objetivo, sua rotina e suas preferências. A IA monta o cardápio, as calorias acompanham a fase do treino e você registra as refeições com um toque." visual={<DietMock />} />
+        <Chapter kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Use Claude ou Gemini em sete modos, do socrático à avaliação. Faça revisões espaçadas, construa projetos e acompanhe seu domínio pelas evidências do que aprendeu." visual={<StudyMock />} />
+        <Chapter flip kicker="Vida espiritual" title={<>Um espaço para<br /><span className="text-[#9fd0f5]">fé e reflexão.</span></>} text="Leia a Bíblia por capítulo, crie páginas com capas e imagens e guarde suas anotações, orações e registros de gratidão." visual={<SpiritMock />} />
+        <Chapter kicker="Reino dos Mascotes" title={<>Ele cresce com<br /><span className={em}>o que você faz.</span></>} text={`Sorteie entre ${SPECIES.length} espécies, cada uma com seu lar animado. Seu mascote cresce com o XP das suas ações, evolui em seis fases e pode dar bônus de XP.`} visual={<PetMock />} />
         <PetGallery />
-        <Chapter n="06" flip kicker="Patentes" title={<>Do despertar<br /><span className={em}>ao ápice.</span></>} text="Cada ação real vira XP. O XP te leva por dez patentes e destrava 42 conquistas, medalhas de leitura e de estudo." visual={<RankMock />} />
+        <MoreAreas />
       </div>
-
-      {/* tudo o mais, em uma linha tipográfica (sem cards) */}
-      <section className="max-w-6xl mx-auto px-4 py-24 text-center">
-        <p className={label}>E ainda</p>
-        <p className="in font-display text-[clamp(26px,4.4vw,52px)] leading-[1.1] mt-6 text-white/90">
-          {["Agenda com IA", "Google Agenda", "Finanças", "Parcelas", "Livros", "Metas", "Quadro de sonhos", "Corpo", "Peso", "Dias limpos", "Eventos", "Bestiário"].map((t, i) => <span key={t}>{i > 0 && <span className="text-[#ffb21e] mx-2 sm:mx-3">·</span>}{t}</span>)}
-        </p>
-      </section>
 
       {/* confiança */}
       <section className="bg-[#f5f5f7] text-[#0a0a0a]">
