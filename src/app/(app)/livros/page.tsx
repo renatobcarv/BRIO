@@ -1,4 +1,6 @@
 import { Board, PageHeader, Verse } from "@/components/ui";
+import { ReadingMedals } from "@/components/books/medals";
+import { readingStats } from "@/lib/reading-medals";
 import { HI } from "@/components/hunt-icons";
 import { Library } from "@/components/books/library";
 import { addDays, todayISO } from "@/lib/date";
@@ -26,6 +28,7 @@ export default async function Page() {
         return <Board icon={HI.trophy} label={`Livros lidos em ${y}`} big={String(read)} unit={`/ ${s.books_goal_year}`} bar={s.books_goal_year ? read / s.books_goal_year : 0}
           stats={[[HI.book, "Lendo", String(bl.filter((b) => b.status === "lendo").length), "agora"], [HI.list, "Páginas", String(pages), "últimos 7 dias"], [HI.pen, "Notas", String(noteList.length), "anotações"]]} />; })()}
       {books.error && <p className="glass p-4 mb-4 text-sm text-[#ff453a]">A tabela de livros ainda não existe. Rode a migração <code>supabase/migrations/20261105000000_livros.sql</code> no SQL Editor do Supabase.</p>}
+      <ReadingMedals stats={readingStats((books.data ?? []) as Book[], (sessions.data ?? []) as Session[], noteList.length, s.books_goal_year, today)} />
       <Library books={(books.data ?? []) as Book[]} sessions={(sessions.data ?? []) as Session[]} notes={noteList} goal={s.books_goal_year} today={today} />
       <Verse area="livros" />
     </div>
