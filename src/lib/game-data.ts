@@ -1,4 +1,6 @@
 import { cleanDays as implicitClean, type Mark } from "./clean.ts";
+import { petState } from "./pet.ts";
+import { xpEvents, type Attr } from "./game";
 import "server-only";
 import { eaten } from "./meals.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -68,6 +70,9 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const events = computeEvents({ today, programs, travel: s.travel ?? [], proteinGoal: s.protein_goal_g, sleep: input.sleep, meals: mealsByDay.map((m) => ({ date: m.date, protein: m.protein })),
     workouts: input.workouts.map((w) => ({ date: w.date, sets: w.sets })) });
   input.eventBonus = events.flatMap((e) => e.bonusXp.map((b) => ({ ...b, attr: (e.type === "sanctuary" ? "vigor" : e.type === "war_rations" ? "vigor" : "forca") as "forca" | "vigor" })));
-  return { ...summarize(input), events };
+  // Mascote: alimentado pelos eventos reais desde a adoção; às vezes dá bônus de XP.
+  const petQ = await sb.from("pets").select("id,name,species,adopted_on,bonus_essence").maybeSingle();
+  const pet = petQ.error || !petQ.data ? null : (() => { const st = petState(petQ.data.id, petQ.data.adopted_on, xpEvents(input), today, Number(petQ.data.bonus_essence ?? 0)); input.eventBonus = [...(input.eventBonus ?? []), ...st.bonus.map((b) => ({ ...b, attr: b.attr as Attr }))]; return { ...petQ.data, ...st }; })();
+  return { ...summarize(input), events, pet, petReady: !petQ.error };
 }
 export type Game = Awaited<ReturnType<typeof loadGame>>;

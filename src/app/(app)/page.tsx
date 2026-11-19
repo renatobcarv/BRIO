@@ -18,6 +18,7 @@ import { ATTRS, type Attr } from "@/lib/game";
 import { XpProvider } from "@/components/game/xp";
 import { HeroPlayer, QuickActions } from "@/components/home/hero";
 import { EventCard } from "@/components/events/event-ui";
+import { PetCard, type PetView } from "@/components/pet/pet";
 
 export const dynamic = "force-dynamic";
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -132,6 +133,7 @@ export default async function Hoje() {
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
       </div>
       <div className="dash-side min-w-0">
+      {game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}
       <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} />
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
