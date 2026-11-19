@@ -1,4 +1,5 @@
 "use client";
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import { HI, Ico } from "@/components/hunt-icons";
 import { Sheet } from "@/components/kit";
@@ -74,27 +75,26 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
   const SLOTS = [[50, 30, 28], [24, 38, 24], [76, 38, 24], [16, 56, 22], [84, 56, 22], [34, 64, 25], [66, 64, 25], [50, 80, 28], [20, 80, 24], [80, 80, 24], [36, 92, 20], [64, 92, 20], [14, 94, 18], [86, 94, 18], [12, 32, 16], [88, 32, 16]];
   return (
     <>
-    <section className="relative isolate rounded-[8px] overflow-hidden border border-white/10 aspect-[4/5] max-h-[78dvh] mx-auto w-full"
-      style={{ background: "radial-gradient(70% 40% at 50% 100%, rgba(255,106,61,.28), transparent 70%), radial-gradient(90% 60% at 50% 0%, #0d1a2e, #04060a 70%)" }}>
-      {/* céu, lua e estrelas */}
-      <div className="absolute right-[12%] top-[7%] w-12 h-12 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #fff, #cfd8ea 60%, #8796b3)", boxShadow: "0 0 40px rgba(207,216,234,.5)" }} />
-      {Array.from({ length: 28 }, (_, i) => <span key={i} className="absolute rounded-full bg-white cel-flicker" style={{ left: `${(i * 37) % 100}%`, top: `${(i * 23) % 34}%`, width: 1 + (i % 2), height: 1 + (i % 2), animationDelay: `${(i % 7) * 0.3}s`, opacity: 0.7 }} />)}
-      {/* árvores em silhueta */}
-      <svg className="absolute inset-x-0 top-[22%] w-full h-[40%]" viewBox="0 0 400 160" preserveAspectRatio="none" aria-hidden>
-        <path d="M0 160V70l14-30 10 26 12-46 14 40 10-22 16 34 12-50 14 44 10-18 14 28 16-40 12 36 14-24 12 30 18-52 12 46 14-20 12 30 16-44 14 38 10-16 14 26 16-48 12 42 14-22 14 30 12-36 16 32V160z" fill="#050a10" />
-      </svg>
-      {/* chão e névoa */}
-      <div className="absolute inset-x-0 bottom-0 h-[52%]" style={{ background: "linear-gradient(180deg, transparent, #0a0d0a 30%, #060806)" }} />
-      <div className="absolute inset-x-[-10%] bottom-[30%] h-16 cel-float" style={{ background: "radial-gradient(50% 50% at 50% 50%, rgba(180,200,230,.12), transparent 70%)" }} />
-      {/* fogueira central */}
-      <div className="absolute left-1/2 top-[58%] -translate-x-1/2 -translate-y-1/2 w-10 h-12">
-        <div className="absolute inset-x-0 bottom-0 h-3 rounded-full bg-[#2a1608]" />
-        <div className="absolute left-1/2 bottom-2 -translate-x-1/2 w-7 h-10 rounded-[50%_50%_40%_40%] cel-flicker" style={{ background: "radial-gradient(60% 70% at 50% 80%, #fff3c4, #ff4d3d 45%, #e0393e 80%, transparent)", filter: "blur(.5px)", boxShadow: "0 0 50px 20px rgba(255,106,61,.35)" }} />
+    <section className="bestiary-clearing relative isolate mx-auto w-full overflow-hidden rounded-[8px] border border-white/10 aspect-[4/5]" aria-label="Clareira das Bestas">
+      <div className="clearing-firelight" aria-hidden />
+      <div className="clearing-campfire pointer-events-none absolute z-[58]" aria-hidden>
+        <picture>
+          <source srcSet="/bestiario/fogueira-parada.webp" media="(prefers-reduced-motion: reduce)" />
+          <img src="/bestiario/fogueira.webp" alt="" width={192} height={192} className="block h-auto w-full" />
+        </picture>
+        {Array.from({ length: 8 }, (_, i) => (
+          <span key={i} className="clearing-ember" style={{
+            left: `${39 + (i * 7) % 24}%`,
+            animationDelay: `-${i * .31}s`,
+            animationDuration: `${1.6 + (i % 4) * .35}s`,
+            "--ember-drift": `${(i % 5 - 2) * 9}px`,
+          } as CSSProperties} />
+        ))}
       </div>
       {won.length === 0 ? (
-        <div className="absolute inset-x-6 bottom-[12%] text-center">
+        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black via-black/75 to-transparent px-6 pb-[8%] pt-12 text-center">
           <p className="font-display text-xl">A clareira está vazia.</p>
-          <p className="text-sm text-muted mt-1">Cumpra todos os treinos de uma semana da campanha e a primeira criatura vem descansar aqui.</p>
+          <p className="text-sm text-white/80 mt-1">Cumpra todos os treinos de uma semana da campanha e a primeira criatura vem descansar aqui.</p>
         </div>
       ) : won.slice(0, SLOTS.length).map((id, i) => {
         const [x, y, w] = SLOTS[i], b = ALL(id);
@@ -107,7 +107,7 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
           </button>
         );
       })}
-      <p className="absolute left-4 top-4 text-[10px] font-semibold tracking-[.3em] text-white/70">CLAREIRA DAS BESTAS</p>
+      <p className="absolute left-4 top-4 rounded bg-black/55 px-2 py-1 text-[10px] font-semibold tracking-[.25em] text-white/90">CLAREIRA DAS BESTAS</p>
     </section>
     <BeastSheet sel={sel} rec={rec} onClose={() => setSel(null)} />
     </>

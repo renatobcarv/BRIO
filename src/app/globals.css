@@ -562,3 +562,55 @@ body:has(.peace)::before { background: radial-gradient(60% 40% at 80% 0%, rgba(1
 .pet-spin { display: inline-block; animation: pet-spin .6s linear infinite; }
 @keyframes pet-reveal { from { opacity: 0; transform: scale(.6); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
 .pet-reveal { animation: pet-reveal .7s cubic-bezier(.2,.8,.2,1) both; }
+
+.bestiary-clearing {
+  --fire-x: 49.5%;
+  --fire-y: 61.2%;
+  max-width: 62.4dvh;
+  background: #101b22 url("/bestiario/clareira.webp") center / cover no-repeat;
+}
+
+.clearing-campfire {
+  left: var(--fire-x);
+  top: var(--fire-y);
+  width: 22%;
+  transform: translate(-50%, -89%);
+}
+
+.clearing-firelight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 32% 16% at var(--fire-x) var(--fire-y), #ed6e2466, #ee673020 48%, transparent);
+  mix-blend-mode: screen;
+  animation: clearing-light 2.1s ease-in-out infinite;
+}
+
+.clearing-ember {
+  position: absolute;
+  bottom: 18%;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #ffd092;
+  box-shadow: 0 0 5px #ff7633;
+  animation: clearing-ember 2s ease-out infinite;
+}
+
+@keyframes clearing-light {
+  0%, 100% { opacity: .7; }
+  24% { opacity: .94; }
+  48% { opacity: .64; }
+  73% { opacity: 1; }
+}
+
+@keyframes clearing-ember {
+  0% { opacity: 0; transform: translate(0, 0); }
+  22% { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--ember-drift), -75px) scale(.35); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clearing-firelight { animation: none; }
+  .clearing-ember { display: none; }
+}
