@@ -1,4 +1,4 @@
-import { diffDays } from "./date";
+import { diffDays } from "./date.ts";
 
 export const AREAS = {
   espiritual: { label: "Espiritual", color: "#ffb21e" },
@@ -39,4 +39,20 @@ export function goalStats(g: GoalRow, today: string) {
   }
   const horizon = daysLeft == null ? "longo" : daysLeft <= 90 ? "curto" : daysLeft <= 365 ? "medio" : "longo";
   return { pct, left, daysLeft, perWeek, perMonth, late, horizon };
+}
+
+// ── Gamificação das metas ──
+export const MILESTONES = [0.25, 0.5, 0.75, 1] as const;
+export const MILESTONE_NAME = ["Primeiro passo", "Meio caminho", "Reta final", "Conquistada"] as const;
+/** XP de metas: 100 por marco atingido + 300 por meta concluída (não depende de tempo, só de progresso real). */
+export function goalsXp(goals: GoalRow[], today: string) {
+  let xp = 0, marks = 0, done = 0, late = 0;
+  for (const g of goals) {
+    const s = goalStats(g, today);
+    const m = MILESTONES.filter((t) => s.pct >= t).length;
+    marks += m; xp += m * 100 + (s.pct >= 1 ? 300 : 0); if (s.pct >= 1) done++; if (s.late) late++;
+  }
+  const level = Math.floor(Math.sqrt(xp / 120)) + 1, base = (level - 1) ** 2 * 120, next = level ** 2 * 120;
+  const title = level >= 10 ? "Lenda das conquistas" : level >= 7 ? "Mestre de metas" : level >= 5 ? "Estrategista" : level >= 3 ? "Executor" : "Aprendiz";
+  return { xp, level, title, marks, done, late, progress: (xp - base) / (next - base), toNext: next - xp };
 }
