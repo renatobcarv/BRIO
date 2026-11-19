@@ -30,3 +30,20 @@ test("viagem parcial reduz a meta em vez de pausar", () => {
   assert.equal(gen.stage, "ativo");
   assert.ok(gen.objectives[0].target < 6);
 });
+
+test("novas feras ocupam semanas específicas sem reclassificar campanhas anteriores", () => {
+  const fases = [
+    { kind: "intensificacao", weeks: 4, days: { "1": ["treino"] } },
+    { kind: "realizacao", weeks: 3, days: { "1": ["treino"] } },
+    { kind: "deload", weeks: 1, days: { "1": ["treino"] } },
+  ];
+  const sessions = [4, 5, 6].map((week_no) => ({ program_id: "p", week_no, date: "2026-12-20" }));
+  const current = bestiaryRecord([{ id: "p", start_date: "2026-11-19", phases: fases }], sessions);
+  assert.equal(current.crocodilo.won, 1);
+  assert.equal(current.grifo.won, 1);
+  assert.equal(current.guardiao.won, 1);
+
+  const previous = bestiaryRecord([{ id: "p", start_date: "2026-11-18", phases: fases }], sessions);
+  assert.equal(previous.titan.won, 1);
+  assert.equal(previous.guardiao.won, 2);
+});

@@ -1,19 +1,12 @@
 "use client";
+import { Medal } from "@/components/game/medal";
 import { LORE, wordOfDay } from "@/lib/event-lore";
 import { useEffect, useState } from "react";
 import type { Badge, GameEvent } from "@/lib/events";
 
 /** Insígnia de evento: glória (metal e brilho) ou cicatriz (escura, marcada). */
 export function EventBadge({ b, size = 56, locked = false }: { b: Badge; size?: number; locked?: boolean }) {
-  const glory = b.kind === "glory";
-  return (
-    <svg width={size} height={size} viewBox="0 0 48 48" role="img" aria-label={b.name} className="shrink-0"
-      style={{ filter: locked ? "grayscale(1) brightness(.4)" : glory ? `drop-shadow(0 0 10px ${b.color})` : "drop-shadow(0 0 6px #3a0a0a)" }}>
-      <defs><linearGradient id={`eb-${b.id}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={glory ? "#ffd1e0" : "#3a3a3c"} /><stop offset=".5" stopColor={glory ? b.color : "#1c1c1e"} /><stop offset="1" stopColor={glory ? "#5c0f0f" : "#0d0d0d"} /></linearGradient></defs>
-      <path d="M24 2l18 8v13c0 11-8 19-18 23C14 42 6 34 6 23V10z" fill={`url(#eb-${b.id})`} stroke={glory ? "#ffd1e0" : "#5a1414"} strokeWidth="1.2" />
-      <path d={b.icon} fill={glory ? "#0d0d0d" : "none"} stroke={glory ? "none" : "#a30000"} strokeWidth={glory ? 0 : 2.6} strokeLinecap="round" transform="translate(6 6) scale(.75)" />
-    </svg>
-  );
+  return <Medal art={`evento-${b.id}`} color={b.color} earned={!locked} label={b.name} size={size} />;
 }
 
 /** Contagem regressiva ao vivo até uma data (meia-noite de São Paulo). */

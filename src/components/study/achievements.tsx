@@ -1,8 +1,10 @@
 "use client";
+import { CardArt } from "@/components/card-art";
 import { useRef, useState, useTransition } from "react";
 import { deleteCertificate, saveCertificate } from "@/app/(app)/estudos/cert-actions";
 import { MASTERY, masteryFromLevel, type LearnAch } from "@/lib/learning";
 import { HI, Ico } from "@/components/hunt-icons";
+import { Medal } from "@/components/game/medal";
 import { Sheet } from "@/components/kit";
 
 type Ev = { id: string; date: string; kind: string; topic: string; level: number; score: number | null };
@@ -20,7 +22,8 @@ export function Achievements({ achievements, brioCerts, certs, certsReady, track
 
   return (
     <div className="grid gap-6">
-      <section className="hunt-card relative p-5 lg:p-7 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] items-center">
+      <section className="hunt-card relative isolate overflow-hidden p-5 lg:p-7 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] items-center">
+        <CardArt name="conquistas" />
         <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
         <div>
           <p className="label flex items-center gap-1.5"><Ico d={HI.trophy} size={13} />Conquistas de aprendizado</p>
@@ -39,7 +42,7 @@ export function Achievements({ achievements, brioCerts, certs, certsReady, track
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-px bg-white/[.06] border border-white/[.06] rounded-[8px] overflow-hidden">
           {achievements.map((a) => (
             <div key={a.id} className={`bg-[#080808] p-4 ${a.got ? "" : "opacity-60"}`}>
-              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" aria-hidden><path d="M12 2l3 6.5 7 .8-5.2 4.8 1.4 7-6.2-3.6L5.8 21l1.4-7L2 9.3l7-.8z" stroke={a.got ? TIER[a.tier] : "#3a3a3c"} strokeWidth="1.5" fill={a.got ? `${TIER[a.tier]}22` : "none"} /></svg>
+              <Medal color={TIER[a.tier]} earned={a.got} art={`estudo-${a.id}`} />
               <p className="font-semibold text-[14px] mt-2 leading-tight">{a.title}</p>
               <p className="text-[11.5px] text-white/50 mt-1 leading-snug">{a.desc}</p>
               {!a.got && <><div className="flex gap-[2px] mt-2.5">{Array.from({ length: Math.min(a.goal, 10) }, (_, i) => <i key={i} className="h-[4px] flex-1" style={{ background: i < Math.round((a.cur / a.goal) * Math.min(a.goal, 10)) ? "#ff2800" : "rgba(255,255,255,.08)" }} />)}</div><p className="font-mono text-[10px] text-white/40 mt-1">{a.cur}/{a.goal}</p></>}

@@ -1,4 +1,6 @@
 "use client";
+import { CardArt } from "@/components/card-art";
+import { HI, Ico } from "@/components/hunt-icons";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useXp, haptic } from "@/components/game/xp";
@@ -57,12 +59,12 @@ export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
 }
 
 const ACTIONS = [
-  { key: "estudo", label: "Estudo", color: "#ff2800", icon: "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z" },
+  { key: "estudo", label: "Estudo", color: "#ff2800", icon: HI.book, art: "estudos" },
   { key: "campo", label: "Campo", color: "#f5f5f7", icon: FIELD_ICON },
-  { key: "agua", label: "+250 ml", color: "#f5f5f7", icon: "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z" },
-  { key: "treino", label: "Treino", color: "#30d158", icon: "M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8", href: "/treino" },
-  { key: "peso", label: "Peso", color: "#dc0000", icon: "M5 21h14l-2-12H7zM9 9a3 3 0 0 1 6 0", href: "/corpo?aba=peso" },
-  { key: "gasto", label: "Gasto", color: "#ff2800", icon: "M3 7h18v10H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z", href: "/financas?aba=lancamentos" },
+  { key: "agua", label: "+250 ml", color: "#f5f5f7", icon: HI.drop },
+  { key: "treino", label: "Treino", color: "#30d158", icon: HI.dumbbell, art: "treino", href: "/treino" },
+  { key: "peso", label: "Peso", color: "#dc0000", icon: HI.scale, href: "/corpo?aba=peso" },
+  { key: "gasto", label: "Gasto", color: "#ff2800", icon: HI.coin, art: "financas", href: "/financas?aba=lancamentos" },
 ] as const;
 
 /** Atalhos de registro: um toque, recompensa imediata. */
@@ -82,14 +84,15 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
         {ACTIONS.map((a) => {
           const inner = (
             <>
+              {"art" in a && <CardArt name={a.art} />}
               <span className="h-11 w-11 rounded-[8px] grid place-items-center" style={{ background: a.color, boxShadow: `0 8px 22px -8px ${a.color}` }}>
-                <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={a.icon} /></svg>
+                <Ico d={a.icon} size={21} color="#000" />
               </span>
               <span className="text-[13px] font-semibold mt-2">{a.label}</span>
               {a.key === "agua" && <span className="text-[11px] text-muted num">{(ml / 1000).toFixed(2).replace(".", ",")} / {(waterGoal / 1000).toFixed(1).replace(".", ",")} L</span>}
             </>
           );
-          const cls = "tile press flex flex-col items-center justify-center py-4 min-h-[104px]";
+          const cls = "tile press relative isolate overflow-hidden flex flex-col items-center justify-center py-4 min-h-[104px]";
           return "href" in a
             ? <Link key={a.key} href={a.href} className={cls}>{inner}</Link>
             : <button key={a.key} className={cls} onClick={() => (a.key === "agua" ? water() : setSheet(a.key as "estudo" | "campo"))}>{inner}</button>;

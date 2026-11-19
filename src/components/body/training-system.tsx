@@ -1,19 +1,10 @@
 "use client";
+import { Medal } from "@/components/game/medal";
 import { CountUp } from "@/components/count-up";
 import { PHYS, physicalAttributes, trainingInsights, trainingMedals, weeklyReview, type PhysKey, type WSession } from "@/lib/physical";
 
 const fmtT = (kg: number) => `${(kg / 1000).toFixed(1).replace(".", ",")} t`;
 const delta = (a: number, b: number) => (b ? Math.round(((a - b) / b) * 100) : null);
-
-function Medal({ color, done }: { color: string; done: boolean }) {
-  return (
-    <svg width="46" height="46" viewBox="0 0 48 48" aria-hidden className="shrink-0" style={{ filter: done ? `drop-shadow(0 0 10px ${color}99)` : "grayscale(1) brightness(.45)" }}>
-      <path d="M14 2h8l4 12h-8zM34 2h-8l-4 12h8z" fill={done ? "#7a0c18" : "#333"} />
-      <circle cx="24" cy="30" r="15" fill="#0d0d0d" stroke={color} strokeWidth="3" />
-      <path d="M24 21l2.6 5.4 5.9.8-4.3 4.1 1 5.8L24 34.4l-5.2 2.7 1-5.8-4.3-4.1 5.9-.8z" fill={color} />
-    </svg>
-  );
-}
 
 export function TrainingSystem({ sessions, today, bodyweight, plannedPerWeek, program }: {
   sessions: WSession[]; today: string; bodyweight: number | null; plannedPerWeek: number; program: { totalWeeks: number; ended: boolean } | null;
@@ -81,7 +72,7 @@ export function TrainingSystem({ sessions, today, bodyweight, plannedPerWeek, pr
         <div className="grid grid-cols-2 gap-2.5 mt-3">
           {medals.map((m) => (
             <div key={m.id} className={`relative overflow-hidden rounded-[8px] p-3 border ${m.done ? "achv-shine" : ""}`} style={{ borderColor: m.done ? m.color + "88" : "rgba(255,255,255,.06)", background: m.done ? `linear-gradient(160deg, ${m.color}22, #111113 70%)` : "#111113" }}>
-              <div className="flex flex-col items-start gap-1.5 min-w-0"><span className="shrink-0"><Medal color={m.color} done={m.done} /></span><p className={`min-w-0 text-[12px] font-bold uppercase leading-tight tracking-wide ${m.done ? "" : "text-muted"}`}>{m.name}</p></div>
+              <div className="flex flex-col items-start gap-1.5 min-w-0"><span className="shrink-0"><Medal earned={m.done} art={`treino-${m.id}`} color={m.color} /></span><p className={`min-w-0 text-[12px] font-bold uppercase leading-tight tracking-wide ${m.done ? "" : "text-muted"}`}>{m.name}</p></div>
               <p className="text-[11px] text-muted mt-2 leading-snug">{m.desc}</p>
               {!m.done && <><div className="h-1 rounded-full bg-white/[.06] mt-2 overflow-hidden"><div className="h-full rounded-full" style={{ width: `${Math.max(3, m.progress * 100)}%`, background: m.color }} /></div><p className="text-[10px] text-faint mt-1 num">{Math.floor(m.value)} / {m.target}</p></>}
             </div>

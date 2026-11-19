@@ -1,18 +1,11 @@
 "use client";
 import { useState } from "react";
+import { HI, Ico } from "@/components/hunt-icons";
 import { Sheet } from "@/components/kit";
-import { BeastArt } from "./battle-intro";
-import { CelestialArt } from "./celestial-art";
-import { ALL, type BeastId, type Record_ } from "@/lib/bestiary";
+import { CreaturePortrait } from "./creature-portrait";
+import { ALL, hasEncounterArt, type BeastId, type Record_ } from "@/lib/bestiary";
 
 const br = (d?: string) => (d ? d.split("-").reverse().slice(0, 2).join("/") : "");
-function Art({ id, size }: { id: BeastId; size: string }) {
-  const b = ALL(id);
-  return b.angel
-    ? <svg viewBox="0 0 320 320" className={size} aria-hidden><CelestialArt id={id} c={b.color} eye={b.eye} /></svg>
-    : <svg viewBox="0 0 240 240" className={size} aria-hidden><BeastArt id={id} c={b.color} eye={b.eye} /></svg>;
-}
-
 /** Grade do bestiário: toque abre a criatura em tela cheia. */
 export function BestiaryGrid({ ids, rec, angel }: { ids: BeastId[]; rec: Record<BeastId, Record_>; angel: boolean }) {
   const [sel, setSel] = useState<BeastId | null>(null);
@@ -25,11 +18,15 @@ export function BestiaryGrid({ ids, rec, angel }: { ids: BeastId[]; rec: Record<
             <button key={id} onClick={() => setSel(id)} className="press rounded-[8px] p-3 border text-center relative overflow-hidden"
               style={{ borderColor: open ? x.color + "66" : "rgba(255,255,255,.07)", background: open ? `radial-gradient(90% 70% at 50% 25%, ${x.color}30, #0b0b0d 70%)` : "#0b0b0d" }}>
               <div className="mx-auto w-full aspect-square max-w-[140px]" style={{ filter: open ? `drop-shadow(0 0 12px ${x.color}88)` : seen ? "grayscale(.6) brightness(.5)" : "grayscale(1) brightness(.16)" }}>
-                <Art id={id} size="w-full h-full" />
+                <CreaturePortrait id={id} className="w-full h-full" />
               </div>
               <p className="text-[13px] font-bold uppercase leading-tight mt-1 break-words">{seen ? x.name : "???"}</p>
               <p className="text-[10px] text-muted leading-tight mt-0.5 line-clamp-2">{seen ? (angel ? x.virtue : x.epithet) : "Ainda não encontrado"}</p>
-              <p className="text-xs font-semibold mt-1.5" style={{ color: open ? x.color : undefined }}>{open ? `${angel ? "✨" : "⚔"} ×${y.won}` : seen ? <span className="text-muted">{angel ? "incompleto" : "escapou"}</span> : <span className="text-faint">🔒</span>}</p>
+              <p className="flex items-center justify-center gap-1 text-xs font-semibold mt-1.5" style={{ color: open ? x.color : undefined }}>
+                {open ? <><Ico d={angel ? HI.spark : HI.trophy} size={13} /> ×{y.won}</> : seen
+                  ? <span className="text-muted">{angel ? "incompleto" : "escapou"}</span>
+                  : <Ico d={HI.lock} size={13} className="text-faint" />}
+              </p>
             </button>
           );
         })}
@@ -40,16 +37,22 @@ export function BestiaryGrid({ ids, rec, angel }: { ids: BeastId[]; rec: Record<
 }
 
 export function BeastSheet({ sel, rec, onClose }: { sel: BeastId | null; rec: Record<BeastId, Record_>; onClose: () => void }) {
+  const [pose, setPose] = useState<BeastId | null>(null);
   const b = sel ? ALL(sel) : null, r = sel ? rec[sel] : null, known = !!r && (r.won > 0 || r.met > 0), angel = !!b?.angel;
   return (
-    <Sheet tone="war" accent={b?.color} open={!!sel} onClose={onClose} title={known && b ? b.name : "???"}>
+    <Sheet tone="war" accent={b?.color} open={!!sel} onClose={() => { setPose(null); onClose(); }} title={known && b ? b.name : "???"}>
         {b && r && (
           <div className="text-center">
             <div className="relative mx-auto w-full max-w-[320px] aspect-square rounded-[8px] overflow-hidden" style={{ background: `radial-gradient(80% 70% at 50% 45%, ${b.color}33, #050505 75%)` }}>
               <div className="absolute inset-0 grid place-items-center" style={{ filter: known ? `drop-shadow(0 0 18px ${b.color}99)` : "grayscale(1) brightness(.16)" }}>
-                <Art id={sel!} size="w-[92%] h-[92%]" />
+                <CreaturePortrait id={sel!} encounter={pose === sel} className="w-[92%] h-[92%]" />
               </div>
             </div>
+            {known && hasEncounterArt(b.id) && (
+              <button type="button" className="btn mt-3" aria-pressed={pose === sel} onClick={() => setPose(pose === sel ? null : sel)}>
+                Pose de encontro
+              </button>
+            )}
             <p className="text-[11px] font-semibold tracking-[.3em] mt-4" style={{ color: b.color }}>{angel ? `EXEMPLO · ${b.virtue?.toUpperCase()}` : `AMEAÇA · ${b.epithet.toUpperCase()}`}</p>
             {known ? <p className="text-[15px] text-ink/85 mt-2 leading-snug">{b.line}</p> : <p className="text-sm text-muted mt-2">Aparece numa semana da sua campanha. Cumpra todos os treinos dela para desbloquear.</p>}
             <div className="grid grid-cols-3 gap-2 mt-4">
@@ -68,7 +71,7 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
   const [sel, setSel] = useState<BeastId | null>(null);
   const won = (Object.keys(rec) as BeastId[]).filter((id) => rec[id].won > 0).sort((a, b) => rec[b].won - rec[a].won);
   // posições em arco ao redor da fogueira (fundo menor, frente maior)
-  const SLOTS = [[50, 30, 28], [24, 38, 24], [76, 38, 24], [16, 56, 22], [84, 56, 22], [34, 64, 25], [66, 64, 25], [50, 80, 28], [20, 80, 24], [80, 80, 24], [36, 92, 20], [64, 92, 20], [14, 94, 18], [86, 94, 18]];
+  const SLOTS = [[50, 30, 28], [24, 38, 24], [76, 38, 24], [16, 56, 22], [84, 56, 22], [34, 64, 25], [66, 64, 25], [50, 80, 28], [20, 80, 24], [80, 80, 24], [36, 92, 20], [64, 92, 20], [14, 94, 18], [86, 94, 18], [12, 32, 16], [88, 32, 16]];
   return (
     <>
     <section className="relative isolate rounded-[8px] overflow-hidden border border-white/10 aspect-[4/5] max-h-[78dvh] mx-auto w-full"
@@ -98,7 +101,7 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
         return (
           <button key={id} onClick={() => setSel(id)} className="absolute -translate-x-1/2 -translate-y-1/2 press rise" aria-label={b.name}
             style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, zIndex: Math.round(y), animationDelay: `${i * 80}ms` }}>
-            <div className="cel-float" style={{ animationDelay: `${i * 0.4}s`, filter: `drop-shadow(0 0 10px ${b.color}88)` }}><Art id={id} size="w-full h-auto" /></div>
+            <div className="cel-float" style={{ animationDelay: `${i * 0.4}s`, filter: `drop-shadow(0 0 10px ${b.color}88)` }}><CreaturePortrait id={id} className="w-full h-auto" /></div>
             <span className="block mx-auto mt-[-6px] h-1.5 w-2/3 rounded-full bg-black/60 blur-[2px]" />
             {rec[id].won > 1 && <span className="absolute -top-1 right-0 text-[10px] font-bold rounded-full px-1.5 bg-black/70 border" style={{ borderColor: b.color, color: b.color }}>×{rec[id].won}</span>}
           </button>

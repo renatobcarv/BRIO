@@ -13,8 +13,9 @@ import { addDays, daysInMonth, diffDays, dow, monthStart, shortDate, weekdayShor
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { PHASE_KINDS, dayShort, dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 import { GuidedLogger } from "./guided";
+import { CreaturePortrait } from "./creature-portrait";
 import { BattleIntro } from "./battle-intro";
-import { beastFor, type Beast } from "@/lib/bestiary";
+import { beastFor, beastOfWeek, type Beast } from "@/lib/bestiary";
 import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
 import { totalWeeks } from "@/lib/training";
@@ -50,7 +51,7 @@ export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
   return w ? { date: w.date, sets: w.sets.filter((s) => s.exercise.toLowerCase() === name.toLowerCase()) } : null;
 }
 
-type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean; kind?: string; weekInPhase?: number; lastPhase?: boolean } | null;
+type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
 function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null): Session {
   return {
     date, label: [day.label, day.focus, ctx ? `S${ctx.weekNo}` : ""].filter(Boolean).join(" · "), notes: "", startedAt: null,
@@ -70,7 +71,7 @@ function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: s
   if (program) {
     const pos = programPosition(program, today);
     const ph = program.phases[pos.phaseIndex];
-    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload", kind: ph.kind, weekInPhase: pos.weekInPhase, lastPhase: pos.phaseIndex === program.phases.length - 1 } };
+    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
   }
   const list = plan.days[String(d)] ?? [];
   return { list, ctx: null, title: todayWorkout(d, plan.days as never, null, today).title };
@@ -385,8 +386,9 @@ export function Training({ today, split, plan, workouts, program = null, program
                 <div key={sel.date} className="step-in-right">
                   <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "TREINO DE HOJE" : sel.date < today ? "TREINO ANTERIOR" : "PRÓXIMO TREINO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
                   <p className="font-display text-[26px] leading-tight mt-1">{sel.title ?? `${sel.label} · ${sel.focus || "Descanso"}`}</p>
-                  {ctx && list.length > 0 && (() => { const b = beastFor(ctx.kind, ctx.weekInPhase ?? 1, { hell: ctx.kind === "intensificacao" && ctx.weekInPhase === 1, last: ctx.lastPhase, week: ctx.weekNo }); return (
+                  {ctx && list.length > 0 && (() => { const b = program && beastOfWeek(program, ctx.weekNo); if (!b) return null; return (
                     <a href="/bestiario" className="flex items-center gap-2 mt-2 text-xs rounded-full px-3 py-1.5 w-fit border" style={{ borderColor: b.color + "55", background: b.color + "14" }}>
+                      <CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />
                       <span style={{ color: b.color }}>{b.angel ? `✨ ${b.virtue} · ${b.name}` : `⚔ ${b.name}`}</span>
                       {!b.angel && <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-1.5 w-2.5 rounded-sm" style={{ background: i <= b.threat ? b.color : "rgba(255,255,255,.12)" }} />)}</span>}
                     </a>); })()}
@@ -420,7 +422,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                   ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
                   {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
                     <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#7a0c18)", boxShadow: "0 12px 34px -10px #e0393e" }}
-                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: beastFor(ctx?.kind, ctx?.weekInPhase ?? 1, { hell: ctx?.kind === "intensificacao" && ctx?.weekInPhase === 1, last: ctx?.lastPhase, week: ctx?.weekNo }) }); } else setSession(ns); }}>
+                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: (program && ctx && beastOfWeek(program, ctx.weekNo)) || beastFor(undefined) }); } else setSession(ns); }}>
                       {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
                   )}
                 </div>

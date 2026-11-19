@@ -1,7 +1,7 @@
 /** Bestiário do BRIO: semanas de feras (adversários) e semanas de anjos (exemplos de virtude a seguir). */
 export type BeastId =
   | "aureo" | "alcion" | "vertice" | "fulgor" | "eter" | "orbita"
-  | "golem" | "lobo" | "javali" | "serpe" | "titan" | "juggernaut" | "sentinela" | "guardiao";
+  | "golem" | "lobo" | "javali" | "serpe" | "titan" | "juggernaut" | "sentinela" | "guardiao" | "crocodilo" | "grifo";
 export type AngelLook = { wings: number; weapon: "lanca" | "espada" | "nenhuma"; robe?: boolean; wheels?: boolean; veil?: boolean };
 export type Beast = { id: BeastId; name: string; epithet: string; threat: 1 | 2 | 3 | 4 | 5; color: string; eye: string; line: string;
   angel?: AngelLook; ref?: string; virtue?: string; img?: string };
@@ -23,16 +23,21 @@ const B: Record<BeastId, Def> = {
   titan:      { id: "titan", name: "Titã de Magma", epithet: "Senhor da fornalha", color: "#ff3b30", eye: "#fff1a8", line: "Só se vence com técnica sob fogo." },
   juggernaut: { id: "juggernaut", name: "Juggernaut", epithet: "Carrasco da Hell Week", color: "#ff2d2d", eye: "#ffffff", line: "Não para. Não cansa. Não perdoa." },
   sentinela:  { id: "sentinela", name: "Sentinela de Cristal", epithet: "Guardião do descanso", color: "#30d158", eye: "#d6ffe2", line: "Teste de controle: menos é mais hoje." },
+  crocodilo: { id: "crocodilo", name: "Carcereiro do Brejo", epithet: "Vigia das águas fundas", color: "#62cfbb", eye: "#b9fff0", line: "Avance sem deixar o cansaço decidir seu ritmo." },
+  grifo: { id: "grifo", name: "Grifo de Cobre", epithet: "Vigia das alturas", color: "#d6a469", eye: "#ffe8b3", line: "A precisão vem antes do impulso." },
   guardiao:   { id: "guardiao", name: "O Último Guardião", epithet: "Chefe do ciclo", color: "#ffd60a", eye: "#ffffff", line: "Tudo o que você construiu, agora." },
 };
 export const ANGELS: BeastId[] = ["aureo", "alcion", "vertice", "fulgor", "eter", "orbita"];
-export const FERAS: BeastId[] = ["golem", "lobo", "javali", "serpe", "titan", "juggernaut", "sentinela", "guardiao"];
+export const FERAS: BeastId[] = ["golem", "lobo", "javali", "serpe", "titan", "juggernaut", "sentinela", "guardiao", "crocodilo", "grifo"];
+export const hasEncounterArt = (id: BeastId) => FERAS.includes(id);
 export const ALL = (id: BeastId) => B[id];
 const clamp = (n: number) => Math.max(1, Math.min(5, n)) as Beast["threat"];
 
 /** Escolhe pela fase e semana. Na acumulação os anjos se revezam pela semana global da campanha. */
-export function beastFor(kind: string | null | undefined, weekInPhase = 1, opts: { hell?: boolean; last?: boolean; week?: number } = {}): Beast {
+export function beastFor(kind: string | null | undefined, weekInPhase = 1, opts: { hell?: boolean; last?: boolean; week?: number; expanded?: boolean } = {}): Beast {
   if (opts.hell) return { ...B.juggernaut, threat: 5 };
+  if (opts.expanded && kind === "intensificacao" && weekInPhase === 4) return { ...B.crocodilo, threat: 5 };
+  if (opts.expanded && kind === "realizacao" && weekInPhase === 1 && !opts.last) return { ...B.grifo, threat: 4 };
   switch (kind) {
     case "deload": return { ...B.sentinela, threat: 1 };
     case "realizacao": return { ...B.guardiao, threat: clamp(4 + (opts.last ? 1 : 0)) };
@@ -44,6 +49,8 @@ export function beastFor(kind: string | null | undefined, weekInPhase = 1, opts:
 
 type Prog = { id: string; start_date: string; phases: { kind: string; weeks: number; days: Record<string, unknown[]> }[] };
 /** Criatura de uma semana específica da campanha. */
+export const expandedBestiary = (startDate: string) => startDate >= "2026-11-19";
+
 export function beastOfWeek(p: Prog, week: number): (Beast & { planned: number }) | null {
   let acc = 0;
   for (let i = 0; i < p.phases.length; i++) {
@@ -51,7 +58,7 @@ export function beastOfWeek(p: Prog, week: number): (Beast & { planned: number }
     if (week <= acc + w) {
       const wip = week - acc;
       const planned = Object.values(f.days ?? {}).filter((l) => Array.isArray(l) && l.length > 0).length;
-      return { ...beastFor(f.kind, wip, { hell: f.kind === "intensificacao" && wip === 1, last: i === p.phases.length - 1, week }), planned };
+      return { ...beastFor(f.kind, wip, { hell: f.kind === "intensificacao" && wip === 1, last: i === p.phases.length - 1, expanded: expandedBestiary(p.start_date), week }), planned };
     }
     acc += w;
   }

@@ -1,3 +1,4 @@
+import { Medal } from "./medal";
 import { ASCENSION_CREED, ATTRS, RANKS, RARITY, TITLES, rankIndex, type Attr } from "@/lib/game";
 import { Insignia, TitleBadge } from "./insignia";
 import type { Game } from "@/lib/game-data";
@@ -132,8 +133,7 @@ export function StatusSheet({ g }: { g: Game }) {
               <div key={a.id} className={`relative overflow-hidden rounded-[8px] p-3 border ${a.done ? "achv-shine" : ""}`}
                 style={{ borderColor: a.done ? r.color + "88" : "rgba(255,255,255,.06)", background: a.done ? `linear-gradient(160deg, ${r.color}26, #111113 70%)` : "#111113", boxShadow: a.done && a.rarity !== "comum" ? `0 8px 26px -12px ${r.color}` : undefined }}>
                 <div className="flex items-center gap-2">
-                  <span className="h-8 w-8 rounded-[10px] grid place-items-center text-sm shrink-0"
-                    style={{ background: a.done ? r.color : "rgba(255,255,255,.05)", color: a.done ? "#000" : "#84848a", boxShadow: a.done ? `0 0 16px ${r.color}` : undefined }}>{a.done ? "★" : "☆"}</span>
+                  <Medal color={r.color} earned={a.done} art={`status-${a.attr}`} size={52} />
                   <div className="min-w-0"><p className={`text-sm font-semibold leading-tight ${a.done ? "" : "text-muted"}`}>{a.title}</p>
                     <p className="text-[10px] font-medium mt-0.5" style={{ color: r.color }}>{r.label}</p></div>
                 </div>

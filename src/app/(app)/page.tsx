@@ -1,3 +1,4 @@
+import { CardArt } from "@/components/card-art";
 import Link from "next/link";
 import { Hourglass, MiniBottle } from "@/components/meters";
 import { Verse } from "@/components/ui";
@@ -24,7 +25,8 @@ const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 }
 
 function Mini({ href, label, value, sub, color, pct, meter }: { href: string; label: string; value: string; sub?: string; color: string; pct?: number; meter?: React.ReactNode }) {
   return (
-    <Link href={href} className="glass rise p-4 block">
+    <Link href={href} className="glass rise relative isolate overflow-hidden p-4 block">
+      {href === "/pioneiro" && <CardArt name="pioneiro" />}
       <div className="flex items-start justify-between gap-1"><p className="label" style={{ color }}>{label}</p>{meter && <span className="-mt-1 -mr-1 shrink-0">{meter}</span>}</div>
       <p className={`num text-2xl leading-none ${meter ? "-mt-3" : "mt-2"}`}>{value}</p>
       {sub && <p className="text-xs text-muted mt-1">{sub}</p>}
@@ -117,8 +119,8 @@ export default async function Hoje() {
             <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] !text-[#ff2800] block">Meu maior motivo</span><span className="font-display text-xl uppercase italic leading-none block mt-1">Maria Luisa</span></span>
           </Link>
           {dreams.map((d) => (
-            <Link key={d.id} href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-white/10 bg-[#0b0b0b]">
-              {dUrl(d.image_path) ? <img src={dUrl(d.image_path)!} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <span className="absolute inset-0" style={{ background: "radial-gradient(80% 60% at 70% 20%, rgba(220,0,0,.35), transparent 70%), #0b0b0b" }} />}
+            <Link key={d.id} href="/sonhos" className="dream-mini snap-start shrink-0 relative isolate w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-white/10 bg-[#0b0b0b]">
+              {dUrl(d.image_path) ? <img src={dUrl(d.image_path)!} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <CardArt name="sonhos" cover />}
               <span className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
               <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] block">{d.target_date ? `até ${d.target_date.split("-").reverse().slice(0, 2).join("/")}` : d.category}</span><span className="text-[14px] font-semibold leading-tight block mt-1 line-clamp-3">{d.title}</span></span>
             </Link>))}
@@ -140,7 +142,8 @@ export default async function Hoje() {
       </div>
 
       {/* Relatório financeiro */}
-      <Link href="/financas" className="glass rise block p-5 mt-4" style={{ ["--accent" as string]: "#ff2800" }}>
+      <Link href="/financas" className="glass rise relative isolate overflow-hidden block p-5 mt-4" style={{ ["--accent" as string]: "#ff2800" }}>
+        <CardArt name="financas" />
         <div className="flex items-center justify-between"><p className="label" style={{ color: "#ff2800" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
           <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#30d158" }}>{brl(income)}</p></div>
@@ -161,7 +164,8 @@ export default async function Hoje() {
       </Link>
 
       {/* Metas */}
-      <Link href="/metas" className="glass rise block p-5 mt-4">
+      <Link href="/metas" className="glass rise relative isolate overflow-hidden block p-5 mt-4">
+        <CardArt name="metas" />
         <div className="flex items-center justify-between"><p className="label" style={{ color: "#dc0000" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
         {goalList.length === 0 ? <p className="font-display italic text-muted text-lg mt-2">Defina sua primeira meta.</p> : (
           <ul className="grid gap-4 mt-3">

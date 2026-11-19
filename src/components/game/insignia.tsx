@@ -1,4 +1,5 @@
 // Insígnias do ASCENSION: cada patente acrescenta um elemento e sobe de material.
+import { Medal } from "./medal";
 import { RANKS } from "@/lib/game";
 
 const METAL = {
@@ -74,24 +75,6 @@ export function Insignia({ index, size = 96, locked = false, glow = true }: { in
 
 /** Insígnias dos títulos especiais. */
 export function TitleBadge({ id, size = 64, locked = false }: { id: "phoenix" | "titan" | "archon"; size?: number; locked?: boolean }) {
-  const k = `t-${id}`;
-  const c = id === "phoenix" ? ["#ff7a5c", "#e2572b", "#7a0c18"] : id === "titan" ? ["#f2f4f6", "#9aa0a6", "#4a4e54"] : ["#ffd1e0", "#dc0000", "#7a5a22"];
-  return (
-    <svg width={size} height={size} viewBox="0 0 100 100" role="img" aria-label={`Título ${id}`} style={{ filter: locked ? "grayscale(1) brightness(.4)" : `drop-shadow(0 0 12px ${c[1]}99)`, overflow: "visible" }}>
-      <defs><linearGradient id={k} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={c[0]} /><stop offset=".55" stopColor={c[1]} /><stop offset="1" stopColor={c[2]} /></linearGradient></defs>
-      <circle cx="50" cy="50" r="44" fill="#0d0d0d" stroke={`url(#${k})`} strokeWidth="4" />
-      {id === "phoenix" && <g fill={`url(#${k})`}>
-        <path d="M50 22 C58 34 64 40 62 54 C60 66 54 72 50 76 C46 72 40 66 38 54 C36 40 42 34 50 22 Z" />
-        <path d="M38 50 C28 44 20 46 16 52 C24 52 30 56 36 60 Z" /><path d="M62 50 C72 44 80 46 84 52 C76 52 70 56 64 60 Z" />
-      </g>}
-      {id === "titan" && <g fill={`url(#${k})`}>
-        <rect x="30" y="24" width="40" height="7" rx="2" /><rect x="30" y="69" width="40" height="7" rx="2" />
-        {[36, 46, 56].map((x) => <rect key={x} x={x} y="32" width="8" height="36" rx="2" />)}
-      </g>}
-      {id === "archon" && <g fill={`url(#${k})`}>
-        <path d="M24 42 C34 38 44 40 50 46 C56 40 66 38 76 42 V72 C66 68 56 70 50 76 C44 70 34 68 24 72 Z" />
-        <path d="M36 32 L40 24 L45 30 L50 22 L55 30 L60 24 L64 32 Z" />
-      </g>}
-    </svg>
-  );
+  const color = { phoenix: "#e2572b", titan: "#9aa0a6", archon: "#a88acc" }[id];
+  return <Medal art={`titulo-${id}`} color={color} earned={!locked} label={`Título ${id}`} size={size} />;
 }
