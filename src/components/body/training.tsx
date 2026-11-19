@@ -3,6 +3,7 @@ import { HI, Ico } from "@/components/hunt-icons";
 import { ExerciseThumb } from "@/components/body/exercise-media";
 import { SwapSheet, WorkoutPreview } from "@/components/body/exercise-swap";
 import { MuscleMap } from "@/components/body/muscle-map";
+import { CardioPanel, CardioStats } from "@/components/body/cardio";
 import { todayWorkout } from "@/lib/training";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
@@ -171,6 +172,10 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                 <button className="btn !min-h-9 !px-3 text-muted" aria-label={`Remover ${e.name}`} onClick={() => set({ exercises: s.exercises.filter((_, i) => i !== ei) })}>✕</button>
               </div>
               {e.target?.notes && <p className="text-xs text-gold mt-1">{e.target.notes}</p>}
+              {isTimed(e.name, e.target && "muscle" in e.target ? String((e.target as { muscle?: string }).muscle) : undefined) ? (
+                <div className="mt-3"><CardioPanel name={e.name} km={e.sets[0]?.kg ?? ""} min={e.sets[0]?.reps ?? ""} onChange={(p) => { if (e.sets.length) updSet(ei, 0, { kg: p.km, reps: p.min, done: !!(Number(p.min) > 0) }); }}
+                  onRename={(nm) => set({ exercises: s.exercises.map((x, i) => (i === ei ? { ...x, name: nm } : x)) })} /></div>
+              ) : <>
               <div className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-3 label"><span>#</span><span>kg</span><span>reps</span><span>RPE</span><span /></div>
               {e.sets.map((x, si) => (
                 <div key={si} className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-1.5">
@@ -186,6 +191,7 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                   </button>
                 </div>
               ))}
+              </>}
               <div className="flex items-center gap-2 mt-2">
                 <button className="btn !min-h-9 text-sm" onClick={() => set({ exercises: s.exercises.map((y, i) => (i !== ei ? y : { ...y, sets: [...y.sets, { ...(y.sets.at(-1) ?? { kg: "", reps: "" }), done: false }] })) })}>+ Série</button>
                 {e.sets.length > 1 && <button className="btn !min-h-9 text-sm text-muted" onClick={() => set({ exercises: s.exercises.map((y, i) => (i !== ei ? y : { ...y, sets: y.sets.slice(0, -1) })) })}>− Série</button>}
@@ -401,7 +407,13 @@ export function Training({ today, split, plan, workouts, program = null, program
                           <span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />{sets} séries</span>
                         </div>)}
                       {ctx?.deload && <p className="text-[12px] mt-2" style={{ color: "#30d158" }}>Semana de recuperação: cargas reduzidas</p>}
-                      {b && <a href="/bestiario" className="inline-flex items-center gap-2 mt-3 text-[12px] text-white/55 hover:text-white"><CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />{b.angel ? `Exemplo da semana: ${b.virtue} · ${b.name}` : `Fera da semana: ${b.name}`}</a>}
+                      {b && (() => { const planned = Math.max(1, weekDays.filter((w) => w.dp.list.length).length), done = Math.min(planned, new Set(weekDays.filter((w) => w.status === "done").map((w) => w.date)).size); return (
+  <a href="/bestiario" className="flex items-center gap-3 mt-3 max-w-sm rounded-[12px] bg-white/[.04] px-3 py-2 hover:bg-white/[.07]">
+    <CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />
+    <span className="flex-1 min-w-0"><span className="block text-[12px] text-white/70 truncate">{b.angel ? `Virtude da semana: ${b.name}` : `Fera da semana: ${b.name}`}</span>
+      <span className="flex gap-0.5 mt-1">{Array.from({ length: planned }, (_, k) => <i key={k} className="h-1.5 flex-1 rounded-full" style={{ background: k < done ? "#ffb21e" : "rgba(255,255,255,.12)" }} />)}</span></span>
+    <span className="text-[11px] shrink-0" style={{ color: done ? "#ffb21e" : "rgba(255,255,255,.5)" }}>{done ? `abatido ${done}×` : "treine para abater"}</span>
+  </a>); })()}
                     </div>
                     {list.length > 0 && <div className="hidden sm:block"><MuscleMap list={list as never} compact /></div>}
                   </div>
@@ -446,6 +458,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         )}
       </section>
 
+      <CardioStats today={today} runs={workouts.flatMap((w) => w.sets.filter((x) => isTimed(x.exercise)).map((x) => ({ date: w.date, name: x.exercise, km: Number(x.kg) || 0, min: Number(x.reps) || 0 })))} />
       <TrainingSystem today={today} bodyweight={bodyweight} plannedPerWeek={planned}
         sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
