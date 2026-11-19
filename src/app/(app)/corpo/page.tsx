@@ -6,7 +6,8 @@ import { Nutrition } from "@/components/body/nutrition";
 import { Training } from "@/components/body/training";
 import { Weight } from "@/components/body/weight";
 import { ProgramView } from "@/components/body/program";
-import { todayWorkout, type Muscle, type Program } from "@/lib/training";
+import { programPosition, todayWorkout, type Muscle, type Program } from "@/lib/training";
+import { DietPlanCard } from "@/components/body/diet-plan";
 import { computeEvents } from "@/lib/events";
 import { FireLayer, EventCard } from "@/components/events/event-ui";
 import { addDays, dow, todayISO } from "@/lib/date";
@@ -84,11 +85,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     const seen = new Set<string>(), saved = ([...groups.values()] as { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] }[]).filter((g) => { const sig = g.slot + "|" + g.items.map((i) => i.name).sort().join("+"); if (seen.has(sig)) return false; seen.add(sig); return true; }).slice(0, 24);
     const days = Array.from({ length: 7 }, (_, i) => addDays(from, i));
     const wk = days.map((d) => { const l = weekEaten.filter((x) => x.date === d); return { date: d, kcal: l.reduce((a, x) => a + N(x.kcal), 0), protein: Math.round(l.reduce((a, x) => a + N(x.protein_g), 0)) }; });
-    content = <Nutrition key={date} date={date} today={today} slots={s.meal_slots}
+    const [dp, di, ap] = await Promise.all([
+      sb.from("diet_plans").select("*").maybeSingle(),
+      sb.from("diet_intakes").select("kind,name").eq("date", date),
+      sb.from("training_programs").select("phases,start_date").eq("active", true).maybeSingle(),
+    ]);
+    let phase: { kind: string; name: string } | null = null;
+    if (ap.data) { const pos = programPosition(ap.data as never, date), ph = (ap.data.phases as { kind: string; name: string }[])[pos.phaseIndex]; if (pos.status === "andamento" && ph) phase = { kind: ph.kind, name: ph.name }; }
+    const planCard = <DietPlanCard key={"plan" + date} ready={!dp.error} plan={(dp.data as never) ?? null} date={date} doneSlots={(meals.data ?? []).filter((m) => m.done).map((m) => m.slot)} intakes={di.data ?? []} phase={phase} />;
+    content = <><div className="dash-auto">{planCard}</div><Nutrition key={date} date={date} today={today} slots={s.meal_slots}
       items={(items.data ?? []).map((i) => ({ ...i, kcal: N(i.kcal), protein_g: N(i.protein_g), carbs_g: N(i.carbs_g), fat_g: N(i.fat_g) }))}
       doneSlots={(meals.data ?? []).filter((m) => m.done).map((m) => m.slot)}
       foods={(foods.data ?? []).map((f) => ({ ...f, kcal: N(f.kcal), protein_g: N(f.protein_g), carbs_g: N(f.carbs_g), fat_g: N(f.fat_g) }))}
-      goals={{ kcal: s.kcal_goal, protein: s.protein_goal_g, carbs: s.carbs_goal_g, fat: s.fat_goal_g }} week={wk} saved={saved} />;
+      goals={{ kcal: s.kcal_goal, protein: s.protein_goal_g, carbs: s.carbs_goal_g, fat: s.fat_goal_g }} week={wk} saved={saved} /></>;
   } else {
     const from = addDays(today, -6);
     const [water, sleep, food, weight, doneToday] = await Promise.all([
