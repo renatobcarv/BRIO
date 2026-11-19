@@ -787,3 +787,26 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 .site .num { font-family: var(--font-hunt), var(--font-sans) !important; font-weight: 700 !important; letter-spacing: 0 !important; }
 .site .glowcard, .site .tilt { border-radius: 10px; }
 .site .press:active { transform: scale(.98); }
+
+.partner-frame.glass {
+  border: 2px solid #d8ad69 !important;
+  box-shadow: 0 0 0 1px #5a3924, 0 10px 28px #0005 !important;
+}
+.partner-frame.glass::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  z-index: 2;
+  pointer-events: none;
+  border: 1px solid #ffe0a88c;
+  border-radius: 13px;
+  background:
+    radial-gradient(ellipse at top left, #ffdba136, transparent 32%),
+    radial-gradient(ellipse at bottom right, #f9b89c1f, transparent 30%);
+}
+.partner-caption {
+  padding-top: clamp(2rem, 8vw, 5rem);
+  background: linear-gradient(to top, #100c0af7 5%, #130e0bdd 43%, transparent);
+}
+.partner-phrase { text-shadow: 0 2px 12px #000b; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) { .xp-float { animation: none; } }

@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -55,8 +56,14 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
     <XpCtx.Provider value={{ total, today, gain, celebrate }}>
       {children}
       {mounted && createPortal(<>
-      <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.5rem)] z-50 flex flex-col items-center gap-2" aria-live="polite">
-        {floats.map((f) => <span key={f.id} className="xp-float rounded-full px-4 py-1.5 text-sm font-semibold backdrop-blur-md border" style={{ color: f.color, borderColor: f.color + "55", background: "rgba(14,16,21,.85)" }}>{f.text}</span>)}
+      <div className="pointer-events-none fixed inset-x-0 top-[calc(env(safe-area-inset-top)+4.5rem)] z-[85] flex flex-col items-center gap-2 px-4" aria-live="polite">
+        {floats.map((f) => (
+          <span key={f.id} className="xp-float inline-flex max-w-full items-center gap-2 rounded-full border bg-[#14110d]/95 py-1 pr-4 pl-2 text-sm font-semibold text-[#fff2d2] backdrop-blur-md"
+            style={{ borderColor: f.color + "75" }}>
+            <Image src="/painel/xp.webp" width={30} height={30} alt="" unoptimized className="shrink-0 object-contain" />
+            <span className="min-w-0 break-words">{f.text}</span>
+          </span>
+        ))}
       </div>
       {banner && (
         <div key={banner.key} className="pointer-events-none fixed inset-0 z-[60] grid place-items-center" role="status">
@@ -69,7 +76,9 @@ export function XpProvider({ initialTotal, initialToday, children, trackLevel = 
           <div className="relative grid place-items-center">
             <div className="absolute h-[420px] w-[420px] rays" aria-hidden />
             <div className="level-pop relative text-center rounded-[8px] px-10 py-8 border border-[#ffb21e]/40 bg-[#111113]" style={{ animationDuration: banner.insignia != null ? "3.6s" : undefined, boxShadow: "0 0 0 1px rgba(255,178,30,.15), 0 0 90px -10px rgba(255,178,30,.65)" }}>
-              {banner.insignia != null && <div className="mx-auto w-fit emblem-spin mb-2"><Insignia index={banner.insignia} size={120} /></div>}
+              {banner.insignia != null
+                ? <div className="mx-auto w-fit emblem-spin mb-2"><Insignia index={banner.insignia} size={120} /></div>
+                : <Image src="/painel/xp.webp" width={72} height={72} alt="" unoptimized className="emblem-spin mx-auto mb-2 object-contain" />}
               <p className="label" style={{ color: "#ffb21e" }}>{banner.insignia != null ? "Nova patente · Ascension" : "Conquista"}</p>
               <p className="font-display text-6xl mt-2 text-glow" style={{ ["--glow" as string]: "#ffb21e" }}>{banner.title}</p>
               {banner.sub && <p className="text-muted mt-2">{banner.sub}</p>}

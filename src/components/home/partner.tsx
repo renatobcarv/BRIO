@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useRef, useState, useTransition } from "react";
 import { savePartner } from "@/app/(app)/configuracoes/actions";
 import { Sheet } from "@/components/kit";
@@ -31,22 +32,25 @@ export function Partner({ photo, phrase }: { photo: string | null; phrase: strin
 
   return (
     <>
-      <figure className="glass rise mt-4 overflow-hidden !p-0 relative">
+      <figure className="partner-frame glass rise mt-4 overflow-hidden !p-0 relative">
         {src ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={src} alt="Maria Luisa" className={`w-full aspect-[4/5] md:aspect-[16/10] object-cover object-[50%_35%] transition-opacity ${pending ? "opacity-60" : ""}`} />
+          <img src={src} alt="Maria Luísa" className={`w-full aspect-[4/5] md:aspect-[16/10] object-cover object-[50%_35%] transition-opacity ${pending ? "opacity-60" : ""}`} />
         ) : (
           <button onClick={() => file.current?.click()} className="w-full aspect-[4/3] grid place-items-center bg-white/[.03]">
             <span className="text-center"><span className="block text-4xl text-muted">＋</span><span className="text-sm text-muted">Adicionar foto dela</span></span>
           </button>
         )}
-        <figcaption className={`${src ? "absolute inset-x-0 bottom-0 pt-24 bg-gradient-to-t from-black/85 via-black/40 to-transparent" : ""} p-6`}>
-          <p className="label text-white/70">Maria Luisa</p>
-          <button onClick={() => setEditing(true)} className="text-left font-display italic text-3xl md:text-4xl text-white mt-1 leading-tight">{text}</button>
+        <figcaption className={`${src ? "partner-caption absolute inset-x-0 bottom-0" : ""} px-5 pb-5 sm:px-7 sm:pb-7`}>
+          <p className="flex items-center gap-2 text-sm font-semibold text-[#ffe0a8]">
+            <Image src="/painel/tiara.webp" width={29} height={29} alt="" unoptimized className="object-contain" />
+            Maria Luísa
+          </p>
+          <button onClick={() => setEditing(true)} title="Editar frase" className="partner-phrase mt-1 block text-left text-[clamp(1.35rem,2.5vw,2.15rem)] font-semibold leading-tight text-[#fff6e8]">{text}</button>
         </figcaption>
         {src && (
           <button onClick={() => file.current?.click()} disabled={pending} aria-label="Trocar foto"
-            className="absolute top-3 right-3 h-11 px-4 rounded-full bg-black/45 backdrop-blur-md border border-white/20 text-white text-sm flex items-center gap-2">
+            className="absolute top-3.5 right-3.5 z-10 flex h-10 items-center gap-2 rounded-full border border-[#ffe0a8]/45 bg-black/65 px-3 text-sm text-[#fff6e8] backdrop-blur-md">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden><path d="M4 8h3l2-3h6l2 3h3v11H4z" /><circle cx="12" cy="13" r="3.5" /></svg>
             {pending ? "Enviando…" : "Trocar foto"}
           </button>

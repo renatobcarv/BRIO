@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { toggleCheck } from "@/app/(app)/home-actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -85,22 +86,26 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const pct = items.length ? doneCount / items.length : 0, full = pct === 1;
   const left = useCountdown();
   // Paleta pela sequência de dias 100%: luz → aurora → chama → fogueira → inferno → fogo de guerra → chama violeta.
-  const run = streak + (full ? 0 : 0);
-  const T = run >= 60 ? { n: "RUBI", a: "#ffd60a", b: "#ffffff", bg: "#2a0512", heat: 5 }
-    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#ffd60a", b: "#ffd28a", bg: "#2a0510", heat: 5 }
-    : run >= 14 ? { n: "INFERNO", a: "#ff9f0a", b: "#ffd28a", bg: "#24060f", heat: 4 }
-    : run >= 7 ? { n: "FOGUEIRA", a: "#ffb21e", b: "#ffd1e0", bg: "#200811", heat: 3 }
-    : run >= 3 ? { n: "CHAMA", a: "#ffcc66", b: "#ffd1e0", bg: "#1c0a0e", heat: 2 }
-    : run >= 1 ? { n: "AURORA", a: "#ffd28a", b: "#ffffff", bg: "#170d10", heat: 1 }
-    : { n: "LUZ", a: "#f5f5f7", b: "#cfd8ea", bg: "#111113", heat: 0 };
-  const SYS = T.a, ALT = T.b;
+  const run = streak;
+  const T = run >= 60 ? { n: "RUBI", a: "#ffd60a", heat: 5 }
+    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#ffd60a", heat: 5 }
+    : run >= 14 ? { n: "INFERNO", a: "#ff9f0a", heat: 4 }
+    : run >= 7 ? { n: "FOGUEIRA", a: "#ffb21e", heat: 3 }
+    : run >= 3 ? { n: "CHAMA", a: "#ffcc66", heat: 2 }
+    : run >= 1 ? { n: "AURORA", a: "#ffd28a", heat: 1 }
+    : { n: "LUZ", a: "#f5f5f7", heat: 0 };
+  const SYS = T.a;
 
   return (
     <section className="hunt-card rise relative min-w-0 w-full overflow-hidden" style={{ ["--sys" as string]: SYS }}>
       <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: SYS, boxShadow: `0 0 18px ${SYS}` }} />
       <div className="p-4 pl-5">
         <div className="flex items-start gap-3">
-          <StreakFlame n={streak} a={SYS} b={ALT} heat={T.heat} />
+          <span className="relative grid h-14 w-14 shrink-0 place-items-center rounded-2xl border border-[#ffcf78]/30 bg-[#211a10]">
+            <Image src="/painel/missao.webp" width={46} height={46} alt="" unoptimized className="object-contain"
+              style={T.heat > 0 ? { filter: `drop-shadow(0 0 ${2 + T.heat}px ${SYS}70)` } : undefined} />
+            <span aria-hidden className="absolute -bottom-1 -right-1 rounded-full border border-[#ffcf78]/50 bg-[#14100b] px-1.5 text-[10px] font-semibold leading-4 text-[#ffe2a6]">{streak}</span>
+          </span>
           <div className="flex-1 min-w-0">
             <p className="label" style={{ color: SYS }}>{full ? "Missão concluída" : "Missão diária"} · {T.n}</p>
             <p className="font-display text-3xl mt-1">{full ? "Alvo abatido." : "Olho no alvo."}</p>
@@ -166,18 +171,4 @@ function useCountdown() {
   const sp = new Date(now - 3 * 36e5), end = Date.UTC(sp.getUTCFullYear(), sp.getUTCMonth(), sp.getUTCDate() + 1) + 3 * 36e5;
   const ms = Math.max(0, end - now), h = Math.floor(ms / 36e5), m = Math.floor(ms / 6e4) % 60, sec = Math.floor(ms / 1e3) % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-}
-
-/** Chama estilo cartoon (arredondada, gordinha, quica). Cresce e esquenta com a sequência. */
-function StreakFlame({ n, a, heat }: { n: number; a: string; b: string; heat: number }) {
-  const lit = heat > 0, size = 52;
-  return (
-    <span className="relative shrink-0" style={{ width: size, height: size * 1.1 }}>
-      <svg viewBox="0 0 40 44" className="w-full h-full overflow-visible" aria-hidden style={lit ? { filter: `drop-shadow(0 0 ${4 + heat * 2}px ${a})` } : undefined}>
-        <path d="M20 1 L31 16 L27 15 L35 28 L28 43 L12 43 L5 28 L13 15 L9 16 Z" fill={lit ? a : "#1c1c1e"} stroke={lit ? "none" : "#3a3a3c"} />
-        <path d="M20 18 L26 30 L22 29 L24 43 L16 43 L18 29 L14 30 Z" fill={lit ? "#000" : "#0b0b0b"} opacity={lit ? 0.55 : 1} />
-        <text x="20" y="39" textAnchor="middle" fontSize="12" fontWeight="800" fill="#fff" style={{ fontFamily: "var(--font-hunt), var(--font-sans)" }}>{n}</text>
-      </svg>
-    </span>
-  );
 }
