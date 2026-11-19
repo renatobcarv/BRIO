@@ -9,7 +9,7 @@ function inline(s: string, k: string): React.ReactNode[] {
       : <span key={k + i}>{p}</span>);
 }
 
-export function Md({ text }: { text: string }) {
+export function Md({ text, images }: { text: string; images?: Record<string, string> }) {
   const out: React.ReactNode[] = [];
   const lines = text.replace(/\r/g, "").split("\n");
   let i = 0;
@@ -21,6 +21,12 @@ export function Md({ text }: { text: string }) {
       i++;
       out.push(<pre key={"c" + i} className="my-1 overflow-x-auto border border-white/[.08] bg-[#060606] p-3 text-[12.5px] leading-relaxed font-mono text-white/85">{lang && <span className="block label !text-[9px] mb-2">{lang}</span>}<code>{body.join("\n")}</code></pre>);
       continue;
+    }
+    const im = l.match(/^!\[([^\]]*)\]\(((?:img:[^)\s]+)|(?:https:\/\/[^)\s]+))\)\s*$/);
+    if (im) {
+      const src = im[2].startsWith("img:") ? images?.[im[2].slice(4)] : im[2];
+      out.push(<figure key={"i" + i} className="my-2">{src ? <img src={src} alt={im[1] || ""} className="w-full max-h-[70vh] object-cover rounded-[6px] border border-white/10" loading="lazy" /> : <div className="h-40 grid place-items-center border border-dashed border-white/15 text-[12px] text-white/40">imagem</div>}{im[1] && <figcaption className="text-[12px] text-white/50 mt-1.5 text-center">{im[1]}</figcaption>}</figure>);
+      i++; continue;
     }
     const h = l.match(/^(#{1,4})\s+(.*)/);
     if (h) { out.push(<p key={"h" + i} className={`font-semibold text-white ${h[1].length <= 2 ? "text-[17px] mt-2" : "text-[15px] mt-1"}`}>{inline(h[2], "h" + i)}</p>); i++; continue; }

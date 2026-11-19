@@ -543,7 +543,7 @@ body:has(.peace)::before { background: radial-gradient(60% 40% at 80% 0%, rgba(1
 .peace .glass::before { background: linear-gradient(#9fd0f5, #f2dfae); }
 .peace a.glass:hover, .peace .glass:focus-within { border-color: rgba(159,208,245,.4); }
 .peace .hunt-card { background: linear-gradient(170deg, #0b1118, #070a0e); border-color: rgba(159,208,245,.14) !important; }
-.peace .chip[aria-pressed="true"], .peace .chip[aria-selected="true"] { border-color: #9fd0f5; color: #fff; background: rgba(159,208,245,.12); }
+.peace .chip[aria-pressed="true"], .peace .chip[aria-selected="true"] { border-color: #9fd0f5 !important; color: #fff !important; background: rgba(159,208,245,.16) !important; }
 .peace .field:focus { border-color: #9fd0f5; }
 .peace .font-display.italic, .peace .serif { font-family: var(--font-serif); font-style: italic; text-transform: none; }
 .peace h1.font-display { font-style: normal; }

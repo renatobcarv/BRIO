@@ -3,6 +3,7 @@ import { Board, Card, PageHeader, Verse } from "@/components/ui";
 import { HI } from "@/components/hunt-icons";
 import { BibleTab, JournalTab, StudyTab } from "@/components/spirit/spirit";
 import { SpiritToday } from "@/components/spirit/today";
+import { PagesGallery, type PageCard } from "@/components/spirit/pages";
 import { StudyQuizButton } from "@/components/quiz/study-button";
 import { addDays, daysInMonth, dow, monthEnd, monthStart, todayISO, weekdayShort } from "@/lib/date";
 import { dayStreak } from "@/lib/streak-days";
@@ -10,10 +11,10 @@ import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 const ACC = "#9fd0f5";
-const TABS = [["estudo", "Estudo"], ["biblia", "Bíblia"], ["diario", "Diário"]] as const;
+const TABS = [["paginas", "Páginas"], ["estudo", "Estudo"], ["biblia", "Bíblia"], ["diario", "Diário"]] as const;
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
-  const tab = (await searchParams).aba ?? "estudo";
+  const tab = (await searchParams).aba ?? "paginas";
   const sb = await createClient();
   const today = todayISO(), m = monthStart(today), dim = daysInMonth(m);
   const [studies, bible, journal] = await Promise.all([
@@ -22,6 +23,13 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     tab === "diario" ? sb.from("journal_entries").select("id,date,kind,text").order("date", { ascending: false }).order("created_at", { ascending: false }).limit(100) : Promise.resolve({ data: [] }),
   ]);
   const st = studies.data ?? [];
+  const pq = await sb.from("spirit_pages").select("id,title,kind,cover_path,bible_book,bible_chapter,updated_at,content").order("pinned", { ascending: false }).order("updated_at", { ascending: false }).limit(300);
+  const praw = pq.error ? [] : pq.data ?? [];
+  const covers = praw.map((p) => p.cover_path).filter(Boolean) as string[];
+  const cs = covers.length && tab === "paginas" ? (await sb.storage.from("privado").createSignedUrls(covers, 3600)).data ?? [] : [];
+  const pages: PageCard[] = praw.map((p) => ({ id: p.id, title: p.title, kind: p.kind, bible_book: p.bible_book, bible_chapter: p.bible_chapter, updated_at: p.updated_at,
+    cover: cs.find((x) => x.path === p.cover_path)?.signedUrl ?? null, excerpt: String(p.content).replace(/!\[[^\]]*\]\([^)]*\)/g, "").replace(/[#>*=+`_-]/g, "").replace(/\s+/g, " ").trim().slice(0, 140) }));
+  const chapterNotes = pages.filter((p) => p.bible_book).map((p) => ({ id: p.id, title: p.title, book: p.bible_book!, chapter: p.bible_chapter }));
   const jt = await sb.from("journal_entries").select("kind").eq("date", today);
   const kindsToday = new Set((jt.data ?? []).map((x) => x.kind));
   const monthSt = st.filter((s) => s.date >= m && s.date <= monthEnd(m));
@@ -57,7 +65,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       <div className="flex gap-2 my-4" role="tablist">
         {TABS.map(([k, l]) => <Link key={k} href={`/espiritual?aba=${k}`} role="tab" aria-selected={tab === k} aria-pressed={tab === k} className="chip !min-h-11 !px-5">{l}</Link>)}
       </div>
-      {tab === "biblia" ? <BibleTab read={bible.data ?? []} streak={bibleStreak} />
+      {tab === "paginas" ? <PagesGallery pages={pages} ready={!pq.error} />
+        : tab === "biblia" ? <BibleTab read={bible.data ?? []} streak={bibleStreak} notes={chapterNotes} />
         : tab === "diario" ? <JournalTab entries={journal.data ?? []} />
         : <StudyTab today={today} studies={st} />}
       <Verse area="espiritual" />
