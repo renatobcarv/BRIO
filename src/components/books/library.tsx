@@ -1,6 +1,7 @@
 "use client";
 import { BookStack } from "@/components/meters";
 import Link from "next/link";
+import Image from "next/image";
 import { useMemo, useState, useTransition } from "react";
 import { logReading } from "@/app/(app)/livros/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -100,7 +101,7 @@ export function Library({ books, sessions, notes, goal, today }: { books: Book[]
     <div style={{ ["--accent" as string]: B }}>
       <div className="flex items-center gap-2 mb-4 flex-wrap">
         <Segmented value={view} onChange={setView} options={[["lendo", "Lendo"], ["estante", "Estante"], ["notas", "Anotações"], ["stats", "Números"]]} />
-        <button className="btn btn-accent ml-auto" onClick={() => setAdding(true)}>+ Livro</button>
+        <button className="btn btn-accent ml-auto inline-flex items-center gap-2" onClick={() => setAdding(true)}><Image src="/medalhas/livros/adicionar.webp" alt="" width={24} height={24} unoptimized />Adicionar livro</button>
       </div>
 
       {view === "lendo" && (

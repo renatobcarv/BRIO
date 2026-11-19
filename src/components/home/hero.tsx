@@ -1,13 +1,12 @@
 "use client";
-import { CardArt } from "@/components/card-art";
-import { HI, Ico } from "@/components/hunt-icons";
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useXp, haptic } from "@/components/game/xp";
 import { CountUp } from "@/components/count-up";
 import { Sheet } from "@/components/kit";
 import { StudyQuiz } from "@/components/quiz/study-quiz";
-import { FieldQuiz, FIELD_ICON } from "@/components/quiz/field-quiz";
+import { FieldQuiz } from "@/components/quiz/field-quiz";
 import { addWater } from "@/app/(app)/corpo/actions";
 import { levelOf, rankOf, rankIndex, RANKS } from "@/lib/game";
 import { Insignia } from "@/components/game/insignia";
@@ -59,12 +58,12 @@ export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
 }
 
 const ACTIONS = [
-  { key: "estudo", label: "Estudo", color: "#ff2800", icon: HI.book, art: "estudos" },
-  { key: "campo", label: "Campo", color: "#f5f5f7", icon: FIELD_ICON },
-  { key: "agua", label: "+250 ml", color: "#f5f5f7", icon: HI.drop },
-  { key: "treino", label: "Treino", color: "#30d158", icon: HI.dumbbell, art: "treino", href: "/treino" },
-  { key: "peso", label: "Peso", color: "#dc0000", icon: HI.scale, href: "/corpo?aba=peso" },
-  { key: "gasto", label: "Gasto", color: "#ff2800", icon: HI.coin, art: "financas", href: "/financas?aba=lancamentos" },
+  { key: "estudo", label: "Estudo", accessibleLabel: "Registrar estudo" },
+  { key: "campo", label: "Campo", accessibleLabel: "Campo, registrar pregação" },
+  { key: "agua", label: "+250 ml", accessibleLabel: "+250 ml de água" },
+  { key: "treino", label: "Treino", accessibleLabel: "Abrir treino", href: "/treino" },
+  { key: "peso", label: "Peso", accessibleLabel: "Peso, registrar peso corporal", href: "/corpo?aba=peso" },
+  { key: "gasto", label: "Gasto", accessibleLabel: "Registrar gasto", href: "/financas?aba=lancamentos" },
 ] as const;
 
 /** Atalhos de registro: um toque, recompensa imediata. */
@@ -84,18 +83,16 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
         {ACTIONS.map((a) => {
           const inner = (
             <>
-              {"art" in a && <CardArt name={a.art} />}
-              <span className="h-11 w-11 rounded-[8px] grid place-items-center" style={{ background: a.color, boxShadow: `0 8px 22px -8px ${a.color}` }}>
-                <Ico d={a.icon} size={21} color="#000" />
-              </span>
+              <Image src={`/atalhos/${a.key}.webp`} width={72} height={72} alt="" unoptimized
+                className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]" />
               <span className="text-[13px] font-semibold mt-2">{a.label}</span>
-              {a.key === "agua" && <span className="text-[11px] text-muted num">{(ml / 1000).toFixed(2).replace(".", ",")} / {(waterGoal / 1000).toFixed(1).replace(".", ",")} L</span>}
+              {a.key === "agua" && <span id="quick-water-progress" className="text-[11px] text-muted num">{(ml / 1000).toFixed(2).replace(".", ",")} / {(waterGoal / 1000).toFixed(1).replace(".", ",")} L</span>}
             </>
           );
-          const cls = "tile press relative isolate overflow-hidden flex flex-col items-center justify-center py-4 min-h-[104px]";
+          const cls = "tile press relative isolate overflow-hidden flex flex-col items-center justify-center px-1 py-3 min-h-[116px]";
           return "href" in a
-            ? <Link key={a.key} href={a.href} className={cls}>{inner}</Link>
-            : <button key={a.key} className={cls} onClick={() => (a.key === "agua" ? water() : setSheet(a.key as "estudo" | "campo"))}>{inner}</button>;
+            ? <Link key={a.key} href={a.href} className={cls} aria-label={a.accessibleLabel}>{inner}</Link>
+            : <button key={a.key} type="button" className={cls} aria-label={a.accessibleLabel} aria-describedby={a.key === "agua" ? "quick-water-progress" : undefined} onClick={() => (a.key === "agua" ? water() : setSheet(a.key as "estudo" | "campo"))}>{inner}</button>;
         })}
       </div>
       <Sheet accent="#ff2800" open={sheet === "estudo"} onClose={() => setSheet(null)} title="Estudo">{sheet === "estudo" && <StudyQuiz today={today} onClose={() => setSheet(null)} />}</Sheet>

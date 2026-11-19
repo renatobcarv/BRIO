@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Board, PageHeader, Verse } from "@/components/ui";
 import { HI } from "@/components/hunt-icons";
@@ -18,6 +19,7 @@ const TX = "id,kind,name,amount,category,date,paid,recurring,note,month";
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string; m?: string }> }) {
   const sp = await searchParams;
   const tab = sp.aba ?? "resumo";
+  const art = TABS.find(([key]) => key === tab)?.[0] ?? "patrimonio";
   const month = isoMonthParam(sp.m);
   const sb = await createClient();
   const s = await getSettings(sb);
@@ -94,15 +96,19 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   return (
     <div className="dash-auto" style={{ ["--accent" as string]: "#ff2800" }}>
       <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" icon={HI.coin} line="Dinheiro é ferramenta. Ordem antes de conforto." />
-      <Board icon={HI.coin} label={`Saldo de ${monthLabel(month)}`} big={brl0(inc - exp)} bar={inc ? Math.min(1, exp / inc) : exp ? 1 : 0}
+      <Board icon={HI.coin} art={<Image src={`/financas/${art === "resumo" ? "saldo" : art}.webp`} alt="" width={320} height={320} unoptimized
+        className="pointer-events-none absolute -right-6 -top-10 -z-10 h-auto w-[54%] max-w-[285px] opacity-30 [mask-image:linear-gradient(110deg,transparent,#000_54%)] md:opacity-40" />}
+        label={`Saldo de ${monthLabel(month)}`} big={brl0(inc - exp)} bar={inc ? Math.min(1, exp / inc) : exp ? 1 : 0}
         sub={inc ? `${Math.round((exp / inc) * 100)}% da renda já comprometida` : "Lance as entradas do mês para ver o saldo."}
         stats={[[HI.up, "Entradas", brl0(inc)], [HI.down, "Saídas", brl0(exp)], [HI.clock, "A pagar", brl0(toPay)]]} />
       <nav aria-label="Seções de finanças" className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-4 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent md:backdrop-blur-none">
         <div className="flex gap-px bg-white/[.06] border border-white/[.06] rounded-[8px] overflow-x-auto">
           {TABS.map(([k, l]) => { const on = tab === k; return (
             <Link key={k} href={href(k)} aria-current={on ? "page" : undefined}
-              className={`relative flex-1 min-w-[88px] min-h-12 px-3 grid place-items-center text-[12px] uppercase tracking-[.14em] whitespace-nowrap transition-colors ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/55 hover:text-white"}`}>
-              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 12px #ff2800" }} />}{l}</Link>); })}
+              className={`relative flex-1 min-w-[88px] min-h-[70px] px-3 py-2 flex flex-col items-center justify-center gap-1 text-[11px] uppercase tracking-[.14em] whitespace-nowrap transition-colors ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/55 hover:text-white"}`}>
+              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 12px #ff2800" }} />}
+              <Image src={`/financas/${k}.webp`} alt="" width={32} height={32} unoptimized className={on ? "object-contain" : "object-contain opacity-75"} />
+              {l}</Link>); })}
         </div>
       </nav>
       {monthNav && (

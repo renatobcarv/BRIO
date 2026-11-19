@@ -1,3 +1,4 @@
+import { Medal } from "@/components/game/medal";
 import { MEDALS, medalState, TIER_COLOR, type Stats } from "@/lib/reading-medals";
 
 /** Medalhas de leitura: o que fazer para ganhar, nível atual e progresso. */
@@ -15,7 +16,7 @@ export function ReadingMedals({ stats }: { stats: Stats }) {
         {close.map(({ m, s }) => (
           <div key={m.id} className="border border-[#ffb21e44] bg-[#ffb21e0a] rounded-[8px] p-3">
             <p className="label !text-[9px] !text-[#ffb21e]">Quase lá</p>
-            <p className="text-[14px] font-semibold mt-1"><span className="pet-glyph mr-1.5">{m.icon}</span>{m.how(s.next!.n)}</p>
+            <p className="flex items-center gap-1.5 text-[14px] font-semibold mt-1"><Medal art={`livros/${m.id}`} color={TIER_COLOR[s.next!.name]} earned={!!s.tier} size={30} />{m.how(s.next!.n)}</p>
             <div className="h-[5px] bg-white/10 mt-2"><i className="block h-full" style={{ width: `${s.progress * 100}%`, background: TIER_COLOR[s.next!.name] }} /></div>
             <p className="font-mono text-[11px] text-white/50 mt-1">{s.value.toLocaleString("pt-BR")} / {s.next!.n.toLocaleString("pt-BR")} {m.unit} · {s.next!.name}</p>
           </div>))}
@@ -24,9 +25,7 @@ export function ReadingMedals({ stats }: { stats: Stats }) {
         {all.map(({ m, s }) => { const c = s.tier ? TIER_COLOR[s.tier] : "#3a3a3c"; return (
           <div key={m.id} className={`relative rounded-[8px] border p-3 ${s.tier ? "border-white/10 bg-[#0b0b0b]" : "border-white/[.05] bg-[#070707]"}`}>
             <div className="flex items-center gap-3">
-              <span className="relative grid place-items-center h-12 w-12 rounded-full shrink-0" style={{ background: `radial-gradient(circle, ${c}33, transparent 70%)`, boxShadow: s.tier ? `inset 0 0 0 2px ${c}` : "inset 0 0 0 1px #2a2a2c" }}>
-                <span className="medal-motion pet-glyph text-[22px]" data-earned={!!s.tier} style={s.tier ? undefined : { filter: "grayscale(1) brightness(.5)" }}>{m.icon}</span>
-              </span>
+              <Medal art={`livros/${m.id}`} color={c} earned={!!s.tier} size={54} />
               <div className="min-w-0">
                 <p className="text-[13.5px] font-semibold leading-tight">{m.title}</p>
                 <p className="text-[10.5px] font-mono mt-0.5" style={{ color: s.tier ? c : "#6b6b70" }}>{s.tier ?? "Bloqueada"}{s.level ? ` · ${s.level}/${m.tiers.length}` : ""}</p>

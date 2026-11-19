@@ -1,10 +1,10 @@
 import { Ico } from "@/components/hunt-icons";
 import { verseFor, type Area } from "@/lib/verses";
 
-export function PageHeader({ eyebrow, title, color = "#ff2800", line, icon }: { eyebrow: string; title: string; color?: string; line?: string; icon?: string }) {
+export function PageHeader({ eyebrow, title, color = "#ff2800", line, icon }: { eyebrow: string; title: string; color?: string; line?: string; icon?: React.ReactNode }) {
   return (
     <header className="rise mb-5 span-all">
-      <p className="label flex items-center gap-2" style={{ color }}>{icon ? <Ico d={icon} size={13} /> : <span className="h-1.5 w-1.5 war-pulse" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />}{eyebrow}</p>
+      <p className="label flex items-center gap-2" style={{ color }}>{icon ? (typeof icon === "string" ? <Ico d={icon} size={13} /> : icon) : <span className="h-1.5 w-1.5 war-pulse" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />}{eyebrow}</p>
       <h1 className="font-display text-5xl mt-2">{title}<span style={{ color: color === "#ff2800" ? "#ffb21e" : color }}>.</span></h1>
       {line && <p className="text-sm text-muted mt-2">{line}</p>}
     </header>
@@ -12,23 +12,24 @@ export function PageHeader({ eyebrow, title, color = "#ff2800", line, icon }: { 
 }
 
 /** Placar do modo caçador: número grande, barra em segmentos e três colunas. Server-safe. */
-export function Board({ icon, label, big, unit, sub, bar, stats = [], note, children, accent = "#ff2800", accent2 = "#ffb21e" }: {
+export function Board({ icon, label, big, unit, sub, bar, stats = [], note, children, art, accent = "#ff2800", accent2 = "#ffb21e" }: {
   accent?: string; accent2?: string;
-  icon: string; label: string; big: string; unit?: string; sub?: string; bar?: number;
-  stats?: [string, string, string, string?][]; note?: React.ReactNode; children?: React.ReactNode;
+  icon: React.ReactNode; label: string; big: string; unit?: string; sub?: string; bar?: number;
+  stats?: [React.ReactNode, string, string, string?][]; note?: React.ReactNode; children?: React.ReactNode; art?: React.ReactNode;
 }) {
   const R = accent;
   return (
-    <section className="hunt-card rise relative overflow-hidden p-5 mb-4 span-all board">
+    <section className="hunt-card rise relative isolate overflow-hidden p-5 mb-4 span-all board">
+      {art}
       <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
-      <p className="label flex items-center gap-1.5"><Ico d={icon} size={13} />{label}</p>
+      <p className="label flex items-center gap-1.5">{typeof icon === "string" ? <Ico d={icon} size={13} /> : icon}{label}</p>
       <p className="num text-6xl leading-none mt-2">{big}{unit && <span className="text-xl text-white/40"> {unit}</span>}</p>
       {sub && <p className="text-[12px] text-white/55 mt-2">{sub}</p>}
       {bar != null && <div className="flex gap-[3px] mt-4" aria-hidden>{Array.from({ length: 20 }, (_, i) => <i key={i} className="h-[5px] flex-1" style={{ background: i < Math.round(Math.max(0, Math.min(1, bar)) * 20) ? R : "rgba(255,255,255,.08)" }} />)}</div>}
       {stats.length > 0 && (
         <div className="grid mt-5 border-t border-white/[.06] divide-x divide-white/[.06]" style={{ gridTemplateColumns: `repeat(${stats.length}, minmax(0,1fr))` }}>
           {stats.map(([ic, l, v, u]) => (
-            <div key={l} className="pt-3 text-center min-w-0"><p className="label !text-[9px] flex items-center justify-center gap-1"><Ico d={ic} size={11} />{l}</p><p className="num text-2xl mt-1 truncate" style={{ color: accent2 }}>{v}</p>{u && <p className="text-[10px] text-white/45 truncate">{u}</p>}</div>))}
+            <div key={l} className="pt-3 text-center min-w-0"><p className="label !text-[9px] flex items-center justify-center gap-1">{typeof ic === "string" ? <Ico d={ic} size={11} /> : ic}{l}</p><p className="num text-2xl mt-1 truncate" style={{ color: accent2 }}>{v}</p>{u && <p className="text-[10px] text-white/45 truncate">{u}</p>}</div>))}
         </div>)}
       {note && <div className="text-[12px] text-white/60 mt-4">{note}</div>}
       {children}
