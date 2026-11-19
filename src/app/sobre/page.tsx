@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
-import { RANKS } from "@/lib/game";
 import { SPECIES } from "@/lib/pet";
+import { Chapter, DietMock, PetMock, RankMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
 
 export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
@@ -72,7 +72,7 @@ const FEATS = [
   ["Finanças", "Dinheiro sem surpresa", "Saldo do mês, orçamento por categoria, parcelas que fecham no centavo, caixinhas, investimentos e um assistente que lê os seus números."],
   ["Livros", "Leia mais, com medalhas", "Estante, sessões de leitura, notas e 11 medalhas de Bronze a Lenda que dizem exatamente o que fazer."],
   ["Metas e Sonhos", "Lembre por quem você luta", "Metas com progresso automático e um quadro de sonhos com as fotos de quem você ama."],
-  ["Mascote", "Um companheiro que cresce com você", `Explore os lares de ${SPECIES.length} mascotes, do lobo ao dragão lendário. Seu companheiro cresce com o XP das suas ações.`],
+  ["Mascote", "Um companheiro que cresce com você", "Sorteie entre 10 mascotes (o dragão é lendário). Ele come o XP real das suas ações e às vezes te dá bônus."],
   ["Dias limpos", "Constância que conta sozinha", "Todo dia sem recaída conta, sem precisar marcar. Recomeço honesto quando precisar."],
   ["Status, eventos e bestiário", "Veja a sua evolução", "Patentes, atributos, 42 conquistas, eventos semanais e um bestiário de vitórias. Constância vira prova."],
 ];
@@ -157,88 +157,22 @@ export default function Site() {
         </div>
       </section>
 
-      {/* funcionalidades numeradas */}
-      <section id="produto" className="max-w-6xl mx-auto px-4 py-20 scroll-mt-20">
-        <p className={label}>O que muda na sua vida</p>
-        <h2 className={h2}>Menos apps. <span className={em}>Mais constância.</span></h2>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-10">
-          {FEATS.map(([k, t, d], i) => (
-            <article key={k} data-i={i % 3} className="in tilt glowcard relative rounded-[10px] p-6 border border-white/10 bg-[#0b0b0b] overflow-hidden">
-              <span className="font-mono text-xs text-[#ffb21e]">{String(i + 1).padStart(3, "0")}</span>
-              <h3 className="font-display text-xl mt-3 leading-tight">{t}</h3>
-              <p className="font-mono text-[11px] uppercase tracking-wider text-[#ffb21e] mt-1">{k}</p>
-              <p className="text-sm text-white/70 mt-3">{d}</p>
-            </article>))}
-        </div>
-      </section>
+      {/* capítulos: cada área do app com uma prévia grande da tela real */}
+      <div id="produto" className="scroll-mt-20">
+        <Chapter n="01" kicker="Treino · Covil" title={<>Treine como<br /><span className={em}>nos melhores apps.</span></>} text="Campanha em fases, foto de cada exercício, músculos do dia, carga sugerida e treino guiado com descanso. Aparelho ocupado? Troque o exercício na hora." visual={<WorkoutMock />} />
+        <Chapter n="02" flip kicker="Plano alimentar" title={<>Sua dieta,<br /><span className={em}>montada em minutos.</span></>} text="Um quiz com objetivo, rotina, gostos, suplementos e remédios. A IA monta o cardápio, as calorias seguem a fase do treino e registrar é um toque: comi o planejado." visual={<DietMock />} />
+        <Chapter n="03" kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Claude ou Gemini em sete modos, do socrático ao avaliar. Revisão espaçada de verdade, projetos práticos e domínio medido por evidência, não por tempo de tela." visual={<StudyMock />} />
+        <Chapter n="04" flip kicker="Vida espiritual" title={<>Fé com rotina.<br /><span className="text-[#9fd0f5]">E com beleza.</span></>} text="Leitura da Bíblia por capítulo, páginas com capa e imagens, diário, gratidão e o pioneiro com o caminho para fechar as horas do mês." visual={<SpiritMock />} />
+        <Chapter n="05" kicker="Mascote" title={<>Ele cresce com<br /><span className={em}>o que você faz.</span></>} text={`Sorteie entre ${SPECIES.length} espécies, de lobo e pantera a Kitsune, Grifo e o dragão lendário, cada uma com seu lar. Ele come o XP das suas ações, passa por seis fases e, em alguns dias, retribui com bônus.`} visual={<PetMock />} />
+        <Chapter n="06" flip kicker="Patentes" title={<>Do despertar<br /><span className={em}>ao ápice.</span></>} text="Cada ação real vira XP. O XP te leva por dez patentes e destrava 42 conquistas, medalhas de leitura e de estudo." visual={<RankMock />} />
+      </div>
 
-      {/* gamificação */}
-      <section className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-10 items-center">
-        <div>
-          <p className={label}>Gamificação de verdade</p>
-          <h2 className={h2}>Quem se vê evoluir, continua. <span className={em}>Quem continua, vence.</span></h2>
-          <div className="in mt-6 rounded-[8px] border-l-4 border-[#ff9f0a] bg-white/[.04] p-5 text-white/85"><b>XP só sai de ação real.</b> Treino registrado, refeição marcada, estudo com tempo, leitura feita. Clique vazio não vale ponto.</div>
-          <ul className="grid gap-4 mt-6">
-            {[["Missões do dia", "Poucos objetivos, tirados do seu plano. Você sabe por onde começar."], ["Sequência e fogo", "Dias seguidos mudam a cor do fogo, da brasa ao rubi."], ["Eventos e bestiário", "Desafios semanais que viram troféus guardados."]].map(([t, d], i) => (
-              <li key={t} data-i={i} className="in flex gap-3"><span className="mt-1 h-2.5 w-2.5 shrink-0 bg-[#ffb21e]" /><div><b>{t}</b><p className="text-sm text-white/65">{d}</p></div></li>))}
-          </ul>
-        </div>
-        <div className="in tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] p-6">
-          <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full px-3 py-1 text-black font-semibold bg-[#ffb21e]">Nível 7 · 1.240 XP</span><span className="rounded-full px-3 py-1 text-black" style={{ background: FIRE }}>+40 XP treino feito</span></div>
-          <p className="text-xs text-white/50 mt-6 uppercase tracking-widest">Seu fogo</p><p className="font-display text-3xl mt-1">Fogueira<span className="text-[#ffb21e]">.</span></p>
-          <div className="h-2 rounded-full bg-white/10 mt-4 overflow-hidden"><i className="block h-full w-[62%]" style={{ background: FIRE }} /></div>
-          <ol className="grid gap-1.5 mt-6">{LADDER.map((n, i) => <li key={n} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-[#ff9f0a26] border border-[#ff9f0a66]" : "bg-white/[.03]"}`}><span className="font-mono text-xs text-white/40">{String(i + 1).padStart(2, "0")}</span>{n}</li>)}</ol>
-        </div>
-      </section>
-
-      {/* patentes e conquistas */}
-      <section className="max-w-6xl mx-auto px-4 py-20">
-        <p className={label}>Patentes e conquistas</p>
-        <h2 className={h2}>Do despertar <span className={em}>ao ápice.</span></h2>
-        <p className="in text-lg text-white/75 mt-4 max-w-2xl">Cada ação real vira XP. O XP sobe seu nível, e o nível te leva por 10 patentes. No caminho, conquistas que provam o que você construiu.</p>
-        <ol className="grid sm:grid-cols-2 lg:grid-cols-5 gap-2 mt-10">
-          {RANKS.map((r, i) => (
-            <li key={r.name} data-i={i % 5} className="in tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] p-4 overflow-hidden">
-              <span aria-hidden className="absolute -right-6 -top-6 h-20 w-20 rounded-full" style={{ background: `radial-gradient(circle, ${r.color}40, transparent 70%)` }} />
-              <span className="font-mono text-[11px] text-white/40">{String(i + 1).padStart(2, "0")} · nível {r.min}+</span>
-              <p className="font-display text-2xl mt-2" style={{ color: i >= 6 ? "#ffb21e" : "#f5f5f7" }}>{r.name}</p>
-              <p className="text-[12.5px] text-white/60 mt-1">{r.pt}</p>
-            </li>))}
-        </ol>
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-6">
-          {[["42", "conquistas de Status", "Treino, fé, estudo, dinheiro, constância e recomeços."], ["11", "medalhas de leitura", "De Bronze a Lenda, cada uma diz o que fazer."], ["13", "medalhas de estudo", "Só por evidência: avaliações, revisões e projetos."], [String(SPECIES.length), "mascotes para colecionar", "Do lobo comum ao dragão lendário."]].map(([n, t, d], i) => (
-            <div key={t} data-i={i} className="in rounded-[10px] border border-white/10 bg-[#0b0b0b] p-5">
-              <p className={`num text-5xl ${em}`}>{n}</p><p className="font-semibold mt-2">{t}</p><p className="text-[13px] text-white/60 mt-1">{d}</p>
-            </div>))}
-        </div>
-      </section>
-
-      {/* mascote */}
-      <section className="max-w-6xl mx-auto px-4 py-20 grid lg:grid-cols-2 gap-10 items-center">
-        <div>
-          <p className={label}>Mascote</p>
-          <h2 className={h2}>Ele cresce com o que você faz. <span className={em}>E às vezes retribui.</span></h2>
-          <p className="in text-lg text-white/75 mt-6">Sorteie seu mascote e visite seu lar, da floresta da Pantera ao aquário do Tubarão. Entre os companheiros míticos estão Kitsune, Qilin, Grifo e Genbu. Ele se alimenta do XP real de treino, estudo, Bíblia, campo e finanças, passa por 6 fases e, em alguns dias, te dá bônus de XP. Se você some, ele fica com fome. Nunca morre: basta voltar.</p>
-          <ul className="in flex flex-wrap gap-2 mt-6 text-[13px]">{["5 sorteios por mês", `${SPECIES.length} espécies`, "Lares animados", "Dragão lendário", "Bônus variável"].map((t) => <li key={t} className="rounded-full border border-white/15 px-3 py-1.5">{t}</li>)}</ul>
-        </div>
-        <div className="in grid grid-cols-5 gap-3 text-center">
-          {["🐺", "🦉", "🐻", "🦅", "🦈", "🐍", "🦁", "🐆", "🐦‍🔥", "🐉"].map((g, i) => (
-            <div key={g} className={`tilt relative rounded-[10px] border border-white/10 bg-[#0b0b0b] aspect-square grid place-items-center ${i === 9 ? "col-span-1 border-[#ffb21e]" : ""}`}>
-              <span className="pet-glyph text-[clamp(28px,5vw,44px)]" style={i === 9 ? { textShadow: "0 0 18px #ffb21e" } : undefined}>{g}</span>
-            </div>))}
-        </div>
-      </section>
-
-      {/* passos */}
-      <section className="max-w-6xl mx-auto px-4 py-20">
-        <p className={label}>Como começa</p>
-        <h2 className={h2}>Hoje à noite <span className={em}>você já tem uma rotina.</span></h2>
-        <ol className="grid md:grid-cols-3 gap-4 mt-10">
-          {[["Monte", "Diga o que quer cuidar: fé, corpo, dinheiro, estudos. O BRIO sugere as missões."], ["Cumpra", "Abra de manhã, faça e registre com um toque. Cada registro vira XP."], ["Ajuste", "Veja a semana, os recordes e onde travou. Corte o que não serve."]].map(([t, d], i) => (
-            <li key={t} data-i={i} className="in rounded-[10px] p-6 border border-white/10 bg-white/[.03]">
-              <span className={`num text-4xl ${em}`}>{i + 1}</span><h3 className="font-display text-xl mt-2">{t}</h3><p className="text-sm text-white/70 mt-1">{d}</p>
-            </li>))}
-        </ol>
+      {/* tudo o mais, em uma linha tipográfica (sem cards) */}
+      <section className="max-w-6xl mx-auto px-4 py-24 text-center">
+        <p className={label}>E ainda</p>
+        <p className="in font-display text-[clamp(26px,4.4vw,52px)] leading-[1.1] mt-6 text-white/90">
+          {["Agenda com IA", "Google Agenda", "Finanças", "Parcelas", "Livros", "Metas", "Quadro de sonhos", "Corpo", "Peso", "Dias limpos", "Eventos", "Bestiário"].map((t, i) => <span key={t}>{i > 0 && <span className="text-[#ffb21e] mx-2 sm:mx-3">·</span>}{t}</span>)}
+        </p>
       </section>
 
       {/* confiança */}
@@ -250,29 +184,6 @@ export default function Site() {
             {[["Só você vê", "Cada conta enxerga apenas os próprios dados, com bloqueio no banco."], ["Fotos privadas", "As fotos ficam num cofre privado, com link temporário."], ["Chaves no servidor", "Chaves de IA e de integração nunca chegam ao navegador."], ["Sai quando quiser", "Seus registros podem ser exportados a qualquer momento."]].map(([t, d], i) => (
               <div key={t} data-i={i} className="in rounded-[8px] bg-white p-5 border border-black/10"><b>{t}</b><p className="text-sm text-black/65 mt-1">{d}</p></div>))}
           </div>
-        </div>
-      </section>
-
-      {/* história */}
-      <section className="max-w-6xl mx-auto px-4 py-20">
-        <p className={label}>Por que o BRIO existe</p>
-        <h2 className={h2}>Nasceu de uma rotina real, <span className={em}>não de uma sala de reunião.</span></h2>
-        <div className="grid md:grid-cols-3 gap-4 mt-10">
-          {[["O problema", "Um app para treino, outro para dieta, planilha para dinheiro, caderno para estudo. Tudo separado, nada constante."], ["A virada", "Juntar tudo num lugar só, com uma missão por dia e um fogo que mostra a constância. O que é medido, é cuidado."], ["A missão", "Ajudar quem quer viver com ordem: cuidar da fé, do corpo, da família e do dinheiro com responsabilidade antes do conforto."]].map(([t, d], i) => (
-            <article key={t} data-i={i} className={`in tilt relative rounded-[10px] p-6 border ${i === 2 ? "border-[#ff9f0a88]" : "border-white/10"} bg-[#0b0b0b]`} style={i === 2 ? { background: "radial-gradient(80% 80% at 50% 120%, rgba(255,178,30,.3), #0b0b0b)" } : undefined}>
-              <span className="font-mono text-xs uppercase tracking-wider text-[#ffb21e]">{t}</span><p className="text-white/80 mt-3">{d}</p>
-            </article>))}
-        </div>
-      </section>
-
-      {/* mito x fato */}
-      <section className="max-w-4xl mx-auto px-4 py-20">
-        <h2 className={`${h2} text-center`}>Mito <span className={em}>×</span> fato</h2>
-        <div className="grid sm:grid-cols-2 gap-3 mt-10">
-          {[["Mito", "“Preciso de motivação para começar.”"], ["Fato", "Motivação vem depois da ação. Comece pequeno e repita."], ["Mito", "“Segunda-feira eu começo.”"], ["Fato", "O BRIO conta até a meia-noite de hoje. O dia 1 é agora."]].map(([k, t], i) => (
-            <div key={i} data-i={i} className={`in rounded-[8px] p-5 border ${k === "Fato" ? "border-[#ff9f0a88] bg-[#ff9f0a14]" : "border-white/10 bg-white/[.03] text-white/60"}`}>
-              <span className={`text-xs font-bold uppercase tracking-widest ${k === "Fato" ? "text-[#ffb21e]" : "text-white/40"}`}>{k === "Fato" ? "✓ Fato" : "✕ Mito"}</span><p className="mt-2 text-lg">{t}</p>
-            </div>))}
         </div>
       </section>
 
