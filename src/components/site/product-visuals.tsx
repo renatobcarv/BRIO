@@ -15,7 +15,7 @@ function AchievementTile({ award }: { award: Achievement }) {
 
   return (
     <li className="flex min-w-0 flex-col items-start rounded-xl border border-white/10 bg-white/[.03] p-3 sm:p-4">
-      <Image src={ACHIEVEMENT_ART[award.id]} alt="" width={82} height={82} unoptimized className="h-[72px] w-[72px] object-contain sm:h-[82px] sm:w-[82px]" />
+      <Image src={ACHIEVEMENT_ART[award.id]} alt="" width={82} height={82} unoptimized className="medal-float h-[72px] w-[72px] object-contain sm:h-[82px] sm:w-[82px]" />
       <p className="mt-2 text-sm font-semibold text-white">{award.title}</p>
       <p className="mt-0.5 text-xs font-medium" style={{ color: rarity.color }}>{rarity.label}</p>
       <p className="mt-1 text-xs leading-snug text-white/65">{award.desc}</p>
@@ -78,6 +78,14 @@ export function AchievementGallery() {
             {remaining.map((award) => <AchievementTile key={award.id} award={award} />)}
           </ul>
         </details>
+        <ul className="mt-7 grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/[.03] p-3 sm:gap-5" aria-label="Títulos especiais">
+          {[["phoenix", "Fênix"], ["titan", "Titã"], ["archon", "Arconte"]].map(([key, title]) => (
+            <li key={key} className="text-center">
+              <Image src={`/medalhas/titulo-${key}.webp`} alt="" width={78} height={78} unoptimized className="mx-auto h-14 w-14 object-contain sm:h-[78px] sm:w-[78px]" />
+              <p className="mt-1 text-xs font-medium text-[#ffdfaa]">Título · {title}</p>
+            </li>
+          ))}
+        </ul>
         <div className="mt-6 flex flex-wrap items-center gap-3 text-sm text-white/70">
           <Image src={studyArt} alt="" width={48} height={48} unoptimized />
           <Image src={studyCertificateArt} alt="" width={48} height={48} unoptimized />

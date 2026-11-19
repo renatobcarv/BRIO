@@ -110,7 +110,7 @@ export function PetMock() {
   return (
     <div className="relative grid place-items-center py-6">
       <div aria-hidden className="absolute h-[440px] w-[440px] max-w-full rounded-full pet-aura" style={{ background: `radial-gradient(circle, ${A}40, transparent 65%)` }} />
-      <img src="/mascotes/dragao/alfa.webp" alt="Dragão lendário" className="relative w-[min(420px,80vw)] aspect-square object-contain pet-breathe" />
+      <img src="/mascotes/dragao/lenda.webp" alt="Dragão lendário" className="relative w-[min(420px,80vw)] aspect-square object-contain pet-breathe" />
       <p className="relative mt-2 text-[12px] uppercase tracking-[.3em]" style={{ color: A }}>Lendário · o mais raro</p>
     </div>
   );
