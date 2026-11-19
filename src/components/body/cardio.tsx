@@ -3,6 +3,8 @@ import { useState } from "react";
 import { CARDIO, cardioSummary, kcalOf, kindOf, pace, speed, type CardioKind, type Run } from "@/lib/cardio";
 
 const A = "#ffb21e";
+/** Mobilidade, alongamento e aquecimento: só duração (sem distância, ritmo ou calorias). */
+export const isMobility = (name: string) => /mobilidad|alongament|aquecimento|warm.?up|yoga|libera[cç][aã]o|foam|rolo|stretch|respira/i.test(name);
 const n = (v: string) => Number(String(v).replace(",", ".")) || 0;
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 
@@ -12,6 +14,12 @@ export function CardioPanel({ name, km, min, bodyweight = 75, onChange, onRename
   const totalMin = n(min), dist = n(km);
   const [mm, setMm] = useState(String(Math.floor(totalMin) || "")), [ss, setSs] = useState("");
   const setTime = (m: string, s: string) => { setMm(m); setSs(s); const t = n(m) + n(s) / 60; onChange({ km, min: t ? String(Math.round(t)) : "" }); };
+  if (isMobility(name)) return (
+    <div className="rounded-[14px] bg-white/[.05] p-4">
+      <span className="block text-[12px] text-white/50">Duração</span>
+      <span className="flex items-baseline gap-1"><input className="w-20 bg-transparent !text-[34px] font-bold tracking-tight outline-none" inputMode="numeric" placeholder="0" value={mm} onChange={(e) => setTime(e.target.value, "")} aria-label="Minutos" /><span className="text-white/45">min</span></span>
+      <span className="flex gap-1.5 mt-2">{[5, 10, 15, 20].map((x) => <button key={x} type="button" className="text-[12px] rounded-full bg-white/[.06] px-3 py-1" onClick={() => setTime(String(x), "")}>{x} min</button>)}</span>
+    </div>);
   const p = pace(dist, n(mm) + n(ss) / 60), v = speed(dist, n(mm) + n(ss) / 60), kc = kcalOf(kind, n(mm) + n(ss) / 60, bodyweight ?? 75);
   return (
     <div className="grid gap-3">

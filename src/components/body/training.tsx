@@ -3,7 +3,7 @@ import { HI, Ico } from "@/components/hunt-icons";
 import { ExerciseThumb } from "@/components/body/exercise-media";
 import { SwapSheet, WorkoutPreview } from "@/components/body/exercise-swap";
 import { MuscleMap } from "@/components/body/muscle-map";
-import { CardioPanel, CardioStats } from "@/components/body/cardio";
+import { CardioPanel, CardioStats, isMobility } from "@/components/body/cardio";
 import { todayWorkout } from "@/lib/training";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
@@ -458,7 +458,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         )}
       </section>
 
-      <CardioStats today={today} runs={workouts.flatMap((w) => w.sets.filter((x) => isTimed(x.exercise)).map((x) => ({ date: w.date, name: x.exercise, km: Number(x.kg) || 0, min: Number(x.reps) || 0 })))} />
+      <CardioStats today={today} runs={workouts.flatMap((w) => w.sets.filter((x) => isTimed(x.exercise) && !isMobility(x.exercise)).map((x) => ({ date: w.date, name: x.exercise, km: Number(x.kg) || 0, min: Number(x.reps) || 0 })))} />
       <TrainingSystem today={today} bodyweight={bodyweight} plannedPerWeek={planned}
         sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
