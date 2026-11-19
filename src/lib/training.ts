@@ -135,3 +135,14 @@ export function templateFromPlan(planDays: Record<string, BaseEx[]>, overrides: 
   return [mk("Acumulação", "acumulacao", 4), mk("Intensificação", "intensificacao", 4), mk("Realização", "realizacao", 3), mk("Deload", "deload", 1)];
 }
 export const newPhaseId = uid;
+
+/** Título e lista do dia para qualquer tela: campanha ativa primeiro, senão o plano semanal. Nome sempre vem dos exercícios. */
+export function todayWorkout(d: number, planDays: Record<string, { name: string; sets: number; muscle?: Muscle }[]>, program: Pick<Program, "phases" | "start_date"> | null, date: string): { title: string; count: number } {
+  if (program) {
+    const pos = programPosition(program, date), ph = program.phases[pos.phaseIndex];
+    if (pos.status === "andamento" && ph) return { title: dayTitle(ph, String(d)), count: (ph.days[String(d)] ?? []).length };
+  }
+  const list = planDays[String(d)] ?? [];
+  const title = dayTitle({ days: { [String(d)]: list.map((x) => ({ ...x, muscle: x.muscle ?? guessMuscle(x.name) })) as PlannedEx[] } }, String(d));
+  return { title, count: list.length };
+}

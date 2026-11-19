@@ -1,5 +1,6 @@
 "use client";
 import { ExerciseHero } from "@/components/body/exercise-media";
+import { SwapSheet } from "@/components/body/exercise-swap";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { saveWorkout } from "@/app/(app)/corpo/actions";
 import { useXp, haptic } from "@/components/game/xp";
@@ -67,6 +68,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   useEffect(() => { if (!s.startedAt && !s.editingId) setS({ ...s, startedAt: Date.now() }); }, [s.startedAt]); // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => { const id = setInterval(() => setClock(s.startedAt ? Date.now() - s.startedAt : 0), 1000); return () => clearInterval(id); }, [s.startedAt]);
   const ex = s.exercises[cur.e], set = ex?.sets[cur.k];
+  const [swapOpen, setSwapOpen] = useState(false);
   const timed = ex ? isTimed(ex.name, (ex.target as { muscle?: string } | undefined)?.muscle) : false;
   const totalSets = s.exercises.reduce((a, e) => a + e.sets.length, 0), doneSets = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
   const vol = s.exercises.filter((e) => !isTimed(e.name)).reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
@@ -138,7 +140,8 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
       {rest != null ? <Rest total={rest} onDone={() => setRest(null)} /> : (
         <div key={`${cur.e}-${cur.k}`} className="step-in-right">
           <p className="text-sm text-muted">Exercício {cur.e + 1} de {s.exercises.length}</p>
-          <p className="font-display text-[28px] leading-tight mt-0.5">{ex.name}</p>
+          <div className="flex items-start gap-2"><p className="font-display text-[28px] leading-tight mt-0.5 flex-1">{ex.name}</p><button className="btn !min-h-9 !px-3 text-[12px] mt-1" onClick={() => setSwapOpen(true)}>Trocar</button></div>
+          <SwapSheet open={swapOpen} name={ex.name} muscle={(ex.target as { muscle?: string } | undefined)?.muscle} onClose={() => setSwapOpen(false)} onPick={(nm) => setS({ ...s, exercises: s.exercises.map((e, i) => (i === cur.e ? { ...e, name: nm } : e)) })} />
           <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `Série ${cur.k + 1} de ${ex.sets.length}${ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
           {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min${Number(x.kg) ? ` · ${fmt(Number(x.kg))} km` : ""}` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}

@@ -1,6 +1,9 @@
 "use client";
 import { HI, Ico } from "@/components/hunt-icons";
 import { ExerciseThumb } from "@/components/body/exercise-media";
+import { SwapSheet, WorkoutPreview } from "@/components/body/exercise-swap";
+import { MuscleMap } from "@/components/body/muscle-map";
+import { todayWorkout } from "@/lib/training";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -69,7 +72,8 @@ function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: s
     const ph = program.phases[pos.phaseIndex];
     if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload", kind: ph.kind, weekInPhase: pos.weekInPhase, lastPhase: pos.phaseIndex === program.phases.length - 1 } };
   }
-  return { list: plan.days[String(d)] ?? [], ctx: null };
+  const list = plan.days[String(d)] ?? [];
+  return { list, ctx: null, title: todayWorkout(d, plan.days as never, null, today).title };
 }
 
 /* ───────────── Cronômetro de descanso ───────────── */
@@ -99,6 +103,7 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
   const [pending, start] = useTransition();
   const [rest, setRest] = useState<number | null>(null);
   const [newEx, setNewEx] = useState("");
+  const [swap, setSwap] = useState<number | null>(null);
   const set = (p: Partial<Session>) => setS({ ...s, ...p });
   const updSet = (ei: number, si: number, p: Partial<LSet>) =>
     set({ exercises: s.exercises.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((x, j) => (j === si ? { ...x, ...p } : x)) })), startedAt: s.startedAt ?? Date.now() });
@@ -161,6 +166,7 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                     {last && ` · última (${shortDate(last.date)}): ${last.sets.map((x) => `${fmt(Number(x.kg))}×${x.reps}`).join(", ")}`}
                   </p>
                 </div>
+                <button className="btn !min-h-9 !px-3 text-[12px]" onClick={() => setSwap(ei)}>Trocar</button>
                 <button className="btn !min-h-9 !px-3 text-muted" aria-label={`Remover ${e.name}`} onClick={() => set({ exercises: s.exercises.filter((_, i) => i !== ei) })}>✕</button>
               </div>
               {e.target?.notes && <p className="text-xs text-gold mt-1">{e.target.notes}</p>}
@@ -193,6 +199,8 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
         <input className="field flex-1" placeholder="Adicionar exercício" value={newEx} onChange={(e) => setNewEx(e.target.value)} list="ex-names" />
         <button className="btn" disabled={!newEx.trim()} onClick={() => { set({ exercises: [...s.exercises, { name: newEx.trim(), sets: [{ kg: "", reps: "", done: false }] }] }); setNewEx(""); }}>Adicionar</button>
       </div>
+      <SwapSheet open={swap !== null} name={swap !== null ? s.exercises[swap]?.name ?? "" : ""} muscle={swap !== null ? (s.exercises[swap]?.target as { muscle?: string } | undefined)?.muscle : null}
+        onClose={() => setSwap(null)} onPick={(nm) => { if (swap !== null) set({ exercises: s.exercises.map((x, i) => (i === swap ? { ...x, name: nm } : x)) }); }} />
       <datalist id="ex-names">{[...new Set(workouts.flatMap((w) => w.sets.map((x) => x.exercise)))].map((x) => <option key={x} value={x} />)}</datalist>
       <textarea className="field mt-3" placeholder="Observações (como se sentiu, dores, técnica…)" value={s.notes} onChange={(e) => set({ notes: e.target.value })} />
       <div className="flex gap-2 mt-3">
@@ -270,6 +278,7 @@ export function Training({ today, split, plan, workouts, program = null, program
     return { date, d, dp, label: dp.title ? dayShort(dp.title) : sd?.label ?? "—", focus: dp.title ?? sd?.focus ?? "", title: dp.title, status };
   });
   const [selDate, setSelDate] = useState(today);
+  const [preview, setPreview] = useState(false);
   const sel = weekDays.find((w) => w.date === selDate) ?? weekDays.find((w) => w.date === today)!;
 
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
@@ -330,7 +339,14 @@ export function Training({ today, split, plan, workouts, program = null, program
           </section>);
       })()}
 
-      <section className="glass rise p-5 mt-4">
+      <nav aria-label="Ir para" className="span-all sticky top-14 md:top-0 z-20 -mx-4 px-4 py-2 mt-3 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent">
+        <div className="flex gap-1.5 overflow-x-auto">
+          {[["tr-hoje", "Treino do dia"], ["tr-recordes", "Recordes"], ["tr-evolucao", "Evolução"], ["tr-frequencia", "Frequência"], ["tr-historico", "Histórico"]].map(([id, l]) => (
+            <button key={id} className="chip shrink-0 !min-h-10" onClick={() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })}>{l}</button>))}
+          {programSlot && <button className="chip shrink-0 !min-h-10" onClick={() => setSheet("program")}>Campanha</button>}
+        </div>
+      </nav>
+      <section id="tr-hoje" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle action={<LinkBtn onClick={() => setSheet(program ? "program" : "plan")}>{program ? "Editar campanha" : "Editar plano"}</LinkBtn>}>{session ? "Missão em andamento" : "Esta semana"}</SectionTitle>
         {session ? (
           <>
@@ -367,7 +383,7 @@ export function Training({ today, split, plan, workouts, program = null, program
               const doneW = workouts.find((w) => w.date === sel.date);
               return (
                 <div key={sel.date} className="step-in-right">
-                  <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "ACTIVE MISSION" : sel.date < today ? "MISSÃO ANTERIOR" : "PRÓXIMA MISSÃO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
+                  <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "TREINO DE HOJE" : sel.date < today ? "TREINO ANTERIOR" : "PRÓXIMO TREINO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
                   <p className="font-display text-[26px] leading-tight mt-1">{sel.title ?? `${sel.label} · ${sel.focus || "Descanso"}`}</p>
                   {ctx && list.length > 0 && (() => { const b = beastFor(ctx.kind, ctx.weekInPhase ?? 1, { hell: ctx.kind === "intensificacao" && ctx.weekInPhase === 1, last: ctx.lastPhase, week: ctx.weekNo }); return (
                     <a href="/bestiario" className="flex items-center gap-2 mt-2 text-xs rounded-full px-3 py-1.5 w-fit border" style={{ borderColor: b.color + "55", background: b.color + "14" }}>
@@ -378,6 +394,9 @@ export function Training({ today, split, plan, workouts, program = null, program
                   {ctx && <p className="text-xs mt-0.5" style={{ color: ctx.deload ? "#30d158" : G }}>{ctx.phase}{ctx.deload ? " · recuperação: cargas reduzidas" : ""}</p>}
                   {list.length > 0 ? (
                     <>
+                      <div className="mt-4"><MuscleMap list={list as never} /></div>
+                      <button className="btn w-full mt-3 inline-flex items-center justify-center gap-2" onClick={() => setPreview(true)}>Ver treino completo com imagens</button>
+                      <WorkoutPreview open={preview} onClose={() => setPreview(false)} title={sel.title ?? "Treino"} items={list.map((x) => ({ name: x.name, detail: isTimed(x.name, (x as { muscle?: string }).muscle) ? String(x.reps) : `${x.sets}×${x.reps}${x.kg != null ? ` · ${fmt(x.kg)} kg` : ""}` }))} />
                       <div className="grid grid-cols-3 gap-2 mt-3">
                         {[[list.length, "exercícios"], [sets, "séries"], [min, "minutos"]].map(([v, l]) => <div key={String(l)} className="rounded-xl bg-white/[.04] py-2 text-center"><p className="num text-2xl">{v}</p><p className="text-[10px] text-muted">{l}</p></div>)}
                       </div>
@@ -414,7 +433,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       <TrainingSystem today={today} bodyweight={bodyweight} plannedPerWeek={planned}
         sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
-      <section className="glass rise p-5 mt-4">
+      <section id="tr-recordes" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.star} size={14} />Recordes pessoais</span></SectionTitle>
         <div className="grid grid-cols-3 gap-3">
           {plan.prs.map((name) => { const { top, est } = prOf(name); return (
@@ -428,7 +447,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         </div>
       </section>
 
-      <section className="glass rise p-5 mt-4">
+      <section id="tr-evolucao" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.chart} size={14} />Evolução</span></SectionTitle>
         {names.length === 0 ? <Empty>Registre treinos para ver sua evolução.</Empty> : (
           <>
@@ -449,7 +468,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         )}
       </section>
 
-      <section className="glass rise p-5 mt-4">
+      <section id="tr-frequencia" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />Frequência no mês</span></SectionTitle>
         <div className="grid grid-cols-7 gap-1.5 text-center">
           {weekdayShort.map((d) => <span key={d} className="label text-[10px]">{d}</span>)}
@@ -460,7 +479,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         </div>
       </section>
 
-      <section className="glass rise p-5 mt-4">
+      <section id="tr-historico" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />Histórico</span></SectionTitle>
         {workouts.length === 0 ? <Empty>Sua primeira sessão aparecerá aqui.</Empty> : (
           <ul>

@@ -531,3 +531,5 @@ h1.font-display, h2.font-display { font-weight: 700; }
   .cert-page { padding: 0 !important; min-height: 0; }
   .cert { max-width: none !important; width: 100vw; height: 100vh; aspect-ratio: auto; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
 }
+.muscle-map { background: #e9e9ea; border-radius: 6px; }
+.muscle-map img { filter: saturate(1.4); }

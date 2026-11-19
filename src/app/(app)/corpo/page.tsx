@@ -6,7 +6,7 @@ import { Nutrition } from "@/components/body/nutrition";
 import { Training } from "@/components/body/training";
 import { Weight } from "@/components/body/weight";
 import { ProgramView } from "@/components/body/program";
-import type { Muscle, Program } from "@/lib/training";
+import { todayWorkout, type Muscle, type Program } from "@/lib/training";
 import { computeEvents } from "@/lib/events";
 import { FireLayer, EventCard } from "@/components/events/event-ui";
 import { addDays, dow, todayISO } from "@/lib/date";
@@ -24,7 +24,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const sb = await createClient();
   const today = todayISO();
   const s = await getSettings(sb);
-  const todaySplit = s.workout_split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
+  const activeProg = await sb.from("training_programs").select("phases,start_date").eq("active", true).maybeSingle();
+  const tw = todayWorkout(dow(today), s.workout_plan.days as never, activeProg.error ? null : (activeProg.data as never) ?? null, today);
+  const todaySplit = { dow: dow(today), label: tw.title, focus: tw.count ? `${tw.count} exercícios` : "Descanso" };
   let content: React.ReactNode;
   let onFire = false;
   let warEvent: React.ReactNode = null;
@@ -101,7 +103,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     const water7 = days.map((d) => ({ date: d, ml: (water.data ?? []).filter((w) => w.date === d).reduce((a, w) => a + w.ml, 0) }));
     const sleep7 = days.map((d) => { const r = (sleep.data ?? []).find((x) => x.date === d); return { date: d, hours: r ? N(r.hours) : null }; });
     content = <BodyToday today={today} waterMl={water7.at(-1)!.ml} waterGoal={s.water_goal_ml} water7={water7}
-      split={todaySplit} exercises={(s.workout_plan.days[String(todaySplit.dow)] ?? []).length}
+      split={todaySplit} exercises={tw.count}
       food={{ kcal: foodEaten.reduce((a, x) => a + N(x.kcal), 0), protein: foodEaten.reduce((a, x) => a + N(x.protein_g), 0), kcalGoal: s.kcal_goal, proteinGoal: s.protein_goal_g }}
       sleepHours={sleep7.at(-1)!.hours} sleep7={sleep7} weightKg={weight.data ? N(weight.data.kg) : s.weight_start_kg} />;
   }

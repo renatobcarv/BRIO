@@ -59,7 +59,7 @@ export function BodyToday(props: {
         <svg aria-hidden className="absolute -right-4 -bottom-6 opacity-[.07]" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.2"><path d="M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" /></svg>
         <p className="label" style={{ color: R }}>Alvo de hoje · treino</p>
         <p className="font-display text-4xl mt-2">{props.split.label}<span className="eye">.</span></p>
-        <p className="text-sm text-muted mt-1">{props.split.focus}{props.exercises ? ` · ${props.exercises} exercícios` : ""}</p>
+        <p className="text-sm text-muted mt-1">{props.exercises ? `${props.exercises} exercícios planejados` : "Dia de descanso"}</p>
         <span className="btn btn-accent mt-4 inline-flex items-center">{props.exercises ? "Entrar no Covil →" : "Dia de descanso · ver plano"}</span>
       </Link>
 
