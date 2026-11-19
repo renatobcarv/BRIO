@@ -83,13 +83,16 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
         {ACTIONS.map((a) => {
           const inner = (
             <>
-              <Image src={`/atalhos/${a.key}.webp`} width={72} height={72} alt="" unoptimized
-                className="h-16 w-16 object-contain sm:h-[72px] sm:w-[72px]" />
-              <span className="text-[13px] font-semibold mt-2">{a.label}</span>
-              {a.key === "agua" && <span id="quick-water-progress" className="text-[11px] text-muted num">{(ml / 1000).toFixed(2).replace(".", ",")} / {(waterGoal / 1000).toFixed(1).replace(".", ",")} L</span>}
+              <Image src={`/atalhos/${a.key}.webp`} fill alt="" unoptimized
+                className="object-cover object-[center_40%] sm:object-[center_12%] transition-transform duration-300 motion-safe:group-hover:scale-[1.04]" />
+              <span aria-hidden className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black via-black/45 to-transparent" />
+              <span className="relative flex flex-col items-start gap-0.5 text-left">
+                <span className="text-[13px] font-semibold leading-tight text-white sm:text-sm">{a.label}</span>
+                {a.key === "agua" && <span id="quick-water-progress" className="num text-[10px] text-white/85 sm:text-[11px]">{(ml / 1000).toFixed(2).replace(".", ",")} / {(waterGoal / 1000).toFixed(1).replace(".", ",")} L</span>}
+              </span>
             </>
           );
-          const cls = "tile press relative isolate overflow-hidden flex flex-col items-center justify-center px-1 py-3 min-h-[116px]";
+          const cls = "tile press group relative isolate flex min-h-[104px] aspect-[1.12] items-end overflow-hidden p-2.5 sm:aspect-[1.6] sm:p-3.5";
           return "href" in a
             ? <Link key={a.key} href={a.href} className={cls} aria-label={a.accessibleLabel}>{inner}</Link>
             : <button key={a.key} type="button" className={cls} aria-label={a.accessibleLabel} aria-describedby={a.key === "agua" ? "quick-water-progress" : undefined} onClick={() => (a.key === "agua" ? water() : setSheet(a.key as "estudo" | "campo"))}>{inner}</button>;
