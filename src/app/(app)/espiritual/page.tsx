@@ -2,13 +2,14 @@ import Link from "next/link";
 import { Board, Card, PageHeader, Verse } from "@/components/ui";
 import { HI } from "@/components/hunt-icons";
 import { BibleTab, JournalTab, StudyTab } from "@/components/spirit/spirit";
+import { SpiritToday } from "@/components/spirit/today";
 import { StudyQuizButton } from "@/components/quiz/study-button";
 import { addDays, daysInMonth, dow, monthEnd, monthStart, todayISO, weekdayShort } from "@/lib/date";
 import { dayStreak } from "@/lib/streak-days";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
-const ACC = "#ff2800";
+const ACC = "#9fd0f5";
 const TABS = [["estudo", "Estudo"], ["biblia", "Bíblia"], ["diario", "Diário"]] as const;
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string }> }) {
@@ -21,6 +22,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     tab === "diario" ? sb.from("journal_entries").select("id,date,kind,text").order("date", { ascending: false }).order("created_at", { ascending: false }).limit(100) : Promise.resolve({ data: [] }),
   ]);
   const st = studies.data ?? [];
+  const jt = await sb.from("journal_entries").select("kind").eq("date", today);
+  const kindsToday = new Set((jt.data ?? []).map((x) => x.kind));
   const monthSt = st.filter((s) => s.date >= m && s.date <= monthEnd(m));
   const mins = new Map<string, number>();
   for (const s of monthSt) mins.set(s.date, (mins.get(s.date) ?? 0) + s.minutes);
@@ -28,11 +31,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const bibleStreak = dayStreak(new Set((bible.data ?? []).map((b) => b.date_read)), today);
 
   return (
-    <div className="dash-auto" style={{ ["--accent" as string]: ACC }}>
-      <PageHeader eyebrow="Espiritual" title="Vida espiritual" icon={HI.book} line="Jeová em primeiro lugar. O resto se organiza." />
+    <div className="dash-auto peace" style={{ ["--accent" as string]: ACC }}>
+      <PageHeader eyebrow="Espiritual" title="Vida espiritual" color="#9fd0f5" icon={HI.book} line="Jeová em primeiro lugar. O resto se organiza." />
       {(() => { const todayMin = st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0), monthMin = monthSt.reduce((a, x) => a + x.minutes, 0);
-        return <Board icon={HI.book} label="Estudo pessoal hoje" big={String(todayMin)} unit="min" bar={todayMin / 30} sub={todayMin >= 30 ? "Alimento espiritual do dia garantido." : `Meta de 30 min · faltam ${30 - todayMin}`}
+        return <Board accent="#9fd0f5" accent2="#f2dfae" icon={HI.book} label="Estudo pessoal hoje" big={String(todayMin)} unit="min" bar={todayMin / 30} sub={todayMin >= 30 ? "Alimento espiritual do dia garantido." : `Meta de 30 min · faltam ${30 - todayMin}`}
           stats={[[HI.flame, "Sequência", String(streak), "dias de estudo"], [HI.book, "Bíblia", String(bibleStreak), "dias seguidos"], [HI.clock, "No mês", String(Math.round(monthMin / 60 * 10) / 10), "horas"]]} />; })()}
+      <SpiritToday today={today} bibleToday={(bible.data ?? []).some((b) => b.date_read === today)} studyMin={st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0)} prayed={kindsToday.has("oracao")} grateful={kindsToday.has("gratidao")} />
       <StudyQuizButton today={today} minutesToday={st.filter((x) => x.date === today).reduce((a, x) => a + x.minutes, 0)} />
       <Card>
         <div className="grid grid-cols-3 gap-3">
@@ -46,7 +50,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           {Array.from({ length: dim }).map((_, i) => {
             const d = addDays(m, i), v = mins.get(d) ?? 0, a = v ? Math.min(1, 0.3 + v / 90) : 0;
             return <span key={d} title={v ? `${v} min` : undefined} className={`aspect-square rounded-lg grid place-items-center text-xs ${d === today ? "ring-1 ring-white/50" : ""}`}
-              style={{ background: v ? `rgba(255,40,0,${a})` : "rgba(255,255,255,.04)", color: a > .6 ? "#120f08" : undefined }}>{i + 1}</span>;
+              style={{ background: v ? `rgba(159,208,245,${a})` : "rgba(255,255,255,.04)", color: a > .6 ? "#120f08" : undefined }}>{i + 1}</span>;
           })}
         </div>
       </Card>

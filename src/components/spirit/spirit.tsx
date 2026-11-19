@@ -1,4 +1,5 @@
 "use client";
+import { NoteRead, RichNote } from "@/components/rich-note";
 import { Candle, Scroll } from "@/components/meters";
 import { useOptimistic, useState, useTransition } from "react";
 import { addJournal, addStudy, deleteJournal, deleteStudy, toggleChapter } from "@/app/(app)/espiritual/actions";
@@ -6,7 +7,7 @@ import { Card, Empty } from "@/components/ui";
 import { shortDate } from "@/lib/date";
 import { BOOKS, TOTAL_CHAPTERS } from "@/lib/bible";
 
-const ACC = "#ff2800";
+const ACC = "#9fd0f5";
 export const STUDY_TYPES = { biblia: "Bíblia", publicacao: "Publicação", meio_semana: "Reunião do meio de semana",
   sentinela: "Sentinela", pesquisa: "Pesquisa de tema", outro: "Outro" } as const;
 const KINDS = { oracao: "Motivo de oração", gratidao: "Gratidão", reflexao: "Reflexão" } as const;
@@ -40,7 +41,7 @@ export function StudyTab({ today, studies }: { today: string; studies: Study[] }
           <input className="field text-center num" inputMode="numeric" value={f.minutes} onChange={(e) => setF({ ...f, minutes: e.target.value })} aria-label="Minutos" />
         </div>
         <input className="field mt-2" placeholder="Material / referência" value={f.material} onChange={(e) => setF({ ...f, material: e.target.value })} />
-        <textarea className="field mt-2 !min-h-[140px]" placeholder="O que aprendi / como vou aplicar" value={f.takeaway} onChange={(e) => { setF({ ...f, takeaway: e.target.value }); setOk(false); }} />
+        <div className="mt-2"><RichNote value={f.takeaway} onChange={(v) => { setF({ ...f, takeaway: v }); setOk(false); }} placeholder="O que aprendi / como vou aplicar" /></div>
         {f.takeaway.length > 500 && <p className="text-[11px] text-faint mt-1 num">{f.takeaway.length.toLocaleString("pt-BR")} caracteres</p>}
         {err && <p role="alert" className="text-sm text-[#ff6961] mt-2">{err}</p>}
         {ok && <p className="text-sm text-[#30d158] mt-2">Estudo salvo ✓</p>}
@@ -128,7 +129,7 @@ export function JournalTab({ entries }: { entries: Journal[] }) {
         <div className="flex flex-wrap gap-2">
           {(Object.keys(KINDS) as (keyof typeof KINDS)[]).map((k) => <button key={k} className="chip" aria-pressed={kind === k} onClick={() => setKind(k)}>{KINDS[k]}</button>)}
         </div>
-        <textarea className="field mt-3" placeholder="Escreva com calma…" value={text} onChange={(e) => setText(e.target.value)} />
+        <div className="mt-3"><RichNote value={text} onChange={setText} placeholder="Escreva com calma… Use os botões para título, destaque e textos bíblicos." /></div>
         <button className="btn btn-accent w-full mt-3" disabled={pending || !text.trim()}
           onClick={() => start(async () => { await addJournal(kind, text); setText(""); })}>Guardar</button>
       </Card>
@@ -139,7 +140,7 @@ export function JournalTab({ entries }: { entries: Journal[] }) {
               <li key={e.id} className="py-3">
                 <div className="flex items-center gap-3"><span className="label flex-1">{shortDate(e.date)} · {KINDS[e.kind]}</span>
                   <button className="btn !min-h-9 !px-3 text-muted" aria-label="Excluir" onClick={() => { if (confirm("Excluir?")) start(() => deleteJournal(e.id)); }}>×</button></div>
-                <p className="font-display text-[17px] mt-1 whitespace-pre-line">{e.text}</p>
+                <div className="mt-2"><NoteRead text={e.text} clamp={600} /></div>
               </li>
             ))}
           </ul>
@@ -151,11 +152,5 @@ export function JournalTab({ entries }: { entries: Journal[] }) {
 
 /** Anotação longa: mostra o começo e expande. Mantém as quebras de linha. */
 function Takeaway({ text }: { text: string }) {
-  const [open, setOpen] = useState(false), long = text.length > 280;
-  return (
-    <div className="mt-1">
-      <p className="font-display italic text-[15px] whitespace-pre-wrap">{open || !long ? text : text.slice(0, 280).trimEnd() + "…"}</p>
-      {long && <button className="text-xs text-gold underline mt-1" onClick={() => setOpen(!open)}>{open ? "mostrar menos" : "ler tudo"}</button>}
-    </div>
-  );
+  return <div className="mt-1"><NoteRead text={text} clamp={420} /></div>;
 }

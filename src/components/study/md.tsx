@@ -1,7 +1,9 @@
 /** Markdown seguro para as respostas da IA: títulos, negrito, itálico, código inline, blocos de código e listas. Nunca injeta HTML. */
 function inline(s: string, k: string): React.ReactNode[] {
-  return s.split(/(`[^`]+`|\*\*[^*]+\*\*|\*[^*\s][^*]*\*)/g).filter(Boolean).map((p, i) =>
+  return s.split(/(`[^`]+`|\*\*[^*]+\*\*|\+\+[^+]+\+\+|==[^=]+==|\*[^*\s][^*]*\*)/g).filter(Boolean).map((p, i) =>
     p.startsWith("`") ? <code key={k + i} className="font-mono text-[.88em] px-1.5 py-0.5 bg-white/[.07] text-[#ffb21e]">{p.slice(1, -1)}</code>
+      : p.startsWith("++") && p.endsWith("++") ? <u key={k + i} className="decoration-[var(--accent,#ffb21e)] underline-offset-4 decoration-2">{p.slice(2, -2)}</u>
+      : p.startsWith("==") && p.endsWith("==") ? <mark key={k + i} className="px-0.5 bg-[var(--accent,#ffb21e)]/25 text-white rounded-[2px]">{p.slice(2, -2)}</mark>
       : p.startsWith("**") ? <strong key={k + i} className="font-semibold text-white">{p.slice(2, -2)}</strong>
       : p.startsWith("*") && p.endsWith("*") && p.length > 2 ? <em key={k + i}>{p.slice(1, -1)}</em>
       : <span key={k + i}>{p}</span>);
@@ -26,8 +28,8 @@ export function Md({ text }: { text: string }) {
       const ordered = /^\s*\d/.test(l), items: string[] = [];
       while (i < lines.length && /^\s*([-*•]|\d+[.)])\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*([-*•]|\d+[.)])\s+/, ""));
       out.push(ordered
-        ? <ol key={"o" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="font-mono text-[12px] text-[#ffb21e] pt-[3px]">{k + 1}.</span><span>{inline(t, "o" + i + k)}</span></li>)}</ol>
-        : <ul key={"u" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="text-[#ff2800] pt-[1px]">▪</span><span>{inline(t, "u" + i + k)}</span></li>)}</ul>);
+        ? <ol key={"o" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="font-mono text-[12px] pt-[3px] text-[var(--color-gold,#ffb21e)]">{k + 1}.</span><span>{inline(t, "o" + i + k)}</span></li>)}</ol>
+        : <ul key={"u" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="pt-[1px] text-[var(--accent,#ff2800)]">▪</span><span>{inline(t, "u" + i + k)}</span></li>)}</ul>);
       continue;
     }
     if (/^>\s?/.test(l)) { out.push(<blockquote key={"q" + i} className="border-l-2 border-[#ffb21e] pl-3 text-white/75">{inline(l.replace(/^>\s?/, ""), "q" + i)}</blockquote>); i++; continue; }
