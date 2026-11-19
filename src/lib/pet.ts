@@ -84,6 +84,10 @@ export const SPECIES: { key: string; name: string; glyph: string; rarity: Rarity
   { key: "leao", name: "Leão", glyph: "🦁", rarity: "raro", trait: "Coragem e liderança." },
   { key: "pantera", name: "Pantera", glyph: "🐆", rarity: "raro", trait: "Instinto de caçador. O símbolo do BRIO." },
   { key: "fenix", name: "Fênix", glyph: "🐦‍🔥", rarity: "epico", trait: "Renasce depois de cada queda." },
+  { key: "kitsune", name: "Kitsune", glyph: "🦊", rarity: "raro", trait: "Espírito de várias caudas que guarda os caminhos escondidos." },
+  { key: "qilin", name: "Qilin", glyph: "✨", rarity: "raro", trait: "Guardião de jade que caminha entre a terra e as nuvens." },
+  { key: "grifo", name: "Grifo", glyph: "🪽", rarity: "epico", trait: "Guarda seu ninho acima das nuvens." },
+  { key: "genbu", name: "Genbu", glyph: "🐢", rarity: "epico", trait: "Tartaruga celestial de cauda serpentina que guarda as águas profundas." },
   { key: "dragao", name: "Dragão", glyph: "🐉", rarity: "lendario", trait: "O mais raro. Poder acumulado." },
 ];
 export const speciesOf = (k: string) => SPECIES.find((s) => s.key === k) ?? SPECIES.find((s) => s.key === "pantera")!;

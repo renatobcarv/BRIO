@@ -728,3 +728,55 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 .panther-hero .label { font-family: var(--font-mono) !important; text-transform: uppercase !important; letter-spacing: .2em !important; font-size: 10.5px !important; }
 .treino-hero { position: relative; overflow: hidden; border-radius: 22px; padding: 28px 24px; min-height: 170px; background: radial-gradient(60% 90% at 90% 30%, rgba(255,178,30,.12), transparent 70%), #0b0b0c; border: 1px solid var(--sep); isolation: isolate; }
 .treino-hero .panther-img { opacity: .55 !important; }
+
+.pet-habitat { background: #151c20; }
+.pet-habitat-backdrop { animation: pet-habitat-pan 16s ease-in-out infinite alternate; }
+.pet-habitat-resident { width: min(48%, 210px); bottom: 20%; }
+@media (min-width: 640px) { .pet-habitat-resident { width: min(46%, 270px); } }
+.pet-habitat-animal {
+  filter: drop-shadow(0 10px 13px #000b);
+  animation: pet-habitat-perch 5.5s ease-in-out infinite;
+}
+.pet-habitat-wash {
+  background: radial-gradient(ellipse at 50% 70%, color-mix(in srgb, var(--habitat-color) 20%, transparent), transparent 58%);
+  animation: pet-habitat-glow 6s ease-in-out infinite alternate;
+}
+.pet-habitat-particle {
+  position: absolute;
+  width: var(--particle-size);
+  height: var(--particle-size);
+  color: var(--habitat-color);
+  background: currentColor;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+  animation: pet-habitat-drift var(--particle-duration) var(--particle-delay) linear infinite;
+}
+[data-habitat="water"] .pet-habitat-particle {
+  background: transparent;
+  border: 1px solid currentColor;
+  width: calc(var(--particle-size) * 2.1);
+  height: calc(var(--particle-size) * 2.1);
+  animation-name: pet-habitat-rise;
+}
+[data-habitat="forest"] .pet-habitat-particle { border-radius: 85% 12%; }
+[data-habitat="embers"] .pet-habitat-particle { animation-name: pet-habitat-rise; }
+[data-habitat="water"] .pet-habitat-animal { animation-name: pet-habitat-swim; }
+
+@keyframes pet-habitat-pan { to { transform: scale(1.075) translateX(-1%); } }
+@keyframes pet-habitat-perch { 50% { transform: translateY(-5px) scale(1.018); } }
+@keyframes pet-habitat-swim { 50% { transform: translate(9px, -13px) rotate(-2deg); } }
+@keyframes pet-habitat-glow { from { opacity: .36; } to { opacity: .95; } }
+@keyframes pet-habitat-drift {
+  0% { opacity: 0; transform: translate(-22px, -24px) rotate(0deg); }
+  24%, 72% { opacity: .66; }
+  100% { opacity: 0; transform: translate(45px, 55px) rotate(160deg); }
+}
+@keyframes pet-habitat-rise {
+  0% { opacity: 0; transform: translate(0, 30px) scale(.7); }
+  25%, 65% { opacity: .75; }
+  100% { opacity: 0; transform: translate(16px, -96px) scale(1.4); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-habitat-backdrop, .pet-habitat-animal, .pet-habitat-wash { animation: none !important; }
+  .pet-habitat-particles { display: none; }
+}

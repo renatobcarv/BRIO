@@ -829,9 +829,12 @@ alter table pets enable row level security;
 drop policy if exists "dono" on pets;
 create policy "dono" on pets for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 
--- Coleção por sorteio: 10 espécies com raridades, 5 sorteios por mês; repetidos viram essência bônus.
+-- Coleção por sorteio: 14 espécies com raridades, 5 sorteios por mês; repetidos viram essência bônus.
 alter table pets drop constraint if exists pets_species_check;
-alter table pets add constraint pets_species_check check (species in ('lobo','coruja','urso','aguia','tubarao','serpente','leao','pantera','fenix','dragao','onca'));
+alter table public.pets add constraint pets_species_check check (species in (
+    'lobo', 'coruja', 'urso', 'aguia', 'tubarao', 'serpente', 'leao',
+    'pantera', 'fenix', 'dragao', 'onca', 'kitsune', 'qilin', 'grifo', 'genbu'
+  ));
 alter table pets add column if not exists bonus_essence int not null default 0;
 create table if not exists pet_draws (
   id uuid primary key default gen_random_uuid(),

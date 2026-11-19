@@ -1,7 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readdirSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { petState, stageOf, buffFor, STAGES, SPECIES, seeded, roll } from "../src/lib/pet.ts";
+import { HABITATS } from "../src/lib/pet-habitats.ts";
 const ev = (date: string, xp: number, attr = "forca") => ({ date, attr, xp, label: "x" });
 test("cresce com a essência e não regride", () => {
   assert.equal(stageOf(0).key, "filhote"); assert.equal(stageOf(1500).key, "cacador");
@@ -33,4 +34,13 @@ test("todas as espécies têm arte para cada fase, inclusive Lenda", () => {
     const folder = new URL(`../public/mascotes/${key}/`, import.meta.url);
     assert.deepEqual(readdirSync(folder).sort(), phases, key);
   }
+});
+
+
+test("cada espécie tem um lar ilustrado e todos os novos mascotes podem ser adotados", () => {
+  const keys = SPECIES.map(({ key }) => key).sort();
+  assert.deepEqual(Object.keys(HABITATS).sort(), keys);
+  assert.deepEqual(readdirSync(new URL("../public/mascotes/lares/", import.meta.url)).sort(), keys.flatMap((key) => [`${key}.webp`, `${key}-1600.webp`, `${key}-4k.webp`]).sort());
+  const migration = readFileSync(new URL("../supabase/migrations/20261126000000_reino_dos_mascotes.sql", import.meta.url), "utf8");
+  for (const key of [...keys, "onca"]) assert.ok(migration.includes(`'${key}'`), key);
 });

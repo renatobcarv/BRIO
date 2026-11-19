@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { choosePet, drawPet, renamePet } from "@/app/(app)/mascote-actions";
+import { PetPortrait } from "./portrait";
+import { PetKingdom } from "./kingdom";
 import { Sheet } from "@/components/kit";
 import { DRAWS_PER_MONTH, DUPLICATE_ESSENCE, RARITY, SPECIES, STAGES, speciesOf, stageOf, type PetStage } from "@/lib/pet";
 
@@ -13,17 +15,6 @@ export type PetView = { id: string; name: string; species: string; adopted_on: s
 const MOOD: Record<string, { t: string; c: string }> = {
   alimentado: { t: "Alimentado hoje", c: "#30d158" }, satisfeito: { t: "Satisfeito", c: "#ffb21e" }, "com fome": { t: "Com fome", c: "#ffd28a" }, faminto: { t: "Faminto", c: "#ff453a" },
 };
-
-function PetPortrait({ species, stage, size, alt = "", className = "" }: {
-  species: string;
-  stage: PetStage;
-  size: number;
-  alt?: string;
-  className?: string;
-}) {
-  return <Image src={`/mascotes/${speciesOf(species).key}/${stage.key}.webp`} alt={alt}
-    width={size} height={size} unoptimized className={`shrink-0 object-contain ${className}`} />;
-}
 
 export function PetArt({ p, size = 260 }: { p: Pick<PetView, "name" | "species" | "mood" | "stage">; size?: number }) {
   const hungry = p.mood === "faminto" || p.mood === "com fome";
@@ -101,6 +92,7 @@ export function PetPage({ p, ready, draws, month }: { p: PetView | null; ready: 
 
   return (
     <div className="grid gap-4">
+      <PetKingdom pet={p} />
       {p && m && (
         <section className="hunt-card relative overflow-hidden p-6 lg:p-8 grid lg:grid-cols-2 gap-6 items-center">
           <div className="grid place-items-center"><PetArt p={p} size={300} /></div>
