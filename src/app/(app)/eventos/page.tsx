@@ -26,7 +26,7 @@ export default async function Page() {
         <section className="glass p-5">
           <p className="font-display text-xl">Nenhum evento à vista.</p>
           <p className="text-sm text-muted mt-1">Os eventos aparecem até 14 dias antes de cada marco do seu programa: Genesis, Hell Week, War Rations, Sanctuary e Judgment Day.</p>
-          <Link href="/corpo?aba=programa" className="btn btn-accent w-full mt-4">Montar meu programa</Link>
+          <Link href="/treino?aba=programa" className="btn btn-accent w-full mt-4">Montar meu programa</Link>
         </section>
       )}
 

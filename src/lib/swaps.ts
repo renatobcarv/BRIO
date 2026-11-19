@@ -31,3 +31,8 @@ export function alternativesFor(name: string, muscle?: Muscle | string | null, e
   const list = (A[m] ?? []).map(([n, e]) => ({ name: n, equip: e })).filter((x) => x.name.toLowerCase() !== name.toLowerCase());
   return equip ? list.filter((x) => x.equip === equip) : list;
 }
+
+/** Biblioteca: todos os exercícios conhecidos, com músculo e equipamento. */
+export function allExercises(): { name: string; muscle: Muscle; equip: Equip }[] {
+  return (Object.entries(A) as [Muscle, [string, Equip][]][]).flatMap(([m, l]) => l.map(([name, equip]) => ({ name, muscle: m, equip })));
+}

@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Link from "next/link";
 import { eaten } from "@/lib/meals";
 import { Verse } from "@/components/ui";
@@ -8,6 +9,7 @@ import { Weight } from "@/components/body/weight";
 import { ProgramView } from "@/components/body/program";
 import { programPosition, todayWorkout, type Muscle, type Program } from "@/lib/training";
 import { DietPlanCard } from "@/components/body/diet-plan";
+import { loadTrainingView } from "@/app/(app)/treino/load";
 import { computeEvents } from "@/lib/events";
 import { FireLayer, EventCard } from "@/components/events/event-ui";
 import { addDays, dow, todayISO } from "@/lib/date";
@@ -20,6 +22,7 @@ const N = (v: unknown) => Number(v) || 0;
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string; d?: string }> }) {
   const sp = await searchParams;
+  if (sp.aba === "treino" || sp.aba === "programa") redirect(sp.aba === "programa" ? "/treino?aba=programa" : "/treino");
   const openProgram = sp.aba === "programa";
   const tab = openProgram ? "treino" : sp.aba ?? "hoje";
   const sb = await createClient();
@@ -36,37 +39,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
     const { data } = await sb.from("weight_logs").select("id,date,kg").order("date");
     content = <Weight today={today} goal={s.weight_goal_kg} startKg={s.weight_start_kg} rate={s.weight_rate_kg_week} logs={(data ?? []).map((l) => ({ ...l, kg: N(l.kg) }))} />;
   } else if (tab === "treino") {
-    const q = (cols: string) => sb.from("workouts").select(cols).order("date", { ascending: false }).order("created_at", { ascending: false }).limit(400);
-    const bw = await sb.from("weight_logs").select("kg").order("date", { ascending: false }).limit(1).maybeSingle();
-    let [res, prog] = await Promise.all([
-      q("id,date,split_label,notes,duration_min,planned,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
-      sb.from("training_programs").select("*").eq("active", true).maybeSingle(),
-    ]);
-    // Sem a migração de periodização: usa as colunas antigas.
-    if (res.error) res = await q("id,date,split_label,notes,duration_min,workout_sets(exercise,set_no,reps,kg)");
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const data = res.data as any[] | null;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const workouts = (data ?? []).map((w: any) => ({ id: w.id, date: w.date, split_label: w.split_label, notes: w.notes, duration_min: w.duration_min,
-      planned: w.planned, week_no: w.week_no, phase: w.phase,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      sets: (w.workout_sets ?? []).map((x: any) => ({ ...x, kg: N(x.kg), rpe: x.rpe != null ? N(x.rpe) : null })).sort((a: any, b: any) => a.exercise.localeCompare(b.exercise) || a.set_no - b.set_no) }));
-    const [progs, wsP] = await Promise.all([
-      sb.from("training_programs").select("*").order("created_at", { ascending: false }),
-      sb.from("workouts").select("program_id,week_no").not("program_id", "is", null),
-    ]);
-    const doneMap: Record<string, number> = {};
-    for (const w of wsP.data ?? []) { const k = `${w.program_id}:${w.week_no}`; doneMap[k] = (doneMap[k] ?? 0) + 1; }
-    const programSlot = progs.error
-      ? <p className="text-sm text-[#ff453a]">Rode a migração supabase/migrations/20261106000000_periodizacao.sql no Supabase para usar programas.</p>
-      : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
-          overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={doneMap} />;
-    const evs = computeEvents({ today, travel: s.travel ?? [], programs: (progs.error ? [] : progs.data ?? []) as Program[], proteinGoal: s.protein_goal_g, meals: [], sleep: [],
-      workouts: workouts.map((w: { date: string; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] }) => ({ date: w.date, sets: w.sets })) });
-    const hot = evs.find((e) => (e.stage === "ativo" || e.stage === "contagem") && (e.type === "hell_week" || e.type === "judgment" || e.type === "genesis"));
-    onFire = !!evs.find((e) => e.type === "hell_week" && (e.stage === "ativo" || e.stage === "contagem"));
-    if (hot) warEvent = <Link href="/eventos" className="block mb-4"><EventCard e={hot} compact /></Link>;
-    content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} />;
+    const tv = await loadTrainingView(sb, s, today, openProgram);
+    content = tv.content; warEvent = tv.warEvent; onFire = tv.onFire;
   } else if (tab === "alimentacao") {
     const date = sp.d && /^\d{4}-\d{2}-\d{2}$/.test(sp.d) ? sp.d : today;
     const from = addDays(date, -6);

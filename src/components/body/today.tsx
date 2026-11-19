@@ -55,7 +55,7 @@ export function BodyToday(props: {
       </section>
 
       {/* Treino de hoje */}
-      <Link href="/corpo?aba=treino" className="glass rise block p-5 mt-4 relative overflow-hidden">
+      <Link href="/treino" className="glass rise block p-5 mt-4 relative overflow-hidden">
         <svg aria-hidden className="absolute -right-4 -bottom-6 opacity-[.07]" width="160" height="160" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="1.2"><path d="M3 10v4M21 10v4M6 7v10M18 7v10M6 12h12" /></svg>
         <p className="label" style={{ color: R }}>Alvo de hoje · treino</p>
         <p className="font-display text-4xl mt-2">{props.split.label}<span className="eye">.</span></p>

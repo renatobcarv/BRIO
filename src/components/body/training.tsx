@@ -379,7 +379,7 @@ export function Training({ today, split, plan, workouts, program = null, program
             </div>
             {(() => {
               const list = sel.dp.list, ctx = sel.dp.ctx, sets = list.reduce((a, x) => a + x.sets, 0);
-              const min = Math.round(list.reduce((a, x) => a + x.sets * ((x.rest || 60) + 45), 0) / 60);
+              const min = Math.round(list.reduce((a, x) => a + (isTimed(x.name, (x as { muscle?: string }).muscle) ? (parseFloat(String(x.reps)) || 20) * 60 : x.sets * ((x.rest || 60) + 45)), 0) / 60);
               const doneW = workouts.find((w) => w.date === sel.date);
               return (
                 <div key={sel.date} className="step-in-right">
