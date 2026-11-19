@@ -4,7 +4,7 @@ import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
 import { SPECIES } from "@/lib/pet";
-import { Chapter, DietMock, PetMock, RankMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
+import { Chapter, DietMock, PetGallery, PetMock, RankMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
 
 export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
@@ -164,6 +164,7 @@ export default function Site() {
         <Chapter n="03" kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Claude ou Gemini em sete modos, do socrático ao avaliar. Revisão espaçada de verdade, projetos práticos e domínio medido por evidência, não por tempo de tela." visual={<StudyMock />} />
         <Chapter n="04" flip kicker="Vida espiritual" title={<>Fé com rotina.<br /><span className="text-[#9fd0f5]">E com beleza.</span></>} text="Leitura da Bíblia por capítulo, páginas com capa e imagens, diário, gratidão e o pioneiro com o caminho para fechar as horas do mês." visual={<SpiritMock />} />
         <Chapter n="05" kicker="Mascote" title={<>Ele cresce com<br /><span className={em}>o que você faz.</span></>} text={`Sorteie entre ${SPECIES.length} espécies, de lobo e pantera a Kitsune, Grifo e o dragão lendário, cada uma com seu lar. Ele come o XP das suas ações, passa por seis fases e, em alguns dias, retribui com bônus.`} visual={<PetMock />} />
+        <PetGallery />
         <Chapter n="06" flip kicker="Patentes" title={<>Do despertar<br /><span className={em}>ao ápice.</span></>} text="Cada ação real vira XP. O XP te leva por dez patentes e destrava 42 conquistas, medalhas de leitura e de estudo." visual={<RankMock />} />
       </div>
 

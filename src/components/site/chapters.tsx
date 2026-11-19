@@ -104,13 +104,11 @@ export function SpiritMock() {
 }
 
 export function PetMock() {
-  const others = SPECIES.filter((x) => x.key !== "dragao");
   return (
     <div className="relative grid place-items-center py-6">
       <div aria-hidden className="absolute h-[440px] w-[440px] max-w-full rounded-full pet-aura" style={{ background: `radial-gradient(circle, ${A}40, transparent 65%)` }} />
       <img src="/mascotes/dragao/lenda.webp" alt="Dragão lendário" className="relative w-[min(420px,80vw)] aspect-square object-contain pet-breathe" />
       <p className="relative mt-2 text-[12px] uppercase tracking-[.3em]" style={{ color: A }}>Lendário · o mais raro</p>
-      <div className="relative flex gap-2 mt-6 flex-wrap justify-center max-w-md">{others.map((x) => <img key={x.key} src={`/mascotes/${x.key}/filhote.webp`} alt={x.name} title={x.name} className="h-12 w-12 object-contain rounded-full bg-white/[.04]" loading="lazy" />)}</div>
     </div>
   );
 }
@@ -129,5 +127,31 @@ export function RankMock() {
           </li>);
       })}
     </ol>
+  );
+}
+
+const RAR: Record<string, string> = { comum: "Comum", incomum: "Incomum", raro: "Raro", epico: "Épico", lendario: "Lendário" };
+/** Galeria dos mascotes no seu lar (artes do BRIO), rolando na horizontal. */
+export function PetGallery() {
+  return (
+    <section className="py-16 border-t border-white/[.06]">
+      <div className="max-w-6xl mx-auto px-4 flex items-end justify-between gap-4">
+        <div><p className="text-[11px] font-bold tracking-[.35em] uppercase" style={{ color: A }}>Os mascotes</p><h3 className="font-display text-[clamp(28px,4vw,48px)] leading-none mt-3">Cada um com seu lar.</h3></div>
+        <p className="text-[13px] text-white/45 hidden sm:block">arraste para o lado →</p>
+      </div>
+      <div className="mt-8 flex gap-4 overflow-x-auto snap-x snap-mandatory px-4 lg:px-[max(1rem,calc((100vw_-_72rem)/2))] pb-4" style={{ scrollbarWidth: "thin" }}>
+        {SPECIES.map((x) => (
+          <figure key={x.key} className="snap-start shrink-0 relative w-[260px] sm:w-[300px] aspect-[3/4] rounded-[22px] overflow-hidden border border-white/10">
+            <img src={`/mascotes/lares/${x.key}-1600.webp`} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+            <img src={`/mascotes/${x.key}/jovem.webp`} alt={x.name} className="absolute left-1/2 -translate-x-1/2 bottom-[22%] w-[72%] aspect-square object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,.6)]" loading="lazy" />
+            <figcaption className="absolute left-4 right-4 bottom-4">
+              <p className="text-[10px] uppercase tracking-[.25em]" style={{ color: x.rarity === "lendario" || x.rarity === "epico" ? A : "rgba(255,255,255,.6)" }}>{RAR[x.rarity]}</p>
+              <p className="text-[22px] font-bold leading-tight">{x.name}</p>
+              <p className="text-[12px] text-white/60 leading-snug mt-0.5 line-clamp-2">{x.trait}</p>
+            </figcaption>
+          </figure>))}
+      </div>
+    </section>
   );
 }
