@@ -4,7 +4,7 @@ import { ExerciseThumb } from "@/components/body/exercise-media";
 import { SwapSheet, WorkoutPreview } from "@/components/body/exercise-swap";
 import { MuscleMap } from "@/components/body/muscle-map";
 import { CardioPanel, CardioStats, isMobility } from "@/components/body/cardio";
-import { todayWorkout } from "@/lib/training";
+import { isMainLift, MAIN_LIFTS, todayWorkout } from "@/lib/training";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -301,7 +301,9 @@ export function Training({ today, split, plan, workouts, program = null, program
   const planned = ORDER.filter((d) => (plan.days[String(d)] ?? []).some((x) => x.name.toLowerCase() !== "cardio")).length;
   const trained = new Set(workouts.map((w) => w.date));
   const all = workouts.flatMap((w) => w.sets.filter((s) => !isTimed(s.exercise)).map((s) => ({ ...s, kg: Number(s.kg), date: w.date })));
-  const names = [...new Set(all.map((s) => s.exercise))].sort((a, b) => a.localeCompare(b));
+  // Os 3 grandes (agachamento, supino, terra) sempre em primeiro.
+  const bigRank = (n: string) => { const i = MAIN_LIFTS.findIndex((l) => l.re.test(n) && isMainLift(n)); return i < 0 ? 99 : i; };
+  const names = [...new Set(all.map((s) => s.exercise))].sort((a, b) => bigRank(a) - bigRank(b) || a.localeCompare(b));
   const prOf = (name: string) => {
     const re = new RegExp(name.split(/\s+/)[0].slice(0, 6), "i");
     const sets = all.filter((s) => s.exercise.toLowerCase() === name.toLowerCase() || re.test(s.exercise));
@@ -464,8 +466,26 @@ export function Training({ today, split, plan, workouts, program = null, program
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
       <section id="tr-recordes" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.star} size={14} />Recordes pessoais</span></SectionTitle>
-        <div className="grid grid-cols-3 gap-3">
-          {plan.prs.map((name) => { const { top, est } = prOf(name); return (
+                {(() => {
+          const big = MAIN_LIFTS.map((l, k) => { const ex = names.find((n) => bigRank(n) === k) ?? l.label; return { label: l.label, ex, ...prOf(ex) }; });
+          const total = big.reduce((a, b) => a + (b.est || 0), 0);
+          const others = plan.prs.filter((n) => bigRank(n) === 99);
+          return (<>
+            <div className="rounded-[16px] p-4 border border-[#ffb21e44]" style={{ background: "radial-gradient(90% 120% at 50% 0%, rgba(255,178,30,.14), transparent 70%), #0b0b0c" }}>
+              <div className="flex items-baseline justify-between"><p className="text-[12px] uppercase tracking-[.25em] text-[#ffb21e] font-semibold">★ Os 3 grandes</p>
+                <p className="text-[12px] text-white/55">Total <b className="text-[20px] text-white ml-1">{total ? `${fmt(total, 0)} kg` : "—"}</b></p></div>
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                {big.map((b) => (
+                  <button key={b.label} className="text-left rounded-[12px] bg-black/40 p-3 border border-white/[.06] hover:border-[#ffb21e66]" onClick={() => setExSel(b.ex)}>
+                    <p className="text-[12px] font-semibold text-white/80">{b.label}</p>
+                    <p className="text-[28px] font-bold mt-1 leading-none" style={{ color: "#ffb21e" }}>{b.top ? fmt(b.top.kg) : "—"}<span className="text-[13px] text-white/40"> kg</span></p>
+                    {b.top ? <p className="text-[11px] text-white/50 mt-1">{b.top.reps} reps · 1RM {fmt(b.est, 0)} kg</p> : <p className="text-[11px] text-white/40 mt-1">sem registro</p>}
+                  </button>))}
+              </div>
+              <p className="text-[11px] text-white/40 mt-2">O total soma a força estimada (1RM) dos três. É o placar dos fortes.</p>
+            </div>
+            {others.length > 0 && <div className="grid grid-cols-3 gap-3 mt-3">
+          {others.map((name) => { const { top, est } = prOf(name); return (
             <button key={name} className="text-left rounded-[8px] bg-white/[.03] p-3" onClick={() => setExSel(names.find((x) => x.toLowerCase() === name.toLowerCase()) ?? names.find((x) => new RegExp(name.split(/\s+/)[0].slice(0, 6), "i").test(x)) ?? name)}>
               <p className="text-xs text-muted leading-tight min-h-[2lh]">{name}</p>
               <p className="num text-2xl mt-1" style={{ color: G }}>{top ? fmt(top.kg) : "—"}</p>
@@ -473,7 +493,8 @@ export function Training({ today, split, plan, workouts, program = null, program
               {est > 0 && <p className="text-[11px] text-faint">1RM est. {fmt(est, 0)}</p>}
             </button>
           ); })}
-        </div>
+            </div>}
+          </>); })()}
       </section>
 
       <section id="tr-evolucao" className="glass rise p-5 mt-4 scroll-mt-20">
@@ -482,17 +503,28 @@ export function Training({ today, split, plan, workouts, program = null, program
           <>
             <select className="field" value={exSel} onChange={(e) => setExSel(e.target.value)} aria-label="Exercício">
               {!names.includes(exSel) && <option value={exSel}>{exSel}</option>}
-              {names.map((x) => <option key={x}>{x}</option>)}
+              {names.some((x) => bigRank(x) < 99) && <optgroup label="★ Os 3 grandes">{names.filter((x) => bigRank(x) < 99).map((x) => <option key={x} value={x}>★ {x}</option>)}</optgroup>}
+              <optgroup label="Outros exercícios">{names.filter((x) => bigRank(x) === 99).map((x) => <option key={x}>{x}</option>)}</optgroup>
             </select>
-            {series.length > 0 ? (
+            {series.length > 0 ? (() => {
+              const first = series[0][1], last = series.at(-1)![1], best = Math.max(...sv), diff = last - first;
+              return (
               <>
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-3" role="img" aria-label={`Evolução do 1RM estimado em ${exSel}`}>
-                  <path d={series.map((x, i) => `${i ? "L" : "M"}${sx(i)},${sy(x[1])}`).join(" ")} fill="none" stroke={G} strokeWidth="2.5" strokeLinejoin="round" />
-                  {series.map((x, i) => <circle key={x[0]} cx={sx(i)} cy={sy(x[1])} r="3.5" fill="#07080b" stroke={G} strokeWidth="2"><title>{`${shortDate(x[0])}: ${fmt(x[1], 0)} kg`}</title></circle>)}
-                </svg>
-                <p className="text-xs text-muted">1RM estimado (Epley) por sessão · melhor: <span className="num text-ink">{fmt(Math.max(...sv), 0)} kg</span></p>
-              </>
-            ) : <p className="font-display italic text-muted mt-3">Sem registros deste exercício ainda.</p>}
+                <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                  {[["Força estimada", `${fmt(last, 0)} kg`, "última sessão"], ["Melhor", `${fmt(best, 0)} kg`, "recorde"], ["Evolução", series.length > 1 ? `${diff >= 0 ? "+" : ""}${fmt(diff, 0)} kg` : "—", series.length > 1 ? `em ${series.length} sessões` : "1 sessão"]].map(([l, v, u]) => (
+                    <div key={l} className="rounded-[12px] bg-white/[.04] py-3"><p className="text-[11px] text-white/45">{l}</p><p className="text-[20px] font-bold" style={{ color: l === "Evolução" && diff < 0 ? "#ff453a" : "#ffb21e" }}>{v}</p><p className="text-[10.5px] text-white/40">{u}</p></div>))}
+                </div>
+                {series.length > 1 ? (
+                  <svg viewBox={`0 0 ${W} ${H + 18}`} className="w-full mt-4" role="img" aria-label={`Evolução da força estimada em ${exSel}`}>
+                    {[0, 0.5, 1].map((t) => { const v = smin + (smax - smin) * t; return <g key={t}><line x1={P} x2={W - P} y1={sy(v)} y2={sy(v)} stroke="rgba(255,255,255,.06)" /><text x={W - P + 4} y={sy(v) + 4} fontSize="11" fill="#6b6b70">{fmt(v, 0)}</text></g>; })}
+                    <path d={`${series.map((x, i) => `${i ? "L" : "M"}${sx(i)},${sy(x[1])}`).join(" ")} L${sx(series.length - 1)},${H - P} L${sx(0)},${H - P} Z`} fill="#ffb21e" opacity=".08" />
+                    <path d={series.map((x, i) => `${i ? "L" : "M"}${sx(i)},${sy(x[1])}`).join(" ")} fill="none" stroke="#ffb21e" strokeWidth="2.5" strokeLinejoin="round" />
+                    {series.map((x, i) => <circle key={x[0]} cx={sx(i)} cy={sy(x[1])} r={x[1] === best ? 5 : 3.5} fill={x[1] === best ? "#ffb21e" : "#0b0b0c"} stroke="#ffb21e" strokeWidth="2"><title>{`${shortDate(x[0])}: ${fmt(x[1], 0)} kg`}</title></circle>)}
+                    {[0, series.length - 1].map((i) => <text key={i} x={sx(i)} y={H + 12} fontSize="11" fill="#8e8e93" textAnchor={i ? "end" : "start"}>{shortDate(series[i][0])}</text>)}
+                  </svg>
+                ) : <p className="text-[13px] text-white/55 mt-4 rounded-[12px] border border-dashed border-white/10 p-4 text-center">Uma sessão registrada. Faça este exercício de novo para ver a linha de evolução.</p>}
+                <p className="text-[11.5px] text-white/45 mt-2">Força estimada = quanto você levantaria em 1 repetição máxima (1RM), calculado pela fórmula de Epley a partir da sua melhor série de cada treino.</p>
+              </>); })() : <p className="text-[13px] text-white/55 mt-3">Sem registros deste exercício ainda.</p>}
           </>
         )}
       </section>
