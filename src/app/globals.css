@@ -481,7 +481,7 @@ h1.font-display, h2.font-display, .font-display.text-4xl, .font-display.text-3xl
 body { font-variant-emoji: text; }
 .hunt-card { background: #080808; border: 1px solid #1c1c1c; border-radius: 8px; }
 .ex-media { background: #e9e9ea; border-radius: 6px; }
-.ex-media img { mix-blend-mode: multiply; filter: grayscale(1) contrast(1.1); }
+.ex-media img { filter: grayscale(.15) contrast(1.05); }
 
 /* Olho da pantera: âmbar como contraste do vermelho. Vermelho = ação/fogo, âmbar = foco/informação-chave */
 ::selection { background: #ffb21e; color: #000; }
