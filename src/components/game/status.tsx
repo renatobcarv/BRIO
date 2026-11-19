@@ -133,7 +133,7 @@ export function StatusSheet({ g }: { g: Game }) {
               <div key={a.id} className={`relative overflow-hidden rounded-[8px] p-3 border ${a.done ? "achv-shine" : ""}`}
                 style={{ borderColor: a.done ? r.color + "88" : "rgba(255,255,255,.06)", background: a.done ? `linear-gradient(160deg, ${r.color}26, #111113 70%)` : "#111113", boxShadow: a.done && a.rarity !== "comum" ? `0 8px 26px -12px ${r.color}` : undefined }}>
                 <div className="flex items-center gap-2">
-                  <Medal color={r.color} earned={a.done} art={`status-${a.attr}`} size={52} />
+                  <Medal color={r.color} earned={a.done} art={`status/${a.id}`} size={54} />
                   <div className="min-w-0"><p className={`text-sm font-semibold leading-tight ${a.done ? "" : "text-muted"}`}>{a.title}</p>
                     <p className="text-[10px] font-medium mt-0.5" style={{ color: r.color }}>{r.label}</p></div>
                 </div>

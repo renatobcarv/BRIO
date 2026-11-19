@@ -1,8 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import { readdirSync } from "node:fs";
 import { attrValue, levelOf, rankOf, summarize, xpForLevel, type GameInput } from "../src/lib/game.ts";
 
 const empty: GameInput = { today: "2026-11-12", checks: [], fullDays: [], study: [], chapters: [], pioneer: [], workouts: [], waterDays: [], waterGoal: 3000, sleep: [], readingPages: [], booksFinished: [], finance: [], weights: [] };
+
+test("cada conquista de Status tem uma medalha ilustrada própria", () => {
+  const ids = summarize(empty).achievements.map(({ id }) => `${id}.webp`).sort();
+  const medals = readdirSync(new URL("../public/medalhas/status/", import.meta.url)).sort();
+  assert.equal(new Set(ids).size, ids.length);
+  assert.deepEqual(medals, ids);
+});
 
 test("curva de níveis", () => {
   assert.equal(xpForLevel(1), 0); assert.equal(xpForLevel(2), 100); assert.equal(xpForLevel(10), 4500);
