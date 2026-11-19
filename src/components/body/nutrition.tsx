@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { HI, Ico, slotIcon } from "@/components/hunt-icons";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { copyMeals, deleteFood, deleteMealItem, saveFood, saveMealItem, setMealDone } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Field, SectionTitle, Sheet, fmt, n } from "@/components/kit";
@@ -183,6 +183,7 @@ function ItemForm({ date, slot, item, foods, onDone }: { date: string; slot: str
   });
   return (
     <div className="grid gap-3">
+      {!item && <FoodSearch onPick={(x) => setF({ ...f, name: x.name, kcal: String(x.kcal), p: String(x.p), c: String(x.c), g: String(x.g), qty: "1" })} />}
       {!item && foods.length > 0 && (
         <div>
           <input className="field" placeholder="Buscar nos favoritos…" value={q} onChange={(e) => setQ(e.target.value)} />
@@ -435,4 +436,55 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
       <Sheet accent={G} open={sheet?.kind === "goals"} onClose={close} title="Metas de alimentação"><GoalsEditor goals={goals} onDone={close} /></Sheet>
     </div>
   );
+}
+
+type Hit = { name: string; brand?: string; kcal: number; p: number; c: number; g: number; unit: "g" | "ml"; portion?: number; portionLabel?: string; source: string };
+/** Busca na tabela nutricional (TACO aprox. + Open Food Facts) e calcula pela quantidade. */
+function FoodSearch({ onPick }: { onPick: (x: { name: string; kcal: number; p: number; c: number; g: number }) => void }) {
+  const [q, setQ] = useState("");
+  const [hits, setHits] = useState<Hit[] | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [sel, setSel] = useState<Hit | null>(null);
+  const [amount, setAmount] = useState("100");
+  useEffect(() => {
+    if (q.trim().length < 2) { setHits(null); return; }
+    const ctl = new AbortController();
+    const t = setTimeout(async () => {
+      setLoading(true);
+      try { const r = await fetch(`/api/alimentos?q=${encodeURIComponent(q.trim())}`, { signal: ctl.signal }); const j = await r.json(); setHits(j.items ?? []); } catch { /* cancelado */ }
+      setLoading(false);
+    }, 350);
+    return () => { clearTimeout(t); ctl.abort(); };
+  }, [q]);
+  const k = n(amount) / 100;
+  if (sel) return (
+    <div className="border border-[#ffb21e55] p-3 rounded-[8px]">
+      <p className="font-semibold">{sel.name}{sel.brand ? <span className="text-white/50 font-normal"> · {sel.brand}</span> : null}</p>
+      <p className="text-[11px] font-mono text-white/45 mt-0.5">por 100 {sel.unit}: {sel.kcal} kcal · P {sel.p} · C {sel.c} · G {sel.g} · {sel.source}</p>
+      <div className="flex flex-wrap items-end gap-2 mt-3">
+        <Field label={`Quantidade (${sel.unit})`}><input className="field num text-center !w-28" inputMode="decimal" value={amount} onChange={(e) => setAmount(e.target.value)} autoFocus /></Field>
+        {sel.portion && <button className="chip" onClick={() => setAmount(String(sel.portion))}>{sel.portionLabel ?? "porção"} · {sel.portion} {sel.unit}</button>}
+        {[50, 100, 150, 200].map((v) => <button key={v} className="chip" onClick={() => setAmount(String(v))}>{v}</button>)}
+      </div>
+      <p className="text-[13px] mt-3"><b className="num text-xl">{Math.round(sel.kcal * k)}</b> kcal · P {fmt(sel.p * k)} · C {fmt(sel.c * k)} · G {fmt(sel.g * k)}</p>
+      <div className="flex gap-2 mt-3">
+        <button className="btn" onClick={() => setSel(null)}>Voltar</button>
+        <button className="btn btn-accent flex-1" disabled={!n(amount)} onClick={() => { onPick({ name: `${sel.name} (${fmt(n(amount))} ${sel.unit})`, kcal: Math.round(sel.kcal * k), p: Math.round(sel.p * k * 10) / 10, c: Math.round(sel.c * k * 10) / 10, g: Math.round(sel.g * k * 10) / 10 }); setSel(null); setQ(""); setHits(null); }}>Usar estes valores</button>
+      </div>
+    </div>);
+  return (
+    <div>
+      <input className="field" placeholder="Buscar na tabela nutricional (arroz, whey, marca…)" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar alimento na tabela nutricional" />
+      {loading && <p className="text-[11px] text-white/45 mt-1">Buscando…</p>}
+      {hits && !loading && hits.length === 0 && <p className="text-[12px] text-white/45 mt-2">Nada encontrado. Preencha os valores à mão abaixo.</p>}
+      {hits && hits.length > 0 && (
+        <ul className="mt-2 max-h-64 overflow-y-auto divide-y divide-white/[.06] border border-white/[.06] rounded-[8px]">
+          {hits.map((h, i) => (
+            <li key={i}><button className="w-full text-left px-3 py-2 hover:bg-white/[.04] flex items-center gap-3" onClick={() => { setSel(h); setAmount(String(h.portion ?? 100)); }}>
+              <span className="min-w-0 flex-1"><span className="block text-[14px] truncate">{h.name}{h.brand ? <span className="text-white/45"> · {h.brand}</span> : null}</span><span className="block text-[10.5px] font-mono text-white/40">{h.source} · por 100 {h.unit}</span></span>
+              <span className="num text-sm shrink-0">{h.kcal}<span className="text-[10px] text-white/40"> kcal</span></span>
+              <span className="font-mono text-[11px] text-white/50 shrink-0">P{h.p}</span>
+            </button></li>))}
+        </ul>)}
+    </div>);
 }
