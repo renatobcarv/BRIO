@@ -16,7 +16,7 @@ export default async function Bestiario() {
   const seen = [...ANGELS, ...FERAS].filter((id) => rec[id].won > 0).length;
 
   return (
-    <div className="war">
+    <div className="war bestiary-page">
       <header className="rise mb-6">
         <p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#e0393e" }}>ASCENSION · COVIL</p>
         <h1 className="font-display text-[clamp(36px,12vw,48px)] mt-2 leading-none tracking-tight uppercase">Bestiário</h1>
@@ -28,7 +28,7 @@ export default async function Bestiario() {
         </div>
       </header>
 
-      <div className="rise mb-8"><Clareira rec={rec} /></div>
+      <div className="clearing-section mb-8"><Clareira rec={rec} /></div>
       <section className="rise">
         <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#ff2800" }}>EXEMPLOS · ACUMULAÇÃO</p>
         <p className="text-xs text-muted mt-1 mb-3">Os anjos não são adversários: são referências do que buscar. Cumpra a semana seguindo o exemplo e conquiste a virtude dele.</p>

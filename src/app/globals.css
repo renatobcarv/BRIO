@@ -614,3 +614,42 @@ body:has(.peace)::before { background: radial-gradient(60% 40% at 80% 0%, rgba(1
   .clearing-firelight { animation: none; }
   .clearing-ember { display: none; }
 }
+
+.clearing-creature { width: var(--creature-size); }
+
+@media (min-width: 1024px) {
+  .app-shell:has(.bestiary-page) { max-width: none !important; padding-top: 0; }
+  .bestiary-page { display: flex; flex-direction: column; }
+  .clearing-section { order: -1; margin-inline: -32px; }
+
+  .bestiary-clearing {
+    --fire-x: 50%;
+    --fire-y: 64.5%;
+    width: 100%;
+    max-width: none;
+    height: 100dvh;
+    aspect-ratio: auto;
+    border: 0;
+    border-radius: 0;
+    background-image: url("/bestiario/clareira-pc.webp");
+    background-position: var(--fire-x) var(--fire-y);
+  }
+
+  :root:fullscreen:has(.bestiary-clearing[data-fullscreen="true"]) { overflow: hidden; }
+  .bestiary-clearing[data-fullscreen="true"] { position: fixed; inset: 0; z-index: 60; }
+  .clearing-campfire { width: clamp(90px, 14dvh, 180px); }
+  .clearing-creature { width: min(var(--creature-size), 26dvh); }
+}
+
+.medal-motion { animation: medal-hover 4.8s ease-in-out infinite; }
+.medal-motion[data-earned="false"] { animation-name: medal-hover-locked; }
+
+@keyframes medal-hover {
+  50% { transform: translateY(-3px) rotate(-2deg) scale(1.035); }
+}
+@keyframes medal-hover-locked {
+  50% { transform: translateY(-1px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .medal-motion { animation: none; }
+}

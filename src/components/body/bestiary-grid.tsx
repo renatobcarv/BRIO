@@ -1,6 +1,6 @@
 "use client";
 import type { CSSProperties } from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HI, Ico } from "@/components/hunt-icons";
 import { Sheet } from "@/components/kit";
 import { CreaturePortrait } from "./creature-portrait";
@@ -70,12 +70,33 @@ export function BeastSheet({ sel, rec, onClose }: { sel: BeastId | null; rec: Re
 /** Clareira das Bestas: cena noturna com todas as criaturas já vencidas. */
 export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
   const [sel, setSel] = useState<BeastId | null>(null);
+  const [full, setFull] = useState(false);
+  const [canFullscreen, setCanFullscreen] = useState(false);
+  useEffect(() => {
+    const sync = () => setFull(document.fullscreenElement === document.documentElement);
+    setCanFullscreen(document.fullscreenEnabled);
+    document.addEventListener("fullscreenchange", sync);
+    return () => {
+      document.removeEventListener("fullscreenchange", sync);
+      if (document.fullscreenElement === document.documentElement) void document.exitFullscreen().catch(() => {});
+    };
+  }, []);
+
+  async function toggleFullscreen() {
+    try {
+      if (document.fullscreenElement) await document.exitFullscreen();
+      else await document.documentElement.requestFullscreen();
+    } catch {
+      setFull(false);
+    }
+  }
+
   const won = (Object.keys(rec) as BeastId[]).filter((id) => rec[id].won > 0).sort((a, b) => rec[b].won - rec[a].won);
   // posições em arco ao redor da fogueira (fundo menor, frente maior)
   const SLOTS = [[50, 30, 28], [24, 38, 24], [76, 38, 24], [16, 56, 22], [84, 56, 22], [34, 64, 25], [66, 64, 25], [50, 80, 28], [20, 80, 24], [80, 80, 24], [36, 92, 20], [64, 92, 20], [14, 94, 18], [86, 94, 18], [12, 32, 16], [88, 32, 16]];
   return (
     <>
-    <section className="bestiary-clearing relative isolate mx-auto w-full overflow-hidden rounded-[8px] border border-white/10 aspect-[4/5]" aria-label="Clareira das Bestas">
+    <section data-fullscreen={full} className="bestiary-clearing relative isolate mx-auto w-full overflow-hidden rounded-[8px] border border-white/10 aspect-[4/5]" aria-label="Clareira das Bestas">
       <div className="clearing-firelight" aria-hidden />
       <div className="clearing-campfire pointer-events-none absolute z-[58]" aria-hidden>
         <picture>
@@ -99,8 +120,8 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
       ) : won.slice(0, SLOTS.length).map((id, i) => {
         const [x, y, w] = SLOTS[i], b = ALL(id);
         return (
-          <button key={id} onClick={() => setSel(id)} className="absolute -translate-x-1/2 -translate-y-1/2 press rise" aria-label={b.name}
-            style={{ left: `${x}%`, top: `${y}%`, width: `${w}%`, zIndex: Math.round(y), animationDelay: `${i * 80}ms` }}>
+          <button key={id} onClick={() => setSel(id)} className="clearing-creature absolute -translate-x-1/2 -translate-y-1/2 press rise" aria-label={b.name}
+            style={{ left: `${x}%`, top: `${y}%`, "--creature-size": `${w}%`, zIndex: Math.round(y), animationDelay: `${i * 80}ms` } as CSSProperties}>
             <div className="cel-float" style={{ animationDelay: `${i * 0.4}s`, filter: `drop-shadow(0 0 10px ${b.color}88)` }}><CreaturePortrait id={id} className="w-full h-auto" /></div>
             <span className="block mx-auto mt-[-6px] h-1.5 w-2/3 rounded-full bg-black/60 blur-[2px]" />
             {rec[id].won > 1 && <span className="absolute -top-1 right-0 text-[10px] font-bold rounded-full px-1.5 bg-black/70 border" style={{ borderColor: b.color, color: b.color }}>×{rec[id].won}</span>}
@@ -108,6 +129,10 @@ export function Clareira({ rec }: { rec: Record<BeastId, Record_> }) {
         );
       })}
       <p className="absolute left-4 top-4 rounded bg-black/55 px-2 py-1 text-[10px] font-semibold tracking-[.25em] text-white/90">CLAREIRA DAS BESTAS</p>
+      {canFullscreen && <button type="button" onClick={toggleFullscreen} aria-pressed={full}
+        className="absolute right-4 top-4 z-[60] hidden rounded border border-white/25 bg-black/65 px-3 py-2 text-xs text-white lg:block">
+        {full ? "Sair da tela cheia" : "Tela cheia"}
+      </button>}
     </section>
     <BeastSheet sel={sel} rec={rec} onClose={() => setSel(null)} />
     </>

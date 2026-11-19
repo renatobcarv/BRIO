@@ -25,7 +25,7 @@ export function ReadingMedals({ stats }: { stats: Stats }) {
           <div key={m.id} className={`relative rounded-[8px] border p-3 ${s.tier ? "border-white/10 bg-[#0b0b0b]" : "border-white/[.05] bg-[#070707]"}`}>
             <div className="flex items-center gap-3">
               <span className="relative grid place-items-center h-12 w-12 rounded-full shrink-0" style={{ background: `radial-gradient(circle, ${c}33, transparent 70%)`, boxShadow: s.tier ? `inset 0 0 0 2px ${c}` : "inset 0 0 0 1px #2a2a2c" }}>
-                <span className="pet-glyph text-[22px]" style={s.tier ? undefined : { filter: "grayscale(1) brightness(.5)" }}>{m.icon}</span>
+                <span className="medal-motion pet-glyph text-[22px]" data-earned={!!s.tier} style={s.tier ? undefined : { filter: "grayscale(1) brightness(.5)" }}>{m.icon}</span>
               </span>
               <div className="min-w-0">
                 <p className="text-[13.5px] font-semibold leading-tight">{m.title}</p>
