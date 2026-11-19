@@ -1,6 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { petState, stageOf, buffFor, STAGES, seeded } from "../src/lib/pet.ts";
+import { readdirSync } from "node:fs";
+import { petState, stageOf, buffFor, STAGES, SPECIES, seeded, roll } from "../src/lib/pet.ts";
 const ev = (date: string, xp: number, attr = "forca") => ({ date, attr, xp, label: "x" });
 test("cresce com a essência e não regride", () => {
   assert.equal(stageOf(0).key, "filhote"); assert.equal(stageOf(1500).key, "cacador");
@@ -17,11 +18,19 @@ test("bônus é estável por dia e mais frequente em fases maiores", () => {
   assert.equal(buffFor("p", "2026-11-19", STAGES[5], true), null);
   assert.ok(seeded("a") >= 0 && seeded("a") < 1);
 });
-import { roll, SPECIES } from "../src/lib/pet.ts";
 test("sorteio: dragão é o mais raro", () => {
   const n = 20000, c: Record<string, number> = {};
   for (let i = 0; i < n; i++) { const s = roll((i + 0.5) / n); c[s.key] = (c[s.key] ?? 0) + 1; }
   assert.equal(Object.keys(c).length, SPECIES.length);
   assert.ok(c.dragao < c.fenix && c.fenix < c.leao && c.leao < c.lobo);
   assert.ok(c.dragao / n > 0.01 && c.dragao / n < 0.02);
+});
+
+
+test("todas as espécies têm arte para cada fase, inclusive Lenda", () => {
+  const phases = STAGES.map(({ key }) => `${key}.webp`).sort();
+  for (const { key } of SPECIES) {
+    const folder = new URL(`../public/mascotes/${key}/`, import.meta.url);
+    assert.deepEqual(readdirSync(folder).sort(), phases, key);
+  }
 });

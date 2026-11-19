@@ -556,7 +556,6 @@ body:has(.peace)::before { background: radial-gradient(60% 40% at 80% 0%, rgba(1
 @keyframes pet-aura { 50% { opacity: .7; transform: scale(1.05); } }
 .pet-aura { animation: pet-aura 5s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .pet-breathe, .pet-aura { animation: none; } }
-.pet-img { mix-blend-mode: lighten; -webkit-mask-image: radial-gradient(ellipse 55% 55% at 50% 50%, #000 70%, transparent 100%); mask-image: radial-gradient(ellipse 55% 55% at 50% 50%, #000 70%, transparent 100%); }
 .pet-glyph { font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif; font-variant-emoji: emoji; line-height: 1; }
 @keyframes pet-spin { 0% { transform: rotate(0) scale(.9); } 50% { transform: rotate(180deg) scale(1.1); } 100% { transform: rotate(360deg) scale(.9); } }
 .pet-spin { display: inline-block; animation: pet-spin .6s linear infinite; }
@@ -652,4 +651,31 @@ body:has(.peace)::before { background: radial-gradient(60% 40% at 80% 0%, rgba(1
 }
 @media (prefers-reduced-motion: reduce) {
   .medal-motion { animation: none; }
+}
+
+.pet-evolution-previous { animation: pet-evolution-before .86s ease-in both; }
+.pet-evolution-result { animation: pet-evolution-after 1.05s .55s ease-out both; }
+
+@keyframes pet-evolution-before {
+  58% { opacity: 1; }
+  100% { opacity: 0; transform: scale(.88); filter: brightness(1.6); }
+}
+
+@keyframes pet-evolution-after {
+  0% { opacity: 0; transform: scale(.87); filter: brightness(1.5); }
+  100% { opacity: 1; transform: none; filter: none; }
+}
+
+.pet-evolution-art { opacity: .22; animation: pet-evolution-art 1.8s ease-out both; }
+
+@keyframes pet-evolution-art {
+  0% { opacity: 0; transform: scale(.7) rotate(-14deg); }
+  30% { opacity: 1; }
+  66% { opacity: .82; }
+  100% { opacity: .22; transform: scale(1.08) rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-evolution-previous { display: none; }
+  .pet-evolution-result { animation: none; }
+  .pet-evolution-art { animation: none; opacity: .65; }
 }
