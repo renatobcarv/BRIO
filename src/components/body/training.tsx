@@ -280,6 +280,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   });
   const [selDate, setSelDate] = useState(today);
   const [preview, setPreview] = useState(false);
+  const [exView, setExView] = useState<string | null>(null);
   const sel = weekDays.find((w) => w.date === selDate) ?? weekDays.find((w) => w.date === today)!;
 
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
@@ -362,69 +363,82 @@ export function Training({ today, split, plan, workouts, program = null, program
           </>
         ) : (
           <>
-            <div className="grid grid-cols-7 gap-1.5 mb-4">
+            {/* Semana: calendário estilo app de treino */}
+            <div className="grid grid-cols-7 gap-1 mb-5" role="tablist" aria-label="Dias da semana">
               {weekDays.map((w) => {
-                const on = w.date === sel.date;
-                const c = w.status === "done" ? G : w.status === "missed" ? "#5a1414" : w.status === "rest" ? "rgba(255,255,255,.06)" : "rgba(224,57,62,.18)";
+                const on = w.date === sel.date, isToday = w.date === today;
                 return (
-                  <button key={w.date} onClick={() => setSelDate(w.date)} aria-pressed={on} aria-label={`${weekdayShort[w.d]} ${w.label}`}
-                    className="press flex flex-col items-center gap-1 rounded-[8px] py-2 border transition-all"
-                    style={{ borderColor: on ? G : "rgba(255,255,255,.06)", background: on ? "rgba(224,57,62,.14)" : "transparent", boxShadow: on ? `0 0 18px -6px ${G}` : "none" }}>
-                    <span className={`text-[10px] ${w.date === today ? "text-ink font-semibold" : "text-muted"}`}>{weekdayShort[w.d]}</span>
-                    <span className="h-8 w-8 rounded-full grid place-items-center text-[10px] font-bold"
-                      style={{ background: c, color: w.status === "done" ? "#fff" : "#f5f5f7", boxShadow: w.status === "done" ? `0 0 12px ${G}` : "none" }}>
-                      {w.status === "done" ? "✓" : w.status === "rest" ? "–" : w.label}</span>
-                  </button>
-                );
+                  <button key={w.date} role="tab" onClick={() => setSelDate(w.date)} aria-selected={on} aria-label={`${weekdayShort[w.d]} ${Number(w.date.slice(8))}: ${w.status === "done" ? "feito" : w.status === "rest" ? "descanso" : w.title ?? w.label}`}
+                    className={`press flex flex-col items-center pt-2 pb-2.5 rounded-[10px] transition-colors ${on ? "bg-[#f5f5f7] text-black" : "hover:bg-white/[.04]"}`}>
+                    <span className={`text-[10.5px] uppercase tracking-wider ${on ? "text-black/60" : "text-white/45"}`}>{weekdayShort[w.d]}</span>
+                    <span className={`num text-[22px] leading-none mt-1 ${on ? "" : isToday ? "text-[#ff2800]" : "text-white"}`}>{Number(w.date.slice(8))}</span>
+                    <span className="h-1.5 mt-2 flex items-center">
+                      {w.status === "done" ? <i className="h-1.5 w-1.5 rounded-full" style={{ background: on ? "#16a34a" : "#30d158" }} />
+                        : w.status === "rest" ? <i className={`h-[2px] w-2.5 ${on ? "bg-black/30" : "bg-white/20"}`} />
+                        : w.status === "missed" ? <i className="h-1.5 w-1.5 rounded-full border border-[#ff453a]" />
+                        : <i className="h-1.5 w-1.5 rounded-full" style={{ background: on ? "#ff2800" : "rgba(255,40,0,.7)" }} />}
+                    </span>
+                  </button>);
               })}
             </div>
             {(() => {
               const list = sel.dp.list, ctx = sel.dp.ctx, sets = list.reduce((a, x) => a + x.sets, 0);
               const min = Math.round(list.reduce((a, x) => a + (isTimed(x.name, (x as { muscle?: string }).muscle) ? (parseFloat(String(x.reps)) || 20) * 60 : x.sets * ((x.rest || 60) + 45)), 0) / 60);
               const doneW = workouts.find((w) => w.date === sel.date);
+              const b = program && ctx && list.length ? beastOfWeek(program, ctx.weekNo) : null;
+              const when = sel.date === today ? "Hoje" : sel.date < today ? "Treino anterior" : `${weekdayShort[sel.d]}, ${sel.date.split("-").reverse().slice(0, 2).join("/")}`;
               return (
                 <div key={sel.date} className="step-in-right">
-                  <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: G }}>{sel.date === today ? "TREINO DE HOJE" : sel.date < today ? "TREINO ANTERIOR" : "PRÓXIMO TREINO"}{ctx ? ` · SEMANA ${ctx.weekNo}` : ""}</p>
-                  <p className="font-display text-[26px] leading-tight mt-1">{sel.title ?? `${sel.label} · ${sel.focus || "Descanso"}`}</p>
-                  {ctx && list.length > 0 && (() => { const b = program && beastOfWeek(program, ctx.weekNo); if (!b) return null; return (
-                    <a href="/bestiario" className="flex items-center gap-2 mt-2 text-xs rounded-full px-3 py-1.5 w-fit border" style={{ borderColor: b.color + "55", background: b.color + "14" }}>
-                      <CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />
-                      <span style={{ color: b.color }}>{b.angel ? `✨ ${b.virtue} · ${b.name}` : `⚔ ${b.name}`}</span>
-                      {!b.angel && <span className="flex gap-0.5">{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-1.5 w-2.5 rounded-sm" style={{ background: i <= b.threat ? b.color : "rgba(255,255,255,.12)" }} />)}</span>}
-                    </a>); })()}
-                  
-                  {ctx && <p className="text-xs mt-0.5" style={{ color: ctx.deload ? "#30d158" : G }}>{ctx.phase}{ctx.deload ? " · recuperação: cargas reduzidas" : ""}</p>}
+                  {/* Cabeçalho do treino */}
+                  <div className="grid sm:grid-cols-[minmax(0,1fr)_minmax(0,300px)] gap-5 items-center">
+                    <div className="min-w-0">
+                      <p className="text-[12px] text-white/50">{when}{ctx ? ` · Semana ${ctx.weekNo}` : ""}{ctx?.phase ? ` · ${ctx.phase}` : ""}</p>
+                      <h3 className="font-display text-[34px] sm:text-[40px] leading-[1.02] mt-1">{sel.title ?? (list.length ? "Treino" : "Descanso")}</h3>
+                      {list.length > 0 && (
+                        <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-[13px] text-white/70">
+                          <span className="inline-flex items-center gap-1.5"><Ico d={HI.clock} size={14} />~{min} min</span>
+                          <span className="inline-flex items-center gap-1.5"><Ico d={HI.dumbbell} size={14} />{list.length} exercícios</span>
+                          <span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />{sets} séries</span>
+                        </div>)}
+                      {ctx?.deload && <p className="text-[12px] mt-2" style={{ color: "#30d158" }}>Semana de recuperação: cargas reduzidas</p>}
+                      {b && <a href="/bestiario" className="inline-flex items-center gap-2 mt-3 text-[12px] text-white/55 hover:text-white"><CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />{b.angel ? `Exemplo da semana: ${b.virtue} · ${b.name}` : `Fera da semana: ${b.name}`}</a>}
+                    </div>
+                    {list.length > 0 && <div className="hidden sm:block"><MuscleMap list={list as never} compact /></div>}
+                  </div>
+
                   {list.length > 0 ? (
                     <>
-                      <div className="mt-4"><MuscleMap list={list as never} /></div>
-                      <button className="btn w-full mt-3 inline-flex items-center justify-center gap-2" onClick={() => setPreview(true)}>Ver treino completo com imagens</button>
-                      <WorkoutPreview open={preview} onClose={() => setPreview(false)} title={sel.title ?? "Treino"} items={list.map((x) => ({ name: x.name, detail: isTimed(x.name, (x as { muscle?: string }).muscle) ? String(x.reps) : `${x.sets}×${x.reps}${x.kg != null ? ` · ${fmt(x.kg)} kg` : ""}` }))} />
-                      <div className="grid grid-cols-3 gap-2 mt-3">
-                        {[[list.length, "exercícios"], [sets, "séries"], [min, "minutos"]].map(([v, l]) => <div key={String(l)} className="rounded-xl bg-white/[.04] py-2 text-center"><p className="num text-2xl">{v}</p><p className="text-[10px] text-muted">{l}</p></div>)}
-                      </div>
-                      <ul className="mt-3 grid gap-1.5">
+                      <ol className="mt-5 divide-y divide-white/[.06] border-y border-white/[.06]">
                         {list.map((x, i) => {
                           const sg = x.kg == null ? suggestionFor(workouts, x, sel.date < today ? sel.date : today, !!ctx?.deload) : null;
                           const timed = isTimed(x.name, (x as { muscle?: string }).muscle);
+                          const kg = x.kg ?? sg?.kg;
                           return (
-                            <li key={i} className="rounded-xl bg-white/[.03] px-3 py-2.5">
-                              <div className="flex items-center justify-between gap-3 text-sm"><ExerciseThumb name={x.name} size={36} /><span className="font-medium flex-1 min-w-0">{x.name}</span>
-                                <span className="num text-muted shrink-0">{timed ? x.reps : `${x.sets}×${x.reps}`}{x.rpe ? ` @${fmt(x.rpe)}` : ""}</span></div>
-                              {!timed && (x.kg != null || sg) && (
-                                <p className="text-xs mt-1"><span className="num font-semibold" style={{ color: G }}>{fmt(x.kg ?? sg!.kg)} kg</span>
-                                  <span className="text-faint"> · {x.kg != null ? "carga do plano" : `sugerido: ${sg!.reason}`}</span></p>
-                              )}
-                            </li>
-                          );
+                            <li key={i}>
+                              <button className="w-full flex items-center gap-4 py-3 text-left hover:bg-white/[.02]" onClick={() => setExView(x.name)}>
+                                <ExerciseThumb name={x.name} size={56} />
+                                <span className="flex-1 min-w-0">
+                                  <span className="block text-[15px] font-semibold leading-snug">{x.name}</span>
+                                  <span className="block text-[13px] text-white/55 mt-0.5">{timed ? `${x.reps} min` : `${x.sets} séries × ${x.reps} reps`}{!timed && kg ? ` · ${fmt(kg)} kg` : ""}{x.rpe ? ` · RPE ${fmt(x.rpe)}` : ""}</span>
+                                  {sg && !timed && <span className="block text-[11.5px] text-[#ffb21e] mt-0.5">Sugestão: {sg.reason}</span>}
+                                </span>
+                                <span className="text-white/30 text-lg" aria-hidden>›</span>
+                              </button>
+                            </li>);
                         })}
-                      </ul>
+                      </ol>
+                      <div className="sm:hidden mt-5"><MuscleMap list={list as never} compact /></div>
                     </>
-                  ) : <p className="font-display italic text-muted mt-3">Dia de descanso. A adaptação acontece agora.</p>}
-                  {doneW ? <p className="text-sm mt-4" style={{ color: G }}>Missão cumprida neste dia ✓</p> : (
-                    <button className="btn w-full mt-4 !min-h-14 text-base font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#7a0c18)", boxShadow: "0 12px 34px -10px #e0393e" }}
-                      onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: (program && ctx && beastOfWeek(program, ctx.weekNo)) || beastFor(undefined) }); } else setSession(ns); }}>
-                      {list.length ? (sel.date === today ? "Iniciar missão" : sel.date < today ? "Registrar esta missão" : "Antecipar para hoje") : "Registrar treino extra"}</button>
-                  )}
+                  ) : <div className="mt-5 rounded-[10px] border border-white/[.06] p-6 text-center"><p className="text-[15px] text-white/70">Dia de descanso.</p><p className="text-[13px] text-white/45 mt-1">A adaptação acontece agora: sono, proteína e água.</p></div>}
+
+                  {doneW ? <p className="text-[14px] mt-5 font-semibold" style={{ color: "#30d158" }}>✓ Treino concluído neste dia</p> : (
+                    <div className="grid grid-cols-[auto_1fr] gap-2 mt-5">
+                      {list.length > 0 && <button className="btn !min-h-14 !px-5" onClick={() => setPreview(true)}>Ver</button>}
+                      <button className="btn btn-accent !min-h-14 !text-[15px] col-start-2" onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: b ?? beastFor(undefined) }); } else setSession(ns); }}>
+                        {list.length ? (sel.date === today ? "Começar treino" : sel.date < today ? "Registrar este treino" : "Fazer hoje") : "Registrar treino extra"}</button>
+                    </div>)}
+                  {list.length > 0 && <WorkoutPreview open={preview} onClose={() => setPreview(false)} title={sel.title ?? "Treino"} items={list.map((x) => ({ name: x.name, detail: isTimed(x.name, (x as { muscle?: string }).muscle) ? `${x.reps} min` : `${x.sets}×${x.reps}${x.kg != null ? ` · ${fmt(x.kg)} kg` : ""}` }))} />}
+                  <WorkoutPreview open={!!exView} onClose={() => setExView(null)} title={exView ?? ""} items={exView ? [{ name: exView, detail: (() => { const x = list.find((y) => y.name === exView); return x ? `${x.sets}×${x.reps}` : ""; })() }] : []} />
                 </div>
               );
             })()}

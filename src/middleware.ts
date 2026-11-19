@@ -40,5 +40,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|apple-touch-icon.png|icon-192.png|icon-512.png|pantera|sobre|cadastro|privacidade|termos|api/agenda).*)"],
+  matcher: ["/((?!_next/static|_next/image|favicon.ico|icon.svg|manifest.webmanifest|apple-touch-icon.png|icon-192.png|icon-512.png|pantera|exercicios|sobre|cadastro|privacidade|termos|api/agenda).*)"],
 };
