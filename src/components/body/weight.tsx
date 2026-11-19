@@ -47,7 +47,7 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
   const openLog = (l: Log | "new") => { setSheet(l); setF(l === "new" ? { date: today, kg: "" } : { date: l.date, kg: fmt(l.kg) }); };
   const editing = sheet && typeof sheet === "object" ? sheet : null;
 
-  const R = "#ff2800";
+  const R = "#ffb21e";
   const pctPath = Math.round(Math.max(0, Math.min(1, progress)) * 100);
   const onTrack = perWeek != null && rate > 0 ? (losing ? -perWeek >= rate * 0.8 : perWeek >= rate * 0.8) : null;
   const last7 = sorted.at(-2) ? cur - sorted.at(-2)!.kg : null;

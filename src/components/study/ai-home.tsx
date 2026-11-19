@@ -38,7 +38,7 @@ export function AiHome({ ready, sessions, tracks, projects, providers, preset }:
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,.85fr)] items-start">
       <section className="hunt-card relative p-5">
-        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 18px #ffb21e" }} />
         <p className="label flex items-center gap-1.5"><Ico d={HI.bolt} size={13} />Nova sessão</p>
         <h1 className="font-display text-4xl mt-2">O que você quer aprender<span className="text-[#ffb21e]">?</span></h1>
         <div className="flex flex-wrap gap-1.5 mt-4" role="group" aria-label="Pontos de partida">

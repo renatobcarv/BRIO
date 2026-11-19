@@ -24,7 +24,7 @@ export function Achievements({ achievements, brioCerts, certs, certsReady, track
     <div className="grid gap-6">
       <section className="hunt-card relative isolate overflow-hidden p-5 lg:p-7 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] items-center">
         <CardArt name="conquistas" />
-        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 18px #ffb21e" }} />
         <div>
           <p className="label flex items-center gap-1.5"><Ico d={HI.trophy} size={13} />Conquistas de aprendizado</p>
           <p className="num text-6xl leading-none mt-2">{got}<span className="text-xl text-white/40"> / {achievements.length}</span></p>
@@ -45,7 +45,7 @@ export function Achievements({ achievements, brioCerts, certs, certsReady, track
               <Medal color={TIER[a.tier]} earned={a.got} art={`estudo-${a.id}`} />
               <p className="font-semibold text-[14px] mt-2 leading-tight">{a.title}</p>
               <p className="text-[11.5px] text-white/50 mt-1 leading-snug">{a.desc}</p>
-              {!a.got && <><div className="flex gap-[2px] mt-2.5">{Array.from({ length: Math.min(a.goal, 10) }, (_, i) => <i key={i} className="h-[4px] flex-1" style={{ background: i < Math.round((a.cur / a.goal) * Math.min(a.goal, 10)) ? "#ff2800" : "rgba(255,255,255,.08)" }} />)}</div><p className="font-mono text-[10px] text-white/40 mt-1">{a.cur}/{a.goal}</p></>}
+              {!a.got && <><div className="flex gap-[2px] mt-2.5">{Array.from({ length: Math.min(a.goal, 10) }, (_, i) => <i key={i} className="h-[4px] flex-1" style={{ background: i < Math.round((a.cur / a.goal) * Math.min(a.goal, 10)) ? "#ffb21e" : "rgba(255,255,255,.08)" }} />)}</div><p className="font-mono text-[10px] text-white/40 mt-1">{a.cur}/{a.goal}</p></>}
               {a.got && <p className="label !text-[9px] mt-2" style={{ color: TIER[a.tier] }}>{a.tier}</p>}
             </div>))}
         </div>

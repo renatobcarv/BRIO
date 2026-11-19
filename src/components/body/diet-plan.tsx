@@ -7,7 +7,7 @@ import { HI, Ico } from "@/components/hunt-icons";
 import { Sheet } from "@/components/kit";
 import { useXp } from "@/components/game/xp";
 
-const R = "#ff2800", A = "#ffb21e";
+const R = "#ffb21e", A = "#ffb21e";
 const COMMON_SUPS = ["Whey protein", "Creatina", "Multivitamínico", "Ômega 3", "Vitamina D", "Magnésio", "Cafeína", "Colágeno"];
 
 /** Card do plano alimentar no topo da Dieta: sem plano → definir; com plano → seguir o dia. */
@@ -22,7 +22,7 @@ export function DietPlanCard({ plan, ready, date, doneSlots, intakes, phase }: {
   if (!ready) return <section className="hunt-card p-5 mb-4 span-all text-sm">Rode a migração <code className="text-[#ffb21e]">20261124000000_plano_dieta.sql</code> no Supabase para ativar o plano alimentar.</section>;
   if (!plan) return (
     <section className="hunt-card relative p-6 mb-4 span-all text-center">
-      <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" />
+      <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" />
       <p className="label">Plano alimentar</p>
       <p className="font-display text-4xl mt-2">Sem dieta definida<span className="text-[#ffb21e]">.</span></p>
       <p className="text-[14px] text-white/60 mt-2 max-w-md mx-auto">Responda um quiz rápido: objetivo, corpo, rotina, o que gosta, suplementos, remédios e água. O BRIO monta o cardápio do dia e ajusta pela fase do seu treino.</p>
@@ -42,7 +42,7 @@ export function DietPlanCard({ plan, ready, date, doneSlots, intakes, phase }: {
 
   return (
     <section className="hunt-card relative p-5 lg:p-6 mb-4 span-all">
-      <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
+      <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 18px #ffb21e" }} />
       <div className="flex flex-wrap items-start gap-3">
         <div className="flex-1 min-w-0">
           <p className="label flex items-center gap-1.5"><Ico d={HI.list} size={13} />Plano do dia · {GOALS[plan.goal].label}</p>
@@ -64,7 +64,7 @@ export function DietPlanCard({ plan, ready, date, doneSlots, intakes, phase }: {
               <p className="font-semibold flex-1">{m.label}</p>
               <span className="font-mono text-[11px] text-white/50">{kc} kcal · {pr} g P</span>
             </div>
-            <ul className="mt-2 grid gap-0.5">{m.items.map((x, i) => <li key={i} className="text-[13px] text-white/70 flex gap-2"><span className="text-[#ff2800]">▪</span><span className="flex-1">{x.name}{x.qty ? <span className="text-white/40"> · {x.qty}</span> : null}</span></li>)}</ul>
+            <ul className="mt-2 grid gap-0.5">{m.items.map((x, i) => <li key={i} className="text-[13px] text-white/70 flex gap-2"><span className="text-[#ffb21e]">▪</span><span className="flex-1">{x.name}{x.qty ? <span className="text-white/40"> · {x.qty}</span> : null}</span></li>)}</ul>
             {on ? <p className="text-[12px] mt-3" style={{ color: "#30d158" }}>✓ Feita</p>
               : <button className="btn btn-accent w-full mt-3 !min-h-10" disabled={pending} onClick={() => start(async () => { const e = await eatPlannedMeal(date, m.key); if (e) setErr(e); else { gain(10, `${m.label} no plano`, R); router.refresh(); } })}>Comi o planejado</button>}
           </li>); })}

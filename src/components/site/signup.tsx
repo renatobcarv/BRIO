@@ -6,12 +6,12 @@ import { signUp, type SignUpState } from "@/app/actions";
 import { BrioMark, BrioWordmark } from "@/components/brand";
 import { PLANS, brlPrice, planById } from "@/lib/plans";
 
-const FIRE = "linear-gradient(135deg,#dc0000,#a30000 70%)";
+const FIRE = "linear-gradient(135deg,#ff9f0a,#b7791f 70%)";
 const AREAS = [
-  { id: "espiritual", e: "📖", t: "Vida espiritual", c: "#dc0000" }, { id: "ministerio", e: "💬", t: "Ministério", c: "#dc0000" },
-  { id: "treino", e: "🏋️", t: "Treino", c: "#dc0000" }, { id: "dieta", e: "🥗", t: "Dieta", c: "#dc0000" },
-  { id: "financas", e: "💰", t: "Finanças", c: "#dc0000" }, { id: "estudos", e: "🎓", t: "Estudos", c: "#dc0000" },
-  { id: "agenda", e: "📅", t: "Agenda", c: "#dc0000" }, { id: "habitos", e: "🔥", t: "Hábitos", c: "#dc0000" },
+  { id: "espiritual", e: "📖", t: "Vida espiritual", c: "#ff9f0a" }, { id: "ministerio", e: "💬", t: "Ministério", c: "#ff9f0a" },
+  { id: "treino", e: "🏋️", t: "Treino", c: "#ff9f0a" }, { id: "dieta", e: "🥗", t: "Dieta", c: "#ff9f0a" },
+  { id: "financas", e: "💰", t: "Finanças", c: "#ff9f0a" }, { id: "estudos", e: "🎓", t: "Estudos", c: "#ff9f0a" },
+  { id: "agenda", e: "📅", t: "Agenda", c: "#ff9f0a" }, { id: "habitos", e: "🔥", t: "Hábitos", c: "#ff9f0a" },
 ];
 const STEPS = ["Você", "Foco", "Plano"];
 
@@ -27,7 +27,7 @@ export function SignUpFlow() {
   const [f, setF] = useState({ name: "", email: sp.get("email") ?? "", password: "", show: false });
   const [focus, setFocus] = useState<string[]>(["habitos"]);
   const [plan, setPlan] = useState(planById(sp.get("plano")).id);
-  const st = strength(f.password), stLabel = ["muito fraca", "fraca", "ok", "boa", "forte"][st], stColor = ["#ff453a", "#ff4d3d", "#ffffff", "#30d158", "#30d158"][st];
+  const st = strength(f.password), stLabel = ["muito fraca", "fraca", "ok", "boa", "forte"][st], stColor = ["#ff453a", "#ffcc66", "#ffffff", "#30d158", "#30d158"][st];
   const can0 = f.name.trim().length >= 2 && /^\S+@\S+\.\S+$/.test(f.email) && f.password.length >= 8;
   const first = f.name.trim().split(" ")[0];
 
@@ -50,7 +50,7 @@ export function SignUpFlow() {
         <ol className="flex gap-2" aria-label="Etapas do cadastro">
           {STEPS.map((s, i) => (
             <li key={s} className="flex-1" aria-current={i === step ? "step" : undefined}>
-              <span className="block h-1.5 rounded-full transition-all duration-500" style={{ background: i <= step ? "linear-gradient(90deg,#ff2800,#dc0000)" : "rgba(255,255,255,.1)", boxShadow: i === step ? "0 0 12px #dc0000" : "none" }} />
+              <span className="block h-1.5 rounded-full transition-all duration-500" style={{ background: i <= step ? "linear-gradient(90deg,#ffb21e,#ff9f0a)" : "rgba(255,255,255,.1)", boxShadow: i === step ? "0 0 12px #ff9f0a" : "none" }} />
               <span className={`block text-[11px] mt-1.5 ${i === step ? "text-ink font-semibold" : "text-muted"}`}>{i + 1}. {s}</span>
             </li>))}
         </ol>
@@ -96,9 +96,9 @@ export function SignUpFlow() {
             {PLANS.map((p) => { const on = plan === p.id; return (
               <button key={p.id} type="button" role="radio" aria-checked={on} onClick={() => setPlan(p.id)}
                 className="press relative rounded-[8px] p-4 text-left border transition-all"
-                style={{ borderColor: on ? "#dc0000" : "rgba(255,255,255,.1)", background: on ? "linear-gradient(160deg, rgba(220,0,0,.18), transparent 80%)" : "rgba(255,255,255,.03)" }}>
+                style={{ borderColor: on ? "#ff9f0a" : "rgba(255,255,255,.1)", background: on ? "linear-gradient(160deg, rgba(255,178,30,.18), transparent 80%)" : "rgba(255,255,255,.03)" }}>
                 <span className="flex items-center justify-between gap-3">
-                  <span><span className="font-semibold">{p.name}</span>{p.highlight && <span className="ml-2 text-[10px] font-bold tracking-wider text-[#ff2800]">MAIS ESCOLHIDO</span>}<span className="block text-xs text-muted mt-0.5">{p.tagline}</span></span>
+                  <span><span className="font-semibold">{p.name}</span>{p.highlight && <span className="ml-2 text-[10px] font-bold tracking-wider text-[#ffb21e]">MAIS ESCOLHIDO</span>}<span className="block text-xs text-muted mt-0.5">{p.tagline}</span></span>
                   <span className="text-right shrink-0"><span className="num text-xl">{brlPrice(p.price)}</span>{p.price > 0 && <span className="text-xs text-muted">/mês</span>}</span>
                 </span>
                 {on && <span className="block text-xs text-white/70 mt-2">{p.features.slice(p.id === "gratis" ? 0 : 1, p.id === "gratis" ? 3 : 4).join(" · ")}</span>}
@@ -112,7 +112,7 @@ export function SignUpFlow() {
         <div className="flex gap-2">
           {step > 0 && <button type="button" className="btn !min-h-14 px-5" onClick={() => setStep(step - 1)}>Voltar</button>}
           <button type="submit" disabled={pending || (step === 0 && !can0) || (step === 1 && !focus.length)}
-            className="flex-1 min-h-14 rounded-[8px] font-semibold text-white press disabled:opacity-40" style={{ background: FIRE, boxShadow: "0 14px 34px -14px #dc0000" }}>
+            className="flex-1 min-h-14 rounded-[8px] font-semibold text-white press disabled:opacity-40" style={{ background: FIRE, boxShadow: "0 14px 34px -14px #ff9f0a" }}>
             {pending ? "Criando sua conta…" : step < 2 ? "Continuar" : `Criar conta${plan !== "gratis" ? " e testar grátis" : ""}`}
           </button>
         </div>
@@ -126,18 +126,18 @@ function Shell({ children }: { children: React.ReactNode }) {
   return (
     <main className="min-h-dvh grid lg:grid-cols-[1.05fr_1fr]">
       {/* painel da marca (desktop) */}
-      <aside className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 border-r border-white/5" style={{ background: "radial-gradient(80% 60% at 30% 100%, rgba(220,0,0,.34), transparent 60%), radial-gradient(60% 50% at 90% 10%, rgba(163,0,0,.22), transparent 60%), #0a0a0a" }}>
+      <aside className="hidden lg:flex relative overflow-hidden flex-col justify-between p-12 border-r border-white/5" style={{ background: "radial-gradient(80% 60% at 30% 100%, rgba(255,178,30,.34), transparent 60%), radial-gradient(60% 50% at 90% 10%, rgba(255,159,10,.22), transparent 60%), #0a0a0a" }}>
         <Link href="/sobre" className="flex items-center gap-2 w-fit"><BrioWordmark height={30} /></Link>
         <div>
           <p className="font-display text-5xl leading-[1.05]">Constância<br />com propósito.</p>
           <ul className="grid gap-3 mt-8 text-white/80">
-            {["Missão diária curta, com o principal em destaque", "Sequência que vira fogo e XP do que é real", "Fé, treino, dieta, dinheiro e estudos num lugar"].map((t) => <li key={t} className="flex gap-3"><span className="text-[#ff2800]">✦</span>{t}</li>)}
+            {["Missão diária curta, com o principal em destaque", "Sequência que vira fogo e XP do que é real", "Fé, treino, dieta, dinheiro e estudos num lugar"].map((t) => <li key={t} className="flex gap-3"><span className="text-[#ffb21e]">✦</span>{t}</li>)}
           </ul>
         </div>
         <p className="text-sm text-white/60 italic">“Tudo o que fizerem, trabalhem nisso de toda a alma.” — Colossenses 3:23</p>
       </aside>
       <section className="relative flex flex-col px-5 py-8 sm:px-10 lg:px-16 lg:py-14">
-        <div className="absolute inset-x-0 top-0 h-72 -z-10 lg:hidden" style={{ background: "radial-gradient(60% 80% at 50% 0%, rgba(220,0,0,.26), transparent 70%)" }} />
+        <div className="absolute inset-x-0 top-0 h-72 -z-10 lg:hidden" style={{ background: "radial-gradient(60% 80% at 50% 0%, rgba(255,178,30,.26), transparent 70%)" }} />
         <Link href="/sobre" className="flex items-center gap-2 lg:hidden w-fit"><BrioWordmark height={24} /></Link>
         <div className="w-full max-w-md mx-auto my-auto pt-8 lg:pt-0">{children}</div>
       </section>

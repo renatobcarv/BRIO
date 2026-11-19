@@ -6,38 +6,38 @@ import { Pricing } from "@/components/site/pricing";
 
 export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
-const FIRE = "linear-gradient(135deg,#dc0000,#a30000 70%)";
+const FIRE = "linear-gradient(135deg,#ff9f0a,#b7791f 70%)";
 
 /** Celular com uma miniatura do app (desenhada em código, mostra o que o app faz de verdade). */
 function Phone() {
   return (
     <div className="hero-stage" style={{ perspective: "1400px" }}>
-      <div className="mx-auto w-[280px] sm:w-[310px] rounded-[10px] p-2.5 border border-white/15 bg-[#0b0b0d] shadow-[0_60px_120px_-40px_rgba(220,0,0,.6)]"
+      <div className="mx-auto w-[280px] sm:w-[310px] rounded-[10px] p-2.5 border border-white/15 bg-[#0b0b0d] shadow-[0_60px_120px_-40px_rgba(255,178,30,.6)]"
         style={{ transform: "rotateX(calc((1 - var(--p, 0)) * 18deg)) rotateZ(calc((1 - var(--p, 0)) * -4deg))", transition: "transform .1s linear" }}>
         <div className="rounded-[10px] overflow-hidden bg-black p-3.5 grid gap-2.5" aria-hidden>
           <div className="flex justify-between text-[10px] text-white/60 px-1"><span>9:41</span><span>●●● 5G</span></div>
-          <div className="rounded-[8px] p-3 border" style={{ borderColor: "#dc000099", background: "radial-gradient(90% 60% at 50% 0%, #3a0505, #0d0707)" }}>
+          <div className="rounded-[8px] p-3 border" style={{ borderColor: "#ff9f0a99", background: "radial-gradient(90% 60% at 50% 0%, #3a0505, #0d0707)" }}>
             <div className="flex items-center gap-2">
               <span className="text-2xl">🔥</span>
-              <div><p className="text-[9px] tracking-[.3em] text-[#ff2800] font-bold">MISSÃO DIÁRIA · CHAMA</p><p className="text-[12px] font-semibold">Treinamento para ficar mais forte</p></div>
+              <div><p className="text-[9px] tracking-[.3em] text-[#ffb21e] font-bold">MISSÃO DIÁRIA · CHAMA</p><p className="text-[12px] font-semibold">Treinamento para ficar mais forte</p></div>
             </div>
             <div className="grid grid-cols-3 gap-1.5 mt-2.5 text-center">
-              {[["5", "dias 100%"], ["12", "recorde"], ["4/6", "hoje"]].map(([v, l]) => <div key={l} className="rounded-lg bg-white/5 py-1.5"><p className="num text-base text-[#ff2800]">{v}</p><p className="text-[8px] text-white/60">{l}</p></div>)}
+              {[["5", "dias 100%"], ["12", "recorde"], ["4/6", "hoje"]].map(([v, l]) => <div key={l} className="rounded-lg bg-white/5 py-1.5"><p className="num text-base text-[#ffb21e]">{v}</p><p className="text-[8px] text-white/60">{l}</p></div>)}
             </div>
             {["Oração + estudo pessoal", "Treino feito", "Meta de água"].map((t, i) => (
-              <div key={t} className="flex items-center justify-between mt-1.5 rounded-lg px-2 py-1.5 bg-white/[.04] text-[11px]"><span className={i < 2 ? "line-through text-white/50" : ""}>{t}</span><span className="font-mono text-[10px]" style={{ color: i < 2 ? "#ff2800" : "#ffffff66" }}>[{i < 2 ? 1 : 0}/1]</span></div>))}
+              <div key={t} className="flex items-center justify-between mt-1.5 rounded-lg px-2 py-1.5 bg-white/[.04] text-[11px]"><span className={i < 2 ? "line-through text-white/50" : ""}>{t}</span><span className="font-mono text-[10px]" style={{ color: i < 2 ? "#ffb21e" : "#ffffff66" }}>[{i < 2 ? 1 : 0}/1]</span></div>))}
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="rounded-[8px] p-2.5 border border-[#a3000066]" style={{ background: "linear-gradient(160deg,#250404,#0a0a0a)" }}>
-              <p className="text-[8px] tracking-[.25em] text-[#ff2800] font-bold">COVIL</p><p className="text-[12px] font-semibold mt-0.5">Upper A</p>
-              <div className="flex gap-0.5 mt-2">{[1, 1, 1, 0, 0].map((x, i) => <i key={i} className="h-5 flex-1 rounded-sm" style={{ background: x ? "#dc0000" : "#ffffff14" }} />)}</div>
+            <div className="rounded-[8px] p-2.5 border border-[#b7791f66]" style={{ background: "linear-gradient(160deg,#250404,#0a0a0a)" }}>
+              <p className="text-[8px] tracking-[.25em] text-[#ffb21e] font-bold">COVIL</p><p className="text-[12px] font-semibold mt-0.5">Upper A</p>
+              <div className="flex gap-0.5 mt-2">{[1, 1, 1, 0, 0].map((x, i) => <i key={i} className="h-5 flex-1 rounded-sm" style={{ background: x ? "#ff9f0a" : "#ffffff14" }} />)}</div>
             </div>
             <div className="rounded-[8px] p-2.5 border border-white/10 bg-white/[.03]">
-              <p className="text-[8px] tracking-[.25em] text-[#ff2800] font-bold">DIETA</p><p className="num text-[18px] mt-0.5">1.840</p><p className="text-[9px] text-white/60">de 2.500 kcal</p>
+              <p className="text-[8px] tracking-[.25em] text-[#ffb21e] font-bold">DIETA</p><p className="num text-[18px] mt-0.5">1.840</p><p className="text-[9px] text-white/60">de 2.500 kcal</p>
             </div>
           </div>
-          <div className="rounded-[8px] p-2.5 border border-[#dc000044] bg-[#0d0707] flex items-center gap-2">
-            <span className="h-7 w-7 rounded-lg grid place-items-center text-xs" style={{ background: "linear-gradient(135deg,#dc0000,#a30000)" }}>✦</span>
+          <div className="rounded-[8px] p-2.5 border border-[#ff9f0a44] bg-[#0d0707] flex items-center gap-2">
+            <span className="h-7 w-7 rounded-lg grid place-items-center text-xs" style={{ background: "linear-gradient(135deg,#ff9f0a,#b7791f)" }}>✦</span>
             <p className="text-[11px] text-white/80">“reunião quinta 19h30 e dentista sábado” → <b className="text-white">2 compromissos</b></p>
           </div>
         </div>
@@ -47,12 +47,12 @@ function Phone() {
 }
 
 const BENTO = [
-  { t: "Comece o dia sabendo o que importa", f: "missão diária", c: "#ff2800", big: true, d: "Uma lista curta de objetivos com sequência, recorde e contagem até a meia-noite. O fogo cresce com a sua constância.", tex: "radial-gradient(70% 60% at 30% 20%, rgba(220,0,0,.28), transparent 70%)" },
-  { t: "Treine com plano, não com palpite", f: "covil · periodização", c: "#ff2800", wide: true, d: "Campanha em fases, sugestão de carga por série e um treino guiado com cronômetro.", tex: "repeating-linear-gradient(90deg, rgba(163,0,0,.12) 0 2px, transparent 2px 14px)" },
-  { t: "Coma o que planejou (e registre o que não)", f: "dieta", c: "#ff2800", d: "Metas de macros, refeições salvas e o que foi fora do plano, sem culpa.", tex: "radial-gradient(60% 60% at 80% 100%, rgba(163,0,0,.24), transparent 70%)" },
-  { t: "Fale e a agenda se organiza", f: "central de operações · IA", c: "#ff2800", d: "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso.", tex: "radial-gradient(50% 50% at 50% 50%, rgba(220,0,0,.2), transparent 60%)" },
-  { t: "Seu dinheiro sem surpresa", f: "finanças · parcelas", c: "#ff2800", wide: true, d: "Orçamento por categoria, compras parceladas que fecham no centavo e um assistente que lê seus números.", tex: "linear-gradient(180deg, rgba(163,0,0,.16), transparent 60%)" },
-  { t: "Estude até fechar", f: "central de estudos", c: "#ff2800", wide: true, d: "Objetivo, fraquezas, plano feito pela IA, revisão espaçada e o próximo passo sempre à vista.", tex: "radial-gradient(70% 60% at 20% 100%, rgba(163,0,0,.22), transparent 70%)" },
+  { t: "Comece o dia sabendo o que importa", f: "missão diária", c: "#ffb21e", big: true, d: "Uma lista curta de objetivos com sequência, recorde e contagem até a meia-noite. O fogo cresce com a sua constância.", tex: "radial-gradient(70% 60% at 30% 20%, rgba(255,178,30,.28), transparent 70%)" },
+  { t: "Treine com plano, não com palpite", f: "covil · periodização", c: "#ffb21e", wide: true, d: "Campanha em fases, sugestão de carga por série e um treino guiado com cronômetro.", tex: "repeating-linear-gradient(90deg, rgba(255,159,10,.12) 0 2px, transparent 2px 14px)" },
+  { t: "Coma o que planejou (e registre o que não)", f: "dieta", c: "#ffb21e", d: "Metas de macros, refeições salvas e o que foi fora do plano, sem culpa.", tex: "radial-gradient(60% 60% at 80% 100%, rgba(255,159,10,.24), transparent 70%)" },
+  { t: "Fale e a agenda se organiza", f: "central de operações · IA", c: "#ffb21e", d: "Linha do tempo do dia, Google Agenda em duas vias e IA que transforma frase em compromisso.", tex: "radial-gradient(50% 50% at 50% 50%, rgba(255,178,30,.2), transparent 60%)" },
+  { t: "Seu dinheiro sem surpresa", f: "finanças · parcelas", c: "#ffb21e", wide: true, d: "Orçamento por categoria, compras parceladas que fecham no centavo e um assistente que lê seus números.", tex: "linear-gradient(180deg, rgba(255,159,10,.16), transparent 60%)" },
+  { t: "Estude até fechar", f: "central de estudos", c: "#ffb21e", wide: true, d: "Objetivo, fraquezas, plano feito pela IA, revisão espaçada e o próximo passo sempre à vista.", tex: "radial-gradient(70% 60% at 20% 100%, rgba(255,159,10,.22), transparent 70%)" },
 ];
 const FEATS = [
   ["Missão diária", "Comece o dia sabendo o que importa", "Poucos objetivos, o principal em destaque e contagem até a meia-noite. Bateu tudo? A sequência sobe."],
@@ -75,9 +75,9 @@ const FAQ = [
 ];
 
 export default function Site() {
-  const label = "in text-[11px] font-bold tracking-[.35em] uppercase text-[#ff2800]";
+  const label = "in text-[11px] font-bold tracking-[.35em] uppercase text-[#ffb21e]";
   const h2 = "in font-display text-[clamp(30px,5vw,52px)] leading-[1.05] mt-3";
-  const em = "bg-clip-text text-transparent [background-image:linear-gradient(90deg,#ff2800,#dc0000)]";
+  const em = "bg-clip-text text-transparent [background-image:linear-gradient(90deg,#ffb21e,#ff9f0a)]";
   return (
     <main className="site min-h-dvh overflow-x-clip bg-[#050505]">
       <SiteMotion />
@@ -99,14 +99,14 @@ export default function Site() {
       {/* hero com a pantera */}
       <section className="relative isolate">
         <img src="/pantera/olhar.webp" alt="" aria-hidden className="absolute right-[-18%] sm:right-0 top-0 h-full max-h-[900px] w-auto object-cover opacity-60 lg:opacity-90 -z-10 [mask-image:linear-gradient(90deg,transparent,#000_35%,#000_75%,transparent)]" />
-        <div className="absolute inset-0 -z-20" style={{ background: "radial-gradient(45% 50% at 75% 35%, rgba(220,0,0,.22), transparent 70%)" }} />
+        <div className="absolute inset-0 -z-20" style={{ background: "radial-gradient(45% 50% at 75% 35%, rgba(255,178,30,.22), transparent 70%)" }} />
         <div className="max-w-6xl mx-auto px-4 pt-14 sm:pt-24 pb-16 grid lg:grid-cols-[1.1fr_.9fr] gap-10 items-center">
           <div>
-            <span className="in inline-flex items-center gap-2 rounded-full border border-[#dc000066] bg-black/60 px-3 py-1.5 text-xs text-white/80" data-i="0"><i className="h-2 w-2 rounded-full bg-[#ffb21e] shadow-[0_0_10px_#ffb21e]" />14 dias grátis · sem cartão</span>
+            <span className="in inline-flex items-center gap-2 rounded-full border border-[#ff9f0a66] bg-black/60 px-3 py-1.5 text-xs text-white/80" data-i="0"><i className="h-2 w-2 rounded-full bg-[#ffb21e] shadow-[0_0_10px_#ffb21e]" />14 dias grátis · sem cartão</span>
             <h1 className="in font-display text-[clamp(42px,8.5vw,84px)] leading-[.98] mt-5" data-i="1">Pare de começar.<br /><span className={em}>Comece a continuar</span><span className="text-[#ffb21e]">.</span></h1>
             <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Motivação acaba na quarta-feira. A pantera não caça por motivação, caça por instinto. O BRIO transforma fé, treino, dieta, dinheiro e estudos numa rotina que você repete até virar quem você é.</p>
             <div className="in flex flex-col sm:flex-row gap-3 mt-8" data-i="3">
-              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #dc0000" }}>Quero minha rotina de pantera →</Link>
+              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-white press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #ff9f0a" }}>Quero minha rotina de pantera →</Link>
               <a href="#produto" className="min-h-14 px-8 rounded-[8px] grid place-items-center border border-white/15 bg-black/40 press">Ver o que tem dentro</a>
             </div>
             <ul className="in flex flex-wrap gap-x-5 gap-y-2 mt-6 text-sm text-white/65" data-i="4">{["A partir de R$ 0", "Celular e computador", "Seus dados só seus"].map((t) => <li key={t} className="flex items-center gap-1.5"><span className="text-[#ffb21e]">✓</span>{t}</li>)}</ul>
@@ -116,7 +116,7 @@ export default function Site() {
         <div className="max-w-6xl mx-auto px-4 pb-14">
           <p className="text-center text-[11px] tracking-[.3em] uppercase text-white/50 mb-4">O dia que você já entende</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {["Oração", "Leitura da Bíblia", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Sono"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#dc0000", background: "#dc000022" } : i === 5 ? { borderColor: "#ffb21e", color: "#ffb21e" } : undefined}>{p}</span>)}
+            {["Oração", "Leitura da Bíblia", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Sono"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#ff9f0a", background: "#ff9f0a22" } : i === 5 ? { borderColor: "#ffb21e", color: "#ffb21e" } : undefined}>{p}</span>)}
           </div>
         </div>
       </section>
@@ -139,9 +139,9 @@ export default function Site() {
           </div>
           <div className="in relative mx-auto w-full max-w-[440px] aspect-[4/5]">
             <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o mascote do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[10px] border border-white/10" />
-            <div className="absolute inset-0 rounded-[10px]" style={{ background: "radial-gradient(60% 40% at 50% 100%, rgba(220,0,0,.35), transparent 70%)" }} />
+            <div className="absolute inset-0 rounded-[10px]" style={{ background: "radial-gradient(60% 40% at 50% 100%, rgba(255,178,30,.35), transparent 70%)" }} />
             {[["21 dias", "sequência", "left-[-6%] top-[14%]"], ["+40 XP", "treino feito", "right-[-6%] top-[42%]"], ["6/6", "missões hoje", "left-[4%] bottom-[8%]"]].map(([b, t, pos]) => (
-              <span key={t} className={`absolute ${pos} rounded-[8px] border border-[#dc000066] bg-black/75 backdrop-blur px-4 py-2.5`}><b className="num block text-xl text-[#ffb21e]">{b}</b><span className="text-xs text-white/70">{t}</span></span>))}
+              <span key={t} className={`absolute ${pos} rounded-[8px] border border-[#ff9f0a66] bg-black/75 backdrop-blur px-4 py-2.5`}><b className="num block text-xl text-[#ffb21e]">{b}</b><span className="text-xs text-white/70">{t}</span></span>))}
           </div>
         </div>
       </section>
@@ -155,7 +155,7 @@ export default function Site() {
             <article key={k} data-i={i % 3} className="in tilt glowcard relative rounded-[10px] p-6 border border-white/10 bg-[#0b0b0b] overflow-hidden">
               <span className="font-mono text-xs text-[#ffb21e]">{String(i + 1).padStart(3, "0")}</span>
               <h3 className="font-display text-xl mt-3 leading-tight">{t}</h3>
-              <p className="font-mono text-[11px] uppercase tracking-wider text-[#ff2800] mt-1">{k}</p>
+              <p className="font-mono text-[11px] uppercase tracking-wider text-[#ffb21e] mt-1">{k}</p>
               <p className="text-sm text-white/70 mt-3">{d}</p>
             </article>))}
         </div>
@@ -166,7 +166,7 @@ export default function Site() {
         <div>
           <p className={label}>Gamificação de verdade</p>
           <h2 className={h2}>Quem se vê evoluir, continua. <span className={em}>Quem continua, vence.</span></h2>
-          <div className="in mt-6 rounded-[8px] border-l-4 border-[#dc0000] bg-white/[.04] p-5 text-white/85"><b>XP só sai de ação real.</b> Treino registrado, refeição marcada, estudo com tempo, leitura feita. Clique vazio não vale ponto.</div>
+          <div className="in mt-6 rounded-[8px] border-l-4 border-[#ff9f0a] bg-white/[.04] p-5 text-white/85"><b>XP só sai de ação real.</b> Treino registrado, refeição marcada, estudo com tempo, leitura feita. Clique vazio não vale ponto.</div>
           <ul className="grid gap-4 mt-6">
             {[["Missões do dia", "Poucos objetivos, tirados do seu plano. Você sabe por onde começar."], ["Sequência e fogo", "Dias seguidos mudam a cor do fogo, da brasa ao rubi."], ["Eventos e bestiário", "Desafios semanais que viram troféus guardados."]].map(([t, d], i) => (
               <li key={t} data-i={i} className="in flex gap-3"><span className="mt-1 h-2.5 w-2.5 shrink-0 bg-[#ffb21e]" /><div><b>{t}</b><p className="text-sm text-white/65">{d}</p></div></li>))}
@@ -176,7 +176,7 @@ export default function Site() {
           <div className="flex flex-wrap gap-2 text-xs"><span className="rounded-full px-3 py-1 text-black font-semibold bg-[#ffb21e]">Nível 7 · 1.240 XP</span><span className="rounded-full px-3 py-1 text-white" style={{ background: FIRE }}>+40 XP treino feito</span></div>
           <p className="text-xs text-white/50 mt-6 uppercase tracking-widest">Seu fogo</p><p className="font-display text-3xl mt-1">Fogueira<span className="text-[#ffb21e]">.</span></p>
           <div className="h-2 rounded-full bg-white/10 mt-4 overflow-hidden"><i className="block h-full w-[62%]" style={{ background: FIRE }} /></div>
-          <ol className="grid gap-1.5 mt-6">{LADDER.map((n, i) => <li key={n} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-[#dc000026] border border-[#dc000066]" : "bg-white/[.03]"}`}><span className="font-mono text-xs text-white/40">{String(i + 1).padStart(2, "0")}</span>{n}</li>)}</ol>
+          <ol className="grid gap-1.5 mt-6">{LADDER.map((n, i) => <li key={n} className={`flex items-center gap-3 rounded-xl px-3 py-2 text-sm ${i === 2 ? "bg-[#ff9f0a26] border border-[#ff9f0a66]" : "bg-white/[.03]"}`}><span className="font-mono text-xs text-white/40">{String(i + 1).padStart(2, "0")}</span>{n}</li>)}</ol>
         </div>
       </section>
 
@@ -195,7 +195,7 @@ export default function Site() {
       {/* confiança */}
       <section className="bg-[#f5f5f7] text-[#0a0a0a]">
         <div className="max-w-6xl mx-auto px-4 py-20">
-          <p className="in text-[11px] font-bold tracking-[.35em] uppercase text-[#a30000]">Privacidade</p>
+          <p className="in text-[11px] font-bold tracking-[.35em] uppercase text-[#b7791f]">Privacidade</p>
           <h2 className="in font-display text-[clamp(30px,5vw,48px)] mt-3">Sua vida é sua.</h2>
           <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-10">
             {[["Só você vê", "Cada conta enxerga apenas os próprios dados, com bloqueio no banco."], ["Fotos privadas", "As fotos ficam num cofre privado, com link temporário."], ["Chaves no servidor", "Chaves de IA e de integração nunca chegam ao navegador."], ["Sai quando quiser", "Seus registros podem ser exportados a qualquer momento."]].map(([t, d], i) => (
@@ -210,8 +210,8 @@ export default function Site() {
         <h2 className={h2}>Nasceu de uma rotina real, <span className={em}>não de uma sala de reunião.</span></h2>
         <div className="grid md:grid-cols-3 gap-4 mt-10">
           {[["O problema", "Um app para treino, outro para dieta, planilha para dinheiro, caderno para estudo. Tudo separado, nada constante."], ["A virada", "Juntar tudo num lugar só, com uma missão por dia e um fogo que mostra a constância. O que é medido, é cuidado."], ["A missão", "Ajudar quem quer viver com ordem: cuidar da fé, do corpo, da família e do dinheiro com responsabilidade antes do conforto."]].map(([t, d], i) => (
-            <article key={t} data-i={i} className={`in tilt relative rounded-[10px] p-6 border ${i === 2 ? "border-[#dc000088]" : "border-white/10"} bg-[#0b0b0b]`} style={i === 2 ? { background: "radial-gradient(80% 80% at 50% 120%, rgba(220,0,0,.3), #0b0b0b)" } : undefined}>
-              <span className="font-mono text-xs uppercase tracking-wider text-[#ff2800]">{t}</span><p className="text-white/80 mt-3">{d}</p>
+            <article key={t} data-i={i} className={`in tilt relative rounded-[10px] p-6 border ${i === 2 ? "border-[#ff9f0a88]" : "border-white/10"} bg-[#0b0b0b]`} style={i === 2 ? { background: "radial-gradient(80% 80% at 50% 120%, rgba(255,178,30,.3), #0b0b0b)" } : undefined}>
+              <span className="font-mono text-xs uppercase tracking-wider text-[#ffb21e]">{t}</span><p className="text-white/80 mt-3">{d}</p>
             </article>))}
         </div>
       </section>
@@ -221,8 +221,8 @@ export default function Site() {
         <h2 className={`${h2} text-center`}>Mito <span className={em}>×</span> fato</h2>
         <div className="grid sm:grid-cols-2 gap-3 mt-10">
           {[["Mito", "“Preciso de motivação para começar.”"], ["Fato", "Motivação vem depois da ação. Comece pequeno e repita."], ["Mito", "“Segunda-feira eu começo.”"], ["Fato", "O BRIO conta até a meia-noite de hoje. O dia 1 é agora."]].map(([k, t], i) => (
-            <div key={i} data-i={i} className={`in rounded-[8px] p-5 border ${k === "Fato" ? "border-[#dc000088] bg-[#dc000014]" : "border-white/10 bg-white/[.03] text-white/60"}`}>
-              <span className={`text-xs font-bold uppercase tracking-widest ${k === "Fato" ? "text-[#ff2800]" : "text-white/40"}`}>{k === "Fato" ? "✓ Fato" : "✕ Mito"}</span><p className="mt-2 text-lg">{t}</p>
+            <div key={i} data-i={i} className={`in rounded-[8px] p-5 border ${k === "Fato" ? "border-[#ff9f0a88] bg-[#ff9f0a14]" : "border-white/10 bg-white/[.03] text-white/60"}`}>
+              <span className={`text-xs font-bold uppercase tracking-widest ${k === "Fato" ? "text-[#ffb21e]" : "text-white/40"}`}>{k === "Fato" ? "✓ Fato" : "✕ Mito"}</span><p className="mt-2 text-lg">{t}</p>
             </div>))}
         </div>
       </section>
@@ -249,7 +249,7 @@ export default function Site() {
 
       {/* cta final com e-mail */}
       <section className="max-w-6xl mx-auto px-4 py-20">
-        <div className="in relative rounded-[10px] p-8 sm:p-16 text-center overflow-hidden border border-[#dc000066]" style={{ background: "radial-gradient(80% 90% at 50% 120%, rgba(163,0,0,.55), transparent 60%), #0a0505" }}>
+        <div className="in relative rounded-[10px] p-8 sm:p-16 text-center overflow-hidden border border-[#ff9f0a66]" style={{ background: "radial-gradient(80% 90% at 50% 120%, rgba(255,159,10,.55), transparent 60%), #0a0505" }}>
           <img src="/pantera/olhar.webp" alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-25 -z-0" />
           <div className="relative">
             <p className="text-xs uppercase tracking-[.3em] text-white/60">14 dias grátis · sem cartão · cancele quando quiser</p>

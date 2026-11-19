@@ -2,11 +2,11 @@ import { CardArt } from "@/components/card-art";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 const items = [
-  { href: "/eventos", label: "Event Center", art: "agenda", sub: "Hell Week, desafios e insígnias", color: "#e0393e" },
-  { href: "/status", label: "Status", art: "conquistas", sub: "Nível, atributos e conquistas", color: "#ff2800" },
-  { href: "/financas", label: "Finanças", art: "financas", sub: "Fluxo, caixinhas e patrimônio", color: "#ff2800" },
-  { href: "/livros", label: "Livros", art: "estudos", sub: "Estante, leituras e anotações", color: "#ff4d3d" },
-  { href: "/metas", label: "Metas e objetivos", art: "metas", sub: "Destinos e passos mensuráveis", color: "#dc0000" },
+  { href: "/eventos", label: "Event Center", art: "agenda", sub: "Hell Week, desafios e insígnias", color: "#ffb21e" },
+  { href: "/status", label: "Status", art: "conquistas", sub: "Nível, atributos e conquistas", color: "#ffb21e" },
+  { href: "/financas", label: "Finanças", art: "financas", sub: "Fluxo, caixinhas e patrimônio", color: "#ffb21e" },
+  { href: "/livros", label: "Livros", art: "estudos", sub: "Estante, leituras e anotações", color: "#ffcc66" },
+  { href: "/metas", label: "Metas e objetivos", art: "metas", sub: "Destinos e passos mensuráveis", color: "#ff9f0a" },
   { href: "/configuracoes", label: "Configurações", sub: "Checklist, metas padrão, backup", color: "#9a978f" },
 ] as const;
 export default function Mais() {

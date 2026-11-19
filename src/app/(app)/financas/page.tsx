@@ -94,7 +94,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   const brl0 = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
 
   return (
-    <div className="dash-auto" style={{ ["--accent" as string]: "#ff2800" }}>
+    <div className="dash-auto" style={{ ["--accent" as string]: "#ffb21e" }}>
       <PageHeader eyebrow="Finanças" title="Dinheiro com propósito" icon={HI.coin} line="Dinheiro é ferramenta. Ordem antes de conforto." />
       <Board icon={HI.coin} art={<Image src={`/financas/${art === "resumo" ? "saldo" : art}.webp`} alt="" width={320} height={320} unoptimized
         className="pointer-events-none absolute -right-6 -top-10 -z-10 h-auto w-[54%] max-w-[285px] opacity-30 [mask-image:linear-gradient(110deg,transparent,#000_54%)] md:opacity-40" />}
@@ -106,7 +106,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           {TABS.map(([k, l]) => { const on = tab === k; return (
             <Link key={k} href={href(k)} aria-current={on ? "page" : undefined}
               className={`relative flex-1 min-w-[88px] min-h-[70px] px-3 py-2 flex flex-col items-center justify-center gap-1 text-[11px] uppercase tracking-[.14em] whitespace-nowrap transition-colors ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/55 hover:text-white"}`}>
-              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 12px #ff2800" }} />}
+              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 12px #ffb21e" }} />}
               <Image src={`/financas/${k}.webp`} alt="" width={32} height={32} unoptimized className={on ? "object-contain" : "object-contain opacity-75"} />
               {l}</Link>); })}
         </div>

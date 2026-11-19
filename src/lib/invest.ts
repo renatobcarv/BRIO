@@ -3,10 +3,10 @@ export const INV_TYPES = {
   reserva: { label: "Reserva de emergência", color: "#30d158" },
   renda_fixa: { label: "Renda fixa (CDB/LCI/LCA)", color: "#f5f5f7" },
   tesouro: { label: "Tesouro Direto", color: "#3a7bd5" },
-  acoes: { label: "Ações", color: "#ff2800" },
+  acoes: { label: "Ações", color: "#ffb21e" },
   fiis: { label: "Fundos imobiliários", color: "#f5f5f7" },
-  etf: { label: "ETFs", color: "#ff4d3d" },
-  cripto: { label: "Cripto", color: "#dc0000" },
+  etf: { label: "ETFs", color: "#ffcc66" },
+  cripto: { label: "Cripto", color: "#ff9f0a" },
   previdencia: { label: "Previdência", color: "#7ee2a0" },
   outro: { label: "Outro", color: "#9a978f" },
 } as const;

@@ -6,17 +6,17 @@ import { Sheet } from "@/components/kit";
 import type { ChecklistItem } from "@/lib/settings";
 import { useXp } from "@/components/game/xp";
 
-const GOLD = "#ff2800";
+const GOLD = "#ffb21e";
 
 /** Ícone e cor de cada missão pelo texto (funciona com missões personalizadas). */
 const MISSIONS: [RegExp, string, string][] = [
-  [/ora[cç][aã]o|estudo pessoal|devocional/i, "#ff2800", "M3 6c3-1.5 6-1.5 9 0v13c-3-1.5-6-1.5-9 0zM21 6c-3-1.5-6-1.5-9 0v13c3-1.5 6-1.5 9 0z"],
-  [/b[ií]blia|leitura|livro/i, "#ff4d3d", "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z"],
-  [/faculdade|aula|curso|estud/i, "#dc0000", "M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5"],
+  [/ora[cç][aã]o|estudo pessoal|devocional/i, "#ffb21e", "M3 6c3-1.5 6-1.5 9 0v13c-3-1.5-6-1.5-9 0zM21 6c-3-1.5-6-1.5-9 0v13c3-1.5 6-1.5 9 0z"],
+  [/b[ií]blia|leitura|livro/i, "#ffcc66", "M4 5a2 2 0 0 1 2-2h6v17H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-6v17h6a2 2 0 0 1 2 2z"],
+  [/faculdade|aula|curso|estud/i, "#ff9f0a", "M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5"],
   [/treino|cardio|academia|corrida/i, "#30d158", "M4 9v6M8 6v12M16 6v12M20 9v6M8 12h8"],
   [/[aá]gua|hidrat/i, "#f5f5f7", "M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"],
-  [/refei|prote[ií]na|dieta|comer/i, "#ff4d3d", "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"],
-  [/dorm|sono/i, "#dc0000", "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"],
+  [/refei|prote[ií]na|dieta|comer/i, "#ffcc66", "M7 3v8a2 2 0 0 0 4 0V3M9 11v10M17 3c-2 0-3 3-3 6s1 4 3 4v8"],
+  [/dorm|sono/i, "#ff9f0a", "M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"],
   [/campo|prega|pioneir|servi[cç]o/i, "#f5f5f7", "M21 11.5a8.4 8.4 0 0 1-12.2 7.5L3 20.5l1.6-5.2A8.4 8.4 0 1 1 21 11.5z"],
   [/finan|gasto|lan[cç]a/i, "#f5f5f7", "M3 7h18v10H3zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"],
 ];
@@ -86,12 +86,12 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
   const left = useCountdown();
   // Paleta pela sequência de dias 100%: luz → aurora → chama → fogueira → inferno → fogo de guerra → chama violeta.
   const run = streak + (full ? 0 : 0);
-  const T = run >= 60 ? { n: "RUBI", a: "#ff2d55", b: "#ffffff", bg: "#2a0512", heat: 5 }
-    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#e11d48", b: "#ff7a5c", bg: "#2a0510", heat: 5 }
-    : run >= 14 ? { n: "INFERNO", a: "#dc0000", b: "#ff7a5c", bg: "#24060f", heat: 4 }
-    : run >= 7 ? { n: "FOGUEIRA", a: "#ff2800", b: "#ffd1e0", bg: "#200811", heat: 3 }
-    : run >= 3 ? { n: "CHAMA", a: "#ff4d3d", b: "#ffd1e0", bg: "#1c0a0e", heat: 2 }
-    : run >= 1 ? { n: "AURORA", a: "#ff7a5c", b: "#ffffff", bg: "#170d10", heat: 1 }
+  const T = run >= 60 ? { n: "RUBI", a: "#ffd60a", b: "#ffffff", bg: "#2a0512", heat: 5 }
+    : run >= 30 ? { n: "FOGO DE GUERRA", a: "#ffd60a", b: "#ffd28a", bg: "#2a0510", heat: 5 }
+    : run >= 14 ? { n: "INFERNO", a: "#ff9f0a", b: "#ffd28a", bg: "#24060f", heat: 4 }
+    : run >= 7 ? { n: "FOGUEIRA", a: "#ffb21e", b: "#ffd1e0", bg: "#200811", heat: 3 }
+    : run >= 3 ? { n: "CHAMA", a: "#ffcc66", b: "#ffd1e0", bg: "#1c0a0e", heat: 2 }
+    : run >= 1 ? { n: "AURORA", a: "#ffd28a", b: "#ffffff", bg: "#170d10", heat: 1 }
     : { n: "LUZ", a: "#f5f5f7", b: "#cfd8ea", bg: "#111113", heat: 0 };
   const SYS = T.a, ALT = T.b;
 

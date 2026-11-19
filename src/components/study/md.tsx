@@ -35,7 +35,7 @@ export function Md({ text, images }: { text: string; images?: Record<string, str
       while (i < lines.length && /^\s*([-*•]|\d+[.)])\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*([-*•]|\d+[.)])\s+/, ""));
       out.push(ordered
         ? <ol key={"o" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="font-mono text-[12px] pt-[3px] text-[var(--color-gold,#ffb21e)]">{k + 1}.</span><span>{inline(t, "o" + i + k)}</span></li>)}</ol>
-        : <ul key={"u" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="pt-[1px] text-[var(--accent,#ff2800)]">▪</span><span>{inline(t, "u" + i + k)}</span></li>)}</ul>);
+        : <ul key={"u" + i} className="grid gap-1 pl-1">{items.map((t, k) => <li key={k} className="flex gap-2.5"><span className="pt-[1px] text-[var(--accent,#ffb21e)]">▪</span><span>{inline(t, "u" + i + k)}</span></li>)}</ul>);
       continue;
     }
     if (/^>\s?/.test(l)) { out.push(<blockquote key={"q" + i} className="border-l-2 border-[#ffb21e] pl-3 text-white/75">{inline(l.replace(/^>\s?/, ""), "q" + i)}</blockquote>); i++; continue; }

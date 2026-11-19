@@ -20,11 +20,11 @@ const mondayOf = (iso: string) => { const d = new Date(D(iso)); d.setUTCDate(d.g
 
 export const PHYS = {
   strength: { label: "Strength", pt: "Força", color: "#ff453a", hint: "1RM estimado dos três levantamentos ÷ peso corporal" },
-  endurance: { label: "Endurance", pt: "Resistência", color: "#ff4d3d", hint: "Minutos de cardio nos últimos 28 dias" },
-  power: { label: "Power", pt: "Potência", color: "#ff2800", hint: "Séries pesadas (1–5 reps a 80%+ do seu melhor) em 8 semanas" },
+  endurance: { label: "Endurance", pt: "Resistência", color: "#ffcc66", hint: "Minutos de cardio nos últimos 28 dias" },
+  power: { label: "Power", pt: "Potência", color: "#ffb21e", hint: "Séries pesadas (1–5 reps a 80%+ do seu melhor) em 8 semanas" },
   mobility: { label: "Mobility", pt: "Mobilidade", color: "#f5f5f7", hint: "Minutos de mobilidade e alongamento em 28 dias" },
   conditioning: { label: "Conditioning", pt: "Condicionamento", color: "#30d158", hint: "Sessões de cardio por semana (últimas 4)" },
-  consistency: { label: "Consistency", pt: "Consistência", color: "#dc0000", hint: "Treinos feitos ÷ planejados (últimas 4 semanas)" },
+  consistency: { label: "Consistency", pt: "Consistência", color: "#ff9f0a", hint: "Treinos feitos ÷ planejados (últimas 4 semanas)" },
 } as const;
 export type PhysKey = keyof typeof PHYS;
 
@@ -64,9 +64,9 @@ export function prEvents(ws: WSession[]) {
 export const MEDALS = [
   { id: "iron_will", name: "Iron Will", desc: "Concluir 10 sessões de treino", color: "#bfc3c9" },
   { id: "limit_breaker", name: "Limit Breaker", desc: "Estabelecer um novo recorde pessoal", color: "#ff453a" },
-  { id: "unbreakable", name: "Unbreakable", desc: "4 semanas seguidas cumprindo os treinos planejados, com os descansos respeitados", color: "#dc0000" },
-  { id: "iron_legacy", name: "Iron Legacy", desc: "Completar 100 sessões de treino", color: "#dc0000" },
-  { id: "endurance", name: "Endurance", desc: "10 sessões de cardio de 30 minutos ou mais", color: "#ff4d3d" },
+  { id: "unbreakable", name: "Unbreakable", desc: "4 semanas seguidas cumprindo os treinos planejados, com os descansos respeitados", color: "#ff9f0a" },
+  { id: "iron_legacy", name: "Iron Legacy", desc: "Completar 100 sessões de treino", color: "#ff9f0a" },
+  { id: "endurance", name: "Endurance", desc: "10 sessões de cardio de 30 minutos ou mais", color: "#ffcc66" },
   { id: "perfectionist", name: "Perfectionist", desc: "Concluir um ciclo do programa com 85%+ de aderência e RPE registrado", color: "#30d158" },
 ] as const;
 

@@ -51,7 +51,7 @@ function ProjectView({ p, ev, track, onEdit }: { p: Project; ev: Ev[]; track: st
   return (
     <div className="grid gap-4">
       <section className="hunt-card relative p-5">
-        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 18px #ffb21e" }} />
         <div className="flex items-start gap-3">
           <div className="min-w-0 flex-1">
             <p className="label">{STATUS[p.status]}{track ? ` · ${track}` : ""}</p>
@@ -61,7 +61,7 @@ function ProjectView({ p, ev, track, onEdit }: { p: Project; ev: Ev[]; track: st
           <button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={onEdit}>editar</button>
         </div>
         <div className="flex justify-between label !text-[9px] mt-4"><span>Etapas</span><span className="text-[#ffb21e]">{done}/{steps.length}</span></div>
-        <div className="flex gap-[3px] mt-1.5" aria-hidden>{(steps.length ? steps : [{ done: false }]).map((s, i) => <i key={i} className="h-[5px] flex-1" style={{ background: s.done ? "#ff2800" : "rgba(255,255,255,.08)" }} />)}</div>
+        <div className="flex gap-[3px] mt-1.5" aria-hidden>{(steps.length ? steps : [{ done: false }]).map((s, i) => <i key={i} className="h-[5px] flex-1" style={{ background: s.done ? "#ffb21e" : "rgba(255,255,255,.08)" }} />)}</div>
         <div className="flex flex-wrap gap-2 mt-4">
           <Link href={`/estudos/ia?project=${p.id}&t=${encodeURIComponent(p.title)}`} className="btn btn-accent inline-flex items-center gap-2"><Ico d={HI.bolt} size={14} />Construir com IA</Link>
           <button className="btn" disabled={pending} onClick={() => start(async () => { setError(null); const r = await planProject(p.id); if (r.error) setError(r.error); else if (r.steps) setLocal(r.steps); })}>{steps.length ? "Replanejar com IA" : "Planejar etapas com IA"}</button>
@@ -77,7 +77,7 @@ function ProjectView({ p, ev, track, onEdit }: { p: Project; ev: Ev[]; track: st
             <li key={i} className="bg-[#080808] px-3 py-2.5">
               <div className="flex items-start gap-3">
                 <button aria-pressed={s.done} aria-label={`Concluir ${s.title}`} onClick={() => { persist(steps.map((x, k) => k === i ? { ...x, done: !x.done } : x)); if (!s.done) gain(5, "Etapa do projeto", "#ffb21e"); }}
-                  className="h-6 w-6 mt-0.5 shrink-0 grid place-items-center border" style={{ borderColor: s.done ? "#ff2800" : "rgba(255,255,255,.25)", background: s.done ? "#ff2800" : "transparent" }}>
+                  className="h-6 w-6 mt-0.5 shrink-0 grid place-items-center border" style={{ borderColor: s.done ? "#ffb21e" : "rgba(255,255,255,.25)", background: s.done ? "#ffb21e" : "transparent" }}>
                   {s.done && <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>}</button>
                 <div className="flex-1 min-w-0">
                   <p className={`text-[14.5px] ${s.done ? "text-white/45 line-through" : ""}`}>{s.title}</p>

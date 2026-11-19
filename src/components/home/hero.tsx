@@ -40,7 +40,7 @@ export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
       </div>
       <div className="mt-5">
         <div className="h-3.5 rounded-full bg-white/[.07] overflow-hidden">
-          <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ff7a5c)`, boxShadow: `0 0 16px ${rank.color}` }} />
+          <div className="h-full rounded-full xp-shine bar-grow" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd28a)`, boxShadow: `0 0 16px ${rank.color}` }} />
         </div>
         <div className="flex justify-between text-xs mt-1.5"><span className="text-muted num"><CountUp value={lv.into} /> / {lv.need.toLocaleString("pt-BR")} XP</span>
           <span className="font-medium" style={{ color: rank.color }}>{next && next.min === lv.level + 1 ? `próximo: ${next.name}` : `faltam ${(lv.need - lv.into).toLocaleString("pt-BR")} para o ${lv.level + 1}`}</span></div>
@@ -98,7 +98,7 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
             : <button key={a.key} type="button" className={cls} aria-label={a.accessibleLabel} aria-describedby={a.key === "agua" ? "quick-water-progress" : undefined} onClick={() => (a.key === "agua" ? water() : setSheet(a.key as "estudo" | "campo"))}>{inner}</button>;
         })}
       </div>
-      <Sheet accent="#ff2800" open={sheet === "estudo"} onClose={() => setSheet(null)} title="Estudo">{sheet === "estudo" && <StudyQuiz today={today} onClose={() => setSheet(null)} />}</Sheet>
+      <Sheet accent="#ffb21e" open={sheet === "estudo"} onClose={() => setSheet(null)} title="Estudo">{sheet === "estudo" && <StudyQuiz today={today} onClose={() => setSheet(null)} />}</Sheet>
       <Sheet accent="#f5f5f7" open={sheet === "campo"} onClose={() => setSheet(null)} title="Serviço de hoje">{sheet === "campo" && <FieldQuiz today={today} contacts={contacts} onClose={() => setSheet(null)} />}</Sheet>
     </>
   );

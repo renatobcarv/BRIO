@@ -9,9 +9,9 @@ export type GoogleState = { ready: boolean; connected: boolean; email: string | 
 export type GEv = { id: string; title: string; date: string; start_time: string | null; end_time: string | null; location: string | null; link: string | null };
 export type CalEvent = { id: string; title: string; date: string; start_time: string | null; end_time: string | null; category: string; location: string | null; notes: string | null; remind_min: number | null };
 const CAT: Record<string, { label: string; color: string; e: string }> = {
-  pessoal: { label: "Pessoal", color: "#9a978f", e: "📌" }, espiritual: { label: "Espiritual", color: "#ff2800", e: "📖" },
-  campo: { label: "Campo", color: "#f5f5f7", e: "💬" }, treino: { label: "Treino", color: "#e0393e", e: "🏋️" },
-  financas: { label: "Finanças", color: "#ff2800", e: "💰" }, trabalho: { label: "Trabalho", color: "#dc0000", e: "💼" }, familia: { label: "Família", color: "#ff6b81", e: "❤️" },
+  pessoal: { label: "Pessoal", color: "#9a978f", e: "📌" }, espiritual: { label: "Espiritual", color: "#ffb21e", e: "📖" },
+  campo: { label: "Campo", color: "#f5f5f7", e: "💬" }, treino: { label: "Treino", color: "#ffb21e", e: "🏋️" },
+  financas: { label: "Finanças", color: "#ffb21e", e: "💰" }, trabalho: { label: "Trabalho", color: "#ff9f0a", e: "💼" }, familia: { label: "Família", color: "#ff9f0a", e: "❤️" },
 };
 const MES = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
 const DS = ["S", "T", "Q", "Q", "S", "S", "D"];
@@ -71,7 +71,7 @@ export function Agenda({ today, month, events, ready, feed, google, gEvents = []
     <div className="dash-auto" style={{ ["--accent" as string]: "#f5f5f7" }}>
       {/* Cabeçalho */}
       <header className="rise mb-4 hunt-card p-5 pl-6 relative overflow-hidden">
-        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 18px #ff2800" }} />
+        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px]" style={{ background: "#ffb21e", boxShadow: "0 0 18px #ffb21e" }} />
         <div className="absolute inset-0 pointer-events-none opacity-[.07]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,.6) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.6) 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
         <div className="relative flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -256,11 +256,11 @@ function AiBar({ today }: { today: string }) {
   const ask = () => start(async () => { setErr(null); setOff(new Set()); const r = await aiAgenda(text, today); if ("error" in r) { setErr(r.error); setRes(null); } else setRes(r); });
   const apply = () => start(async () => { const list = res!.proposals.filter((_, i) => !off.has(i)); const e = await applyProposals(list); if (e) setErr(e); else { haptic([20, 40, 20]); setRes(null); setText(""); } });
   return (
-    <section className="rise rounded-[8px] p-[1px]" style={{ background: "linear-gradient(120deg, #f5f5f7, #dc0000, #ff6b81)" }}>
+    <section className="rise rounded-[8px] p-[1px]" style={{ background: "linear-gradient(120deg, #f5f5f7, #ff9f0a, #ff9f0a)" }}>
       <div className="rounded-[8px] p-3 bg-[#07080d]">
         <div className="flex items-center gap-2">
           <span className="text-lg" aria-hidden>✦</span>
-          <p className="text-[10px] font-bold tracking-[.3em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#f5f5f7,#dc0000)" }}>ASSISTENTE DE AGENDA</p>
+          <p className="text-[10px] font-bold tracking-[.3em] bg-clip-text text-transparent" style={{ backgroundImage: "linear-gradient(90deg,#f5f5f7,#ff9f0a)" }}>ASSISTENTE DE AGENDA</p>
         </div>
         <div className="flex items-end gap-2 mt-2">
           <textarea rows={2} className="field flex-1 !min-h-[52px] text-[15px] resize-none" value={text} onChange={(e) => setText(e.target.value)}
@@ -272,8 +272,8 @@ function AiBar({ today }: { today: string }) {
         {res && (
           <div className="mt-3 grid gap-2">
             {res.reply && <div className="flex items-end gap-2 msg-in">
-              <span className="h-7 w-7 shrink-0 rounded-xl grid place-items-center text-sm text-white" style={{ background: "linear-gradient(135deg,#f5f5f7,#dc0000)", boxShadow: "0 0 14px -4px #dc0000" }}>✦</span>
-              <p className="rounded-[8px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(245,245,247,.10), rgba(220,0,0,.06))" }}>{res.reply}</p>
+              <span className="h-7 w-7 shrink-0 rounded-xl grid place-items-center text-sm text-white" style={{ background: "linear-gradient(135deg,#f5f5f7,#ff9f0a)", boxShadow: "0 0 14px -4px #ff9f0a" }}>✦</span>
+              <p className="rounded-[8px] rounded-bl-md px-3.5 py-2.5 text-sm border border-white/10" style={{ background: "linear-gradient(160deg, rgba(245,245,247,.10), rgba(255,178,30,.06))" }}>{res.reply}</p>
             </div>}
             {res.proposals.length === 0 ? <p className="text-xs text-muted">Nada para marcar.</p> : res.proposals.map((p, i) => {
               const c = CAT[p.category] ?? CAT.pessoal, on = !off.has(i);

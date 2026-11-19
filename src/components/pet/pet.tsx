@@ -11,7 +11,7 @@ export type PetView = { id: string; name: string; species: string; adopted_on: s
   todayBuff: { label: string; pct: number } | null; buffs: { date: string; label: string }[]; feedToday: number; fed: { date: string; xp: number; label: string }[]; bonusTotal: number };
 
 const MOOD: Record<string, { t: string; c: string }> = {
-  alimentado: { t: "Alimentado hoje", c: "#30d158" }, satisfeito: { t: "Satisfeito", c: "#ffb21e" }, "com fome": { t: "Com fome", c: "#ff7a5c" }, faminto: { t: "Faminto", c: "#ff453a" },
+  alimentado: { t: "Alimentado hoje", c: "#30d158" }, satisfeito: { t: "Satisfeito", c: "#ffb21e" }, "com fome": { t: "Com fome", c: "#ffd28a" }, faminto: { t: "Faminto", c: "#ff453a" },
 };
 
 function PetPortrait({ species, stage, size, alt = "", className = "" }: {

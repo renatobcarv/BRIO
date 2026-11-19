@@ -18,24 +18,24 @@ export default async function Bestiario() {
   return (
     <div className="war bestiary-page">
       <header className="rise mb-6">
-        <p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#e0393e" }}>ASCENSION · COVIL</p>
+        <p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#ffb21e" }}>ASCENSION · COVIL</p>
         <h1 className="font-display text-[clamp(36px,12vw,48px)] mt-2 leading-none tracking-tight uppercase">Bestiário</h1>
         <p className="text-sm text-muted mt-2">Cada semana da campanha traz uma fera a vencer ou um anjo como exemplo a seguir. Cumpra todos os treinos planejados da semana.</p>
         <div className="grid grid-cols-3 gap-2 mt-4">
           <div className="glass p-3"><p className="num text-2xl">{seen}<span className="text-muted text-sm">/{ANGELS.length + FERAS.length}</span></p><p className="text-[11px] text-muted">desbloqueados</p></div>
-          <div className="glass p-3"><p className="num text-2xl" style={{ color: "#ff2800" }}>{won(ANGELS)}</p><p className="text-[11px] text-muted">virtudes ✨</p></div>
-          <div className="glass p-3"><p className="num text-2xl" style={{ color: "#e0393e" }}>{won(FERAS)}</p><p className="text-[11px] text-muted">feras abatidas ⚔</p></div>
+          <div className="glass p-3"><p className="num text-2xl" style={{ color: "#ffb21e" }}>{won(ANGELS)}</p><p className="text-[11px] text-muted">virtudes ✨</p></div>
+          <div className="glass p-3"><p className="num text-2xl" style={{ color: "#ffb21e" }}>{won(FERAS)}</p><p className="text-[11px] text-muted">feras abatidas ⚔</p></div>
         </div>
       </header>
 
       <div className="clearing-section mb-8"><Clareira rec={rec} /></div>
       <section className="rise">
-        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#ff2800" }}>EXEMPLOS · ACUMULAÇÃO</p>
+        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#ffb21e" }}>EXEMPLOS · ACUMULAÇÃO</p>
         <p className="text-xs text-muted mt-1 mb-3">Os anjos não são adversários: são referências do que buscar. Cumpra a semana seguindo o exemplo e conquiste a virtude dele.</p>
         <BestiaryGrid ids={ANGELS} rec={rec} angel />
       </section>
       <section className="rise mt-8">
-        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#e0393e" }}>FERAS · INTENSIFICAÇÃO, HELL WEEK, DELOAD E CHEFE</p>
+        <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: "#ffb21e" }}>FERAS · INTENSIFICAÇÃO, HELL WEEK, DELOAD E CHEFE</p>
         <div className="mt-3"><BestiaryGrid ids={FERAS} rec={rec} angel={false} /></div>
       </section>
       <Link href="/treino" className="btn w-full mt-8">Voltar ao Covil</Link>

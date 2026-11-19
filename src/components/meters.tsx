@@ -133,7 +133,7 @@ export function Drop({ pct, size = 40, color = "#bf5af2" }: { pct: number; size?
 }
 
 /** Barra carregada: uma anilha acesa por sessão feita na semana. */
-export function Barbell({ done, total, width = 150, color = "#e0393e" }: { done: number; total: number; width?: number; color?: string }) {
+export function Barbell({ done, total, width = 150, color = "#ffb21e" }: { done: number; total: number; width?: number; color?: string }) {
   const n = Math.max(1, Math.min(8, total)), per = Math.ceil(n / 2), lit = Math.min(done, n);
   const plate = (i: number, side: 1 | -1) => {
     const idx = side === -1 ? i * 2 : i * 2 + 1, on = idx < lit, x = 50 + side * (21 + i * 9), h = 40 - i * 4;

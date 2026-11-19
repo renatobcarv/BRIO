@@ -31,7 +31,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <p className="text-white/60 mt-6 text-[clamp(13px,1.6vw,17px)]">Certifica-se que</p>
           <p className="font-display text-[clamp(30px,5vw,58px)] mt-1">{name}</p>
           <p className="text-white/60 mt-3 text-[clamp(13px,1.6vw,17px)]">demonstrou <b style={{ color: m.color }}>{m.label.toLowerCase()}</b> (nível {e.level}/5{e.score != null ? ` · ${e.score}/100` : ""}) em</p>
-          <p className="font-display text-[clamp(22px,3.4vw,40px)] mt-2 text-[#ff2800]">{e.topic}</p>
+          <p className="font-display text-[clamp(22px,3.4vw,40px)] mt-2 text-[#ffb21e]">{e.topic}</p>
           {e.justification && <p className="text-[clamp(11px,1.15vw,13px)] text-white/45 mt-5 max-w-[70ch] mx-auto line-clamp-4 whitespace-pre-line">{e.justification.split("\n")[0]}</p>}
         </div>
         <div className="flex items-end justify-between text-[11px] text-white/45">

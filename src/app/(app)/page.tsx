@@ -117,7 +117,7 @@ export default async function Hoje() {
           <Link href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-[#3a0000] bg-[#0b0b0b]">
             {photo && <img src={photo} alt="Maria Luisa" className="absolute inset-0 h-full w-full object-cover" />}
             <span className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-            <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] !text-[#ff2800] block">Meu maior motivo</span><span className="font-display text-xl uppercase italic leading-none block mt-1">Maria Luisa</span></span>
+            <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] !text-[#ffb21e] block">Meu maior motivo</span><span className="font-display text-xl uppercase italic leading-none block mt-1">Maria Luisa</span></span>
           </Link>
           {dreams.map((d) => (
             <Link key={d.id} href="/sonhos" className="dream-mini snap-start shrink-0 relative isolate w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-white/10 bg-[#0b0b0b]">
@@ -144,15 +144,15 @@ export default async function Hoje() {
       </div>
 
       {/* Relatório financeiro */}
-      <Link href="/financas" className="glass rise relative isolate overflow-hidden block p-5 mt-4" style={{ ["--accent" as string]: "#ff2800" }}>
+      <Link href="/financas" className="glass rise relative isolate overflow-hidden block p-5 mt-4" style={{ ["--accent" as string]: "#ffb21e" }}>
         <CardArt name="financas" />
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ff2800" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ffb21e" }}>Finanças · <span className="capitalize">{monthLabel(month)}</span></p><span className="text-muted text-sm">ver ›</span></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-3 gap-y-3 mt-3">
           <div><p className="label">Entrou</p><p className="num text-lg md:text-xl" style={{ color: "#30d158" }}>{brl(income)}</p></div>
           <div><p className="label">Saiu</p><p className="num text-lg md:text-xl">{brl(spent)}</p></div>
           <div className="col-span-2 sm:col-span-1"><p className="label">Sobra</p><p className="num text-2xl md:text-xl" style={{ color: left >= 0 ? "#f5f5f7" : "#ff453a" }}>{brl(left)}</p></div>
         </div>
-        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#ff2800" }} /></div>
+        <div className="bar mt-4" style={{ height: 6 }}><i style={{ width: `${income ? Math.min(100, (spent / income) * 100) : 0}%`, background: spent > income ? "#ff453a" : "#ffb21e" }} /></div>
         <div className="flex justify-between text-xs text-muted mt-1.5">
           <span>{income ? `${Math.round((spent / income) * 100)}% da renda usada` : "Sem receitas lançadas"}</span>
           <span>Poupança {income ? Math.round((left / income) * 100) : 0}%</span>
@@ -168,11 +168,11 @@ export default async function Hoje() {
       {/* Metas */}
       <Link href="/metas" className="glass rise relative isolate overflow-hidden block p-5 mt-4">
         <CardArt name="metas" />
-        <div className="flex items-center justify-between"><p className="label" style={{ color: "#dc0000" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
+        <div className="flex items-center justify-between"><p className="label" style={{ color: "#ff9f0a" }}>Metas</p><span className="text-muted text-sm">ver ›</span></div>
         {goalList.length === 0 ? <p className="font-display italic text-muted text-lg mt-2">Defina sua primeira meta.</p> : (
           <ul className="grid gap-4 mt-3">
             {goalList.map((g) => {
-              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#dc0000";
+              const st = goalStats(g, today), c = AREAS[g.area]?.color ?? "#ff9f0a";
               return (
                 <li key={g.id}>
                   <div className="flex justify-between gap-3 text-sm"><span className="truncate">{g.title}</span><span className="num shrink-0" style={{ color: c }}>{Math.round(st.pct * 100)}%</span></div>

@@ -10,7 +10,7 @@ import {
   type Goal, type Muscle, type Phase, type PhaseKind, type PlannedEx, type Program,
 } from "@/lib/training";
 
-const G = "#e0393e";
+const G = "#ffb21e";
 const ORDER = ["1", "2", "3", "4", "5", "6", "0"];
 const blankEx = (): PlannedEx => ({ name: "", muscle: "outro", sets: 3, reps: "8-12", kg: null, rpe: 7, rir: 2, rest: 90, notes: "" });
 
@@ -88,7 +88,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
       <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
         {list.length === 0 && <p className="font-display italic text-muted">Dia de descanso. Adicione exercícios se houver treino.</p>}
         {list.map((e, i) => (
-          <div key={`${day}-${i}`} className="rounded-[8px] border p-3 grid grid-cols-[minmax(0,1fr)] gap-2 step-in-right" style={{ borderColor: "rgba(224,57,62,.18)", background: "#120808" }}>
+          <div key={`${day}-${i}`} className="rounded-[8px] border p-3 grid grid-cols-[minmax(0,1fr)] gap-2 step-in-right" style={{ borderColor: "rgba(255,178,30,.18)", background: "#120808" }}>
             <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,8.5rem)] gap-2">
               <input className="field !min-h-11" placeholder="Exercício" value={e.name} aria-label="Exercício"
                 onChange={(ev) => upd(i, { name: ev.target.value, muscle: e.muscle === "outro" || e.muscle === guessMuscle(e.name, overrides) ? guessMuscle(ev.target.value, overrides) : e.muscle })} />
@@ -112,7 +112,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
             </div>
           </div>
         ))}
-        <div className="rounded-[8px] border p-3" style={{ borderColor: "rgba(224,57,62,.25)", background: "#120707" }}>
+        <div className="rounded-[8px] border p-3" style={{ borderColor: "rgba(255,178,30,.25)", background: "#120707" }}>
           <p className="text-[10px] font-semibold tracking-[.25em]" style={{ color: G }}>BIBLIOTECA · TOQUE PARA ADICIONAR</p>
           <div className="flex gap-1.5 overflow-x-auto mt-2 pb-1">
             {LIBRARY.map(([g]) => <button key={g} className="chip shrink-0" aria-pressed={lib === g} onClick={() => setLib(lib === g ? null : g)}>{g}</button>)}
@@ -122,7 +122,7 @@ function PhaseEditor({ phase, overrides, onSave, onCancel }: { phase: Phase; ove
               {LIBRARY.find(([g]) => g === lib)![1].map((name) => {
                 const has = list.some((e) => e.name.toLowerCase() === name.toLowerCase());
                 return <button key={name} disabled={has} className="press rounded-xl px-3 min-h-10 text-sm border disabled:opacity-35"
-                  style={{ borderColor: "rgba(224,57,62,.35)", background: "#1a0909" }}
+                  style={{ borderColor: "rgba(255,178,30,.35)", background: "#1a0909" }}
                   onClick={() => setList([...list, fromLibrary(name, f.kind, overrides)])}>{has ? "✓ " : "+ "}{name}</button>;
               })}
             </div>

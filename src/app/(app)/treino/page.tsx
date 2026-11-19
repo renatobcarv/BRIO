@@ -25,10 +25,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
   return (
     <div className={`treino-page war ${tv.onFire ? "war-fire" : ""}`}>
       {tv.onFire && <FireLayer />}
-      <header className="rise panther-hero mb-4 !min-h-[180px]">
+      <header className="rise treino-hero mb-4">
         <img src="/pantera/sentada.webp" alt="" aria-hidden className="panther-img !opacity-80" />
         <div className="relative">
-          <p className="label flex items-center gap-1.5" style={{ color: "#ff2800" }}><Ico d={HI.dumbbell} size={13} />Treino · Covil</p>
+          <p className="label flex items-center gap-1.5" style={{ color: "#ffb21e" }}><Ico d={HI.dumbbell} size={13} />Treino · Covil</p>
           <h1 className="font-display text-5xl md:text-6xl mt-2">Mais forte<span className="text-[#ffb21e]"> hoje.</span></h1>
           <p className="font-mono text-[12px] text-white/60 mt-3">{new Set(wk.map((w) => w.date)).size} treinos nos últimos 7 dias · {vol >= 1000 ? `${(vol / 1000).toLocaleString("pt-BR", { maximumFractionDigits: 1 })} t` : `${Math.round(vol)} kg`} de volume · {tv.workouts.length} sessões registradas</p>
         </div>
@@ -37,7 +37,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
         <div className="grid grid-cols-3 gap-px bg-white/[.06] border border-white/[.06] rounded-[8px] overflow-hidden">
           {TABS.map(([k, l, ic]) => { const on = tab === k; return (
             <Link key={k} href={`/treino?aba=${k}`} aria-current={on ? "page" : undefined} className={`relative min-h-12 flex items-center justify-center gap-2 text-[12px] uppercase tracking-[.12em] ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/55 hover:text-white"}`}>
-              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 12px #ff2800" }} />}<Ico d={ic} size={14} color={on ? "#ffb21e" : "currentColor"} />{l}</Link>); })}
+              {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 12px #ffb21e" }} />}<Ico d={ic} size={14} color={on ? "#ffb21e" : "currentColor"} />{l}</Link>); })}
         </div>
       </nav>
       {tab === "treino" && <>{tv.warEvent}{tv.content}</>}

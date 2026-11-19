@@ -46,12 +46,12 @@ export type FireTier = { name: string; from: number; color: string; core: string
 /** Força do fogo pela sequência. */
 export const FIRE: FireTier[] = [
   { name: "Apagado", from: 0, color: "#2c2c2e", core: "#3a3a3c", scale: 0.8, flames: 0, embers: 0 },
-  { name: "Brasa", from: 1, color: "#ff7a5c", core: "#ffe1ec", scale: 0.85, flames: 0, embers: 2 },
-  { name: "Chama", from: 3, color: "#ff2800", core: "#ffd1e0", scale: 1, flames: 1, embers: 4 },
-  { name: "Fogueira", from: 7, color: "#dc0000", core: "#ffb3cb", scale: 1.12, flames: 2, embers: 7 },
-  { name: "Inferno", from: 14, color: "#a30000", core: "#ff7a5c", scale: 1.24, flames: 3, embers: 11 },
-  { name: "Fogo branco", from: 30, color: "#ff2d55", core: "#ffffff", scale: 1.34, flames: 3, embers: 14 },
-  { name: "Rubi", from: 90, color: "#e11d48", core: "#ffffff", scale: 1.44, flames: 4, embers: 18 },
+  { name: "Brasa", from: 1, color: "#ffd28a", core: "#ffe1ec", scale: 0.85, flames: 0, embers: 2 },
+  { name: "Chama", from: 3, color: "#ffb21e", core: "#ffd1e0", scale: 1, flames: 1, embers: 4 },
+  { name: "Fogueira", from: 7, color: "#ff9f0a", core: "#ffb3cb", scale: 1.12, flames: 2, embers: 7 },
+  { name: "Inferno", from: 14, color: "#b7791f", core: "#ffd28a", scale: 1.24, flames: 3, embers: 11 },
+  { name: "Fogo branco", from: 30, color: "#ffffff", core: "#ffffff", scale: 1.34, flames: 3, embers: 14 },
+  { name: "Rubi", from: 90, color: "#ffd60a", core: "#ffffff", scale: 1.44, flames: 4, embers: 18 },
 ];
 export const fireTier = (n: number) => [...FIRE].reverse().find((t) => n >= t.from) ?? FIRE[0];
 export const nextFire = (n: number) => FIRE.find((t) => t.from > n) ?? null;

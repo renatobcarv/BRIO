@@ -1,6 +1,6 @@
-export const BOOK_COLOR = "#ff4d3d";
+export const BOOK_COLOR = "#ffcc66";
 export const STATUS = {
-  lendo: { label: "Lendo", color: "#ff4d3d" },
+  lendo: { label: "Lendo", color: "#ffcc66" },
   quero_ler: { label: "Quero ler", color: "#f5f5f7" },
   lido: { label: "Lido", color: "#30d158" },
   abandonado: { label: "Abandonado", color: "#9a978f" },

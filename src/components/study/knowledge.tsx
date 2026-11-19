@@ -31,7 +31,7 @@ export function Knowledge({ today, ready, notes, tracks, evidence }: { today: st
       <div className="min-w-0">
         {/* Revisão do dia */}
         <section className="hunt-card relative p-5">
-          <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 18px #ff2800" }} />
+          <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 18px #ffb21e" }} />
           <p className="label flex items-center gap-1.5"><Ico d={HI.clock} size={13} />Revisão espaçada</p>
           <p className="num text-6xl leading-none mt-2">{due.length}<span className="text-xl text-white/40"> {due.length === 1 ? "pendente" : "pendentes"}</span></p>
           <p className="text-[12.5px] text-white/55 mt-2">Recuperação ativa: você responde antes de ver a resposta. Errou, volta amanhã; acertou, o intervalo cresce.</p>

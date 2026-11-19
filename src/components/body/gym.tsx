@@ -7,7 +7,7 @@ import { ExerciseHero, ExerciseThumb } from "./exercise-media";
 import { MuscleMap } from "./muscle-map";
 import { Sheet } from "@/components/kit";
 
-const R = "#ff2800", A = "#ffb21e";
+const R = "#ffb21e", A = "#ffb21e";
 const nn = (s: string) => Number(s.replace(",", ".")) || 0;
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
 
@@ -24,14 +24,14 @@ export function ExerciseLibrary({ history }: { history: { date: string; sets: { 
     <div className="grid lg:grid-cols-[240px_minmax(0,1fr)] gap-5 items-start">
       <aside className="grid gap-3 lg:sticky lg:top-4">
         <input className="field" placeholder="Buscar exercício" value={q} onChange={(ev) => setQ(ev.target.value)} aria-label="Buscar exercício" />
-        <div><p className="label !text-[9px] mb-2">Músculo</p><div className="flex lg:flex-col flex-wrap gap-1">{(["todos", ...muscles] as const).map((k) => <button key={k} className={`text-left px-3 min-h-9 text-[13px] border rounded-[6px] ${m === k ? "border-[#ff2800] bg-[#140303] text-white" : "border-white/[.08] text-white/60 hover:text-white"}`} onClick={() => setM(k)}>{k === "todos" ? "Todos" : MUSCLES[k]}</button>)}</div></div>
+        <div><p className="label !text-[9px] mb-2">Músculo</p><div className="flex lg:flex-col flex-wrap gap-1">{(["todos", ...muscles] as const).map((k) => <button key={k} className={`text-left px-3 min-h-9 text-[13px] border rounded-[6px] ${m === k ? "border-[#ffb21e] bg-[#140303] text-white" : "border-white/[.08] text-white/60 hover:text-white"}`} onClick={() => setM(k)}>{k === "todos" ? "Todos" : MUSCLES[k]}</button>)}</div></div>
         <div><p className="label !text-[9px] mb-2">Equipamento</p><div className="flex flex-wrap gap-1">{(["todos", ...Object.keys(EQUIP)] as const).map((k) => <button key={k} className="chip !min-h-8 text-[12px]" aria-pressed={e === k} onClick={() => setE(k as Equip | "todos")}>{k === "todos" ? "Todos" : EQUIP[k as Equip]}</button>)}</div></div>
       </aside>
       <div>
         <p className="label mb-3">{list.length} exercícios</p>
         <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
           {list.map((x) => (
-            <button key={x.name} onClick={() => setSel(x.name)} className="text-left border border-white/[.08] rounded-[8px] overflow-hidden bg-[#0a0a0a] hover:border-[#ff280066] transition-colors">
+            <button key={x.name} onClick={() => setSel(x.name)} className="text-left border border-white/[.08] rounded-[8px] overflow-hidden bg-[#0a0a0a] hover:border-[#ffb21e66] transition-colors">
               <div className="h-28 grid place-items-center ex-media !rounded-none"><ExerciseThumb name={x.name} size={96} /></div>
               <div className="p-3"><p className="text-[13.5px] font-medium leading-snug line-clamp-2">{x.name}</p><p className="text-[10.5px] font-mono text-white/45 mt-1">{MUSCLES[x.muscle]} · {EQUIP[x.equip]}</p></div>
             </button>))}

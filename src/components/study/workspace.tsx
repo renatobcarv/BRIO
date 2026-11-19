@@ -118,7 +118,7 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
           {(Object.keys(MODES) as Mode[]).map((m) => (
             <button key={m} aria-pressed={mode === m} onClick={() => changeMode(m)} disabled={busy}
               className={`text-left px-2.5 py-2 text-[12px] ${mode === m ? "bg-[#140303] text-white" : "bg-[#080808] text-white/60 hover:text-white"}`}>
-              {mode === m && <span className="text-[#ff2800] mr-1">▪</span>}{MODES[m].label}</button>))}
+              {mode === m && <span className="text-[#ffb21e] mr-1">▪</span>}{MODES[m].label}</button>))}
         </div>
         <p className="text-[11px] text-white/45 mt-1.5">{MODES[mode].short}. Vale a partir da próxima mensagem.</p>
       </div>
@@ -145,7 +145,7 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
         {last ? (
           <div className="border border-white/[.06] p-3">
             <p className="text-[13px] font-semibold" style={{ color: MASTERY[masteryFromLevel(last.level)].color }}>{MASTERY[masteryFromLevel(last.level)].label} · nível {last.level}/5</p>
-            <div className="flex gap-[3px] mt-2" aria-hidden>{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-[5px] flex-1" style={{ background: i <= last.level ? "#ff2800" : "rgba(255,255,255,.08)" }} />)}</div>
+            <div className="flex gap-[3px] mt-2" aria-hidden>{[1, 2, 3, 4, 5].map((i) => <i key={i} className="h-[5px] flex-1" style={{ background: i <= last.level ? "#ffb21e" : "rgba(255,255,255,.08)" }} />)}</div>
             {last.justification && <p className="text-[11.5px] text-white/55 mt-2 whitespace-pre-line line-clamp-6">{last.justification}</p>}
           </div>) : <p className="text-[12px] text-white/45">Sem avaliação ainda. Domínio só conta com evidência.</p>}
         <button className="btn w-full mt-2 inline-flex items-center justify-center gap-2" disabled={pending || busy || msgs.length < 4}
@@ -192,7 +192,7 @@ export function Workspace({ session, initial, notes, evidence, providers, links 
             <div key={i} className="justify-self-end max-w-[85%] bg-[#140303] border border-[#3a0000] px-4 py-2.5 text-[15px] whitespace-pre-wrap break-words">{m.content}</div>
           ) : (
             <div key={i} className="max-w-[72ch] min-w-0">
-              <p className="label !text-[9px] mb-1.5 flex items-center gap-1.5"><span className="h-1.5 w-1.5 bg-[#ff2800]" />Tutor</p>
+              <p className="label !text-[9px] mb-1.5 flex items-center gap-1.5"><span className="h-1.5 w-1.5 bg-[#ffb21e]" />Tutor</p>
               {m.content ? <Md text={m.content} /> : <span className="inline-flex gap-1.5 py-2" aria-label="Pensando">{[0, 1, 2].map((k) => <i key={k} className="h-1.5 w-1.5 bg-white/50 typing-dot" style={{ animationDelay: `${k * .18}s` }} />)}</span>}
               {m.content && !(busy && i === msgs.length - 1) && (
                 <div className="flex flex-wrap gap-3 mt-3 text-[11px] text-white/40 border-t border-white/[.05] pt-1">

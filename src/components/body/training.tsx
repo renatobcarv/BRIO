@@ -21,7 +21,7 @@ import { suggestLoad, type Suggestion } from "@/lib/progression";
 import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 
-const G = "#e0393e";
+const G = "#ffb21e";
 type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
 export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
 export type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
@@ -89,7 +89,7 @@ function RestTimer({ until, onDone, onAdd }: { until: number; onDone: () => void
   return (
     <div className="fixed left-3 right-3 md:left-auto md:right-6 md:w-80 bottom-[calc(6.25rem+env(safe-area-inset-bottom))] md:bottom-6 z-40 sheet-up">
       <div className="rounded-[8px] border border-white/10 bg-[#111113]/95 backdrop-blur-xl p-3 flex items-center gap-3 shadow-2xl">
-        <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#ff2800" }}>{mmss(left)}</p></div>
+        <div className="flex-1"><p className="label">{left ? "Descanso" : "Bora!"}</p><p className="num text-3xl" style={{ color: left ? G : "#ffb21e" }}>{mmss(left)}</p></div>
         <button className="btn !px-3" onClick={() => onAdd(15)}>+15s</button>
         <button className="btn" onClick={onDone}>Pular</button>
       </div>
@@ -321,7 +321,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       {(() => {
         const total = program ? weekDays.filter((w) => w.dp.list.length).length : planned, done = new Set(weekW.map((w) => w.date)).size;
         const prevStart = addDays(weekStart, -7), lastVol = workouts.filter((w) => w.date >= prevStart && w.date < weekStart).reduce((a, w) => a + volume(w.sets), 0);
-        const vol = weekW.reduce((a, w) => a + volume(w.sets), 0), R = "#ff2800";
+        const vol = weekW.reduce((a, w) => a + volume(w.sets), 0), R = "#ffb21e";
         const pos = program ? programPosition(program, today) : null, ph = program && pos ? program.phases[pos.phaseIndex] : null;
         return (
           <section className="hunt-card rise relative overflow-hidden p-5">
@@ -371,12 +371,12 @@ export function Training({ today, split, plan, workouts, program = null, program
                   <button key={w.date} role="tab" onClick={() => setSelDate(w.date)} aria-selected={on} aria-label={`${weekdayShort[w.d]} ${Number(w.date.slice(8))}: ${w.status === "done" ? "feito" : w.status === "rest" ? "descanso" : w.title ?? w.label}`}
                     className={`press flex flex-col items-center pt-2 pb-2.5 rounded-[10px] transition-colors ${on ? "bg-[#f5f5f7] text-black" : "hover:bg-white/[.04]"}`}>
                     <span className={`text-[10.5px] uppercase tracking-wider ${on ? "text-black/60" : "text-white/45"}`}>{weekdayShort[w.d]}</span>
-                    <span className={`num text-[22px] leading-none mt-1 ${on ? "" : isToday ? "text-[#ff2800]" : "text-white"}`}>{Number(w.date.slice(8))}</span>
+                    <span className={`num text-[22px] leading-none mt-1 ${on ? "" : isToday ? "text-[#ffb21e]" : "text-white"}`}>{Number(w.date.slice(8))}</span>
                     <span className="h-1.5 mt-2 flex items-center">
                       {w.status === "done" ? <i className="h-1.5 w-1.5 rounded-full" style={{ background: on ? "#16a34a" : "#30d158" }} />
                         : w.status === "rest" ? <i className={`h-[2px] w-2.5 ${on ? "bg-black/30" : "bg-white/20"}`} />
                         : w.status === "missed" ? <i className="h-1.5 w-1.5 rounded-full border border-[#ff453a]" />
-                        : <i className="h-1.5 w-1.5 rounded-full" style={{ background: on ? "#ff2800" : "rgba(255,40,0,.7)" }} />}
+                        : <i className="h-1.5 w-1.5 rounded-full" style={{ background: on ? "#ffb21e" : "rgba(255,178,30,.7)" }} />}
                     </span>
                   </button>);
               })}
@@ -549,7 +549,7 @@ function PlanVsDone({ w }: { w: Workout }) {
         const p = planned.find((x) => x.name === name), done = w.sets.filter((s) => s.exercise === name);
         const target = p ? firstNum(p.reps) : 0, top = done.reduce((a, s) => Math.max(a, Number(s.kg)), 0);
         const status = !p ? "extra" : done.length === 0 ? "não feito" : done.length < p.sets ? "parcial" : "completo";
-        const color = status === "completo" ? G : status === "parcial" ? "#ff2800" : status === "extra" ? "#f5f5f7" : "#ff453a";
+        const color = status === "completo" ? G : status === "parcial" ? "#ffb21e" : status === "extra" ? "#f5f5f7" : "#ff453a";
         const rpes = done.filter((s) => s.rpe).map((s) => Number(s.rpe));
         const timed = isTimed(name, p?.muscle);
         return (

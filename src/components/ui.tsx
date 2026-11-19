@@ -1,18 +1,18 @@
 import { Ico } from "@/components/hunt-icons";
 import { verseFor, type Area } from "@/lib/verses";
 
-export function PageHeader({ eyebrow, title, color = "#ff2800", line, icon }: { eyebrow: string; title: string; color?: string; line?: string; icon?: React.ReactNode }) {
+export function PageHeader({ eyebrow, title, color = "#ffb21e", line, icon }: { eyebrow: string; title: string; color?: string; line?: string; icon?: React.ReactNode }) {
   return (
     <header className="rise mb-5 span-all">
       <p className="label flex items-center gap-2" style={{ color }}>{icon ? (typeof icon === "string" ? <Ico d={icon} size={13} /> : icon) : <span className="h-1.5 w-1.5 war-pulse" style={{ background: color, boxShadow: `0 0 10px ${color}` }} />}{eyebrow}</p>
-      <h1 className="font-display text-5xl mt-2">{title}<span style={{ color: color === "#ff2800" ? "#ffb21e" : color }}>.</span></h1>
+      <h1 className="font-display text-5xl mt-2">{title}<span style={{ color: color === "#ffb21e" ? "#ffb21e" : color }}>.</span></h1>
       {line && <p className="text-sm text-muted mt-2">{line}</p>}
     </header>
   );
 }
 
 /** Placar do modo caçador: número grande, barra em segmentos e três colunas. Server-safe. */
-export function Board({ icon, label, big, unit, sub, bar, stats = [], note, children, art, accent = "#ff2800", accent2 = "#ffb21e" }: {
+export function Board({ icon, label, big, unit, sub, bar, stats = [], note, children, art, accent = "#ffb21e", accent2 = "#ffb21e" }: {
   accent?: string; accent2?: string;
   icon: React.ReactNode; label: string; big: string; unit?: string; sub?: string; bar?: number;
   stats?: [React.ReactNode, string, string, string?][]; note?: React.ReactNode; children?: React.ReactNode; art?: React.ReactNode;
@@ -45,7 +45,7 @@ export function Empty({ children }: { children: React.ReactNode }) {
   return <p className="font-display italic text-muted text-lg text-center py-8">{children}</p>;
 }
 
-export function Ring({ value, size = 120, stroke = 10, color = "#ff2800", children }:
+export function Ring({ value, size = 120, stroke = 10, color = "#ffb21e", children }:
   { value: number; size?: number; stroke?: number; color?: string; children?: React.ReactNode }) {
   const r = (size - stroke) / 2, c = 2 * Math.PI * r, v = Math.max(0, Math.min(1, value));
   return (

@@ -9,7 +9,7 @@ import { addDays, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
 import { MealQuiz } from "@/components/quiz/meal-quiz";
 
-const G = "#30d158", P = "#ff2800", C = "#f5f5f7", F = "#dc0000";
+const G = "#30d158", P = "#ffb21e", C = "#f5f5f7", F = "#ff9f0a";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 export type SavedMeal = { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] };
 export type Food = { id: string; name: string; portion: string | null; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
@@ -317,7 +317,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   const off = items.filter((i) => isExtra(i.slot)).sort((a, b) => extraInfo(a.slot).time.localeCompare(extraInfo(b.slot).time));
   const offKcal = sum(off, "kcal");
 
-  const R = "#ff2800";
+  const R = "#ffb21e";
   const over = kcal > goals.kcal * 1.05;
   const Seg = ({ v, n = 12, c = R }: { v: number; n?: number; c?: string }) => (
     <div className="flex gap-[3px]" aria-hidden>{Array.from({ length: n }, (_, i) => <i key={i} className="h-2 flex-1" style={{ background: i < Math.round(Math.min(1, v || 0) * n) ? c : "rgba(255,255,255,.08)" }} />)}</div>);
@@ -425,7 +425,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         {sheet?.kind === "add" && <ItemForm key={"a" + sheet.slot} date={date} slot={sheet.slot} foods={foods} onDone={close} />}
         {sheet?.kind === "edit" && <ItemForm key={sheet.item.id} date={date} slot={sheet.item.slot} item={sheet.item} foods={foods} onDone={close} />}
       </Sheet>
-      <Sheet accent="#ff4d3d" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
+      <Sheet accent="#ffcc66" open={sheet?.kind === "off"} onClose={close} title="Fora do plano">
         {sheet?.kind === "off" && <OffPlanForm date={date} onDone={close} />}
       </Sheet>
       <Sheet accent={G} open={sheet?.kind === "quiz"} onClose={close} title="Refeição">

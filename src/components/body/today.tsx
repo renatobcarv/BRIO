@@ -27,7 +27,7 @@ export function BodyToday(props: {
   const slept = props.sleep7.filter((s) => s.hours != null).map((s) => s.hours!);
   const avg = slept.length ? slept.reduce((a, b) => a + b, 0) / slept.length : null;
 
-  const R = "#ff2800";
+  const R = "#ffb21e";
   const clamp = (x: number) => Math.max(0, Math.min(1, x || 0));
   const parts = [
     { k: "Água", v: clamp(ml / props.waterGoal) },

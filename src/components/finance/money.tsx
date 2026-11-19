@@ -8,11 +8,11 @@ import { Field, Progress, SectionTitle, Segmented, Sheet, Stat, LinkBtn, n } fro
 import { brl, monthLabel, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { FinCategory } from "@/lib/settings";
 
-const A = "#ff2800", IN = "#ff2800", OUT = "#ff453a", GREY = "#8e8e93";
+const A = "#ffb21e", IN = "#ffb21e", OUT = "#ff453a", GREY = "#8e8e93";
 export type Tx = { id: string; kind: "receita" | "fixo" | "variavel"; name: string; amount: number; category: string | null; date: string | null; paid: boolean; recurring: boolean; note: string | null; month: string; inst_group?: string | null; inst_no?: number | null; inst_total?: number | null };
 export type InstGroup = { id: string; name: string; total: number; n: number; paidN: number; left: number; next: string | null; last: string };
 const isOut = (t: Tx) => t.kind !== "receita";
-const COLORS = ["#30d158", "#f5f5f7", "#ff2800", "#ff2800", "#dc0000", "#ff453a", "#3a7bd5", "#d49bff", "#7ee2a0", "#9a978f"];
+const COLORS = ["#30d158", "#f5f5f7", "#ffb21e", "#ffb21e", "#ff9f0a", "#ff453a", "#3a7bd5", "#d49bff", "#7ee2a0", "#9a978f"];
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 30) || "cat";
 
 function useCats(cats: FinCategory[]) {
@@ -73,7 +73,7 @@ export function TxForm({ tx, month, cats, onDone }: { tx?: Tx; month: string; ca
       )}
       {!tx && type === "despesa" && (
         <div className="rounded-[8px] border p-3 grid gap-3" style={{ borderColor: inst.on ? A + "66" : "rgba(255,255,255,.08)", background: inst.on ? A + "0d" : "transparent" }}>
-          <label className="flex items-center gap-3 min-h-10"><input type="checkbox" className="h-5 w-5 accent-[#ff2800]" checked={inst.on} onChange={(e) => setInst({ ...inst, on: e.target.checked })} />
+          <label className="flex items-center gap-3 min-h-10"><input type="checkbox" className="h-5 w-5 accent-[#ffb21e]" checked={inst.on} onChange={(e) => setInst({ ...inst, on: e.target.checked })} />
             <span>💳 Parcelado</span></label>
           {inst.on && <>
             <div className="grid grid-cols-[6rem_1fr] gap-2 items-end">
@@ -88,7 +88,7 @@ export function TxForm({ tx, month, cats, onDone }: { tx?: Tx; month: string; ca
           </>}
         </div>
       )}
-      {!inst.on && <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#ff2800]" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} />
+      {!inst.on && <label className="flex items-center gap-3 min-h-11"><input type="checkbox" className="h-5 w-5 accent-[#ffb21e]" checked={f.recurring} onChange={(e) => setF({ ...f, recurring: e.target.checked })} />
         <span>Repete todo mês <span className="text-faint text-sm">(entra automaticamente nos próximos meses)</span></span></label>}
       {err && <p className="text-sm text-[#ff6961]">{err}</p>}
       <Field label="Observação"><input className="field" value={f.note} onChange={(e) => setF({ ...f, note: e.target.value })} placeholder="Opcional" /></Field>

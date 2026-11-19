@@ -11,7 +11,7 @@ const CAT: Record<string, { label: string; e: string }> = {
   espiritual: { label: "Espiritual", e: "📖" }, saude: { label: "Saúde", e: "💪" }, financas: { label: "Finanças", e: "💰" }, experiencia: { label: "Experiência", e: "✨" },
 };
 // Fundo quando não há foto: degradês da paleta
-const FALLBACK = ["linear-gradient(150deg,#dc0000,#3a0505 70%)", "linear-gradient(150deg,#a30000,#1a0508 70%)", "linear-gradient(150deg,#ff2800,#2a0512 70%)", "linear-gradient(150deg,#f5f5f7 -40%,#a30000 60%,#0a0a0a)"];
+const FALLBACK = ["linear-gradient(150deg,#ff9f0a,#3a0505 70%)", "linear-gradient(150deg,#b7791f,#1a0508 70%)", "linear-gradient(150deg,#ffb21e,#2a0512 70%)", "linear-gradient(150deg,#f5f5f7 -40%,#b7791f 60%,#0a0a0a)"];
 const daysTo = (iso: string, today: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 864e5);
 const br = (iso: string) => iso.split("-").reverse().join("/");
 
@@ -21,7 +21,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
   return (
     <div className="dream-board">
       <header className="rise mb-6 flex items-end justify-between gap-3">
-        <div><p className="label" style={{ color: "#ff2800" }}>Quadro de sonhos</p><h1 className="font-display text-5xl mt-2">Por quem e para onde<span className="text-[#ffb21e]">.</span></h1></div>
+        <div><p className="label" style={{ color: "#ffb21e" }}>Quadro de sonhos</p><h1 className="font-display text-5xl mt-2">Por quem e para onde<span className="text-[#ffb21e]">.</span></h1></div>
         <button className="btn btn-accent shrink-0" onClick={() => setForm({ category: "experiencia" })}>+ Sonho</button>
       </header>
       {!ready && <p className="glass p-4 mb-4 text-sm text-[#ff6961]">Rode a migração <b>supabase/migrations/20261120000000_sonhos.sql</b> no Supabase.</p>}
@@ -32,7 +32,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
           {maria.photo && <img src={maria.photo} alt="Maria Luisa" className="absolute inset-0 h-full w-full object-cover" />}
           <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 35%, rgba(10,10,10,.85))" }} />
           <div className="absolute inset-x-0 bottom-0 p-5">
-            <p className="text-[10px] font-bold tracking-[.35em] text-[#ff7a5c]">MEU MAIOR MOTIVO</p>
+            <p className="text-[10px] font-bold tracking-[.35em] text-[#ffd28a]">MEU MAIOR MOTIVO</p>
             <p className="font-display text-3xl mt-1">Maria Luisa</p>
             {maria.phrase && <p className="text-white/85 mt-1 italic">“{maria.phrase}”</p>}
             {!maria.photo && <Link href="/configuracoes#maria-luisa" className="inline-block text-xs underline mt-2">Adicionar a foto dela</Link>}
@@ -52,8 +52,8 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
           </button>
         ))}
 
-        <button onClick={() => setForm({ category: "experiencia" })} className="rise press rounded-[8px] border border-dashed border-[#dc000077] grid place-items-center text-center p-4 hover:bg-white/[.03]">
-          <span><span className="block text-3xl text-[#ff2800]">+</span><span className="block text-sm mt-1">Novo sonho</span><span className="block text-[11px] text-muted">com foto, prazo e porquê</span></span>
+        <button onClick={() => setForm({ category: "experiencia" })} className="rise press rounded-[8px] border border-dashed border-[#ff9f0a77] grid place-items-center text-center p-4 hover:bg-white/[.03]">
+          <span><span className="block text-3xl text-[#ffb21e]">+</span><span className="block text-sm mt-1">Novo sonho</span><span className="block text-[11px] text-muted">com foto, prazo e porquê</span></span>
         </button>
       </div>
 
@@ -72,7 +72,7 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
         </section>
       )}
 
-      <Sheet open={!!form} onClose={() => setForm(null)} title={form?.id ? "Sonho" : "Novo sonho"} accent="#dc0000">
+      <Sheet open={!!form} onClose={() => setForm(null)} title={form?.id ? "Sonho" : "Novo sonho"} accent="#ff9f0a">
         {form && <DreamForm key={form.id ?? "novo"} d={form} onDone={() => setForm(null)} />}
       </Sheet>
     </div>

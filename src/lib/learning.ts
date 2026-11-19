@@ -6,8 +6,8 @@ export const MASTERY: Record<Mastery, { label: string; color: string; hint: stri
   nao_estudado: { label: "Não estudado", color: "#6b6b70", hint: "Ainda sem contato." },
   contato: { label: "Em contato", color: "#a1a1a6", hint: "Reconhece o assunto, não explica." },
   compreensao: { label: "Em compreensão", color: "#ffb21e", hint: "Explica com as próprias palavras." },
-  pratica: { label: "Em prática", color: "#ff7a5c", hint: "Resolve problemas com o conceito." },
-  dominado: { label: "Dominado", color: "#ff2800", hint: "Aplica e ensina sem ajuda." },
+  pratica: { label: "Em prática", color: "#ffd28a", hint: "Resolve problemas com o conceito." },
+  dominado: { label: "Dominado", color: "#ffb21e", hint: "Aplica e ensina sem ajuda." },
   revisar: { label: "Precisa revisar", color: "#ff453a", hint: "Errou na recuperação recente." },
 };
 

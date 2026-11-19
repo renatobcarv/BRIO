@@ -18,7 +18,7 @@ export default async function Page() {
   const earned = past.map((e) => (e.stage === "vitoria" ? e.glory : e.scar));
   return (
     <div className="war">
-      <header className="rise mb-6"><p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#e0393e" }}>ASCENSION</p>
+      <header className="rise mb-6"><p className="text-[11px] font-semibold tracking-[.32em]" style={{ color: "#ffb21e" }}>ASCENSION</p>
         <h1 className="font-display text-5xl mt-2 leading-none tracking-tight uppercase">Event Center</h1>
         <p className="text-sm text-muted mt-2">Eventos nascem da sua periodização. Vencer dá XP extra e uma insígnia de glória; falhar deixa uma cicatriz.</p></header>
 
@@ -41,7 +41,7 @@ export default async function Page() {
             {earned.map((b, i) => (
               <div key={i} className="text-center">
                 <div className="mx-auto w-fit emblem-spin"><EventBadge b={b} size={64} /></div>
-                <p className="text-[11px] font-bold tracking-wider mt-1.5" style={{ color: b.kind === "glory" ? b.color : "#a30000" }}>{b.name}</p>
+                <p className="text-[11px] font-bold tracking-wider mt-1.5" style={{ color: b.kind === "glory" ? b.color : "#b7791f" }}>{b.name}</p>
                 <p className="text-[10px] text-muted">{b.pt}</p>
               </div>
             ))}

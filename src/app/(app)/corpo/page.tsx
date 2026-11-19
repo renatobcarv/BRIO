@@ -113,7 +113,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
       <div className={tab === "treino" ? `war ${onFire ? "war-fire" : ""}` : undefined}>
       {tab === "treino" && onFire && <FireLayer />}
       <header className="rise mb-4">
-        <p className="label flex items-center gap-2" style={{ color: "#ff2800" }}><span className="h-1.5 w-1.5 war-pulse" style={{ background: "#ff2800", boxShadow: "0 0 10px #ff2800" }} />Corpo · setor {cur.n}</p>
+        <p className="label flex items-center gap-2" style={{ color: "#ffb21e" }}><span className="h-1.5 w-1.5 war-pulse" style={{ background: "#ffb21e", boxShadow: "0 0 10px #ffb21e" }} />Corpo · setor {cur.n}</p>
         <h1 className="font-display text-5xl mt-2">{cur.title}</h1>
         <p className="text-sm text-muted mt-2">{cur.line}</p>
       </header>
@@ -122,9 +122,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
           {TABS.map(([k]) => { const x = SECT[k], on = tab === k; return (
             <Link key={k} href={`/corpo?aba=${k}`} aria-current={on ? "page" : undefined}
               className={`relative min-w-0 px-2 py-2.5 sm:px-3 sm:py-3 transition-colors ${on ? "bg-[#140303]" : "bg-[#080808] hover:bg-[#0e0e0e]"}`}>
-              {on && <span aria-hidden className="absolute left-0 right-0 top-0 h-[2px]" style={{ background: "#ff2800", boxShadow: "0 0 12px #ff2800" }} />}
+              {on && <span aria-hidden className="absolute left-0 right-0 top-0 h-[2px]" style={{ background: "#ffb21e", boxShadow: "0 0 12px #ffb21e" }} />}
               <span className="flex items-center gap-1.5">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={on ? "#ff2800" : "#8a8a8f"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d={x.icon} /></svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={on ? "#ffb21e" : "#8a8a8f"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d={x.icon} /></svg>
                 <span className={`label !text-[9px] !tracking-[.14em] truncate ${on ? "!text-white" : ""}`}>{k === "treino" ? "Treino" : x.title}</span>
               </span>
               <span className={`num block text-lg sm:text-2xl leading-none mt-2 truncate ${on ? "text-white" : "text-white/70"}`}>{x.stat}</span>

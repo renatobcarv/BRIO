@@ -8,7 +8,7 @@ import { GOALS, MUSCLES, PHASE_KINDS, dayTitle, guessMuscle, newPhaseId, phaseRa
   type Goal, type Muscle, type Phase, type PhaseKind, type PlannedEx, type Program } from "@/lib/training";
 import { LIBRARY, fromLibrary } from "./program";
 
-const R = "#e0393e";
+const R = "#ffb21e";
 const DAYS = ["1", "2", "3", "4", "5", "6", "0"];
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
@@ -82,7 +82,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
             </button>
           );
         })}
-        <button onClick={addPhase} className="press shrink-0 rounded-[8px] px-3 border border-dashed text-sm text-muted whitespace-nowrap" style={{ borderColor: "rgba(224,57,62,.35)" }}>+ Fase</button>
+        <button onClick={addPhase} className="press shrink-0 rounded-[8px] px-3 border border-dashed text-sm text-muted whitespace-nowrap" style={{ borderColor: "rgba(255,178,30,.35)" }}>+ Fase</button>
       </div>
 
       {/* Fase selecionada */}
@@ -119,7 +119,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
           const n = (phase.days[d] ?? []).length, on = d === day;
           return (
             <button key={d} onClick={() => { setDay(d); setOpen(null); haptic(6); }} className="press rounded-xl py-2 text-center border"
-              style={{ borderColor: on ? R : "rgba(255,255,255,.06)", background: on ? "rgba(224,57,62,.16)" : "transparent", boxShadow: on ? `0 0 14px -6px ${R}` : "none" }}>
+              style={{ borderColor: on ? R : "rgba(255,255,255,.06)", background: on ? "rgba(255,178,30,.16)" : "transparent", boxShadow: on ? `0 0 14px -6px ${R}` : "none" }}>
               <span className={`block text-[11px] ${on ? "text-ink font-semibold" : "text-muted"}`}>{weekdayShort[+d]}</span>
               <span className="block num text-sm mt-0.5" style={{ color: n ? (on ? R : "#f5f5f7") : "#84848a" }}>{n || "–"}</span>
             </button>
@@ -138,10 +138,10 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
           const rest = e.rest >= 60 ? `${Math.floor(e.rest / 60)}${e.rest % 60 ? `:${String(e.rest % 60).padStart(2, "0")}` : ""} min` : e.rest ? `${e.rest}s` : "";
           const Quick = ({ values, cur, onPick, fmtv = (v: number | string) => String(v) }: { values: (number | string)[]; cur: number | string | null; onPick: (v: number | string) => void; fmtv?: (v: number | string) => string }) => (
             <div className="flex gap-1.5 flex-wrap">{values.map((v) => <button key={String(v)} onClick={() => { onPick(v); haptic(6); }} className="press rounded-xl px-3 min-h-10 text-sm font-semibold border"
-              style={{ background: String(cur) === String(v) ? R : "#1a0909", color: String(cur) === String(v) ? "#fff" : undefined, borderColor: String(cur) === String(v) ? R : "rgba(224,57,62,.25)", boxShadow: String(cur) === String(v) ? `0 0 14px -4px ${R}` : "none" }}>{fmtv(v)}</button>)}</div>
+              style={{ background: String(cur) === String(v) ? R : "#1a0909", color: String(cur) === String(v) ? "#fff" : undefined, borderColor: String(cur) === String(v) ? R : "rgba(255,178,30,.25)", boxShadow: String(cur) === String(v) ? `0 0 14px -4px ${R}` : "none" }}>{fmtv(v)}</button>)}</div>
           );
           return (
-            <div key={i} className="rounded-[8px] border step-in-right min-w-0 overflow-hidden" style={{ borderColor: isOpen ? R : "rgba(224,57,62,.18)", background: "#140808", boxShadow: isOpen ? `0 0 22px -10px ${R}` : "none", animationDelay: `${i * 30}ms` }}>
+            <div key={i} className="rounded-[8px] border step-in-right min-w-0 overflow-hidden" style={{ borderColor: isOpen ? R : "rgba(255,178,30,.18)", background: "#140808", boxShadow: isOpen ? `0 0 22px -10px ${R}` : "none", animationDelay: `${i * 30}ms` }}>
               <button className="w-full flex items-center gap-3 p-3 text-left" onClick={() => { setOpen(isOpen ? null : i); haptic(6); }} aria-expanded={isOpen}>
                 <span className="num text-xs text-faint w-4">{i + 1}</span>
                 <span className="flex-1 min-w-0"><span className="block font-semibold leading-snug line-clamp-2 break-words">{e.name || "Novo exercício"}</span>
@@ -177,7 +177,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
             </div>
           );
         })}
-        <button className="btn !min-h-12 font-semibold text-white" style={{ background: "linear-gradient(160deg,#e0393e,#7a0c18)", boxShadow: "0 10px 26px -12px #e0393e" }} onClick={() => setLib(true)}>+ Adicionar exercício</button>
+        <button className="btn !min-h-12 font-semibold text-white" style={{ background: "linear-gradient(160deg,#ffb21e,#3a2a0a)", boxShadow: "0 10px 26px -12px #ffb21e" }} onClick={() => setLib(true)}>+ Adicionar exercício</button>
         <div className="grid grid-cols-2 gap-2">
           <button className="btn !min-h-10 text-sm" onClick={() => setCopyDay(true)} disabled={!list.length}>Copiar dia</button>
           <button className="btn !min-h-10 text-sm" onClick={copyToFollowing} disabled={ph >= p.phases.length - 1}>Replicar nas fases</button>
@@ -241,7 +241,7 @@ function Library({ existing, onAdd, onDone }: { existing: string[]; onAdd: (name
           const has = existing.includes(x.n.toLowerCase()) || added.includes(x.n.toLowerCase());
           return (
             <li key={x.n}><button disabled={has} onClick={() => { onAdd(x.n); setAdded([...added, x.n.toLowerCase()]); }}
-              className="press w-full flex items-center gap-3 rounded-xl px-3 min-h-12 text-left border disabled:opacity-40" style={{ borderColor: "rgba(224,57,62,.2)", background: "#140808" }}>
+              className="press w-full flex items-center gap-3 rounded-xl px-3 min-h-12 text-left border disabled:opacity-40" style={{ borderColor: "rgba(255,178,30,.2)", background: "#140808" }}>
               <span className="flex-1">{x.n}</span><span className="text-[11px] text-muted">{x.g}</span><span className="text-lg" style={{ color: has ? "#30d158" : R }}>{has ? "✓" : "+"}</span>
             </button></li>
           );

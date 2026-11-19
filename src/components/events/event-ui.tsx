@@ -89,7 +89,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
               return (
                 <div key={b.id} className={`rounded-[8px] p-3 border ${got ? "achv-shine relative overflow-hidden" : ""}`} style={{ borderColor: got ? b.color : "rgba(255,255,255,.06)", background: "#0d0606", opacity: got || e.stage !== "vitoria" && e.stage !== "falha" ? 1 : 0.35 }}>
                   <div className="flex items-center gap-2"><EventBadge b={b} size={40} locked={!got && (e.stage === "vitoria" || e.stage === "falha")} />
-                    <div className="min-w-0"><p className="text-[11px] font-bold tracking-wider" style={{ color: b.kind === "glory" ? b.color : "#a30000" }}>{b.name}</p><p className="text-[10px] text-muted">{b.kind === "glory" ? "se vencer" : "se falhar"}</p></div></div>
+                    <div className="min-w-0"><p className="text-[11px] font-bold tracking-wider" style={{ color: b.kind === "glory" ? b.color : "#b7791f" }}>{b.name}</p><p className="text-[10px] text-muted">{b.kind === "glory" ? "se vencer" : "se falhar"}</p></div></div>
                   <p className="text-[11px] text-muted mt-1.5 leading-snug">{b.desc}</p>
                 </div>
               );

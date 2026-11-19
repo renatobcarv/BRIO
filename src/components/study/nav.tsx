@@ -13,7 +13,7 @@ export function StudyNav({ current }: { current: string }) {
         {TABS.map(([href, label, icon]) => { const on = current === href; return (
           <Link key={href} href={href} aria-current={on ? "page" : undefined}
             className={`relative min-h-12 px-1.5 flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 text-[10px] sm:text-[12px] uppercase tracking-[.1em] text-center transition-colors ${on ? "bg-[#140303] text-white" : "bg-[#080808] text-white/55 hover:text-white"}`}>
-            {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ff2800]" style={{ boxShadow: "0 0 12px #ff2800" }} />}
+            {on && <span aria-hidden className="absolute inset-x-0 top-0 h-[2px] bg-[#ffb21e]" style={{ boxShadow: "0 0 12px #ffb21e" }} />}
             <Ico d={icon} size={14} color={on ? "#ffb21e" : "currentColor"} /><span className="leading-tight">{label}</span>
           </Link>); })}
       </div>
