@@ -4,7 +4,7 @@ import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
 import { SPECIES } from "@/lib/pet";
-import { Chapter, DietMock, PetGallery, PetMock, RankMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
+import { AreaStrip, Chapter, DietMock, MedalWall, PetGallery, PetMock, RankMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
 
 export const metadata: Metadata = { title: "BRIO · Constância com propósito", description: "Fé, corpo, dinheiro e estudos num só lugar. Missões diárias, sequência e XP que vêm do que você faz de verdade. A partir de R$ 0." };
 
@@ -165,16 +165,11 @@ export default function Site() {
         <Chapter n="04" flip kicker="Vida espiritual" title={<>Fé com rotina.<br /><span className="text-[#9fd0f5]">E com beleza.</span></>} text="Leitura da Bíblia por capítulo, páginas com capa e imagens, diário, gratidão e o pioneiro com o caminho para fechar as horas do mês." visual={<SpiritMock />} />
         <Chapter n="05" kicker="Mascote" title={<>Ele cresce com<br /><span className={em}>o que você faz.</span></>} text={`Sorteie entre ${SPECIES.length} espécies, de lobo e pantera a Kitsune, Grifo e o dragão lendário, cada uma com seu lar. Ele come o XP das suas ações, passa por seis fases e, em alguns dias, retribui com bônus.`} visual={<PetMock />} />
         <PetGallery />
-        <Chapter n="06" flip kicker="Patentes" title={<>Do despertar<br /><span className={em}>ao ápice.</span></>} text="Cada ação real vira XP. O XP te leva por dez patentes e destrava 42 conquistas, medalhas de leitura e de estudo." visual={<RankMock />} />
+        <Chapter n="06" flip kicker="Patentes" title={<>Do despertar<br /><span className={em}>ao ápice.</span></>} text="Cada ação real vira XP. O XP te leva por dez patentes, cada uma com sua insígnia, do Initiate ao Apex." visual={<RankMock />} />
+        <MedalWall />
       </div>
 
-      {/* tudo o mais, em uma linha tipográfica (sem cards) */}
-      <section className="max-w-6xl mx-auto px-4 py-24 text-center">
-        <p className={label}>E ainda</p>
-        <p className="in font-display text-[clamp(26px,4.4vw,52px)] leading-[1.1] mt-6 text-white/90">
-          {["Agenda com IA", "Google Agenda", "Finanças", "Parcelas", "Livros", "Metas", "Quadro de sonhos", "Corpo", "Peso", "Dias limpos", "Eventos", "Bestiário"].map((t, i) => <span key={t}>{i > 0 && <span className="text-[#ffb21e] mx-2 sm:mx-3">·</span>}{t}</span>)}
-        </p>
-      </section>
+      <AreaStrip />
 
       {/* confiança */}
       <section className="bg-[#f5f5f7] text-[#0a0a0a]">

@@ -107,7 +107,7 @@ export function PetMock() {
   return (
     <div className="relative grid place-items-center py-6">
       <div aria-hidden className="absolute h-[440px] w-[440px] max-w-full rounded-full pet-aura" style={{ background: `radial-gradient(circle, ${A}40, transparent 65%)` }} />
-      <img src="/mascotes/dragao/alfa.webp" alt="Dragão lendário" className="relative w-[min(420px,80vw)] aspect-square object-contain pet-breathe" />
+      <img src="/mascotes/dragao/lenda.webp" alt="Dragão lendário" className="relative w-[min(420px,80vw)] aspect-square object-contain pet-breathe" />
       <p className="relative mt-2 text-[12px] uppercase tracking-[.3em]" style={{ color: A }}>Lendário · o mais raro</p>
     </div>
   );
@@ -115,18 +115,55 @@ export function PetMock() {
 
 export function RankMock() {
   return (
-    <ol className="relative grid gap-1">
-      <span aria-hidden className="absolute left-[7px] top-2 bottom-2 w-px bg-gradient-to-t from-white/10 to-[#ffb21e]" />
-      {[...RANKS].reverse().map((r, i) => {
-        const top = i < 3;
-        return (
-          <li key={r.name} className="relative flex items-baseline gap-5 pl-7">
-            <i className="absolute left-0 top-[.55em] h-[15px] w-[15px] rounded-full border-2" style={{ borderColor: top ? A : "rgba(255,255,255,.25)", background: top ? A : "#000" }} />
-            <span className="font-display uppercase italic leading-none" style={{ fontFamily: "var(--font-hunt), var(--font-sans)", fontWeight: 800, fontSize: `clamp(${22 + (9 - i) * 1.4}px, ${2 + (9 - i) * 0.25}vw, ${30 + (9 - i) * 3}px)`, color: top ? A : `rgba(255,255,255,${0.35 + (9 - i) * 0.05})` }}>{r.name}</span>
-            <span className="text-[12px] text-white/40">nível {r.min}+</span>
-          </li>);
-      })}
+    <ol className="grid grid-cols-5 gap-x-3 gap-y-5">
+      {RANKS.map((r, i) => (
+        <li key={r.name} className="text-center">
+          <img src={`/medalhas/patentes/${i}.webp`} alt={`Insígnia ${r.name}`} className="w-full aspect-square object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,.7)]" style={{ filter: i >= 7 ? `drop-shadow(0 0 14px ${A}66)` : undefined }} loading="lazy" />
+          <p className="text-[12px] font-semibold mt-1 truncate" style={{ color: i >= 7 ? A : "#f5f5f7" }}>{r.name}</p>
+          <p className="text-[10px] text-white/40">nível {r.min}+</p>
+        </li>))}
     </ol>
+  );
+}
+
+const STATUS = ["dia1", "seq7", "seq30", "66dias", "treino50", "treino200", "maratona", "biblia", "biblia100", "campo50", "campo600", "estudo30", "deep", "livro1", "livro12", "livro50", "limpo7", "limpo90", "limpo365", "agua30", "agua100", "sono30", "proteina30", "peso5", "pesometa", "babilonia", "composto", "formiga", "manha", "nunca2", "total400", "total600"];
+/** Mural de medalhas: as artes reais das conquistas, flutuando. */
+export function MedalWall() {
+  return (
+    <section className="relative py-24 border-t border-white/[.06] overflow-hidden">
+      <div aria-hidden className="absolute inset-0 -z-10" style={{ background: `radial-gradient(50% 50% at 50% 40%, ${A}18, transparent 70%)` }} />
+      <div className="max-w-6xl mx-auto px-4 text-center">
+        <p className="in text-[11px] font-bold tracking-[.35em] uppercase" style={{ color: A }}>Conquistas</p>
+        <h2 className="in font-display text-[clamp(38px,6vw,76px)] leading-[.95] mt-4">42 medalhas.<br /><span className="bg-clip-text text-transparent [background-image:linear-gradient(90deg,#ffd28a,#ffb21e,#ff9f0a)]">Cada uma, uma prova.</span></h2>
+        <p className="in text-lg text-white/60 mt-5 max-w-xl mx-auto">Primeiro passo, 66 dias, mil páginas, um ano limpo. Mais as medalhas de leitura, de estudo e os títulos raros.</p>
+      </div>
+      <div className="max-w-6xl mx-auto px-4 mt-12 grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3 sm:gap-5">
+        {STATUS.map((m, i) => (
+          <img key={m} src={`/medalhas/status/${m}.webp`} alt="" data-i={i % 8} className="in w-full aspect-square object-contain medal-float" style={{ animationDelay: `${(i % 7) * 0.4}s` }} loading="lazy" />))}
+      </div>
+      <div className="max-w-3xl mx-auto px-4 mt-12 grid grid-cols-3 gap-6">
+        {[["titulo-phoenix", "Fênix"], ["titulo-titan", "Titã"], ["titulo-archon", "Arconte"]].map(([f, t]) => (
+          <figure key={f} className="text-center"><img src={`/medalhas/${f}.webp`} alt={`Título ${t}`} className="w-full aspect-square object-contain" style={{ filter: `drop-shadow(0 0 24px ${A}55)` }} loading="lazy" /><figcaption className="text-[11px] uppercase tracking-[.25em] mt-2" style={{ color: A }}>Título raro · {t}</figcaption></figure>))}
+      </div>
+    </section>
+  );
+}
+
+const AREAS = [["agenda", "Agenda com IA"], ["financas", "Finanças"], ["metas", "Metas"], ["sonhos", "Quadro de sonhos"], ["pioneiro", "Pioneiro"], ["estudos", "Estudos"], ["treino", "Treino"], ["conquistas", "Conquistas"]];
+/** E ainda: capas ilustradas das áreas. */
+export function AreaStrip() {
+  return (
+    <section className="py-20 border-t border-white/[.06]">
+      <div className="max-w-6xl mx-auto px-4"><p className="text-[11px] font-bold tracking-[.35em] uppercase" style={{ color: A }}>E ainda</p><h3 className="font-display text-[clamp(28px,4vw,48px)] leading-none mt-3">Toda a sua vida, num app só.</h3></div>
+      <div className="mt-8 flex gap-4 overflow-x-auto snap-x px-4 lg:px-[max(1rem,calc((100vw_-_72rem)/2))] pb-4">
+        {AREAS.map(([k, l]) => (
+          <figure key={k} className="snap-start shrink-0 relative w-[220px] sm:w-[260px] aspect-[4/5] rounded-[22px] overflow-hidden border border-white/10">
+            <img src={`/cards/${k}.webp`} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/10 to-transparent" />
+            <figcaption className="absolute left-4 bottom-4 text-[20px] font-bold">{l}</figcaption>
+          </figure>))}
+      </div>
+    </section>
   );
 }
 

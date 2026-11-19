@@ -810,3 +810,6 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 }
 .partner-phrase { text-shadow: 0 2px 12px #000b; overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) { .xp-float { animation: none; } }
+@keyframes medal-float { 50% { transform: translateY(-6px); } }
+.medal-float { animation: medal-float 5s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .medal-float { animation: none; } }
