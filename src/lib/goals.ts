@@ -64,23 +64,24 @@ export function parseGoalValue(input: string) {
   return Number.isFinite(value) ? value : null;
 }
 
-/** XP de metas: 100 por marco, mais 300 por conclusão. */
+export const XP_PER_PCT = 10, XP_PER_MARK = 50, XP_DONE = 300;
+/** XP de metas: 10 XP a cada 1% de progresso, +50 por marco (25/50/75/100%) e +300 por meta concluída. Só progresso real. */
 export function goalsXp(goals: GoalRow[], today: string) {
   let xp = 0, marks = 0, done = 0, late = 0;
   for (const g of goals) {
     const stats = goalStats(g, today);
     const reached = goalMilestones(g, today).filter((m) => m.reached).length;
     marks += reached;
-    xp += reached * 100;
+    xp += Math.floor(stats.pct * 100 + 1e-9) * XP_PER_PCT + reached * XP_PER_MARK;
     if (stats.pct >= 1) {
       done++;
-      xp += 300;
+      xp += XP_DONE;
     }
     if (stats.late) late++;
   }
-  const level = Math.floor(Math.sqrt(xp / 120)) + 1;
-  const base = (level - 1) ** 2 * 120;
-  const next = level ** 2 * 120;
+  const level = Math.floor(Math.sqrt(xp / 300)) + 1;
+  const base = (level - 1) ** 2 * 300;
+  const next = level ** 2 * 300;
   const title = level >= 10 ? "Lenda das conquistas" : level >= 7 ? "Mestre de metas" : level >= 5 ? "Estrategista" : level >= 3 ? "Executor" : "Aprendiz";
   return { xp, level, title, marks, done, late, progress: (xp - base) / (next - base), toNext: next - xp };
 }

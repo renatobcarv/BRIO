@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { HI, Ico } from "@/components/hunt-icons";
-import { AREAS, AUTO, goalMilestones, goalStats, goalsXp, type AreaKey, type GoalRow } from "@/lib/goals";
+import { AREAS, AUTO, goalMilestones, goalStats, goalsXp, XP_DONE, XP_PER_MARK, XP_PER_PCT, type AreaKey, type GoalRow } from "@/lib/goals";
 
 export const goalNumber = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 export const goalPercent = (pct: number) => pct >= 1 ? 100 : Math.min(99, Math.floor(pct * 100 + 1e-7));
@@ -109,7 +109,8 @@ export function JourneyCard({ goal, today, onEdit, onProgress }: {
       </ol>
       <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
         <p className="text-sm font-semibold text-white">{next ? `Próximo marco · ${next.title}` : "Todos os marcos conquistados"}</p>
-        {next && <p className="mt-1 break-words text-xs text-white/70">Alvo do marco: {goalNumber(next.value)} {goal.unit} · +{next.pct === 1 ? "400" : "100"} XP</p>}
+        {next && <p className="mt-1 break-words text-xs text-white/70">Alvo do marco: {goalNumber(next.value)} {goal.unit} · +{next.pct === 1 ? XP_PER_MARK + XP_DONE : XP_PER_MARK} XP de bônus</p>}
+        <p className="mt-0.5 text-[11px] text-[#ffb21e]">Cada 1% vale +{XP_PER_PCT} XP · já rendeu {goalsXp([goal], today).xp} XP</p>
         {deadline != null && next && (
           <p className={`mt-2 text-xs ${s.late ? "text-[#ffad96]" : "text-white/65"}`}>
             {deadline < 0 ? `Prazo vencido há ${-deadline} dias` : deadline === 0 ? "Prazo hoje" : `${deadline} dias até o prazo`}
