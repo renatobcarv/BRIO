@@ -66,21 +66,35 @@ export function beastOfWeek(p: Prog, week: number): (Beast & { planned: number }
 }
 
 export type Record_ = { id: BeastId; won: number; met: number; last?: string };
-/** Vitórias: semana com todas as sessões planejadas cumpridas. "met" = semanas em que houve ao menos um treino. */
+/** Vitórias: cada treino concluído da campanha derrota a criatura da semana. "met" = semanas em que houve ao menos um treino. */
 export function bestiaryRecord(programs: Prog[], sessions: { program_id: string | null; week_no: number | null; date: string }[]): Record<BeastId, Record_> {
   const out = Object.fromEntries((Object.keys(B) as BeastId[]).map((id) => [id, { id, won: 0, met: 0 }])) as Record<BeastId, Record_>;
-  const byWeek = new Map<string, { n: number; last: string }>();
+  const byWeek = new Map<string, { n: number; last: string; days: Set<string> }>();
   for (const s of sessions) {
     if (!s.program_id || s.week_no == null) continue;
     const k = `${s.program_id}:${s.week_no}`, cur = byWeek.get(k);
-    byWeek.set(k, { n: (cur?.n ?? 0) + 1, last: !cur || s.date > cur.last ? s.date : cur.last });
+    const days = cur?.days ?? new Set<string>(); days.add(s.date);
+    byWeek.set(k, { n: days.size, last: !cur || s.date > cur.last ? s.date : cur.last, days });
   }
   for (const [k, v] of byWeek) {
     const [pid, wk] = k.split(":"), p = programs.find((x) => x.id === pid);
     const b = p && beastOfWeek(p, +wk);
     if (!b) continue;
     const r = out[b.id]; r.met++;
-    if (v.n >= Math.max(1, b.planned)) { r.won++; if (!r.last || v.last > r.last) r.last = v.last; }
+    // Cada treino concluído na semana derrota a criatura daquela semana uma vez.
+    r.won += v.n; if (!r.last || v.last > r.last) r.last = v.last;
   }
   return out;
+}
+
+/** Caçada da semana atual: fera/anjo, treinos feitos e quantos faltam para abater (e levar para a Clareira). */
+export function currentHunt(p: Prog | null, sessions: { program_id: string | null; week_no: number | null; date: string }[], today: string) {
+  if (!p) return null;
+  const days = Math.floor((Date.parse(today + "T12:00:00Z") - Date.parse(p.start_date + "T12:00:00Z")) / 864e5);
+  if (days < 0) return null;
+  const week = Math.floor(days / 7) + 1, b = beastOfWeek(p, week);
+  if (!b) return null;
+  const done = new Set(sessions.filter((s) => s.program_id === p.id && s.week_no === week).map((s) => s.date)).size;
+  const planned = Math.max(1, b.planned);
+  return { beast: b, week, done, planned, left: Math.max(0, planned - done), won: done > 0 };
 }

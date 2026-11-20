@@ -63,3 +63,24 @@ export function parseGoalValue(input: string) {
   const value = Number(raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw);
   return Number.isFinite(value) ? value : null;
 }
+
+/** XP de metas: 100 por marco, mais 300 por conclusão. */
+export function goalsXp(goals: GoalRow[], today: string) {
+  let xp = 0, marks = 0, done = 0, late = 0;
+  for (const g of goals) {
+    const stats = goalStats(g, today);
+    const reached = goalMilestones(g, today).filter((m) => m.reached).length;
+    marks += reached;
+    xp += reached * 100;
+    if (stats.pct >= 1) {
+      done++;
+      xp += 300;
+    }
+    if (stats.late) late++;
+  }
+  const level = Math.floor(Math.sqrt(xp / 120)) + 1;
+  const base = (level - 1) ** 2 * 120;
+  const next = level ** 2 * 120;
+  const title = level >= 10 ? "Lenda das conquistas" : level >= 7 ? "Mestre de metas" : level >= 5 ? "Estrategista" : level >= 3 ? "Executor" : "Aprendiz";
+  return { xp, level, title, marks, done, late, progress: (xp - base) / (next - base), toNext: next - xp };
+}

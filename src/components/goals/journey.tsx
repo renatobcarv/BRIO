@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { HI, Ico } from "@/components/hunt-icons";
-import { AREAS, AUTO, goalMilestones, goalStats, type GoalRow } from "@/lib/goals";
+import { AREAS, AUTO, goalMilestones, goalStats, goalsXp, type AreaKey, type GoalRow } from "@/lib/goals";
 
 export const goalNumber = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
 export const goalPercent = (pct: number) => pct >= 1 ? 100 : Math.min(99, Math.floor(pct * 100 + 1e-7));
@@ -16,8 +16,7 @@ const AREA_STYLE = {
 
 export function JourneyHero({ goals, today, onCreate }: { goals: GoalRow[]; today: string; onCreate: () => void }) {
   const active = goals.filter((g) => goalStats(g, today).pct < 1);
-  const completed = goals.length - active.length;
-  const milestones = goals.reduce((total, g) => total + goalMilestones(g, today).filter((m) => m.reached).length, 0);
+  const arena = goalsXp(goals, today);
   const focus = active.find((g) => g.featured) ?? active[0];
   const next = focus && goalMilestones(focus, today).find((m) => !m.reached);
 
@@ -44,9 +43,19 @@ export function JourneyHero({ goals, today, onCreate }: { goals: GoalRow[]; toda
           </a>
         )}
       </div>
-      <dl className="relative mx-5 mb-5 mt-3 grid grid-cols-3 divide-x divide-white/10 rounded-2xl border border-white/10 bg-[#0d1714]/90 text-center sm:mx-8 sm:mb-8">
-        {[[active.length, "Em andamento"], [completed, "Conquistadas"], [milestones, "Marcos alcançados"]].map(([value, label]) => (
-          <div key={label} className="px-2 py-3">
+      <div className="relative mx-5 mt-4 rounded-2xl border border-white/10 bg-[#0d1714]/90 p-4 sm:mx-8">
+        <div className="flex flex-wrap justify-between gap-x-3 gap-y-1 text-sm">
+          <span className="font-semibold text-[#ffe0a8]">Nível {arena.level} · {arena.title}</span>
+          <span className="text-white/80">{goalNumber(arena.xp)} XP de metas</span>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-white/10" role="progressbar" aria-label="Progresso do nível de metas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={goalPercent(arena.progress)}>
+          <div className="h-full bg-[#ffcc81]" style={{ width: `${arena.progress * 100}%` }} />
+        </div>
+        <p className="mt-2 text-xs text-white/70">Faltam {goalNumber(arena.toNext)} XP para o nível {arena.level + 1}</p>
+      </div>
+      <dl className="relative mx-5 mb-5 mt-3 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/10 bg-white/10 text-center sm:mx-8 sm:mb-8 sm:grid-cols-4">
+        {[[active.length, "Em andamento"], [arena.done, "Conquistadas"], [arena.marks, "Marcos"], [arena.late, "Fora do ritmo"]].map(([value, label]) => (
+          <div key={label} className="bg-[#0d1714]/95 px-2 py-3">
             <dt className="text-[11px] text-white/75 sm:text-xs">{label}</dt>
             <dd className="mt-0.5 text-2xl font-semibold tabular-nums text-[#ffe0a8]">{value}</dd>
           </div>
@@ -100,7 +109,7 @@ export function JourneyCard({ goal, today, onEdit, onProgress }: {
       </ol>
       <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-3">
         <p className="text-sm font-semibold text-white">{next ? `Próximo marco · ${next.title}` : "Todos os marcos conquistados"}</p>
-        {next && <p className="mt-1 break-words text-xs text-white/70">Alvo do marco: {goalNumber(next.value)} {goal.unit}</p>}
+        {next && <p className="mt-1 break-words text-xs text-white/70">Alvo do marco: {goalNumber(next.value)} {goal.unit} · +{next.pct === 1 ? "400" : "100"} XP</p>}
         {deadline != null && next && (
           <p className={`mt-2 text-xs ${s.late ? "text-[#ffad96]" : "text-white/65"}`}>
             {deadline < 0 ? `Prazo vencido há ${-deadline} dias` : deadline === 0 ? "Prazo hoje" : `${deadline} dias até o prazo`}
@@ -114,5 +123,48 @@ export function JourneyCard({ goal, today, onEdit, onProgress }: {
         </button></div>
       )}
     </article>
+  );
+}
+
+export function JourneyRewards({ goals, today }: { goals: GoalRow[]; today: string }) {
+  if (!goals.length) return null;
+  const stats = goals.map((goal) => ({ goal, progress: goalStats(goal, today).pct }));
+  const completed = stats.filter((entry) => entry.progress >= 1);
+  const areas = (Object.keys(AREAS) as AreaKey[]).flatMap((area) => {
+    const entries = stats.filter(({ goal }) => goal.area === area);
+    if (!entries.length) return [];
+    const progress = entries.reduce((sum, entry) => sum + entry.progress, 0) / entries.length;
+    return [{ area, progress }];
+  });
+
+  return (
+    <div className="grid gap-3 lg:grid-cols-2">
+      <section className="rounded-2xl border border-white/10 bg-[#141416] p-4 sm:p-5" aria-label="Progresso por área">
+        <h2 className="text-lg font-semibold">Progresso por área</h2>
+        <ul className="mt-3 grid gap-3">
+          {areas.map(({ area, progress }) => (
+            <li key={area}>
+              <div className="flex justify-between gap-3 text-sm"><span>{AREAS[area].label}</span><span className="tabular-nums text-white/75">{goalPercent(progress)}%</span></div>
+              <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-white/10" aria-hidden>
+                <div className="h-full rounded-full" style={{ background: AREA_STYLE[area].color, width: `${progress * 100}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+      <section className="rounded-2xl border border-white/10 bg-[#141416] p-4 sm:p-5" aria-label="Estante de troféus">
+        <h2 className="text-lg font-semibold">Estante de troféus</h2>
+        {completed.length ? (
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {completed.map(({ goal }) => (
+              <li key={goal.id} className="flex min-w-0 items-center gap-2 rounded-xl border border-white/10 bg-black/20 p-2">
+                <Image src="/medalhas/patentes/9.webp" alt="" width={42} height={42} unoptimized className="medal-motion h-10 w-10 shrink-0 object-contain" />
+                <span className="break-words text-sm font-medium">{goal.title}</span>
+              </li>
+            ))}
+          </ul>
+        ) : <p className="mt-3 text-sm text-white/70">Seu primeiro troféu aparece quando você completa uma meta.</p>}
+      </section>
+    </div>
   );
 }

@@ -1,10 +1,10 @@
 "use client";
 import { useXp } from "@/components/game/xp";
 import { Sheet } from "@/components/kit";
-import { JourneyCard, JourneyHero, goalInput, goalNumber, goalPercent } from "./journey";
+import { JourneyCard, JourneyHero, JourneyRewards, goalInput, goalNumber, goalPercent } from "./journey";
 import { useState, useTransition } from "react";
 import { deleteGoal, deleteObjective, saveGoal, saveObjective, setGoalCurrent } from "@/app/(app)/metas/actions";
-import { AREAS, AUTO, goalMilestones, goalStats, parseGoalValue, type AreaKey, type GoalRow } from "@/lib/goals";
+import { AREAS, AUTO, goalMilestones, goalStats, goalsXp, parseGoalValue, type AreaKey, type GoalRow } from "@/lib/goals";
 
 type Objective = { id: string; title: string; area: AreaKey; description: string | null };
 type Box = { id: string; name: string };
@@ -16,6 +16,10 @@ function GoalProgress({ goal, today, onDone }: { goal: GoalRow; today: string; o
   const { celebrate } = useXp();
   const value = parseGoalValue(input);
   const preview = value == null ? null : goalStats({ ...goal, current: value }, today).pct;
+
+  const left = goalStats(goal, today).left;
+  const step = Math.min(left, Math.max(.01, Math.round(Math.abs(goal.target - goal.start_value) * 5) / 100));
+  const stepped = goal.current + Math.sign(goal.target - goal.current) * step;
 
   function save() {
     if (value == null || value === goal.current || pending) return;
@@ -31,7 +35,10 @@ function GoalProgress({ goal, today, onDone }: { goal: GoalRow; today: string; o
         const reached = goalMilestones({ ...goal, current: result.current }, today)
           .findLast((milestone, index) => milestone.reached && !before[index].reached);
         onDone();
-        if (reached) celebrate(reached.title, `${goal.title} · ${reached.pct * 100}%`);
+        if (reached) {
+          const gained = goalsXp([{ ...goal, current: result.current }], today).xp - goalsXp([goal], today).xp;
+          celebrate(reached.title, `${goal.title} · ${reached.pct * 100}% · +${gained} XP de metas`);
+        }
       } catch {
         setError(true);
       }
@@ -44,6 +51,7 @@ function GoalProgress({ goal, today, onDone }: { goal: GoalRow; today: string; o
         <span className="text-sm text-white/75">Valor atual{goal.unit ? ` (${goal.unit})` : ""}</span>
         <input className="field num" inputMode="decimal" value={input} onChange={(event) => setInput(event.target.value)} autoFocus />
       </label>
+      {step > 0 && <button type="button" className="btn w-fit" disabled={pending} onClick={() => setInput(goalInput(stepped))}>Preparar avanço de {goalNumber(step)} {goal.unit}</button>}
       <p className="text-sm text-white/75">Alvo: {goalNumber(goal.target)} {goal.unit}{preview != null && ` · Progresso após salvar: ${goalPercent(preview)}%`}</p>
       {error && <p role="alert" className="text-sm text-[#ffad96]">Não foi possível salvar o progresso. Tente novamente.</p>}
       <button type="submit" className="btn btn-accent" disabled={pending || value == null || value === goal.current}>{pending ? "Salvando…" : "Salvar progresso"}</button>
@@ -165,6 +173,7 @@ export function Goals({ today, objectives, goals, boxes }: { today: string; obje
   return (
     <div className="grid gap-7">
       <JourneyHero goals={goals} today={today} onCreate={() => setEditor({ kind: "goal" })} />
+      <JourneyRewards goals={goals} today={today} />
       <section id="jornadas" className="scroll-mt-6" aria-labelledby="journey-list-title">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 id="journey-list-title" className="text-3xl font-semibold tracking-tight">Minhas jornadas</h2>

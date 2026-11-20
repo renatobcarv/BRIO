@@ -3,7 +3,8 @@ import { HI, Ico } from "@/components/hunt-icons";
 import { ExerciseThumb } from "@/components/body/exercise-media";
 import { SwapSheet, WorkoutPreview } from "@/components/body/exercise-swap";
 import { MuscleMap } from "@/components/body/muscle-map";
-import { todayWorkout } from "@/lib/training";
+import { CardioPanel, CardioStats, isMobility } from "@/components/body/cardio";
+import { isMainLift, MAIN_LIFTS, todayWorkout } from "@/lib/training";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { deleteWorkout, saveWorkout } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
@@ -171,6 +172,10 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                 <button className="btn !min-h-9 !px-3 text-muted" aria-label={`Remover ${e.name}`} onClick={() => set({ exercises: s.exercises.filter((_, i) => i !== ei) })}>✕</button>
               </div>
               {e.target?.notes && <p className="text-xs text-gold mt-1">{e.target.notes}</p>}
+              {isTimed(e.name, e.target && "muscle" in e.target ? String((e.target as { muscle?: string }).muscle) : undefined) ? (
+                <div className="mt-3"><CardioPanel name={e.name} km={e.sets[0]?.kg ?? ""} min={e.sets[0]?.reps ?? ""} onChange={(p) => { if (e.sets.length) updSet(ei, 0, { kg: p.km, reps: p.min, done: !!(Number(p.min) > 0) }); }}
+                  onRename={(nm) => set({ exercises: s.exercises.map((x, i) => (i === ei ? { ...x, name: nm } : x)) })} /></div>
+              ) : <>
               <div className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-3 label"><span>#</span><span>kg</span><span>reps</span><span>RPE</span><span /></div>
               {e.sets.map((x, si) => (
                 <div key={si} className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-1.5">
@@ -186,6 +191,7 @@ function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                   </button>
                 </div>
               ))}
+              </>}
               <div className="flex items-center gap-2 mt-2">
                 <button className="btn !min-h-9 text-sm" onClick={() => set({ exercises: s.exercises.map((y, i) => (i !== ei ? y : { ...y, sets: [...y.sets, { ...(y.sets.at(-1) ?? { kg: "", reps: "" }), done: false }] })) })}>+ Série</button>
                 {e.sets.length > 1 && <button className="btn !min-h-9 text-sm text-muted" onClick={() => set({ exercises: s.exercises.map((y, i) => (i !== ei ? y : { ...y, sets: y.sets.slice(0, -1) })) })}>− Série</button>}
@@ -295,7 +301,9 @@ export function Training({ today, split, plan, workouts, program = null, program
   const planned = ORDER.filter((d) => (plan.days[String(d)] ?? []).some((x) => x.name.toLowerCase() !== "cardio")).length;
   const trained = new Set(workouts.map((w) => w.date));
   const all = workouts.flatMap((w) => w.sets.filter((s) => !isTimed(s.exercise)).map((s) => ({ ...s, kg: Number(s.kg), date: w.date })));
-  const names = [...new Set(all.map((s) => s.exercise))].sort((a, b) => a.localeCompare(b));
+  // Os 3 grandes (agachamento, supino, terra) sempre em primeiro.
+  const bigRank = (n: string) => { const i = MAIN_LIFTS.findIndex((l) => l.re.test(n) && isMainLift(n)); return i < 0 ? 99 : i; };
+  const names = [...new Set(all.map((s) => s.exercise))].sort((a, b) => bigRank(a) - bigRank(b) || a.localeCompare(b));
   const prOf = (name: string) => {
     const re = new RegExp(name.split(/\s+/)[0].slice(0, 6), "i");
     const sets = all.filter((s) => s.exercise.toLowerCase() === name.toLowerCase() || re.test(s.exercise));
@@ -401,7 +409,13 @@ export function Training({ today, split, plan, workouts, program = null, program
                           <span className="inline-flex items-center gap-1.5"><Ico d={HI.list} size={14} />{sets} séries</span>
                         </div>)}
                       {ctx?.deload && <p className="text-[12px] mt-2" style={{ color: "#30d158" }}>Semana de recuperação: cargas reduzidas</p>}
-                      {b && <a href="/bestiario" className="inline-flex items-center gap-2 mt-3 text-[12px] text-white/55 hover:text-white"><CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />{b.angel ? `Exemplo da semana: ${b.virtue} · ${b.name}` : `Fera da semana: ${b.name}`}</a>}
+                      {b && (() => { const planned = Math.max(1, weekDays.filter((w) => w.dp.list.length).length), done = Math.min(planned, new Set(weekDays.filter((w) => w.status === "done").map((w) => w.date)).size); return (
+  <a href="/bestiario" className="flex items-center gap-3 mt-3 max-w-sm rounded-[12px] bg-white/[.04] px-3 py-2 hover:bg-white/[.07]">
+    <CreaturePortrait id={b.id} className="h-9 w-9 object-contain" />
+    <span className="flex-1 min-w-0"><span className="block text-[12px] text-white/70 truncate">{b.angel ? `Virtude da semana: ${b.name}` : `Fera da semana: ${b.name}`}</span>
+      <span className="flex gap-0.5 mt-1">{Array.from({ length: planned }, (_, k) => <i key={k} className="h-1.5 flex-1 rounded-full" style={{ background: k < done ? "#ffb21e" : "rgba(255,255,255,.12)" }} />)}</span></span>
+    <span className="text-[11px] shrink-0" style={{ color: done ? "#ffb21e" : "rgba(255,255,255,.5)" }}>{done ? `abatido ${done}×` : "treine para abater"}</span>
+  </a>); })()}
                     </div>
                     {list.length > 0 && <div className="hidden sm:block"><MuscleMap list={list as never} compact /></div>}
                   </div>
@@ -446,13 +460,32 @@ export function Training({ today, split, plan, workouts, program = null, program
         )}
       </section>
 
+      <CardioStats today={today} runs={workouts.flatMap((w) => w.sets.filter((x) => isTimed(x.exercise) && !isMobility(x.exercise)).map((x) => ({ date: w.date, name: x.exercise, km: Number(x.kg) || 0, min: Number(x.reps) || 0 })))} />
       <TrainingSystem today={today} bodyweight={bodyweight} plannedPerWeek={planned}
         sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
       <section id="tr-recordes" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.star} size={14} />Recordes pessoais</span></SectionTitle>
-        <div className="grid grid-cols-3 gap-3">
-          {plan.prs.map((name) => { const { top, est } = prOf(name); return (
+                {(() => {
+          const big = MAIN_LIFTS.map((l, k) => { const ex = names.find((n) => bigRank(n) === k) ?? l.label; return { label: l.label, ex, ...prOf(ex) }; });
+          const total = big.reduce((a, b) => a + (b.est || 0), 0);
+          const others = plan.prs.filter((n) => bigRank(n) === 99);
+          return (<>
+            <div className="rounded-[16px] p-4 border border-[#ffb21e44]" style={{ background: "radial-gradient(90% 120% at 50% 0%, rgba(255,178,30,.14), transparent 70%), #0b0b0c" }}>
+              <div className="flex items-baseline justify-between"><p className="text-[12px] uppercase tracking-[.25em] text-[#ffb21e] font-semibold">★ Os 3 grandes</p>
+                <p className="text-[12px] text-white/55">Total <b className="text-[20px] text-white ml-1">{total ? `${fmt(total, 0)} kg` : "—"}</b></p></div>
+              <div className="grid grid-cols-3 gap-2 mt-3">
+                {big.map((b) => (
+                  <button key={b.label} className="text-left rounded-[12px] bg-black/40 p-3 border border-white/[.06] hover:border-[#ffb21e66]" onClick={() => setExSel(b.ex)}>
+                    <p className="text-[12px] font-semibold text-white/80">{b.label}</p>
+                    <p className="text-[28px] font-bold mt-1 leading-none" style={{ color: "#ffb21e" }}>{b.top ? fmt(b.top.kg) : "—"}<span className="text-[13px] text-white/40"> kg</span></p>
+                    {b.top ? <p className="text-[11px] text-white/50 mt-1">{b.top.reps} reps · 1RM {fmt(b.est, 0)} kg</p> : <p className="text-[11px] text-white/40 mt-1">sem registro</p>}
+                  </button>))}
+              </div>
+              <p className="text-[11px] text-white/40 mt-2">O total soma a força estimada (1RM) dos três. É o placar dos fortes.</p>
+            </div>
+            {others.length > 0 && <div className="grid grid-cols-3 gap-3 mt-3">
+          {others.map((name) => { const { top, est } = prOf(name); return (
             <button key={name} className="text-left rounded-[8px] bg-white/[.03] p-3" onClick={() => setExSel(names.find((x) => x.toLowerCase() === name.toLowerCase()) ?? names.find((x) => new RegExp(name.split(/\s+/)[0].slice(0, 6), "i").test(x)) ?? name)}>
               <p className="text-xs text-muted leading-tight min-h-[2lh]">{name}</p>
               <p className="num text-2xl mt-1" style={{ color: G }}>{top ? fmt(top.kg) : "—"}</p>
@@ -460,7 +493,8 @@ export function Training({ today, split, plan, workouts, program = null, program
               {est > 0 && <p className="text-[11px] text-faint">1RM est. {fmt(est, 0)}</p>}
             </button>
           ); })}
-        </div>
+            </div>}
+          </>); })()}
       </section>
 
       <section id="tr-evolucao" className="glass rise p-5 mt-4 scroll-mt-20">
@@ -469,17 +503,28 @@ export function Training({ today, split, plan, workouts, program = null, program
           <>
             <select className="field" value={exSel} onChange={(e) => setExSel(e.target.value)} aria-label="Exercício">
               {!names.includes(exSel) && <option value={exSel}>{exSel}</option>}
-              {names.map((x) => <option key={x}>{x}</option>)}
+              {names.some((x) => bigRank(x) < 99) && <optgroup label="★ Os 3 grandes">{names.filter((x) => bigRank(x) < 99).map((x) => <option key={x} value={x}>★ {x}</option>)}</optgroup>}
+              <optgroup label="Outros exercícios">{names.filter((x) => bigRank(x) === 99).map((x) => <option key={x}>{x}</option>)}</optgroup>
             </select>
-            {series.length > 0 ? (
+            {series.length > 0 ? (() => {
+              const first = series[0][1], last = series.at(-1)![1], best = Math.max(...sv), diff = last - first;
+              return (
               <>
-                <svg viewBox={`0 0 ${W} ${H}`} className="w-full mt-3" role="img" aria-label={`Evolução do 1RM estimado em ${exSel}`}>
-                  <path d={series.map((x, i) => `${i ? "L" : "M"}${sx(i)},${sy(x[1])}`).join(" ")} fill="none" stroke={G} strokeWidth="2.5" strokeLinejoin="round" />
-                  {series.map((x, i) => <circle key={x[0]} cx={sx(i)} cy={sy(x[1])} r="3.5" fill="#07080b" stroke={G} strokeWidth="2"><title>{`${shortDate(x[0])}: ${fmt(x[1], 0)} kg`}</title></circle>)}
-                </svg>
-                <p className="text-xs text-muted">1RM estimado (Epley) por sessão · melhor: <span className="num text-ink">{fmt(Math.max(...sv), 0)} kg</span></p>
-              </>
-            ) : <p className="font-display italic text-muted mt-3">Sem registros deste exercício ainda.</p>}
+                <div className="grid grid-cols-3 gap-2 mt-4 text-center">
+                  {[["Força estimada", `${fmt(last, 0)} kg`, "última sessão"], ["Melhor", `${fmt(best, 0)} kg`, "recorde"], ["Evolução", series.length > 1 ? `${diff >= 0 ? "+" : ""}${fmt(diff, 0)} kg` : "—", series.length > 1 ? `em ${series.length} sessões` : "1 sessão"]].map(([l, v, u]) => (
+                    <div key={l} className="rounded-[12px] bg-white/[.04] py-3"><p className="text-[11px] text-white/45">{l}</p><p className="text-[20px] font-bold" style={{ color: l === "Evolução" && diff < 0 ? "#ff453a" : "#ffb21e" }}>{v}</p><p className="text-[10.5px] text-white/40">{u}</p></div>))}
+                </div>
+                {series.length > 1 ? (
+                  <svg viewBox={`0 0 ${W} ${H + 18}`} className="w-full mt-4" role="img" aria-label={`Evolução da força estimada em ${exSel}`}>
+                    {[0, 0.5, 1].map((t) => { const v = smin + (smax - smin) * t; return <g key={t}><line x1={P} x2={W - P} y1={sy(v)} y2={sy(v)} stroke="rgba(255,255,255,.06)" /><text x={W - P + 4} y={sy(v) + 4} fontSize="11" fill="#6b6b70">{fmt(v, 0)}</text></g>; })}
+                    <path d={`${series.map((x, i) => `${i ? "L" : "M"}${sx(i)},${sy(x[1])}`).join(" ")} L${sx(series.length - 1)},${H - P} L${sx(0)},${H - P} Z`} fill="#ffb21e" opacity=".08" />
+                    <path d={series.map((x, i) => `${i ? "L" : "M"}${sx(i)},${sy(x[1])}`).join(" ")} fill="none" stroke="#ffb21e" strokeWidth="2.5" strokeLinejoin="round" />
+                    {series.map((x, i) => <circle key={x[0]} cx={sx(i)} cy={sy(x[1])} r={x[1] === best ? 5 : 3.5} fill={x[1] === best ? "#ffb21e" : "#0b0b0c"} stroke="#ffb21e" strokeWidth="2"><title>{`${shortDate(x[0])}: ${fmt(x[1], 0)} kg`}</title></circle>)}
+                    {[0, series.length - 1].map((i) => <text key={i} x={sx(i)} y={H + 12} fontSize="11" fill="#8e8e93" textAnchor={i ? "end" : "start"}>{shortDate(series[i][0])}</text>)}
+                  </svg>
+                ) : <p className="text-[13px] text-white/55 mt-4 rounded-[12px] border border-dashed border-white/10 p-4 text-center">Uma sessão registrada. Faça este exercício de novo para ver a linha de evolução.</p>}
+                <p className="text-[11.5px] text-white/45 mt-2">Força estimada = quanto você levantaria em 1 repetição máxima (1RM), calculado pela fórmula de Epley a partir da sua melhor série de cada treino.</p>
+              </>); })() : <p className="text-[13px] text-white/55 mt-3">Sem registros deste exercício ainda.</p>}
           </>
         )}
       </section>

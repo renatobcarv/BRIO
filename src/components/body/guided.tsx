@@ -1,6 +1,7 @@
 "use client";
 import { ExerciseHero } from "@/components/body/exercise-media";
 import { SwapSheet } from "@/components/body/exercise-swap";
+import { CardioPanel } from "@/components/body/cardio";
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { saveWorkout } from "@/app/(app)/corpo/actions";
 import { useXp, haptic } from "@/components/game/xp";
@@ -147,10 +148,8 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}
           <ExerciseHero name={ex.name} />
           {timed ? (
-            <div className="grid grid-cols-2 gap-2.5 mt-4">
-              <Big label="Duração" value={set.reps} onChange={(v) => upd({ reps: v })} step={5} unit="minutos" />
-              <Big label="Distância" value={set.kg} onChange={(v) => upd({ kg: v })} step={0.5} unit="km · opcional" />
-            </div>
+            <div className="mt-4"><CardioPanel name={ex.name} km={set.kg} min={set.reps} onChange={(p) => upd({ kg: p.km, reps: p.min })}
+              onRename={(nm) => setS({ ...s, exercises: s.exercises.map((e, i) => (i === cur.e ? { ...e, name: nm } : e)) })} /></div>
           ) : (
             <div className="grid grid-cols-2 gap-2.5 mt-4">
               <Big label="Carga" value={set.kg} onChange={(v) => upd({ kg: v })} step={2.5} unit="kg" />

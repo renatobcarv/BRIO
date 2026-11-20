@@ -117,9 +117,12 @@ export function trainingInsights(ws: WSession[], today: string, overrides: Recor
   // 4. Grupos pouco trabalhados (últimos 14 dias)
   const sets14 = new Map<Muscle, number>();
   for (const w of ws.filter((w) => daysAgo(today, w.date) < 14)) for (const s of w.sets.filter(isStrength)) { const m = guessMuscle(s.exercise, overrides); sets14.set(m, (sets14.get(m) ?? 0) + 1); }
-  if ([...sets14.values()].reduce((x, y) => x + y, 0) >= 30) {
+  // Só avalia com pelo menos 10 dias de histórico; divide pelas semanas realmente cobertas (não sempre por 2).
+  const first = [...ws].map((w) => w.date).sort()[0];
+  const histDays = first ? daysAgo(today, first) + 1 : 0, weeks = Math.min(2, Math.max(1, histDays / 7));
+  if (histDays >= 10 && [...sets14.values()].reduce((x, y) => x + y, 0) >= 30) {
     const key: Muscle[] = ["peito", "costas", "quadriceps", "posteriores", "ombro_lateral", "triceps", "biceps", "gluteos"];
-    const low = key.filter((m) => (sets14.get(m) ?? 0) / 2 < 4);
+    const low = key.filter((m) => (sets14.get(m) ?? 0) / weeks < 4);
     if (low.length) out.push({ kind: "info", title: "Grupos pouco trabalhados", text: `Menos de 4 séries diretas por semana em: ${low.map((m) => MUSCLES[m]).join(", ")}. Se for intencional, tudo bem; senão, ajuste o plano.` });
   }
   // 5. Queda de desempenho em membros inferiores
