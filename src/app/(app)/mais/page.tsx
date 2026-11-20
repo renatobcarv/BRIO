@@ -1,9 +1,9 @@
 import { CardArt } from "@/components/card-art";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
-import { moreItems } from "@/components/nav";
 
-// Tudo que não cabe na barra de baixo do celular. Segue o menu lateral: item novo no menu aparece aqui sozinho.
+// Tudo que não cabe na barra de baixo do celular (mesma ordem do menu lateral).
+const MENU: [string, string][] = [["/status", "Status"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/metas", "Metas"], ["/configuracoes", "Configurações"]];
 const INFO: Record<string, { sub: string; art?: "agenda" | "conquistas" | "estudos" | "financas" | "metas" | "pioneiro" | "sonhos" | "treino" }> = {
   "/status": { sub: "Nível, patentes, atributos e conquistas", art: "conquistas" },
   "/mascote": { sub: "Sorteio, coleção e o seu companheiro" },
@@ -19,7 +19,7 @@ const INFO: Record<string, { sub: string; art?: "agenda" | "conquistas" | "estud
 const EXTRA: { href: string; label: string; color: string; sub: string; art?: "treino" }[] = [{ href: "/bestiario", label: "Bestiário", color: "#ffb21e", sub: "Feras, anjos e a Clareira" }];
 
 export default function Mais() {
-  const items = [...moreItems.map((it) => ({ href: it.href, label: it.label, color: it.color, ...INFO[it.href] })), ...EXTRA];
+  const items = [...MENU.map(([href, label]) => ({ href, label, color: "#ffb21e", ...INFO[href] })), ...EXTRA];
   return (
     <>
       <PageHeader eyebrow="Mais" title="Outras áreas" />
