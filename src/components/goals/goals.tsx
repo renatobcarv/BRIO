@@ -173,7 +173,6 @@ export function Goals({ today, objectives, goals, boxes }: { today: string; obje
   return (
     <div className="grid gap-7">
       <JourneyHero goals={goals} today={today} onCreate={() => setEditor({ kind: "goal" })} />
-      <JourneyRewards goals={goals} today={today} />
       <section id="jornadas" className="scroll-mt-6" aria-labelledby="journey-list-title">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <h2 id="journey-list-title" className="text-3xl font-semibold tracking-tight">Minhas jornadas</h2>
@@ -223,6 +222,7 @@ export function Goals({ today, objectives, goals, boxes }: { today: string; obje
           )}
         </div>
       </section>
+      <JourneyRewards goals={goals} today={today} />
       <Sheet open={!!editor} onClose={close} title={title}>
         {editor?.kind === "goal" && <GoalForm goal={editor.goal} objectives={objectives} boxes={boxes} onDone={close} />}
         {editor?.kind === "objective" && <ObjectiveForm obj={editor.objective} onDone={close} />}
