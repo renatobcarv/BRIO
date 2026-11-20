@@ -1,4 +1,4 @@
-import { diffDays } from "./date";
+import { diffDays } from "./date.ts";
 
 export const AREAS = {
   espiritual: { label: "Espiritual", color: "#ffb21e" },
@@ -39,4 +39,27 @@ export function goalStats(g: GoalRow, today: string) {
   }
   const horizon = daysLeft == null ? "longo" : daysLeft <= 90 ? "curto" : daysLeft <= 365 ? "medio" : "longo";
   return { pct, left, daysLeft, perWeek, perMonth, late, horizon };
+}
+
+export const GOAL_MILESTONES = [
+  { pct: 0.25, title: "Primeiro avanço", art: 0 },
+  { pct: 0.5, title: "Meio do caminho", art: 3 },
+  { pct: 0.75, title: "Reta final", art: 6 },
+  { pct: 1, title: "Meta conquistada", art: 9 },
+] as const;
+
+export function goalMilestones(g: GoalRow, today: string) {
+  const { pct } = goalStats(g, today);
+  return GOAL_MILESTONES.map((milestone) => ({
+    ...milestone,
+    reached: milestone.pct === 1 ? pct >= 1 : pct + 1e-9 >= milestone.pct,
+    value: g.start_value + (g.target - g.start_value) * milestone.pct,
+  }));
+}
+
+export function parseGoalValue(input: string) {
+  const raw = input.trim();
+  if (!/^[+-]?(?:\d+(?:[.,]\d+)?|[.,]\d+|\d{1,3}(?:\.\d{3})+,\d+)$/.test(raw)) return null;
+  const value = Number(raw.includes(",") ? raw.replace(/\./g, "").replace(",", ".") : raw);
+  return Number.isFinite(value) ? value : null;
 }

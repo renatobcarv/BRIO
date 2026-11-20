@@ -1,5 +1,4 @@
-import { Board, PageHeader, Verse } from "@/components/ui";
-import { HI } from "@/components/hunt-icons";
+import { Verse } from "@/components/ui";
 import { Goals } from "@/components/goals/goals";
 import { monthEnd, monthStart, todayISO } from "@/lib/date";
 import type { GoalRow } from "@/lib/goals";
@@ -34,13 +33,7 @@ export default async function Page() {
     .map((g) => sb.from("goals").update({ current: g.current }).eq("id", g.id)));
 
   return (
-    <div className="dash-auto">
-      <PageHeader eyebrow="Metas" title="Metas e objetivos" icon={HI.flag} line="Alvo definido, prazo marcado, progresso medido." />
-      {(() => { const pr = (g: GoalRow) => { const span = g.target - g.start_value; return span ? Math.max(0, Math.min(1, (g.current - g.start_value) / span)) : g.current >= g.target ? 1 : 0; };
-        const avg = list.length ? list.reduce((a, g) => a + pr(g), 0) / list.length : 0, done = list.filter((g) => pr(g) >= 1).length;
-        const late = list.filter((g) => g.deadline && g.deadline < today && pr(g) < 1).length;
-        return <Board icon={HI.target} label="Progresso geral" big={String(Math.round(avg * 100))} unit="%" bar={avg}
-          stats={[[HI.flag, "Metas", String(list.length), "ativas"], [HI.trophy, "Batidas", String(done), "concluídas"], [HI.clock, "Atrasadas", String(late), "passaram do prazo"]]} />; })()}
+    <div className="goals-page">
       <Goals today={today} objectives={obj.data ?? []} goals={list} boxes={(boxes.data ?? []).map(({ id, name }) => ({ id, name }))} />
       <Verse area="metas" />
     </div>

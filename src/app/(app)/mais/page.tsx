@@ -6,7 +6,7 @@ const items = [
   { href: "/status", label: "Status", art: "conquistas", sub: "Nível, atributos e conquistas", color: "#ffb21e" },
   { href: "/financas", label: "Finanças", art: "financas", sub: "Fluxo, caixinhas e patrimônio", color: "#ffb21e" },
   { href: "/livros", label: "Livros", art: "estudos", sub: "Estante, leituras e anotações", color: "#ffcc66" },
-  { href: "/metas", label: "Metas e objetivos", art: "metas", sub: "Destinos e passos mensuráveis", color: "#ff9f0a" },
+  { href: "/corpo", label: "Corpo", sub: "Água, sono, peso e alimentação", color: "#30d158" },
   { href: "/configuracoes", label: "Configurações", sub: "Checklist, metas padrão, backup", color: "#9a978f" },
 ] as const;
 export default function Mais() {

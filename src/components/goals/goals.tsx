@@ -1,65 +1,73 @@
 "use client";
-import { Trophy } from "@/components/meters";
+import { useXp } from "@/components/game/xp";
+import { Sheet } from "@/components/kit";
+import { JourneyCard, JourneyHero, goalInput, goalNumber, goalPercent } from "./journey";
 import { useState, useTransition } from "react";
 import { deleteGoal, deleteObjective, saveGoal, saveObjective, setGoalCurrent } from "@/app/(app)/metas/actions";
-import { Card, Empty } from "@/components/ui";
-import { AREAS, AUTO, goalStats, type AreaKey, type GoalRow } from "@/lib/goals";
+import { AREAS, AUTO, goalMilestones, goalStats, parseGoalValue, type AreaKey, type GoalRow } from "@/lib/goals";
 
-const ACC = "#ff9f0a";
 type Objective = { id: string; title: string; area: AreaKey; description: string | null };
-const fmt = (n: number) => n.toLocaleString("pt-BR", { maximumFractionDigits: 2 });
-const num = (s: string) => Number(s.replace(",", ".")) || 0;
+type Box = { id: string; name: string };
 
-function GoalCard({ g, today, objectives, boxes }: { g: GoalRow; today: string; objectives: Objective[]; boxes: { id: string; name: string }[] }) {
+function GoalProgress({ goal, today, onDone }: { goal: GoalRow; today: string; onDone: () => void }) {
   const [pending, start] = useTransition();
-  const [cur, setCur] = useState(fmt(g.current));
-  const [editing, setEditing] = useState(false);
-  const s = goalStats(g, today), color = AREAS[g.area].color;
-  if (editing) return <GoalForm goal={g} onDone={() => setEditing(false)} objectives={objectives} boxes={boxes} />;
+  const [input, setInput] = useState(goalInput(goal.current));
+  const [error, setError] = useState(false);
+  const { celebrate } = useXp();
+  const value = parseGoalValue(input);
+  const preview = value == null ? null : goalStats({ ...goal, current: value }, today).pct;
+
+  function save() {
+    if (value == null || value === goal.current || pending) return;
+    setError(false);
+    start(async () => {
+      try {
+        const result = await setGoalCurrent(goal.id, value);
+        if (!result.ok) {
+          setError(true);
+          return;
+        }
+        const before = goalMilestones(goal, today);
+        const reached = goalMilestones({ ...goal, current: result.current }, today)
+          .findLast((milestone, index) => milestone.reached && !before[index].reached);
+        onDone();
+        if (reached) celebrate(reached.title, `${goal.title} · ${reached.pct * 100}%`);
+      } catch {
+        setError(true);
+      }
+    });
+  }
+
   return (
-    <div className="rounded-[8px] border border-white/[.06] p-4" style={{ ["--accent" as string]: color }}>
-      <div className="flex items-start gap-2">
-        <div className="flex-1">
-          <p className="label" style={{ color }}>{AREAS[g.area].label}{g.featured ? " · destaque" : ""}{g.auto_source ? " · automática" : ""}</p>
-          <p className="font-display text-lg leading-snug mt-1">{g.title}</p>
-        </div>
-        <button className="btn !min-h-9 !px-3 text-muted text-xs" onClick={() => setEditing(true)}>Editar</button>
-      </div>
-      <div className="flex items-center gap-3 mt-3"><Trophy pct={s.pct} size={34} color={color} /><div className="bar flex-1"><i style={{ width: `${s.pct * 100}%` }} /></div></div>
-      <div className="flex justify-between text-sm mt-1">
-        <span className="num">{Math.round(s.pct * 100)}% · {fmt(g.current)} / {fmt(g.target)} {g.unit}</span>
-        {s.left > 0 && <span className="text-muted">faltam {fmt(s.left)} {g.unit}</span>}
-      </div>
-      {g.deadline && (
-        <p className="text-xs mt-2" style={{ color: s.late ? "#ff453a" : "#9a978f" }}>
-          {s.daysLeft! >= 0 ? `${s.daysLeft} dias até o prazo` : `prazo vencido há ${-s.daysLeft!} dias`}
-          {s.perWeek != null && s.left > 0 && ` · ritmo: ${fmt(s.perWeek)} ${g.unit}/semana (${fmt(s.perMonth!)}/mês)`}
-          {s.late && " · atrasada"}
-        </p>
-      )}
-      {!g.auto_source && (
-        <div className="flex gap-2 mt-3">
-          <input className="field !min-h-10 !w-28 num" inputMode="decimal" value={cur} onChange={(e) => setCur(e.target.value)} aria-label="Valor atual" />
-          <button className="btn !min-h-10" disabled={pending} onClick={() => start(() => setGoalCurrent(g.id, num(cur)))}>Atualizar</button>
-        </div>
-      )}
-    </div>
+    <form onSubmit={(event) => { event.preventDefault(); save(); }} className="grid gap-3">
+      <label className="grid gap-1">
+        <span className="text-sm text-white/75">Valor atual{goal.unit ? ` (${goal.unit})` : ""}</span>
+        <input className="field num" inputMode="decimal" value={input} onChange={(event) => setInput(event.target.value)} autoFocus />
+      </label>
+      <p className="text-sm text-white/75">Alvo: {goalNumber(goal.target)} {goal.unit}{preview != null && ` · Progresso após salvar: ${goalPercent(preview)}%`}</p>
+      {error && <p role="alert" className="text-sm text-[#ffad96]">Não foi possível salvar o progresso. Tente novamente.</p>}
+      <button type="submit" className="btn btn-accent" disabled={pending || value == null || value === goal.current}>{pending ? "Salvando…" : "Salvar progresso"}</button>
+    </form>
   );
 }
 
-function GoalForm({ goal, objectives, boxes, onDone }: { goal?: GoalRow; objectives: Objective[]; boxes: { id: string; name: string }[]; onDone: () => void }) {
+function GoalForm({ goal, objectives, boxes, onDone }: { goal?: GoalRow; objectives: Objective[]; boxes: Box[]; onDone: () => void }) {
   const [pending, start] = useTransition();
   const [f, setF] = useState({
     title: goal?.title ?? "", area: (goal?.area ?? "pessoal") as AreaKey, unit: goal?.unit ?? "",
-    start_value: fmt(goal?.start_value ?? 0), target: goal ? fmt(goal.target) : "", current: fmt(goal?.current ?? 0),
+    start_value: goalInput(goal?.start_value ?? 0), target: goal ? goalInput(goal.target) : "", current: goalInput(goal?.current ?? 0),
     deadline: goal?.deadline ?? "", objective_id: goal?.objective_id ?? "", featured: goal?.featured ?? false,
     auto_source: goal?.auto_source ?? "", auto_ref: goal?.auto_ref ?? "",
   });
   const set = (p: Partial<typeof f>) => setF({ ...f, ...p });
+  const target = parseGoalValue(f.target);
+  const startValue = parseGoalValue(f.start_value || "0");
+  const current = parseGoalValue(f.current);
   const save = () => start(async () => {
+    if (target == null || startValue == null || current == null) return;
     await saveGoal({
       title: f.title, area: f.area, unit: f.auto_source ? AUTO[f.auto_source as keyof typeof AUTO].unit : f.unit,
-      start_value: num(f.start_value), target: num(f.target), current: num(f.current),
+      start_value: startValue, target, current,
       deadline: f.deadline || null, objective_id: f.objective_id || null, featured: f.featured,
       auto_source: (f.auto_source || null) as GoalRow["auto_source"], auto_ref: f.auto_source === "savings_box" && f.auto_ref ? f.auto_ref : null,
     }, goal?.id);
@@ -102,7 +110,7 @@ function GoalForm({ goal, objectives, boxes, onDone }: { goal?: GoalRow; objecti
       <div className="flex gap-2 justify-end">
         {goal && <button className="btn text-muted" onClick={() => { if (confirm("Excluir meta?")) start(async () => { await deleteGoal(goal.id); onDone(); }); }}>Excluir</button>}
         <button className="btn" onClick={onDone}>Cancelar</button>
-        <button className="btn btn-accent" disabled={pending || !f.title || !f.target} onClick={save}>Salvar</button>
+        <button className="btn btn-accent" disabled={pending || !f.title.trim() || target == null || startValue == null || current == null} onClick={save}>Salvar</button>
       </div>
     </div>
   );
@@ -128,51 +136,89 @@ function ObjectiveForm({ obj, onDone }: { obj?: Objective; onDone: () => void })
   );
 }
 
-export function Goals({ today, objectives, goals, boxes }: { today: string; objectives: Objective[]; goals: GoalRow[]; boxes: { id: string; name: string }[] }) {
-  const [area, setArea] = useState<AreaKey | "">("");
-  const [hz, setHz] = useState("");
-  const [newGoal, setNewGoal] = useState(false);
-  const [newObj, setNewObj] = useState(false);
-  const [editObj, setEditObj] = useState<string | null>(null);
+type Editor =
+  | { kind: "goal"; goal?: GoalRow }
+  | { kind: "objective"; objective?: Objective }
+  | { kind: "progress"; goal: GoalRow };
 
-  const visible = goals.filter((g) => (!area || g.area === area) && (!hz || goalStats(g, today).horizon === hz));
-  const groups = [...objectives.map((o) => ({ o, list: visible.filter((g) => g.objective_id === o.id) })),
-    { o: null as Objective | null, list: visible.filter((g) => !g.objective_id || !objectives.some((o) => o.id === g.objective_id)) }];
+export function Goals({ today, objectives, goals, boxes }: { today: string; objectives: Objective[]; goals: GoalRow[]; boxes: Box[] }) {
+  const [area, setArea] = useState<AreaKey | "">("");
+  const [horizon, setHorizon] = useState("");
+  const [status, setStatus] = useState("todas");
+  const [editor, setEditor] = useState<Editor | null>(null);
+
+  const filtered = !!area || !!horizon || status !== "todas";
+  const visible = goals.filter((goal) => {
+    const stats = goalStats(goal, today);
+    return (!area || goal.area === area) && (!horizon || stats.horizon === horizon)
+      && (status === "todas" || (status === "conquistadas" ? stats.pct >= 1 : stats.pct < 1));
+  });
+  const groups = [
+    ...objectives.map((objective) => ({ objective, list: visible.filter((goal) => goal.objective_id === objective.id) })),
+    { objective: null, list: visible.filter((goal) => !objectives.some((o) => o.id === goal.objective_id)) },
+  ];
+  const close = () => setEditor(null);
+  const title = editor?.kind === "progress" ? `Progresso · ${editor.goal.title}`
+    : editor?.kind === "goal" ? (editor.goal ? "Editar meta" : "Nova meta")
+    : editor?.objective ? "Editar objetivo" : "Novo objetivo";
 
   return (
-    <div style={{ ["--accent" as string]: ACC }}>
-      <div className="flex flex-wrap gap-2 rise">
-        <button className="chip" aria-pressed={!area} onClick={() => setArea("")}>Todas</button>
-        {(Object.keys(AREAS) as AreaKey[]).map((a) => <button key={a} className="chip" aria-pressed={area === a} onClick={() => setArea(area === a ? "" : a)}>{AREAS[a].label}</button>)}
-      </div>
-      <div className="flex flex-wrap gap-2 mt-2 rise">
-        {[["", "Qualquer prazo"], ["curto", "Curto (≤3m)"], ["medio", "Médio (≤12m)"], ["longo", "Longo"]].map(([k, l]) =>
-          <button key={k} className="chip" aria-pressed={hz === k} onClick={() => setHz(k)}>{l}</button>)}
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 mt-4">
-        <button className="btn btn-accent" onClick={() => setNewGoal(true)}>+ Meta</button>
-        <button className="btn" onClick={() => setNewObj(true)}>+ Objetivo</button>
-      </div>
-      {newObj && <Card className="mt-4"><ObjectiveForm onDone={() => setNewObj(false)} /></Card>}
-      {newGoal && <Card className="mt-4"><GoalForm objectives={objectives} boxes={boxes} onDone={() => setNewGoal(false)} /></Card>}
-
-      {groups.map(({ o, list }) => (o || list.length > 0) && (
-        <Card key={o?.id ?? "solta"} className="mt-4">
-          {o ? (editObj === o.id ? <ObjectiveForm obj={o} onDone={() => setEditObj(null)} /> : (
-            <button className="text-left w-full" onClick={() => setEditObj(o.id)}>
-              <p className="label" style={{ color: AREAS[o.area].color }}>Objetivo · {AREAS[o.area].label}</p>
-              <p className="font-display italic text-2xl mt-1 leading-snug">{o.title}</p>
-              {o.description && <p className="text-sm text-muted mt-1">{o.description}</p>}
-            </button>
-          )) : <p className="label">Metas avulsas</p>}
-          <div className="grid gap-3 mt-4">
-            {list.length === 0 ? <p className="font-display italic text-muted">Nenhuma meta ligada a este objetivo ainda.</p>
-              : list.map((g) => <GoalCard key={g.id + g.current} g={g} today={today} objectives={objectives} boxes={boxes} />)}
-          </div>
-        </Card>
-      ))}
-      {goals.length === 0 && objectives.length === 0 && <Card className="mt-4"><Empty>Um destino claro torna os passos possíveis.</Empty></Card>}
+    <div className="grid gap-7">
+      <JourneyHero goals={goals} today={today} onCreate={() => setEditor({ kind: "goal" })} />
+      <section id="jornadas" className="scroll-mt-6" aria-labelledby="journey-list-title">
+        <div className="flex flex-wrap items-end justify-between gap-3">
+          <h2 id="journey-list-title" className="text-3xl font-semibold tracking-tight">Minhas jornadas</h2>
+          <button type="button" className="btn" onClick={() => setEditor({ kind: "objective" })}>+ Objetivo</button>
+        </div>
+        <div className="mt-4 flex flex-wrap items-center gap-2" role="group" aria-label="Filtrar pelo estado da meta">
+          {[["todas", "Todas"], ["andamento", "Em andamento"], ["conquistadas", "Conquistadas"]].map(([id, label]) => (
+            <button key={id} type="button" className="chip" aria-pressed={status === id} onClick={() => setStatus(id)}>{label}</button>
+          ))}
+          <select className="field !min-h-10 !w-auto min-w-0" aria-label="Área" value={area} onChange={(event) => setArea(event.target.value as AreaKey | "")}>
+            <option value="">Todas as áreas</option>
+            {(Object.keys(AREAS) as AreaKey[]).map((key) => <option key={key} value={key}>{AREAS[key].label}</option>)}
+          </select>
+          <select className="field !min-h-10 !w-auto min-w-0" aria-label="Prazo" value={horizon} onChange={(event) => setHorizon(event.target.value)}>
+            <option value="">Qualquer prazo</option><option value="curto">Curto (até 90 dias)</option><option value="medio">Médio (até 1 ano)</option><option value="longo">Longo ou sem prazo</option>
+          </select>
+        </div>
+        <div className="mt-6 grid gap-6">
+          {groups.map(({ objective, list }) => (list.length > 0 || (objective && !filtered)) && (
+            <section key={objective?.id ?? "avulsas"} className="min-w-0">
+              {objective ? (
+                <div className="mb-3 flex items-start justify-between gap-3 rounded-2xl border border-white/10 bg-white/[.035] p-4">
+                  <div className="min-w-0">
+                    <p className="text-xs text-[#ffcf81]">Objetivo · {AREAS[objective.area].label}</p>
+                    <h3 className="mt-1 break-words text-xl font-semibold">{objective.title}</h3>
+                    {objective.description && <p className="mt-1 break-words text-sm text-white/70">{objective.description}</p>}
+                  </div>
+                  <button type="button" className="btn !min-h-10 !px-3 text-xs" onClick={() => setEditor({ kind: "objective", objective })} aria-label={`Editar objetivo ${objective.title}`}>Editar</button>
+                </div>
+              ) : objectives.length > 0 && <h3 className="mb-3 text-lg font-semibold">Metas avulsas</h3>}
+              {list.length ? (
+                <div className="grid gap-3 lg:grid-cols-2">
+                  {list.map((goal) => <JourneyCard key={goal.id} goal={goal} today={today}
+                    onEdit={() => setEditor({ kind: "goal", goal })} onProgress={() => setEditor({ kind: "progress", goal })} />)}
+                </div>
+              ) : <p className="text-sm text-white/65">Nenhuma meta ligada a este objetivo ainda.</p>}
+            </section>
+          ))}
+          {!visible.length && (filtered || (!goals.length && !objectives.length)) && (
+            <div className="rounded-2xl border border-dashed border-white/20 bg-white/[.035] p-6">
+              <p className="text-lg font-semibold">{filtered ? "Nenhuma meta com esses filtros" : "Qual é seu primeiro destino?"}</p>
+              <button type="button" className="btn mt-3" onClick={() => {
+                if (filtered) { setArea(""); setHorizon(""); setStatus("todas"); }
+                else setEditor({ kind: "goal" });
+              }}>{filtered ? "Limpar filtros" : "Criar primeira meta"}</button>
+            </div>
+          )}
+        </div>
+      </section>
+      <Sheet open={!!editor} onClose={close} title={title}>
+        {editor?.kind === "goal" && <GoalForm goal={editor.goal} objectives={objectives} boxes={boxes} onDone={close} />}
+        {editor?.kind === "objective" && <ObjectiveForm obj={editor.objective} onDone={close} />}
+        {editor?.kind === "progress" && <GoalProgress goal={editor.goal} today={today} onDone={close} />}
+      </Sheet>
     </div>
   );
 }

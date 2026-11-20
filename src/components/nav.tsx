@@ -25,12 +25,13 @@ const gear = I("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8
 
 const primary: Item[] = [
   { href: "/", label: "Início", color: "#ffb21e", icon: home },
+  { href: "/metas", label: "Metas", color: "#ff9f0a", icon: goals },
+  { href: "/treino", label: "Treino", color: "#ffb21e", icon: dumbbell },
   { href: "/espiritual", label: "Espiritual", color: "#ffb21e", icon: spirit },
   { href: "/pioneiro", label: "Pioneiro", color: "#f5f5f7", icon: pioneer },
-  { href: "/treino", label: "Treino", color: "#ffb21e", icon: dumbbell },
-  { href: "/corpo", label: "Corpo", color: "#30d158", icon: body },
 ];
 const secondary: Item[] = [
+  { href: "/corpo", label: "Corpo", color: "#30d158", icon: body },
   { href: "/status", label: "Status", color: "#ffb21e", icon: star },
   { href: "/mascote", label: "Mascote", color: "#ffb21e", icon: flame },
   { href: "/agenda", label: "Agenda", color: "#f5f5f7", icon: cal },
@@ -39,7 +40,6 @@ const secondary: Item[] = [
   { href: "/eventos", label: "Eventos", color: "#ffb21e", icon: flame },
   { href: "/financas", label: "Finanças", color: "#ffb21e", icon: money },
   { href: "/livros", label: "Livros", color: "#ffcc66", icon: book },
-  { href: "/metas", label: "Metas", color: "#ff9f0a", icon: goals },
   { href: "/configuracoes", label: "Configurações", color: "#9a978f", icon: gear },
 ];
 

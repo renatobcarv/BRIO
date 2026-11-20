@@ -34,8 +34,14 @@ export async function saveGoal(input: z.infer<typeof Goal>, id?: string) {
   done();
 }
 export async function setGoalCurrent(id: string, current: number) {
+  const goalId = z.string().uuid().parse(id);
+  const value = z.number().finite().parse(current);
   const sb = await createClient();
-  await sb.from("goals").update({ current: z.number().parse(current) }).eq("id", z.string().uuid().parse(id)); done();
+  const { data, error } = await sb.from("goals").update({ current: value })
+    .eq("id", goalId).is("auto_source", null).select("current").maybeSingle();
+  if (error || !data) return { ok: false as const };
+  done();
+  return { ok: true as const, current: Number(data.current) };
 }
 export async function deleteGoal(id: string) {
   const sb = await createClient(); await sb.from("goals").delete().eq("id", z.string().uuid().parse(id)); done();
