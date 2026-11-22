@@ -71,7 +71,7 @@ export async function markClean(on: boolean): Promise<string | null> {
 /** Recomeço honesto: registra a queda de hoje; a sequência volta a zero e o recorde fica. */
 export async function relapse(): Promise<string | null> {
   const sb = await createClient();
-  const { error } = await sb.from("clean_marks").upsert({ date: todayISO(), kind: "recaida" }, { onConflict: "user_id,date" });
+  const { error } = await sb.from("clean_marks").upsert({ date: todayISO(), kind: "recaida", created_at: new Date().toISOString() }, { onConflict: "user_id,date" });
   if (error) return /relation|does not exist|schema cache/i.test(error.message) ? CLEAN_MISSING : error.message;
   revalidatePath("/"); revalidatePath("/status");
   return null;

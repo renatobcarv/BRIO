@@ -31,7 +31,7 @@ function Fire({ n }: { n: number }) {
 }
 
 /** Dias limpos: +1 por dia vencido, recomeço honesto em caso de queda. */
-export function Streak({ count: initial, best, todayDone: done0, week: week0, next, ready = true, started = true }: { count: number; best: number; todayDone: boolean; week: DayState[]; next: number; ready?: boolean; started?: boolean }) {
+export function Streak({ count: initial, best, todayDone: done0, week: week0, next, ready = true, started = true, nextAt = null }: { nextAt?: number | null; count: number; best: number; todayDone: boolean; week: DayState[]; next: number; ready?: boolean; started?: boolean }) {
   const [pending, start] = useTransition();
   const { gain, celebrate } = useXp();
   const [count, setCount] = useState(initial);
@@ -66,7 +66,8 @@ export function Streak({ count: initial, best, todayDone: done0, week: week0, ne
           <p className="label">Dias limpos</p>
           <p className="mt-1"><CountUp value={count} duration={1100} className={`num text-6xl leading-none ${lit ? "text-glow" : ""}`} style={{ color: lit ? fireTier(count).core : undefined, ["--glow" as string]: fireTier(count).color } as React.CSSProperties} /></p>
           <p className="text-xs font-semibold mt-1 tracking-wide whitespace-nowrap" style={{ color: lit ? fireTier(count).color : "#8e8e93" }}>🔥 {fireTier(count).name.toUpperCase()} · +{cleanXp(done ? count : count + 1)} XP</p>
-          <p className="text-[11px] text-muted mt-0.5">{count === 0 ? "Hoje é o dia 1." : nextFire(count) ? `${nextFire(count)!.name} em ${nextFire(count)!.from - count} ${nextFire(count)!.from - count === 1 ? "dia" : "dias"} · marco ${next}` : `Próximo marco: ${next} dias`}</p>
+          {nextAt && <p className="text-[11px] mt-0.5" style={{ color: "#ffb21e" }}>Próximo dia conta {new Date(nextAt).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", weekday: "short", hour: "2-digit", minute: "2-digit" })} (24h completas)</p>}
+          <p className="text-[11px] text-muted mt-0.5">{count === 0 ? "O dia 1 conta após 24h limpas." : nextFire(count) ? `${nextFire(count)!.name} em ${nextFire(count)!.from - count} ${nextFire(count)!.from - count === 1 ? "dia" : "dias"} · marco ${next}` : `Próximo marco: ${next} dias`}</p>
         </div>
         <div className="text-right"><p className="label">Recorde</p><p className="num text-2xl mt-1">{Math.max(best, count)}</p></div>
       </div>

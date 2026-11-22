@@ -55,7 +55,7 @@ export default async function Hoje() {
     sb.from("finance_items").select("kind,amount,category,paid").eq("month", month),
     sb.from("goals").select("*").order("featured", { ascending: false }).order("deadline", { nullsFirst: false }).limit(3),
     sb.from("journal_entries").select("id").eq("date", today).like("text", "Texto do dia:%").limit(1),
-    sb.from("clean_marks").select("date,kind").gte("date", addDays(today, -800)),
+    sb.from("clean_marks").select("date,kind,at:created_at").gte("date", addDays(today, -800)),
   ]);
   const contactsQ = await sb.from("field_contacts").select("id,name,address").neq("status", "encerrado").order("next_visit", { nullsFirst: false }).limit(30);
 
@@ -136,7 +136,7 @@ export default async function Hoje() {
       </div>
       <div className="dash-side min-w-0">
       {game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}
-      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} />
+      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} nextAt={clean.nextAt} />
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
         <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
