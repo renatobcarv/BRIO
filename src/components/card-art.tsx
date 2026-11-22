@@ -1,6 +1,7 @@
 import Image from "next/image";
 
-type CardArtName = "treino" | "estudos" | "pioneiro" | "financas" | "metas" | "sonhos" | "agenda" | "conquistas";
+export type CardArtName = "treino" | "estudos" | "pioneiro" | "financas" | "metas" | "sonhos" | "agenda" | "conquistas"
+  | "mascote" | "configuracoes" | "corpo" | "eventos" | "vestiario";
 
 export function CardArt({ name, cover = false }: { name: CardArtName; cover?: boolean }) {
   return (

@@ -1,22 +1,25 @@
-import { CardArt } from "@/components/card-art";
+import { CardArt, type CardArtName } from "@/components/card-art";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 
 // Tudo que não cabe na barra de baixo do celular (mesma ordem do menu lateral).
 const MENU: [string, string][] = [["/corpo", "Corpo"], ["/status", "Status"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/configuracoes", "Configurações"]];
-const INFO: Record<string, { sub: string; art?: "agenda" | "conquistas" | "estudos" | "financas" | "metas" | "pioneiro" | "sonhos" | "treino" }> = {
-  "/corpo": { sub: "Água, sono, peso e alimentação" },
+const INFO: Record<string, { sub: string; art?: CardArtName }> = {
+  "/corpo": { sub: "Água, sono, peso e alimentação", art: "corpo" },
   "/status": { sub: "Nível, patentes, atributos e conquistas", art: "conquistas" },
-  "/mascote": { sub: "Sorteio, coleção e o seu companheiro" },
+  "/mascote": { sub: "Sorteio, coleção e o seu companheiro", art: "mascote" },
   "/agenda": { sub: "Linha do tempo, Google Agenda e IA", art: "agenda" },
   "/sonhos": { sub: "Quadro de sonhos com quem você ama", art: "sonhos" },
   "/estudos": { sub: "Trilhas, estudar com IA, conhecimento", art: "estudos" },
-  "/eventos": { sub: "Hell Week, desafios e insígnias" },
+  "/eventos": { sub: "Hell Week, desafios e insígnias", art: "eventos" },
   "/financas": { sub: "Saldo, orçamento, parcelas e caixinhas", art: "financas" },
   "/livros": { sub: "Estante, leituras e medalhas", art: "estudos" },
-  "/configuracoes": { sub: "Checklist, metas padrão, backup" },
+  "/configuracoes": { sub: "Checklist, metas padrão, backup", art: "configuracoes" },
 };
-const EXTRA: { href: string; label: string; color: string; sub: string; art?: "treino" }[] = [{ href: "/bestiario", label: "Bestiário", color: "#ffb21e", sub: "Feras, anjos e a Clareira" }];
+const EXTRA: { href: string; label: string; color: string; sub: string; art?: CardArtName }[] = [
+  { href: "/treino?aba=ferramentas", label: "Vestiário", color: "#b98add", sub: "Ferramentas de treino", art: "vestiario" },
+  { href: "/bestiario", label: "Bestiário", color: "#ffb21e", sub: "Feras, anjos e a Clareira" },
+];
 
 export default function Mais() {
   const items = [...MENU.map(([href, label]) => ({ href, label, color: "#ffb21e", ...INFO[href] })), ...EXTRA];
