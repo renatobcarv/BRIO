@@ -50,3 +50,17 @@ test("atalhos da semana e mover dia", () => {
   assert.deepEqual(Object.keys(moveDay(d, "3", "5")).sort(), ["1", "5"]);
   const sw = moveDay(d, "1", "3"); assert.equal(sw["3"][0].name, "Supino reto com barra"); assert.equal(sw["1"][0].name, "Rosca direta com barra");
 });
+import { suggestAdjustments } from "../src/lib/master.ts";
+test("sugestões automáticas: fadiga, incompleta, mover dia, troca habitual", () => {
+  const days = { "1": [E("Supino reto com barra", "peito", 4), E("Crucifixo na máquina (peck deck)", "peito", 3)], "3": [E("Rosca direta com barra", "biceps", 3)] };
+  const c = { programId: "p", kind: "acumulacao", week: 3, weekInPhase: 3, today: "2026-11-23" };
+  const heavy = [{ date: "2026-11-16", week_no: 2, program_id: "p", sets: Array.from({ length: 10 }, () => ({ exercise: "Supino reto com barra", kg: 80, reps: 5, rpe: 9.8 })) }];
+  assert.ok(suggestAdjustments(days, heavy, c).some((s) => s.id === "deload"));
+  assert.ok(suggestAdjustments(days, [], { ...c, today: "2026-11-23" }).some((s) => s.id === "deload")); // sumiu há muito
+  const tue = (d: string) => ({ date: d, week_no: 2, program_id: "p", sets: [{ exercise: "Supino reto com halteres", kg: 30, reps: 10, rpe: 8 }, { exercise: "Rosca direta com barra", kg: 30, reps: 10, rpe: 8 }] });
+  const hist = [tue("2026-11-04"), tue("2026-11-11"), tue("2026-11-18"), { date: "2026-11-20", week_no: 2, program_id: "p", sets: [{ exercise: "Rosca direta com barra", kg: 30, reps: 10, rpe: 8 }] }];
+  const s = suggestAdjustments(days, hist, c);
+  const mv = s.find((x) => x.id.startsWith("mover-1-")); assert.ok(mv, JSON.stringify(s.map((x) => x.id)));
+  const tr = s.find((x) => x.id === "troca-Supino reto com barra"); assert.ok(tr);
+  assert.equal(tr!.apply(days)["1"][0].name, "Supino reto com halteres");
+});

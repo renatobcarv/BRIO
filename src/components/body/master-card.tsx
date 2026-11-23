@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { REFS } from "@/lib/coach";
-import { weekNutrition, weightRate, type DietGoal } from "@/lib/master";
+import { suggestAdjustments, weekNutrition, weightRate, type DietGoal } from "@/lib/master";
 import { masterFor, type Workout } from "./training-core";
 import { WeekEditor } from "./week-editor";
 import { absence } from "@/lib/mestre";
@@ -40,7 +40,7 @@ export function MasterCard({ program, workouts, today, nutrition }: { program: P
         <p className="text-[20px] font-bold">{nut.kcal.toLocaleString("pt-BR")} kcal/dia{nut.adj ? <span className="text-[13px] font-semibold ml-2" style={{ color: A }}>{nut.adj > 0 ? "+" : ""}{nut.adj}</span> : null}</p>
         <ul className="mt-1 grid gap-1">{nut.tips.map((t, i) => <li key={i} className="text-[12.5px] text-white/70">• {t.text}</li>)}</ul>
       </div>}
-      <WeekEditor programId={program.id} week={m.week} days={m.days} adjusted={!!m.adjusted} />
+      <WeekEditor programId={program.id} week={m.week} days={m.days} adjusted={!!m.adjusted} suggestions={m.adjusted ? [] : suggestAdjustments(m.days, workouts.map((w) => ({ date: w.date, week_no: w.week_no, program_id: program.id, sets: w.sets })), { programId: program.id, kind: m.phase.kind, week: m.week, weekInPhase: 1, today })} />
       <button className="relative text-[12px] text-white/50 mt-3 underline underline-offset-2" onClick={() => setOpen(!open)}>{open ? "Esconder" : "Ver"} os estudos por trás</button>
       {open && <ul className="relative mt-2 grid gap-1.5">
         {[...new Set([...m.changes, ...(nut?.tips ?? [])].map((c) => c.ref))].map((r) => <li key={r} className="text-[11.5px] text-white/50 leading-snug">{REFS[r]}</li>)}

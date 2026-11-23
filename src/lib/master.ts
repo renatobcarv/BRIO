@@ -146,3 +146,54 @@ export function moveDay(days: Record<string, PlannedEx[]>, from: string, to: str
   return out;
 }
 export const totalSets = (days: Record<string, PlannedEx[]>) => Object.values(days).flat().reduce((a, e) => a + e.sets, 0);
+
+// ── Sugestões automáticas de ajuste (o Mestre propõe, você aceita) ──
+export type Suggestion = { id: string; title: string; why: string; ref: RefKey; apply: (d: Record<string, PlannedEx[]>) => Record<string, PlannedEx[]> };
+const dowOf = (iso: string) => String(new Date(iso + "T12:00:00Z").getUTCDay());
+const WDN = ["domingo", "segunda", "terça", "quarta", "quinta", "sexta", "sábado"];
+
+/** Lê as últimas semanas e propõe ajustes concretos para a semana atual. */
+export function suggestAdjustments(days: Record<string, PlannedEx[]>, hist: MWorkout[], ctx: Ctx & { today: string }): Suggestion[] {
+  const out: Suggestion[] = [];
+  const day = (iso: string) => Date.parse(iso + "T12:00:00Z") / 864e5, t = day(ctx.today);
+  const recent = hist.filter((w) => t - day(w.date) <= 21 && t - day(w.date) >= 0);
+  const last = hist.map((w) => w.date).sort().at(-1), away = last ? t - day(last) : 99;
+  const plannedDays = Object.keys(days).filter((d) => days[d].length);
+  const fb = ctx.week > 1 ? lastWeekFeedback(days, hist, ctx) : null;
+  const all = fb ? [...fb.muscles.values()] : [];
+  const done = all.reduce((a, x) => a + x.done, 0), planned = all.reduce((a, x) => a + x.planned, 0);
+  const rpes = all.map((x) => x.rpe).filter((x): x is number => x != null), avgRpe = rpes.length ? rpes.reduce((a, b) => a + b, 0) / rpes.length : null;
+  const target = days[plannedDays[0]]?.[0]?.rpe ?? 8;
+
+  // 1. Fadiga ou volta depois de muito tempo → deload antecipado.
+  if (away >= 10 || (avgRpe != null && avgRpe >= target + 1)) out.push({ id: "deload", title: "Semana mais leve (deload antecipado)", why: away >= 10 ? `${Math.round(away)} dias sem treinar: volte com metade das séries para o corpo readaptar.` : `RPE médio de ${avgRpe!.toFixed(1).replace(".", ",")} na semana passada, acima do alvo: sinal de fadiga acumulada.`, ref: "deload", apply: (d) => applyPreset(d, "destruido") });
+  // 2. Semana passada incompleta → cortar volume para caber na vida real.
+  else if (fb?.trained && planned && done / planned < 0.6) out.push({ id: "corrida", title: "Reduzir 30% das séries", why: `Você fez ${Math.round((done / planned) * 100)}% das séries planejadas. Melhor um plano menor cumprido do que um grande abandonado.`, ref: "overload", apply: (d) => applyPreset(d, "corrida") });
+  // 3. Folga sobrando → subir volume.
+  else if (fb?.trained && planned && done / planned >= 0.95 && avgRpe != null && avgRpe <= target - 1) out.push({ id: "voando", title: "+1 série no principal de cada músculo", why: `Tudo cumprido com RPE médio ${avgRpe.toFixed(1).replace(".", ",")}: há espaço para mais estímulo.`, ref: "volume", apply: (d) => applyPreset(d, "voando") });
+
+  // 4. Dia planejado que você nunca faz, mas treina em outro dia → mover.
+  const trainedDows = new Map<string, number>(); for (const w of recent) trainedDows.set(dowOf(w.date), (trainedDows.get(dowOf(w.date)) ?? 0) + 1);
+  for (const d of plannedDays) {
+    if (recent.length < 3 || trainedDows.get(d)) continue;
+    const alt = [...trainedDows].filter(([k]) => !days[k]?.length).sort((a, b) => b[1] - a[1])[0];
+    if (alt) out.push({ id: `mover-${d}-${alt[0]}`, title: `Mover o treino de ${WDN[+d]} para ${WDN[+alt[0]]}`, why: `Nas últimas semanas você não treinou ${WDN[+d]}, mas treinou ${alt[1]}× às ${WDN[+alt[0]]}s.`, ref: "freq", apply: (x) => moveDay(x, d, alt[0]) });
+  }
+
+  // 5. Exercício planejado que você sempre troca por outro do mesmo músculo → assumir a troca.
+  const logged = new Set(recent.flatMap((w) => w.sets.map((s) => s.exercise)));
+  const plannedNames = new Set(Object.values(days).flat().map((e) => e.name));
+  for (const e of Object.values(days).flat()) {
+    if (logged.has(e.name) || recent.length < 2) continue;
+    const sub = [...logged].find((n) => !plannedNames.has(n) && Object.values(POOL).some((p) => (p[e.muscle] ?? []).includes(n)));
+    if (sub && !out.some((s) => s.id === `troca-${e.name}`)) out.push({ id: `troca-${e.name}`, title: `Trocar ${e.name} por ${sub}`, why: `Você não fez ${e.name} nas últimas semanas, mas registrou ${sub}, do mesmo músculo.`, ref: "variation", apply: (x) => Object.fromEntries(Object.entries(x).map(([k, l]) => [k, l.map((y) => (y.name === e.name ? { ...y, name: sub } : y))])) });
+  }
+
+  // 6. Músculo que ficou para trás → trazer para o começo do treino.
+  for (const [m, f] of fb?.muscles ?? []) {
+    if (!fb?.trained || !f.planned || f.done / f.planned >= 0.5) continue;
+    out.push({ id: `prior-${m}`, title: `Começar pelos exercícios de ${m.replace(/_/g, " ")}`, why: `Só ${f.done} de ${f.planned} séries feitas semana passada: no início do treino você tem mais energia.`, ref: "volume",
+      apply: (x) => Object.fromEntries(Object.entries(x).map(([k, l]) => [k, [...l.filter((y) => y.muscle === m), ...l.filter((y) => y.muscle !== m)]])) });
+  }
+  return out.slice(0, 5);
+}
