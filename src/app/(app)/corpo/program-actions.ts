@@ -70,3 +70,14 @@ export async function saveWeekOverride(programId: string, week: number, days: Re
   revalidatePath("/treino"); done();
   return null;
 }
+
+/** Antecipa o início da campanha para esta semana (segunda-feira atual, horário de Brasília). */
+export async function startProgramNow(id: string): Promise<string | null> {
+  const p = Id.safeParse(id); if (!p.success) return "Programa inválido.";
+  const d = new Date(Date.now() - 3 * 36e5); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7));
+  const sb = await createClient();
+  const { error } = await sb.from("training_programs").update({ start_date: d.toISOString().slice(0, 10) }).eq("id", p.data);
+  if (error) return error.message;
+  revalidatePath("/treino"); revalidatePath("/eventos"); done();
+  return null;
+}

@@ -49,3 +49,19 @@ test("isolados nunca abaixo de 8 repetições, em nenhuma fase ou onda", () => {
     for (const e of Object.values(m.days).flat()) if (ISOLATION.test(e.name)) assert.ok(Number(e.reps.split("-")[0]) >= 8, `${ph.kind} s${w} ${e.name} ${e.reps}`);
   }
 });
+import { liftSchedule } from "../src/lib/coach.ts";
+test("especialização: frequência certa e sem agachamento+terra pesados no mesmo dia", () => {
+  for (let d = 3; d <= 6; d++) for (const f of ["big3", "agachamento", "supino", "terra"] as const) {
+    const s = liftSchedule(f, d), count = (l: string) => s.flat().filter((x) => x.lift === l).length;
+    if (f !== "big3") assert.equal(count(f), 3, `${f} ${d}d`);
+    else { assert.equal(count("supino"), 3); assert.equal(count("agachamento"), 2); }
+    for (const day of s) assert.ok(!(day.some((x) => x.lift === "agachamento" && x.kind === 0) && day.some((x) => x.lift === "terra" && x.kind === 0)), `${f} ${d}d`);
+  }
+});
+test("programa com foco no supino: supino 3×, protegido do corte de tempo, com pico no fim", () => {
+  const r = buildProgram(A({ goal: "hipertrofia", focus: "supino", days: 4, minutes: 45 }));
+  const ph = r.program.phases[0], names = Object.values(ph.days).flat().map((e) => e.name);
+  assert.equal(names.filter((n) => /^Supino (reto com barra|com pausa)$/.test(n)).length, 3);
+  assert.equal(r.program.phases.at(-1)!.kind, "realizacao");
+  assert.ok(r.why.some((w) => w.ref === "spec"));
+});

@@ -7,7 +7,49 @@ export type Equip = "academia" | "halteres" | "casa";
 export type TrainAnswers = {
   goal: Goal; level: Level; days: number; minutes: number; equipment: Equip; weeks: number;
   priority: Muscle[]; injuries: string; sleep: number; stress: "baixo" | "medio" | "alto"; start: string;
+  /** Especialização nos básicos: geral, os 3 (powerlifting) ou foco num levantamento. */
+  focus?: Focus;
 };
+export type Focus = "geral" | "big3" | "agachamento" | "supino" | "terra";
+export const FOCUS: Record<Focus, { label: string; hint: string }> = {
+  geral: { label: "Equilibrado", hint: "Todos os grupos com volume parecido" },
+  big3: { label: "Os 3 básicos (powerlifting)", hint: "Agachamento 2×, supino 3×, terra 1–2× por semana" },
+  agachamento: { label: "Foco no agachamento", hint: "Agachamento 3× (pesado, volume, pausado); supino e terra em manutenção" },
+  supino: { label: "Foco no supino", hint: "Supino 3× (pesado, volume, com pausa); agachamento e terra em manutenção" },
+  terra: { label: "Foco no terra", hint: "Terra 3× (pesado, volume, com pausa); agachamento e supino em manutenção" },
+};
+type Lift = "agachamento" | "supino" | "terra";
+const LIFT: Record<Lift, { muscle: Muscle; names: [string, string, string] }> = {
+  agachamento: { muscle: "quadriceps", names: ["Agachamento livre", "Agachamento livre", "Agachamento pausado"] },
+  supino: { muscle: "peito", names: ["Supino reto com barra", "Supino reto com barra", "Supino com pausa"] },
+  terra: { muscle: "posteriores", names: ["Levantamento terra", "Stiff com barra", "Levantamento terra com pausa"] },
+};
+type Slot = { lift: Lift; kind: 0 | 1 | 2 }; // 0 pesado, 1 volume, 2 técnica/variação
+/**
+ * Distribui as exposições dos básicos na semana (especificidade + frequência para força:
+ * Grgic et al. 2018, Sports Med — mais frequência com volume igualado ajuda a força nos levantamentos treinados).
+ * Manutenção: 1×/semana pesado preserva a força com ~1/3 do volume (Rønnestad et al. 2011).
+ */
+export function liftSchedule(focus: Focus, days: number): Slot[][] {
+  const out: Slot[][] = Array.from({ length: days }, () => []);
+  if (focus === "geral") return out;
+  const want: [Lift, number][] = focus === "big3" ? [["supino", Math.min(3, days)], ["agachamento", 2], ["terra", days >= 4 ? 2 : 1]]
+    : (["agachamento", "supino", "terra"] as Lift[]).map((l) => [l, l === focus ? Math.min(3, days) : 1]);
+  for (const [lift, n] of want) for (let k = 0; k < n; k++) {
+    const pref = Math.round((k * days) / n) % days;
+    let best = -1;
+    for (let j = 0; j < days; j++) {
+      const d = (pref + j) % days, here = out[d];
+      if (here.some((x) => x.lift === lift)) continue;
+      // Agachamento e terra pesados no mesmo dia somam fadiga demais.
+      if (k === 0 && here.some((x) => x.kind === 0 && (x.lift === "terra" || x.lift === "agachamento") && lift !== "supino")) continue;
+      if (best < 0 || here.length < out[best].length) best = d;
+      if (here.length === 0) break;
+    }
+    if (best >= 0) out[best].push({ lift, kind: (Math.min(k, 2)) as 0 | 1 | 2 });
+  }
+  return out;
+}
 
 export const REFS = {
   volume: "Schoenfeld, Ogborn & Krieger (2017), J Sports Sci: mais séries semanais por músculo → mais hipertrofia (10+ séries/semana superam menos de 5).",
@@ -25,6 +67,7 @@ export const REFS = {
   overload: "Plotkin et al. (2022), PeerJ: progredir por carga ou por repetições traz ganhos parecidos, o que importa é progredir.",
   rate: "Helms et al. (2014) e Iraki et al. (2019): perder ~0,5–1% do peso por semana preserva músculo; ganhar ~0,25–0,5% limita a gordura.",
   carbs: "Kerksick et al. (2017), JISSN (timing de nutrientes): carboidrato em volta do treino ajuda o desempenho em sessões de alto volume.",
+  spec: "Grgic et al. (2018), Sports Med: treinar o levantamento mais vezes por semana (com volume igualado) melhora a força nele; Rønnestad et al. (2011): 1×/semana mantém a força.",
   diets: "Aragon et al. (2017), JISSN (position stand): o déficit calórico manda; a melhor dieta é a que você consegue manter.",
 } as const;
 export type RefKey = keyof typeof REFS;
@@ -124,8 +167,9 @@ export function buildProgram(a: TrainAnswers) {
   const sp = split(a.days), keys = DAY_KEYS[sp.length], pool = POOL[a.equipment];
   const hits = (m: Muscle) => sp.filter((d) => d.muscles.includes(m)).length;
   const maxSets = Math.max(10, Math.floor(a.minutes / 3)); // ~3 min por série com descanso
-  const strength = a.goal === "forca" || a.goal === "powerbuilding";
-  const bl = blocks(a.goal, a.weeks, a.level);
+  const strength = a.goal === "forca" || a.goal === "powerbuilding" || (a.focus ?? "geral") !== "geral";
+  const bl = blocks((a.focus ?? "geral") !== "geral" ? "forca" : a.goal, a.weeks, a.level);
+  const focus: Focus = a.focus ?? "geral", sched = liftSchedule(focus, sp.length);
   const phases: Phase[] = bl.map((b) => {
     const days: Record<string, PlannedEx[]> = {}, dayNames: Record<string, string> = {};
     sp.forEach((d, di) => {
@@ -144,10 +188,26 @@ export function buildProgram(a: TrainAnswers) {
           list.push({ name, muscle: m, sets: Math.max(1, Math.min(6, n)), reps: r, kg: null, rpe: b.rpe, rir: Math.max(0, Math.round(10 - b.rpe)), rest: compound && ci === 0 ? 150 : 75, notes: "" });
         });
       });
+      // Especialização: os básicos do dia entram primeiro, com intensidade por tipo de exposição.
+      const lifts = sched[di] ?? [];
+      if (focus !== "geral") {
+        list = list.filter((e) => !/^(agachamento livre|supino reto com barra|levantamento terra)$/i.test(e.name));
+        const strong = b.kind === "realizacao";
+        const mk = (sl: Slot): PlannedEx => {
+          const L = LIFT[sl.lift], spec = focus === "big3" || focus === sl.lift;
+          const reps = strong ? (sl.kind === 0 ? "1-3" : "3") : sl.kind === 0 ? (b.kind === "intensificacao" ? "3-5" : "4-6") : sl.kind === 1 ? (b.kind === "intensificacao" ? "5-6" : "6-8") : "3-5";
+          const rpe = Math.min(9.5, Math.max(6, b.rpe + (sl.kind === 0 ? 0.5 : sl.kind === 1 ? -0.5 : -1.5)));
+          const sets = Math.max(2, Math.round((sl.kind === 0 ? 4 : sl.kind === 1 ? 4 : 3) * b.mult * (spec ? 1 : 0.75)));
+          return { name: L.names[sl.kind], muscle: L.muscle, sets, reps, kg: null, rpe, rir: Math.max(0, Math.round(10 - rpe)), rest: sl.kind === 2 ? 150 : 180,
+            notes: sl.kind === 0 ? "Dia pesado" : sl.kind === 1 ? "Dia de volume" : "Técnica: pausa de 2 s, controle total" };
+        };
+        list = [...lifts.map(mk), ...list];
+      }
+      const protectedNames = new Set(lifts.map((l) => LIFT[l.lift].names[l.kind]));
       // Respeita o tempo da sessão: corta séries dos músculos sem prioridade, do fim para o começo.
       let total = list.reduce((s, e) => s + e.sets, 0);
       for (let i = list.length - 1; total > maxSets && i >= 0; i--) {
-        if (a.priority.includes(list[i].muscle)) continue;
+        if (a.priority.includes(list[i].muscle) || protectedNames.has(list[i].name)) continue;
         while (list[i].sets > 1 && total > maxSets) { list[i].sets--; total--; }
       }
       list = list.filter((e, i, arr) => arr.findIndex((x) => x.name === e.name) === i);
@@ -164,6 +224,7 @@ export function buildProgram(a: TrainAnswers) {
     { text: "Carga guiada por RPE/RIR: o peso se ajusta ao seu dia, sem chute.", ref: "rpe" },
     { text: "Deload a cada 4–6 semanas para recuperar e continuar progredindo.", ref: "deload" },
   ];
+  if (focus !== "geral") why.push({ text: `${FOCUS[focus].label}: ${FOCUS[focus].hint}. Pesado, volume e técnica em dias diferentes.`, ref: "spec" });
   if (a.sleep < 6.5 || a.stress === "alto") why.push({ text: "Sono curto ou estresse alto: o volume começa 20% menor e sobe conforme você recupera.", ref: "sleep" });
   const GOAL_NAME: Record<Goal, string> = { powerbuilding: "Powerbuilding", forca: "Força", hipertrofia: "Hipertrofia", recomposicao: "Recomposição", emagrecimento: "Emagrecimento", condicionamento: "Condicionamento" };
   return { program: { name: `${GOAL_NAME[a.goal]} · ${totalWeeks} semanas`, goal: a.goal, start_date: a.start, phases, notes: why.map((w) => `• ${w.text}`).join("\n") }, why, totalWeeks };

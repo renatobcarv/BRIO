@@ -22,6 +22,7 @@ import { TrainingSystem } from "./training-system";
 import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 import { NextWeeks } from "./next-weeks";
+import { startProgramNow } from "@/app/(app)/corpo/program-actions";
 import { MasterCard, type MasterDay, type Nutrition } from "./master-card";
 import { Consult } from "./consult";
 
@@ -105,6 +106,7 @@ export function Training({ today, split, plan, workouts, program = null, program
               {program && <div className="mt-3"><Timeline p={program} today={today} /></div>}
             </button>
             {program && pos?.status === "andamento" && <NextWeeks p={program} week={pos.week} />}
+            {program && pos?.status === "futuro" && <button className="btn btn-accent w-full mt-3" onClick={async () => { const e = await startProgramNow(program.id); if (e) alert(e); else location.reload(); }}>Começar agora (semana 1 = esta semana)</button>}
             <div className="mt-5 flex justify-between label !text-[9px]"><span>Sessões da semana</span><span style={{ color: R }}>{done}/{total}</span></div>
             <div className="flex gap-1 mt-1.5" aria-hidden>{Array.from({ length: Math.max(total, 1) }, (_, i) => <i key={i} className="h-3 flex-1" style={{ background: i < done ? R : "rgba(255,255,255,.08)" }} />)}</div>
             <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">

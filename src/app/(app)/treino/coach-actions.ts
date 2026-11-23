@@ -11,6 +11,7 @@ const Train = z.object({
   days: z.number().int().min(2).max(6), minutes: z.number().int().min(30).max(150), equipment: z.enum(["academia", "halteres", "casa"]),
   weeks: z.number().int().min(4).max(24), priority: z.array(z.enum(Object.keys(MUSCLES) as [string, ...string[]])).max(3),
   injuries: z.string().max(300), sleep: z.number().min(3).max(12), stress: z.enum(["baixo", "medio", "alto"]), start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  focus: z.enum(["geral", "big3", "agachamento", "supino", "terra"]).optional(),
 });
 const Diet = z.object({
   sex: z.enum(["m", "f"]), age: z.number().int().min(14).max(90), cm: z.number().min(120).max(230), kg: z.number().min(35).max(250),

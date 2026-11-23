@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { createFromConsult, previewProgram } from "@/app/(app)/treino/coach-actions";
-import { REFS, type TrainAnswers } from "@/lib/coach";
+import { FOCUS, REFS, type Focus, type TrainAnswers } from "@/lib/coach";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
 
 const A = "#ffb21e";
@@ -10,9 +10,11 @@ type Diet = { sex: "m" | "f"; age: number; cm: number; kg: number; meals: number
 type Opt<T> = { v: T; l: string; d?: string };
 type Q = { who: "treino" | "dieta"; key: string; ask: string; why?: string; opts?: Opt<unknown>[]; multi?: number; input?: "number" | "text"; unit?: string; skip?: boolean };
 
-const nextMonday = () => { const d = new Date(); d.setDate(d.getDate() + ((8 - d.getDay()) % 7 || 7)); return d.toISOString().slice(0, 10); };
+/** O plano começa JÁ: semana 1 = esta semana (segunda-feira atual, no horário de Brasília). */
+const thisMonday = () => { const d = new Date(Date.now() - 3 * 36e5); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d.toISOString().slice(0, 10); };
 const Qs: Q[] = [
   { who: "treino", key: "goal", ask: "Qual é o seu objetivo principal agora?", opts: (Object.keys(GOALS) as Goal[]).map((g) => ({ v: g, l: GOALS[g] })) },
+  { who: "treino", key: "focus", ask: "Quer um foco nos levantamentos básicos?", why: "Especializar = treinar o levantamento mais vezes por semana, com pesado, volume e técnica.", opts: (Object.keys(FOCUS) as Focus[]).map((f) => ({ v: f, l: FOCUS[f].label, d: FOCUS[f].hint })) },
   { who: "treino", key: "level", ask: "Há quanto tempo você treina com consistência?", why: "Define o volume inicial: iniciantes crescem com menos.", opts: [{ v: "iniciante", l: "Menos de 1 ano" }, { v: "intermediario", l: "1 a 3 anos" }, { v: "avancado", l: "Mais de 3 anos" }] },
   { who: "treino", key: "days", ask: "Quantos dias por semana você consegue treinar de verdade?", why: "Melhor um plano que você cumpre do que um perfeito que abandona.", opts: [2, 3, 4, 5, 6].map((n) => ({ v: n, l: `${n} dias` })) },
   { who: "treino", key: "minutes", ask: "Quanto tempo por treino?", opts: [45, 60, 75, 90].map((n) => ({ v: n, l: `${n} min` })) },
@@ -68,7 +70,7 @@ export function Consult() {
     setTxt(previous.input ? String(ans[previous.key] ?? "") : "");
     setI(i - 1);
   };
-  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: nextMonday() });
+  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: thisMonday(), focus: (ans.focus as Focus) ?? "geral" });
   const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio" });
   const next = (val: unknown) => {
     const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));
@@ -132,7 +134,7 @@ export function Consult() {
                   {q.opts && !q.multi && <div className="mt-4 grid gap-2 sm:grid-cols-2">{q.opts.map((o) => (
                     <button key={String(o.v)} type="button" disabled={busy} onClick={() => next(o.v)}
                       className="flex min-h-12 items-center justify-between gap-2 rounded-xl border border-white/15 bg-white/[.04] px-3 py-2 text-left text-sm font-medium hover:border-[var(--consult-accent)] hover:bg-white/[.08] focus-visible:outline-2 focus-visible:outline-[var(--consult-accent)] disabled:opacity-50">
-                      {o.l}<span aria-hidden="true" className="text-[var(--consult-accent)]">→</span>
+                      <span>{o.l}{o.d && <span className="block text-[12px] font-normal text-white/55 mt-0.5">{o.d}</span>}</span><span aria-hidden="true" className="text-[var(--consult-accent)]">→</span>
                     </button>
                   ))}</div>}
                   {q.opts && q.multi && <>
