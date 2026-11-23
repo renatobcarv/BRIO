@@ -31,10 +31,13 @@ export function MasterCard({ program, workouts, today, nutrition, day, onViewDay
   const percent = planned > 0 ? Math.round((done / planned) * 100) : null;
   const returning = day === "treino" && away;
   return (
-    <section className="span-all hunt-card rise mt-4 min-w-0 overflow-hidden !border-[#a875303d]" aria-label="Briefing do Mestre">
-      <header className="relative isolate flex min-h-56 flex-col justify-end overflow-hidden p-4 sm:p-6">
-        <Image src="/cards/mestre.webp" fill alt="" unoptimized sizes="(max-width: 768px) 100vw, 700px" className="-z-20 object-cover object-[68%_37%] sm:object-[center_37%]" />
-        <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#080807_2%,#080807eb_29%,#08080728_73%),linear-gradient(0deg,#101011_1%,transparent_60%)]" />
+    <section className="span-all hunt-card rise relative isolate mt-4 min-w-0 overflow-hidden !border-[#a875303d]" aria-label="Briefing do Mestre">
+      {/* Arte do Mestre atrás do topo do card, dissolvendo para o fundo (sem corte reto). */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-[340px] sm:h-[420px] [mask-image:linear-gradient(180deg,#000_45%,transparent_100%)]">
+        <Image src="/cards/mestre.webp" fill alt="" unoptimized sizes="(max-width: 768px) 100vw, 1200px" className="object-cover object-[68%_30%] sm:object-[72%_22%]" />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,#0b0b0c_0%,#0b0b0cf0_30%,#0b0b0c80_55%,transparent_80%)]" />
+      </div>
+      <header className="relative flex min-h-56 flex-col justify-end p-4 sm:p-6">
         <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#ffd084]">O Mestre · Semana {m.week}</p>
         <h2 className="mt-2 max-w-[65%] text-balance font-display text-[clamp(1.65rem,4vw,3rem)] font-bold uppercase leading-[.98] tracking-tight text-white">{m.wave ?? m.phase.name}</h2>
       </header>

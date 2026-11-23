@@ -10,8 +10,8 @@ test("RPE entra no 1RM estimado como repetições em reserva", () => {
 test("carga para reps e RPE alvo", () => { assert.equal(roundPlate(loadFor(150, 5, 8)), 122.5); assert.equal(roundPlate(103.7), 102.5); assert.equal(roundPlate(104), 105); });
 test("sem histórico não sugere nada", () => assert.equal(suggestLoad([], { reps: "5", rpe: 8 }), null));
 test("sugestão limitada a +5% da última carga", () => {
-  const h = [{ date: "2026-11-01", kg: 100, reps: 10, rpe: 9 }]; // 1RM ~140
-  const s = suggestLoad(h, { reps: "3", rpe: 9 })!;
+  const h = [{ date: "2026-11-01", kg: 100, reps: 5, rpe: 6 }]; // sobrou força: 1RM ~130
+  const s = suggestLoad(h, { reps: "5", rpe: 8 })!;
   assert.equal(s.kg, 105); assert.equal(s.capped, true);
 });
 test("faixa de reps usa o menor valor e deload reduz 15%", () => {
@@ -37,4 +37,14 @@ test("carga inicial estimada pelo peso corporal", () => {
   assert.equal(starterLoad("Agachamento livre", 80), 45);
   assert.equal(starterLoad("Elevação lateral com halteres", 80), 5);
   assert.equal(starterLoad("Exercício inventado", 80), null);
+});
+
+test("faixa de reps muito diferente: calibra 10% abaixo (nunca copia o recorde)", () => {
+  const h = [{ date: "2026-11-01", kg: 82.5, reps: 6, rpe: 9 }];
+  const s = suggestLoad(h, { reps: "12-16", rpe: 8 })!;
+  assert.ok(s.kg <= 82.5 * 0.8, String(s.kg)); assert.match(s.reason, /calibrar/);
+});
+test("muito tempo parado: −10%", () => {
+  const h = [{ date: "2026-10-01", kg: 100, reps: 5, rpe: 8 }];
+  assert.ok(suggestLoad(h, { reps: "5", rpe: 8 }, { today: "2026-11-01" })!.kg < suggestLoad(h, { reps: "5", rpe: 8 })!.kg);
 });

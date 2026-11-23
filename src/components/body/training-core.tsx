@@ -33,7 +33,7 @@ export function historyOf(workouts: Workout[], name: string, beforeDate: string)
 }
 export function suggestionFor(workouts: Workout[], t: Target, date: string, deload: boolean): Suggestion | null {
   if (isTimed(t.name, (t as { muscle?: string }).muscle)) return null;
-  return suggestLoad(historyOf(workouts, t.name, date), { reps: t.reps, rpe: t.rpe ?? null }, { deload });
+  return suggestLoad(historyOf(workouts, t.name, date), { reps: t.reps, rpe: t.rpe ?? null }, { deload, today: date });
 }
 export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
   const w = workouts.find((w) => w.date <= beforeDate && w.sets.some((s) => s.exercise.toLowerCase() === name.toLowerCase()));
@@ -52,10 +52,10 @@ export function buildSession(date: string, day: SplitDay, plan: Target[], workou
       const last = lastFor(workouts, p.name, date), timed = isTimed(p.name, (p as { muscle?: string }).muscle);
       const sug = p.kg == null && !timed ? suggestionFor(workouts, p, date, !!ctx?.deload) : null;
       const starter = !timed && p.kg == null && !sug && !last ? starterLoad(p.name, bodyweight) : null;
-      const base = p.kg != null ? p.kg : sug ? sug.kg : last?.sets[0] ? Number(last.sets[0].kg) : starter ?? 0;
+      const base = p.kg != null ? p.kg : sug ? sug.kg : last?.sets[0] ? Math.floor((Number(last.sets[0].kg) * 0.9) / 2.5) * 2.5 : starter ?? 0;
       const reps = firstNum(p.reps) || 8;
       const loads = timed ? [] : setLoads(base, p.sets, reps);
-      const note = timed ? undefined : p.kg != null ? "Carga definida no plano" : sug ? `Sugerida: ${sug.reason}` : last ? "Repetindo a última carga (registre o RPE para o app calibrar)" : starter ? "Carga inicial estimada pelo seu peso: comece leve, o app ajusta após a 1ª série" : undefined;
+      const note = timed ? undefined : p.kg != null ? "Carga definida no plano" : sug ? `Sugerida: ${sug.reason}` : last ? "10% abaixo da última carga para calibrar: o app ajusta após a 1ª série" : starter ? "Carga inicial estimada pelo seu peso: comece leve, o app ajusta após a 1ª série" : undefined;
       const work = Array.from({ length: p.sets }, (_, i) => ({
         kg: timed ? (last?.sets[i] ? String(last.sets[i].kg) : "") : loads[i] ? String(loads[i]) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "", auto: !timed && !!loads[i] }));
       // Aquecimento automático antes dos levantamentos principais com barra (até ~90% da carga de trabalho).

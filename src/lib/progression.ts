@@ -14,27 +14,33 @@ const firstNum = (s: string) => Number((s.match(/\d+(?:[.,]\d+)?/) ?? ["0"])[0].
 export type Suggestion = { kg: number; e1rm: number; lastTop: number; reason: string; capped: boolean };
 
 /**
- * Sugere a carga da próxima sessão:
- * - 1RM estimado = melhor das últimas 3 sessões (séries de 1–12 reps);
+ * Sugere a carga da próxima sessão, sempre a partir do 1RM ESTIMADO (nunca copiando o recorde):
+ * - 1RM estimado = melhor das últimas 3 sessões (séries de 1–20 reps; Epley com o RIR do RPE);
  * - carga = 1RM ÷ (1 + (reps alvo + RIR)/30), arredondada a 2,5 kg;
- * - nunca mais de 5% acima da última carga de trabalho; no deload, 85% da sugestão normal.
+ * - progressão: no máximo +5% sobre a última carga de trabalho (ACSM 2009: 2–10% quando as reps sobram);
+ * - faixa de repetições nova (±4 reps da última) ou 14+ dias parado: começa 10% abaixo para calibrar;
+ * - deload: −15%.
  */
-export function suggestLoad(history: HistSet[], target: { reps: string; rpe: number | null }, opts: { deload?: boolean } = {}): Suggestion | null {
-  const valid = history.filter((s) => s.kg > 0 && s.reps >= 1 && s.reps <= 12);
+export function suggestLoad(history: HistSet[], target: { reps: string; rpe: number | null }, opts: { deload?: boolean; today?: string } = {}): Suggestion | null {
+  const valid = history.filter((s) => s.kg > 0 && s.reps >= 1 && s.reps <= 20);
   if (!valid.length) return null;
   const dates = [...new Set(valid.map((s) => s.date))].sort().slice(-3);
   const recent = valid.filter((s) => dates.includes(s.date));
   const e1rm = Math.max(...recent.map(setE1rm));
-  const lastDate = dates.at(-1)!;
-  const lastTop = Math.max(...valid.filter((s) => s.date === lastDate).map((s) => s.kg));
+  const lastDate = dates.at(-1)!, lastSets = valid.filter((s) => s.date === lastDate);
+  const lastTop = Math.max(...lastSets.map((s) => s.kg));
+  const lastReps = lastSets.reduce((a, s) => a + s.reps, 0) / lastSets.length;
   const reps = Math.max(1, Math.round(firstNum(target.reps) || 5));
   const rpe = target.rpe ?? 8;
-  let kg = loadFor(e1rm, reps, rpe);
-  let capped = false;
-  if (kg > lastTop * 1.05) { kg = lastTop * 1.05; capped = true; }
-  if (opts.deload) kg *= 0.85;
-  kg = Math.max(0, roundPlate(kg));
-  const reason = `${reps} reps @RPE ${String(rpe).replace(".", ",")} com 1RM estimado de ${Math.round(e1rm)} kg${capped ? " · limitado a +5% da última carga" : ""}${opts.deload ? " · semana de deload (−15%)" : ""}`;
+  const notes: string[] = [];
+  let kg = loadFor(e1rm, reps, rpe), capped = false;
+  if (kg > lastTop * 1.05) { kg = lastTop * 1.05; capped = true; notes.push("limitado a +5% da última carga"); }
+  if (Math.abs(reps - lastReps) >= 4) { kg *= 0.9; notes.push(`faixa nova (${Math.round(lastReps)}→${reps} reps): −10% para calibrar`); }
+  const away = opts.today ? Math.round((Date.parse(opts.today) - Date.parse(lastDate)) / 864e5) : 0;
+  if (away >= 14) { kg *= 0.9; notes.push(`${away} dias sem esse exercício: −10%`); }
+  if (opts.deload) { kg *= 0.85; notes.push("semana de deload (−15%)"); }
+  kg = Math.max(0, Math.floor(kg / 2.5) * 2.5);
+  const reason = `${reps} reps @RPE ${String(rpe).replace(".", ",")} com 1RM estimado de ${Math.round(e1rm)} kg${notes.length ? " · " + notes.join(" · ") : ""}`;
   return { kg, e1rm: Math.round(e1rm), lastTop, reason, capped };
 }
 
