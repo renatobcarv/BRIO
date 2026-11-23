@@ -59,9 +59,31 @@ test("especialização: frequência certa e sem agachamento+terra pesados no mes
   }
 });
 test("programa com foco no supino: supino 3×, protegido do corte de tempo, com pico no fim", () => {
-  const r = buildProgram(A({ goal: "hipertrofia", focus: "supino", days: 4, minutes: 45 }));
+  const r = buildProgram(A({ goal: "hipertrofia", focus: "supino", days: 3, minutes: 45 })); // corpo inteiro: 3 dias com peito
   const ph = r.program.phases[0], names = Object.values(ph.days).flat().map((e) => e.name);
   assert.equal(names.filter((n) => /^Supino (reto com barra|com pausa)$/.test(n)).length, 3);
+  const four = Object.values(buildProgram(A({ focus: "supino", days: 4 })).program.phases[0].days).flat().filter((e) => /^Supino (reto com barra|com pausa)$/.test(e.name)).length;
+  assert.equal(four, 2); // superior/inferior: só nos 2 dias de superior
   assert.equal(r.program.phases.at(-1)!.kind, "realizacao");
   assert.ok(r.why.some((w) => w.ref === "spec"));
+});
+import { exerciseCap } from "../src/lib/coach.ts";
+test("sessões de treinador: 2+ séries, poucos exercícios, básico no dia certo", () => {
+  for (const days of [2, 3, 4, 5, 6]) for (const minutes of [45, 60, 75, 90]) for (const focus of ["geral", "big3", "supino", "agachamento", "terra"] as const) for (const goal of ["hipertrofia", "powerbuilding"] as const) {
+    const r = buildProgram(A({ goal, focus, days, minutes }));
+    for (const ph of r.program.phases) for (const [d, l] of Object.entries(ph.days)) {
+      const tag = `${goal} ${focus} ${days}d ${minutes}min ${ph.kind} ${ph.dayNames?.[d]}`;
+      assert.ok(l.length <= exerciseCap(minutes) + 1, `${tag}: ${l.length} exercícios`);
+      for (const e of l) assert.ok(e.sets >= 2, `${tag}: ${e.name} com ${e.sets} série`);
+      const nm = ph.dayNames?.[d] ?? "";
+      if (/Inferior|Pernas/.test(nm)) assert.ok(!l.some((e) => /^Supino/.test(e.name)), `${tag}: supino no dia de pernas`);
+      if (/Superior|Empurrar|Puxar/.test(nm)) assert.ok(!l.some((e) => /^Agachamento|^Levantamento terra/.test(e.name)), `${tag}: agachamento/terra no superior`);
+    }
+  }
+});
+test("biset nos pequenos e drop set no último isolado", () => {
+  const r = buildProgram(A({ days: 4, minutes: 75, level: "avancado" }));
+  const all = Object.values(r.program.phases[0].days).flat();
+  assert.ok(all.some((e) => e.notes.startsWith("Biset")));
+  assert.ok(all.some((e) => /drop set/.test(e.notes)));
 });

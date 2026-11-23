@@ -2,6 +2,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { createFromConsult, previewProgram } from "@/app/(app)/treino/coach-actions";
+import { ExerciseThumb } from "@/components/body/exercise-media";
 import { FOCUS, REFS, type Focus, type TrainAnswers } from "@/lib/coach";
 import { GREET, HANDOFF, reactTo } from "@/lib/consult-talk";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
@@ -54,6 +55,24 @@ const TEXT_HINTS: Record<string, string> = {
   dislikes: "Ex.: batata-doce e beterraba",
   restrictions: "Ex.: intolerância à lactose",
 };
+
+/** Cartão visual de um dia do plano: exercício, séries×reps em destaque e técnicas marcadas. */
+function WeekDayCard({ name, wd, list }: { name: string; wd: string; list: { name: string; sets: number; reps: string; notes: string }[] }) {
+  const sets = list.reduce((a, e) => a + e.sets, 0);
+  return (
+    <div className="chat-in rounded-[14px] border border-white/10 bg-white/[.03] p-3">
+      <div className="flex items-baseline justify-between"><p className="font-semibold">{name}</p><p className="text-[11px] text-white/45">{wd} · {list.length} exerc. · {sets} séries</p></div>
+      <ul className="mt-2 grid gap-1.5">{list.map((e, i) => {
+        const biset = e.notes.startsWith("Biset"), drop = /drop set/.test(e.notes), heavy = e.notes === "Dia pesado";
+        return (
+          <li key={i} className={`flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 ${biset ? "border-l-2 border-[var(--consult-accent)] bg-white/[.04]" : "bg-white/[.02]"}`}>
+            <ExerciseThumb name={e.name} size={28} />
+            <span className="min-w-0 flex-1 truncate text-[13px]">{e.name}</span>
+            {(biset || drop || heavy) && <span className="shrink-0 rounded-full px-1.5 text-[9.5px] font-bold uppercase" style={{ background: "var(--consult-accent)", color: "#141414" }}>{biset ? "Biset" : drop ? "Drop" : "Pesado"}</span>}
+            <span className="shrink-0 font-mono text-[12px] text-white/80">{e.sets}×{e.reps}</span>
+          </li>); })}</ul>
+    </div>);
+}
 
 export function Consult() {
   const [open, setOpen] = useState(false), [i, setI] = useState(0), [ans, setAns] = useState<Record<string, unknown>>({ priority: [], injuries: "", likes: "", dislikes: "", restrictions: "" });
@@ -196,8 +215,8 @@ export function Consult() {
               <div className="mt-6 grid gap-4">
                 <div><p className="text-[12px]" style={{ color: A }}>Treinador · plano proposto</p><h2 ref={heading} tabIndex={-1} className="font-display text-3xl leading-tight outline-none">{res.program.name}</h2><p className="text-[13px] text-white/55">Começa {res.program.start_date.split("-").reverse().join("/")} · o Mestre ajusta cada semana pelo seu registro</p></div>
                 <div className="flex gap-1">{res.program.phases.map((p) => <div key={p.id} className="rounded-[8px] py-2 text-center text-[11px]" style={{ flex: p.weeks, background: PHASE_KINDS[p.kind].color + "22", color: PHASE_KINDS[p.kind].color }}>{p.name}<br />{p.weeks}s</div>)}</div>
-                <div className="rounded-[14px] bg-white/[.04] p-4"><p className="label mb-2">Semana tipo</p>
-                  {Object.entries(res.program.phases[0].days).map(([d, l]) => <div key={d} className="py-2 border-b border-white/[.06] last:border-0"><p className="text-[13px] font-semibold">{res.program.phases[0].dayNames?.[d]}</p><p className="text-[12px] text-white/55">{l.map((e) => `${e.name} ${e.sets}×${e.reps}`).join(" · ")}</p></div>)}</div>
+                <div><p className="label mb-2">Semana tipo</p><div className="grid gap-3 sm:grid-cols-2">
+                  {Object.entries(res.program.phases[0].days).map(([d, l]) => <WeekDayCard key={d} name={res.program.phases[0].dayNames?.[d] ?? ""} wd={["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"][+d]} list={l} />)}</div></div>
                 <div className="rounded-[14px] bg-white/[.04] p-4"><p className="label mb-2">Por que assim</p>
                   <ul className="grid gap-2">{res.why.map((w, k) => <li key={k} className="text-[13px]"><span>{w.text}</span><span className="block text-[11px] text-white/40 mt-0.5">{REFS[w.ref]}</span></li>)}</ul></div>
                 <div className="rounded-[14px] bg-white/[.04] p-4"><p className="text-[12px]" style={{ color: A }}>Nutricionista</p><p className="text-[13px] text-white/70 mt-1">Ao ativar, eu calculo seu gasto pela fórmula de Mifflin–St Jeor, defino a proteína pela meta (até ~2,2 g/kg) e monto um cardápio brasileiro com o que você gosta. As calorias acompanham as fases do treino, e o Mestre corrige pela tendência do seu peso.</p>

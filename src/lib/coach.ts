@@ -13,10 +13,10 @@ export type TrainAnswers = {
 export type Focus = "geral" | "big3" | "agachamento" | "supino" | "terra";
 export const FOCUS: Record<Focus, { label: string; hint: string }> = {
   geral: { label: "Equilibrado", hint: "Todos os grupos com volume parecido" },
-  big3: { label: "Os 3 básicos (powerlifting)", hint: "Agachamento 2×, supino 3×, terra 1–2× por semana" },
-  agachamento: { label: "Foco no agachamento", hint: "Agachamento 3× (pesado, volume, pausado); supino e terra em manutenção" },
-  supino: { label: "Foco no supino", hint: "Supino 3× (pesado, volume, com pausa); agachamento e terra em manutenção" },
-  terra: { label: "Foco no terra", hint: "Terra 3× (pesado, volume, com pausa); agachamento e supino em manutenção" },
+  big3: { label: "Os 3 básicos (powerlifting)", hint: "Supino, agachamento e terra 2–3× por semana cada, cada um no dia certo" },
+  agachamento: { label: "Foco no agachamento", hint: "Agachamento até 3× (pesado, volume, pausado), sempre em dia de pernas; supino e terra em manutenção" },
+  supino: { label: "Foco no supino", hint: "Supino até 3× (pesado, volume, com pausa), sempre em dia de superior; agachamento e terra em manutenção" },
+  terra: { label: "Foco no terra", hint: "Terra até 3× (pesado, Stiff de volume, com pausa), sempre em dia de pernas; os outros em manutenção" },
 };
 type Lift = "agachamento" | "supino" | "terra";
 const LIFT: Record<Lift, { muscle: Muscle; names: [string, string, string] }> = {
@@ -30,7 +30,7 @@ type Slot = { lift: Lift; kind: 0 | 1 | 2 }; // 0 pesado, 1 volume, 2 técnica/v
  * Grgic et al. 2018, Sports Med — mais frequência com volume igualado ajuda a força nos levantamentos treinados).
  * Manutenção: 1×/semana pesado preserva a força com ~1/3 do volume (Rønnestad et al. 2011).
  */
-export function liftSchedule(focus: Focus, days: number): Slot[][] {
+export function liftSchedule(focus: Focus, days: number, fits: (l: Lift, day: number) => boolean = () => true): Slot[][] {
   const out: Slot[][] = Array.from({ length: days }, () => []);
   if (focus === "geral") return out;
   const want: [Lift, number][] = focus === "big3" ? [["supino", Math.min(3, days)], ["agachamento", 2], ["terra", days >= 4 ? 2 : 1]]
@@ -40,7 +40,7 @@ export function liftSchedule(focus: Focus, days: number): Slot[][] {
     let best = -1;
     for (let j = 0; j < days; j++) {
       const d = (pref + j) % days, here = out[d];
-      if (here.some((x) => x.lift === lift)) continue;
+      if (here.some((x) => x.lift === lift) || !fits(lift, d)) continue;
       // Agachamento e terra pesados no mesmo dia somam fadiga demais.
       if (k === 0 && here.some((x) => x.kind === 0 && (x.lift === "terra" || x.lift === "agachamento") && lift !== "supino")) continue;
       if (best < 0 || here.length < out[best].length) best = d;
@@ -162,57 +162,93 @@ const pick = (pool: Pool, m: Muscle, i: number) => { const l = pool[m] ?? []; re
 let seq = 0;
 const pid = () => `c${Date.now().toString(36)}${(seq++).toString(36)}`;
 
+const BIGM: Muscle[] = ["peito", "costas", "quadriceps", "posteriores", "gluteos"];
+/** Quem sai primeiro quando a sessão estoura (o desenvolvimento já trabalha o ombro anterior). */
+const DROP_ORDER: Muscle[] = ["ombro_anterior", "abdomen", "panturrilhas", "gluteos", "ombro_posterior", "biceps", "triceps", "ombro_lateral"];
+const PAIRS: [Muscle, Muscle][] = [["biceps", "triceps"], ["ombro_lateral", "ombro_posterior"], ["panturrilhas", "abdomen"]];
+/** Máximo de exercícios por sessão pelo tempo (bons treinadores raramente passam de 7–8). */
+export const exerciseCap = (minutes: number) => (minutes <= 45 ? 5 : minutes <= 60 ? 6 : minutes <= 75 ? 7 : 8);
+
+/**
+ * Uma sessão como um treinador montaria: compostos primeiro, 2–4 séries duras por exercício (nunca 1 série solta),
+ * no máximo 5–8 exercícios, corta EXERCÍCIO (não série) quando não cabe, biset nos pequenos antagonistas
+ * e drop set só na última série do último isolado.
+ */
+function buildSession(a: TrainAnswers, b: Block, d: { name: string; muscles: Muscle[] }, di: number, sp: { muscles: Muscle[] }[], pool: Pool, focus: Focus, lifts: Slot[], strength: boolean, maxSets: number): PlannedEx[] {
+  const hits = (m: Muscle) => sp.filter((x) => x.muscles.includes(m)).length;
+  const occ = (m: Muscle) => sp.slice(0, di).filter((x) => x.muscles.includes(m)).length;
+  const iso = (n: string) => ISOLATION.test(n);
+  const isoReps = b.kind === "realizacao" ? "10-12" : b.kind === "intensificacao" ? "8-12" : "10-15";
+  const mkEx = (name: string, m: Muscle, sets: number, reps: string, rest: number, notes = ""): PlannedEx =>
+    ({ name, muscle: m, sets, reps, kg: null, rpe: b.rpe, rir: Math.max(0, Math.round(10 - b.rpe)), rest, notes });
+  const out: PlannedEx[] = [];
+  // 1. Básicos do dia (especialização) ou o composto principal de cada grupo grande.
+  const covered = new Set<Muscle>();
+  if (focus !== "geral") for (const sl of lifts) {
+    const L = LIFT[sl.lift], spec = focus === "big3" || focus === sl.lift, strong = b.kind === "realizacao";
+    const reps = strong ? (sl.kind === 0 ? "1-3" : "3") : sl.kind === 0 ? (b.kind === "intensificacao" ? "3-5" : "4-6") : sl.kind === 1 ? (b.kind === "intensificacao" ? "5-6" : "6-8") : "3-5";
+    const rpe = Math.min(9.5, Math.max(6, b.rpe + (sl.kind === 0 ? 0.5 : sl.kind === 1 ? -0.5 : -1.5)));
+    out.push({ ...mkEx(L.names[sl.kind], L.muscle, Math.max(2, Math.round((sl.kind === 2 ? 3 : 4) * b.mult * (spec ? 1 : 0.75))), reps, sl.kind === 2 ? 150 : 180,
+      sl.kind === 0 ? "Dia pesado" : sl.kind === 1 ? "Dia de volume" : "Técnica: pausa de 2 s, controle total"), rpe, rir: Math.max(0, Math.round(10 - rpe)) });
+    covered.add(L.muscle);
+  }
+  // 2. Cada grupo do dia: grande = 1–2 exercícios; pequeno = 1 exercício de 2–4 séries.
+  for (const m of d.muscles) {
+    const t = Math.round((weeklySets(a, m) / Math.max(1, hits(m))) * b.mult) - (covered.has(m) ? 4 : 0);
+    if (t < 2 && covered.has(m)) continue;
+    const big = BIGM.includes(m), o = occ(m);
+    const lead = !covered.has(m) && strength && a.equipment === "academia" && BIG3[m] && o === 0 && focus === "geral" ? BIG3[m]! : pick(pool, m, o);
+    if (!lead) continue;
+    const used = new Set(out.map((e) => e.name));
+    const first = used.has(lead) ? pick(pool, m, o + 1) ?? lead : lead;
+    if (big && t >= 6) {
+      const second = [pick(pool, m, o + 1), pick(pool, m, o + 2)].find((n) => n && n !== first && !used.has(n));
+      out.push(mkEx(first, m, Math.min(4, Math.ceil(t / 2)), iso(first) ? isoReps : b.reps, iso(first) ? 75 : 150));
+      if (second) out.push(mkEx(second, m, Math.max(2, Math.min(4, Math.floor(t / 2))), iso(second) ? isoReps : b.reps, iso(second) ? 75 : 120));
+    } else out.push(mkEx(first, m, Math.max(2, Math.min(big ? 5 : 4, t)), iso(first) ? isoReps : b.reps, iso(first) ? 75 : big ? 150 : 90));
+  }
+  // 3. Cabe no tempo: primeiro tira o 2º exercício dos grupos grandes, depois grupos de menor prioridade; nunca 1 série.
+  const cap = exerciseCap(a.minutes), protectedN = new Set(out.slice(0, lifts.length).map((e) => e.name));
+  const total = () => out.reduce((x, e) => x + e.sets, 0);
+  const secondOf = () => out.findLastIndex((e, i) => !protectedN.has(e.name) && !a.priority.includes(e.muscle) && out.findIndex((x) => x.muscle === e.muscle) !== i);
+  const dropIdx = () => { for (const m of DROP_ORDER) { if (a.priority.includes(m)) continue; const i = out.findLastIndex((e) => e.muscle === m && !protectedN.has(e.name)); if (i >= 0) return i; } return -1; };
+  while (out.length > cap || total() > maxSets) {
+    if (total() > maxSets) { const big = out.reduce((k, e, i) => (!protectedN.has(e.name) && e.sets > 3 && (k < 0 || e.sets > out[k].sets) ? i : k), -1); if (big >= 0) { out[big].sets--; continue; } }
+    const i = secondOf() >= 0 ? secondOf() : dropIdx(); if (i < 0) break; out.splice(i, 1);
+  }
+  // 4. Biset nos pequenos antagonistas (economiza tempo sem perder estímulo).
+  for (const [x, y] of PAIRS) {
+    const i = out.findIndex((e) => e.muscle === x && iso(e.name)), j = out.findIndex((e) => e.muscle === y && iso(e.name));
+    if (i < 0 || j < 0) continue;
+    const [p, q] = i < j ? [i, j] : [j, i], second = out.splice(q, 1)[0];
+    out.splice(p + 1, 0, second);
+    const n = Math.max(out[p].sets, second.sets); out[p].sets = n; out[p + 1].sets = n;
+    out[p] = { ...out[p], rest: 10, notes: `Biset com ${second.name}: uma série de cada, sem descanso entre elas.` };
+    out[p + 1] = { ...out[p + 1], notes: `Biset com ${out[p].name}: descanse só depois deste.` };
+  }
+  // 5. Técnica de intensidade: drop set só no último isolado (não em iniciante, deload ou pico).
+  if (a.level !== "iniciante" && (b.kind === "acumulacao" || b.kind === "intensificacao")) {
+    const k = out.findLastIndex((e) => iso(e.name) && !e.notes.startsWith("Biset"));
+    if (k >= 0) out[k] = { ...out[k], notes: "Última série: drop set (tire ~20% da carga e continue até perto da falha)." };
+  }
+  const injured = a.injuries.trim();
+  return injured ? out.map((e) => ({ ...e, notes: [e.notes, "Atenção à lesão informada: pare se doer e troque o exercício."].filter(Boolean).join(" ") })) : out;
+}
+
 /** Monta o programa completo a partir das respostas. */
 export function buildProgram(a: TrainAnswers) {
   const sp = split(a.days), keys = DAY_KEYS[sp.length], pool = POOL[a.equipment];
-  const hits = (m: Muscle) => sp.filter((d) => d.muscles.includes(m)).length;
-  const maxSets = Math.max(10, Math.floor(a.minutes / 3)); // ~3 min por série com descanso
+  const maxSets = Math.max(10, Math.floor(a.minutes / 3.2)); // ~3 min por série com descanso
   const strength = a.goal === "forca" || a.goal === "powerbuilding" || (a.focus ?? "geral") !== "geral";
   const bl = blocks((a.focus ?? "geral") !== "geral" ? "forca" : a.goal, a.weeks, a.level);
-  const focus: Focus = a.focus ?? "geral", sched = liftSchedule(focus, sp.length);
+  const focus: Focus = a.focus ?? "geral";
+  const fits = (l: Lift, di: number) => sp[di].muscles.includes(LIFT[l].muscle) || (l === "agachamento" && sp[di].muscles.includes("quadriceps"));
+  const sched = liftSchedule(focus, sp.length, fits);
   const phases: Phase[] = bl.map((b) => {
     const days: Record<string, PlannedEx[]> = {}, dayNames: Record<string, string> = {};
     sp.forEach((d, di) => {
-      let list: PlannedEx[] = [];
-      d.muscles.forEach((m, mi) => {
-        const per = Math.max(1, Math.round((weeklySets(a, m) / Math.max(1, hits(m))) * b.mult));
-        const occ = sp.slice(0, di).filter((x) => x.muscles.includes(m)).length;
-        const main = strength && BIG3[m] && occ === 0 && a.equipment === "academia" ? BIG3[m]! : pick(pool, m, occ + mi);
-        if (!main) return;
-        const compound = !ISOLATION.test(main);
-        const reps = b.kind === "realizacao" && !BIG3[m] ? "8-10" : main === BIG3[m] ? b.reps : compound ? b.reps : "10-15";
-        const chunks = per > 4 ? [Math.ceil(per / 2), Math.floor(per / 2)] : [per];
-        chunks.forEach((n, ci) => {
-          const name = ci === 0 ? main : pick(pool, m, occ + mi + 1) ?? main;
-          const r = ISOLATION.test(name) ? (b.kind === "realizacao" ? "10-12" : b.kind === "intensificacao" ? "8-12" : "10-15") : reps;
-          list.push({ name, muscle: m, sets: Math.max(1, Math.min(6, n)), reps: r, kg: null, rpe: b.rpe, rir: Math.max(0, Math.round(10 - b.rpe)), rest: compound && ci === 0 ? 150 : 75, notes: "" });
-        });
-      });
-      // Especialização: os básicos do dia entram primeiro, com intensidade por tipo de exposição.
-      const lifts = sched[di] ?? [];
-      if (focus !== "geral") {
-        list = list.filter((e) => !/^(agachamento livre|supino reto com barra|levantamento terra)$/i.test(e.name));
-        const strong = b.kind === "realizacao";
-        const mk = (sl: Slot): PlannedEx => {
-          const L = LIFT[sl.lift], spec = focus === "big3" || focus === sl.lift;
-          const reps = strong ? (sl.kind === 0 ? "1-3" : "3") : sl.kind === 0 ? (b.kind === "intensificacao" ? "3-5" : "4-6") : sl.kind === 1 ? (b.kind === "intensificacao" ? "5-6" : "6-8") : "3-5";
-          const rpe = Math.min(9.5, Math.max(6, b.rpe + (sl.kind === 0 ? 0.5 : sl.kind === 1 ? -0.5 : -1.5)));
-          const sets = Math.max(2, Math.round((sl.kind === 0 ? 4 : sl.kind === 1 ? 4 : 3) * b.mult * (spec ? 1 : 0.75)));
-          return { name: L.names[sl.kind], muscle: L.muscle, sets, reps, kg: null, rpe, rir: Math.max(0, Math.round(10 - rpe)), rest: sl.kind === 2 ? 150 : 180,
-            notes: sl.kind === 0 ? "Dia pesado" : sl.kind === 1 ? "Dia de volume" : "Técnica: pausa de 2 s, controle total" };
-        };
-        list = [...lifts.map(mk), ...list];
-      }
-      const protectedNames = new Set(lifts.map((l) => LIFT[l.lift].names[l.kind]));
-      // Respeita o tempo da sessão: corta séries dos músculos sem prioridade, do fim para o começo.
-      let total = list.reduce((s, e) => s + e.sets, 0);
-      for (let i = list.length - 1; total > maxSets && i >= 0; i--) {
-        if (a.priority.includes(list[i].muscle) || protectedNames.has(list[i].name)) continue;
-        while (list[i].sets > 1 && total > maxSets) { list[i].sets--; total--; }
-      }
-      list = list.filter((e, i, arr) => arr.findIndex((x) => x.name === e.name) === i);
-      if (a.injuries.trim()) list = list.map((e) => ({ ...e, notes: "Atenção à lesão informada: pare se doer e troque o exercício." }));
-      days[keys[di]] = list; dayNames[keys[di]] = d.name;
+      days[keys[di]] = buildSession(a, b, d, di, sp, pool, focus, sched[di] ?? [], strength, maxSets);
+      dayNames[keys[di]] = d.name;
     });
     return { id: pid(), name: b.name, kind: b.kind, weeks: b.weeks, notes: b.notes, days, dayNames };
   });
