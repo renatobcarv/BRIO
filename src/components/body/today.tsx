@@ -4,7 +4,7 @@ import { HI, Ico } from "@/components/hunt-icons";
 import { useOptimistic, useState, useTransition } from "react";
 import { addWater, saveSleep, undoWater } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
-import { Field, LinkBtn, Progress, SectionTitle, Sheet, fmt, n } from "@/components/kit";
+import { Field, LinkBtn, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort, dow } from "@/lib/date";
 
 const G = "#30d158";

@@ -4,12 +4,12 @@ import { HI, Ico, slotIcon } from "@/components/hunt-icons";
 import { useEffect, useState, useTransition } from "react";
 import { copyMeals, deleteFood, deleteMealItem, saveFood, saveMealItem, setMealDone } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
-import { Field, SectionTitle, Sheet, fmt, n } from "@/components/kit";
+import { Field, Sheet, fmt, n } from "@/components/kit";
 import { addDays, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
 import { MealQuiz } from "@/components/quiz/meal-quiz";
 
-const G = "#30d158", P = "#ffb21e", C = "#f5f5f7", F = "#ff9f0a";
+const G = "#30d158";
 export type Item = { id: string; slot: string; name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
 export type SavedMeal = { date: string; slot: string; items: { name: string; kcal: number; protein_g: number; carbs_g: number; fat_g: number }[] };
 export type Food = { id: string; name: string; portion: string | null; kcal: number; protein_g: number; carbs_g: number; fat_g: number };
@@ -309,7 +309,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   // Consumido = refeições marcadas como feitas + fora do plano. O resto é só planejado.
   const ate = items.filter((i) => isExtra(i.slot) || doneSlots.includes(i.slot));
   const kcal = sum(ate, "kcal"), prot = sum(ate, "protein_g"), carb = sum(ate, "carbs_g"), fat = sum(ate, "fat_g");
-  const plannedKcal = sum(items.filter((i) => !isExtra(i.slot)), "kcal"), pendingKcal = sum(items.filter((i) => !isExtra(i.slot) && !doneSlots.includes(i.slot)), "kcal");
+  const pendingKcal = sum(items.filter((i) => !isExtra(i.slot) && !doneSlots.includes(i.slot)), "kcal");
   const remaining = goals.kcal - kcal;
   const maxW = Math.max(goals.kcal, ...week.map((w) => w.kcal)) * 1.1;
   const isToday = date === today;

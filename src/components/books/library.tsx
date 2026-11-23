@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useMemo, useState, useTransition } from "react";
 import { logReading } from "@/app/(app)/livros/actions";
 import { updateSettings } from "@/app/settings-actions";
-import { Ring, Empty } from "@/components/ui";
+import { Empty } from "@/components/ui";
 import { Field, LinkBtn, Progress, SectionTitle, Segmented, Sheet, Stat, fmt, n } from "@/components/kit";
 import { addDays, diffDays, shortDate, monthLabel } from "@/lib/date";
 import { BOOK_COLOR as B, NOTE_KINDS, STATUS, progressOf, type Book, type BookNote, type BookStatus, type NoteKind, type Session } from "@/lib/books";

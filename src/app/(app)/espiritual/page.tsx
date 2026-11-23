@@ -63,7 +63,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ a
         </div>
       </Card>
       <div className="flex gap-2 my-4" role="tablist">
-        {TABS.map(([k, l]) => <Link key={k} href={`/espiritual?aba=${k}`} role="tab" aria-selected={tab === k} aria-pressed={tab === k} className="chip !min-h-11 !px-5">{l}</Link>)}
+        {TABS.map(([k, l]) => <Link key={k} href={`/espiritual?aba=${k}`} role="tab" aria-selected={tab === k} className="chip !min-h-11 !px-5">{l}</Link>)}
       </div>
       {tab === "paginas" ? <PagesGallery pages={pages} ready={!pq.error} />
         : tab === "biblia" ? <BibleTab read={bible.data ?? []} streak={bibleStreak} notes={chapterNotes} />

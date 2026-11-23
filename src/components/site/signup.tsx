@@ -3,7 +3,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useActionState, useState } from "react";
 import { signUp, type SignUpState } from "@/app/actions";
-import { BrioMark, BrioWordmark } from "@/components/brand";
+import { BrioWordmark } from "@/components/brand";
 import { PLANS, brlPrice, planById } from "@/lib/plans";
 
 const FIRE = "linear-gradient(135deg,#ff9f0a,#b7791f 70%)";

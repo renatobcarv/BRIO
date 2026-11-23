@@ -3,7 +3,7 @@ import { useState, useTransition } from "react";
 import { activateProgram, archiveProgram, deleteProgram, saveProgram } from "@/app/(app)/corpo/program-actions";
 import { Empty } from "@/components/ui";
 import { ProgramBuilder } from "./program-builder";
-import { Field, LinkBtn, SectionTitle, Sheet, fmt, n } from "@/components/kit";
+import { Field, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort } from "@/lib/date";
 import {
   GOALS, MUSCLES, PHASE_KINDS, guessMuscle, newPhaseId, phaseRanges, plannedSetsByMuscle, programPosition, templateFromPlan, totalWeeks,
@@ -199,7 +199,7 @@ function ProgramForm({ initial, today, onDone, overrides }: { initial: Omit<Prog
 }
 
 /* ───────── Tela ───────── */
-export function ProgramView({ programs, today, planDays, overrides, sessionsDone }: {
+export function ProgramView({ programs, today, planDays, overrides }: {
   programs: Program[]; today: string; planDays: Record<string, { name: string; sets: number; reps: string; rest: number }[]>;
   overrides: Record<string, Muscle>; sessionsDone: Record<string, number>;
 }) {

@@ -19,7 +19,6 @@ export function Weight({ today, logs, goal, startKg, rate }: { today: string; lo
   const cur = sorted.at(-1)?.kg ?? startKg;
   const first = sorted[0];
   const left = cur - goal;
-  const lost = startKg - cur;
   const progress = startKg !== goal ? (startKg - cur) / (startKg - goal) : 0;
 
   const recent = sorted.filter((l) => diffDays(today, l.date) <= 56);

@@ -38,14 +38,41 @@ export const TITLES = [
 
 /** XP total para chegar ao nível n (nível 1 = 0). Cresce de forma quadrática. */
 export const xpForLevel = (n: number) => 50 * (n - 1) * n;
-export function levelOf(xp: number) {
-  let n = 1; while (xpForLevel(n + 1) <= xp) n++;
+/** Nível em fórmula fechada (sem laço): nunca trava com XP enorme, NaN ou negativo. */
+export function levelOf(xpIn: number) {
+  const xp = Number.isFinite(xpIn) ? Math.max(0, Math.min(xpIn, 1e12)) : 0;
+  let n = Math.max(1, Math.floor((1 + Math.sqrt(1 + (4 * xp) / 50)) / 2));
+  while (n > 1 && xpForLevel(n) > xp) n--; // corrige arredondamento de ponto flutuante
+  while (xpForLevel(n + 1) <= xp) n++;
   const base = xpForLevel(n), next = xpForLevel(n + 1);
   return { level: n, into: xp - base, need: next - base, progress: (xp - base) / (next - base) };
 }
 export const rankOf = (level: number): Rank => RANKS[rankIndex(level)];
 /** Valor do atributo (1–99) a partir do XP dele. */
-export const attrValue = (xp: number) => Math.min(99, Math.max(1, Math.floor(Math.sqrt(xp / 10))));
+export const attrValue = (xp: number) => (Number.isFinite(xp) ? Math.min(99, Math.max(1, Math.floor(Math.sqrt(Math.max(0, xp) / 10)))) : 1);
+
+/** Blindagem: número de banco pode vir como texto, null ou NaN. Sempre devolve um número finito ≥ 0. */
+export const num = (v: unknown) => { const x = typeof v === "number" ? v : Number(v); return Number.isFinite(x) && x > 0 ? x : 0; };
+const ISO = /^\d{4}-\d{2}-\d{2}$/;
+/** Teto por evento: nenhum registro isolado (erro de digitação, 99999 kg) desequilibra o nível. */
+export const XP_EVENT_CAP = 1000;
+/** Máximo sem spread (Math.max(...lista) estoura a pilha com listas grandes). */
+const maxOf = (xs: Iterable<number>) => { let m = 0; for (const x of xs) if (x > m) m = x; return m; };
+/** Normaliza a entrada: séries com kg/reps válidos e limitados, listas nunca nulas. */
+export function sanitize(g: GameInput): GameInput {
+  return { ...g, checks: g.checks ?? [], fullDays: g.fullDays ?? [], study: g.study ?? [], chapters: g.chapters ?? [], pioneer: g.pioneer ?? [],
+    waterDays: g.waterDays ?? [], sleep: g.sleep ?? [], readingPages: g.readingPages ?? [], booksFinished: g.booksFinished ?? [], finance: g.finance ?? [], weights: (g.weights ?? []).filter((w) => num(w.kg) > 0),
+    workouts: (g.workouts ?? []).map((w) => ({ ...w, sets: (w.sets ?? []).map((s) => ({ exercise: String(s.exercise ?? ""), kg: Math.min(num(s.kg), 1000), reps: Math.min(num(s.reps), 500) })) })) };
+}
+const clean = (ev: XpEvent[]) => {
+  const out: XpEvent[] = [];
+  for (const e of ev) {
+    if (!e || typeof e.date !== "string" || !ISO.test(e.date) || !(e.attr in ATTRS)) continue;
+    const xp = Math.round(Math.min(XP_EVENT_CAP, num(e.xp)));
+    if (xp > 0) out.push({ ...e, xp });
+  }
+  return out;
+};
 
 export type GameInput = {
   today: string;
@@ -79,6 +106,7 @@ const MAIN = [{ key: "agachamento", re: /agach|squat/i }, { key: "supino", re: /
 /** Converte registros em eventos de XP (regras simples e transparentes). */
 export function xpEvents(g: GameInput): XpEvent[] {
   const ev: XpEvent[] = [];
+  g = sanitize(g);
   const byDate = new Map<string, number>();
   for (const c of g.checks) byDate.set(c.date, (byDate.get(c.date) ?? 0) + 1);
   for (const [date, n] of byDate) ev.push({ date, attr: "disciplina", xp: n * 10, label: `${n} itens do checklist` });
@@ -89,7 +117,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
   for (const c of g.chapters) ev.push({ date: c.date, attr: "sabedoria", xp: 15, label: "Capítulo da Bíblia" });
   for (const r of g.readingPages) if (r.pages > 0) ev.push({ date: r.date, attr: "sabedoria", xp: Math.min(150, Math.round(r.pages / 2)), label: `${r.pages} páginas lidas` });
   for (const b of g.booksFinished) ev.push({ date: b.date, attr: "sabedoria", xp: 150, label: `Livro concluído: ${b.title}` });
-  for (const p of g.pioneer) ev.push({ date: p.date, attr: "servico", xp: Math.round(p.minutes / 2), label: `${Math.floor(p.minutes / 60)}h${String(p.minutes % 60).padStart(2, "0")} de serviço` });
+  for (const p of g.pioneer) { const m = Math.round(num(p.minutes)); ev.push({ date: p.date, attr: "servico", xp: Math.round(m / 2), label: `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")} de serviço` }); }
   // Força: volume (1 XP a cada 100 kg movimentados, até 300 por sessão) + recordes nos levantamentos principais.
   const best: Record<string, number> = {};
   for (const w of [...g.workouts].sort((a, b) => a.date.localeCompare(b.date))) {
@@ -97,7 +125,7 @@ export function xpEvents(g: GameInput): XpEvent[] {
     if (vol > 0) ev.push({ date: w.date, attr: "forca", xp: Math.min(300, Math.round(vol / 100)), label: `Treino · ${Math.round(vol).toLocaleString("pt-BR")} kg de volume` });
     if (w.cardio) ev.push({ date: w.date, attr: "vigor", xp: 30, label: "Cardio" });
     for (const m of MAIN) {
-      const top = Math.max(0, ...w.sets.filter((s) => m.re.test(s.exercise) && !/stiff|romeno|halter/i.test(s.exercise) && s.reps > 0).map((s) => s.kg));
+      const top = maxOf(w.sets.filter((s) => m.re.test(s.exercise) && !/stiff|romeno|halter/i.test(s.exercise) && s.reps > 0).map((s) => s.kg));
       if (top > 0 && best[m.key] != null && top > best[m.key]) ev.push({ date: w.date, attr: "forca", xp: 100, label: `Recorde no ${m.key}: ${top} kg` });
       if (top > 0) best[m.key] = Math.max(best[m.key] ?? 0, top);
     }
@@ -110,10 +138,10 @@ export function xpEvents(g: GameInput): XpEvent[] {
   for (const b of g.eventBonus ?? []) ev.push({ date: b.date, attr: b.attr, xp: b.xp, label: b.label });
   for (const s of g.sleep) if (s.hours >= 7) ev.push({ date: s.date, attr: "vigor", xp: 15, label: `${s.hours}h de sono` });
   for (const f of g.finance) {
-    if (f.logged > 0) ev.push({ date: f.month, attr: "ordem", xp: Math.min(150, f.logged * 5), label: `${f.logged} lançamentos no mês` });
-    if (f.month < g.today.slice(0, 7) + "-01" && f.income > 0 && (f.income - f.expenses) / f.income >= 0.1) ev.push({ date: f.month, attr: "ordem", xp: 150, label: "Mês fechado com 10%+ de sobra" });
+    if (num(f.logged) > 0) ev.push({ date: f.month, attr: "ordem", xp: Math.min(150, num(f.logged) * 5), label: `${f.logged} lançamentos no mês` });
+    if (f.month < g.today.slice(0, 7) + "-01" && num(f.income) > 0 && (num(f.income) - num(f.expenses)) / num(f.income) >= 0.1) ev.push({ date: f.month, attr: "ordem", xp: 150, label: "Mês fechado com 10%+ de sobra" });
   }
-  return ev;
+  return clean(ev);
 }
 
 export const RARITY = {
@@ -134,17 +162,18 @@ export function neverTwiceRun(active: string[], today: string) {
   return best;
 }
 
-export function achievements(g: GameInput): Achievement[] {
+export function achievements(input: GameInput, events: XpEvent[] = xpEvents(input)): Achievement[] {
+  const g = sanitize(input);
   const pioneerByMonth = new Map<string, number>();
   for (const p of g.pioneer) pioneerByMonth.set(p.date.slice(0, 7), (pioneerByMonth.get(p.date.slice(0, 7)) ?? 0) + p.minutes);
   const pioneerDaysByMonth = new Map<string, Set<string>>();
   for (const p of g.pioneer) { const k = p.date.slice(0, 7); if (!pioneerDaysByMonth.has(k)) pioneerDaysByMonth.set(k, new Set()); pioneerDaysByMonth.get(k)!.add(p.date); }
-  const bestMonth = Math.max(0, ...pioneerByMonth.values()) / 60;
+  const bestMonth = maxOf(pioneerByMonth.values()) / 60;
   const months50 = [...pioneerByMonth.values()].filter((m) => m >= 3000).length;
   const sets = g.workouts.flatMap((w) => w.sets);
-  const top = (re: RegExp) => Math.max(0, ...sets.filter((s) => re.test(s.exercise) && !/stiff|romeno|halter|incl/i.test(s.exercise) && s.reps > 0).map((s) => s.kg));
+  const top = (re: RegExp) => maxOf(sets.filter((s) => re.test(s.exercise) && !/stiff|romeno|halter|incl/i.test(s.exercise) && s.reps > 0).map((s) => s.kg));
   const total = top(/agach|squat/i) + top(/^supino|bench/i) + top(/terra|deadlift/i);
-  const prs = xpEvents(g).filter((e) => e.label.startsWith("Recorde")).length;
+  const prs = events.filter((e) => e.label.startsWith("Recorde")).length;
   const vols = g.workouts.map((w) => w.sets.filter((s) => !TIMED.test(s.exercise)).reduce((a, s) => a + s.kg * s.reps, 0)).filter((v) => v > 0);
   const avgVol = vols.length ? vols.reduce((a, b) => a + b, 0) / vols.length : 0;
   const beastSessions = vols.length >= 5 ? vols.filter((v) => v >= avgVol * 1.5).length : 0;
@@ -157,14 +186,14 @@ export function achievements(g: GameInput): Achievement[] {
   const cleanRun = longestRun(g.cleanDays ?? []);
   const comeback = (() => { const r = [...(g.relapses ?? [])].sort().at(0); if (!r) return 0; return longestRun((g.cleanDays ?? []).filter((d) => d > r)); })();
   const saved10 = g.finance.filter((f) => f.income > 0 && (f.income - f.expenses) / f.income >= 0.1).length;
-  const lost = g.weights.length ? Math.max(0, Math.max(...g.weights.map((w) => w.kg)) - g.weights.at(-1)!.kg) : 0;
+  const lost = g.weights.length ? Math.max(0, maxOf(g.weights.map((w) => num(w.kg))) - num(g.weights.at(-1)!.kg)) : 0;
   const atGoal = g.weightGoal && g.weights.length ? (g.weights.at(-1)!.kg <= g.weightGoal ? 1 : 0) : 0;
   const bigReadDays = g.readingPages.filter((r) => r.pages >= 50).length;
   const sleep30 = g.sleep.filter((s) => s.hours >= 7).length;
   const water = g.waterDays.filter((w) => w.ml >= g.waterGoal).length;
-  const totalXp = xpEvents(g).reduce((s, e) => s + e.xp, 0);
+  const totalXp = events.reduce((s, e) => s + e.xp, 0);
   const a = (id: string, title: string, desc: string, attr: Attr, rarity: Rarity, value: number, target: number, source?: string): Achievement =>
-    ({ id, title, desc, attr, rarity, source, value, target, done: value >= target, progress: Math.min(1, value / target) });
+    { const v = Number.isFinite(value) ? Math.max(0, value) : 0; return { id, title, desc, attr, rarity, source, value: v, target, done: v >= target, progress: Math.min(1, v / target) }; };
   return [
     // Disciplina
     a("dia1", "Primeiro passo", "Complete todas as missões de um dia", "disciplina", "comum", g.fullDays.length, 1),
@@ -192,7 +221,7 @@ export function achievements(g: GameInput): Achievement[] {
     a("maratona", "Maratona de páginas", "Leia 50 páginas ou mais num dia, 5 vezes", "sabedoria", "rara", bigReadDays, 5),
     // Serviço
     a("campo50", "Mês pleno", "50 horas de serviço num mês", "servico", "rara", bestMonth, 50),
-    a("campo20d", "Sem dia parado", "Saia ao campo em 20 dias de um mesmo mês", "servico", "epica", Math.max(0, ...[...pioneerDaysByMonth.values()].map((s) => s.size)), 20),
+    a("campo20d", "Sem dia parado", "Saia ao campo em 20 dias de um mesmo mês", "servico", "epica", maxOf([...pioneerDaysByMonth.values()].map((s) => s.size)), 20),
     a("campo12", "Ano de zelo", "12 meses com 50 horas ou mais", "servico", "lendaria", months50, 12),
     a("campo600", "Seiscentas horas", "600 horas no total", "servico", "epica", g.pioneer.reduce((s, p) => s + p.minutes, 0) / 60, 600),
     // Força
@@ -218,13 +247,17 @@ export function achievements(g: GameInput): Achievement[] {
 }
 
 export function summarize(g: GameInput) {
+  // Uma passada só: total, atributos e XP por dia.
   const ev = xpEvents(g);
-  const total = ev.reduce((s, e) => s + e.xp, 0);
-  const attrXp = Object.fromEntries((Object.keys(ATTRS) as Attr[]).map((k) => [k, ev.filter((e) => e.attr === k).reduce((s, e) => s + e.xp, 0)])) as Record<Attr, number>;
+  const attrXp = Object.fromEntries((Object.keys(ATTRS) as Attr[]).map((k) => [k, 0])) as Record<Attr, number>;
+  const byDay = new Map<string, number>();
+  let total = 0;
+  for (const e of ev) { total += e.xp; attrXp[e.attr] += e.xp; byDay.set(e.date, (byDay.get(e.date) ?? 0) + e.xp); }
   const lv = levelOf(total);
-  const today = ev.filter((e) => e.date === g.today).reduce((s, e) => s + e.xp, 0);
-  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.parse(g.today) - (6 - i) * 864e5).toISOString().slice(0, 10); return { date: d, xp: ev.filter((e) => e.date === d).reduce((s, e) => s + e.xp, 0) }; });
+  const today = byDay.get(g.today) ?? 0;
+  const week = Array.from({ length: 7 }, (_, i) => { const d = new Date(Date.parse(g.today + "T12:00:00Z") - (6 - i) * 864e5).toISOString().slice(0, 10); return { date: d, xp: byDay.get(d) ?? 0 }; });
+  const ach = achievements(g, ev), done = new Set(ach.filter((a) => a.done).map((a) => a.id));
   return { total, ...lv, rank: rankOf(lv.level), attrXp, attrs: Object.fromEntries((Object.keys(attrXp) as Attr[]).map((k) => [k, attrValue(attrXp[k])])) as Record<Attr, number>,
-    today, week, recent: [...ev].sort((a, b) => b.date.localeCompare(a.date) || b.xp - a.xp).slice(0, 12), achievements: achievements(g),
-    titles: (() => { const done = new Set(achievements(g).filter((a) => a.done).map((a) => a.id)); return TITLES.map((t) => ({ id: t.id, earned: t.requires.some((r) => done.has(r)) })); })() };
+    today, week, recent: [...ev].sort((a, b) => b.date.localeCompare(a.date) || b.xp - a.xp).slice(0, 12), achievements: ach,
+    titles: TITLES.map((t) => ({ id: t.id, earned: t.requires.some((r) => done.has(r)) })) };
 }

@@ -15,7 +15,6 @@ const ST: Record<StudyStatus, { label: string; color: string; e: string }> = {
 const ORDER: StudyStatus[] = ["afazer", "estudando", "dominado", "revisar"];
 const hm = (m: number) => (m >= 60 ? `${Math.floor(m / 60)}h${String(m % 60).padStart(2, "0")}` : `${m} min`);
 const br = (iso: string) => iso.split("-").reverse().slice(0, 2).join("/");
-const daysTo = (iso: string, today: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 864e5);
 
 export function StudyCenter({ today, ready, tracks, items, logs }: { today: string; ready: boolean; tracks: STrack[]; items: SItem[]; logs: SLog[] }) {
   const active = tracks.filter((t) => t.status !== "concluido");

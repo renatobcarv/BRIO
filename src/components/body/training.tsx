@@ -36,7 +36,6 @@ export function Training({ today, split, plan, workouts, program = null, program
   const [mode, setMode] = useState<"guiado" | "lista">("guiado");
   const [exSel, setExSel] = useState(plan.prs[0] ?? "");
   const todayDay = split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
-  const todayPlan = dayPlan(dow(today), plan, program, today);
   const monday = addDays(today, -((dow(today) + 6) % 7));
   const weekDays = Array.from({ length: 7 }, (_, i) => {
     const date = addDays(monday, i), d = dow(date), dp = dayPlan(d, plan, program, date), sd = split.find((x) => x.dow === d);

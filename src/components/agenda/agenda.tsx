@@ -297,17 +297,6 @@ function AiBar({ today }: { today: string }) {
   );
 }
 
-function EventRow({ e, onClick, showDate }: { e: CalEvent; onClick: () => void; showDate?: boolean }) {
-  const c = CAT[e.category] ?? CAT.pessoal;
-  return (
-    <li><button onClick={onClick} className="press w-full flex items-center gap-3 text-left rounded-[8px] px-3 py-2.5 border" style={{ borderColor: c.color + "33", background: `linear-gradient(90deg, ${c.color}14, transparent 70%)` }}>
-      <span className="w-1 self-stretch rounded-full" style={{ background: c.color }} />
-      <span className="w-14 shrink-0 num text-xs text-muted leading-tight">{showDate && <span className="block text-ink">{br(e.date)}</span>}{e.start_time ? `${hm(e.start_time)}${e.end_time ? `–${hm(e.end_time)}` : ""}` : "dia todo"}</span>
-      <span className="flex-1 min-w-0"><span className="block font-medium truncate">{c.e} {e.title}</span>{e.location && <span className="block text-xs text-muted truncate">📍 {e.location}</span>}</span>
-      {e.remind_min != null && <span className="text-xs text-muted" title="Lembrete">🔔</span>}
-    </button></li>
-  );
-}
 
 function EventForm({ ev, onDone }: { ev: Partial<CalEvent>; onDone: () => void }) {
   const [pending, start] = useTransition();
