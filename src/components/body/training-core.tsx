@@ -65,10 +65,12 @@ export function masterFor(program: Program, today: string, workouts: Workout[]) 
   const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex];
   if (pos.status !== "andamento" || !ph) return null;
   const before = program.phases.slice(0, pos.phaseIndex).reduce((a, f) => a + f.weeks, 0);
-  const key = `${program.id}|${pos.week}|${workouts.length}|${workouts[0]?.id ?? ""}`;
+  const ov = program.week_overrides?.[String(pos.week)];
+  const key = `${program.id}|${pos.week}|${workouts.length}|${workouts[0]?.id ?? ""}|${ov ? JSON.stringify(ov).length : 0}`;
   let m = masterCache.get(key);
+  if (!m && ov) { const base = masterWeek(ph.days, [], { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before }); m = { ...base, days: ov.days, changes: [{ text: `Semana ajustada por você${ov.note ? `: ${ov.note}` : ""}. O Mestre respeita.`, ref: "rpe" }, ...base.changes.filter((c) => c.ref === "overload")] }; masterCache.set(key, m); }
   if (!m) { m = masterWeek(ph.days, workouts.map((w) => ({ date: w.date, week_no: w.week_no, program_id: (w as { program_id?: string | null }).program_id ?? program.id, sets: w.sets })), { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before }); masterCache.set(key, m); }
-  return { ...m, phase: ph, week: pos.week };
+  return { ...m, phase: ph, week: pos.week, adjusted: !!ov };
 }
 export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string, workouts: Workout[] = []): { list: Target[]; ctx: Ctx; title?: string } {
   if (program) {

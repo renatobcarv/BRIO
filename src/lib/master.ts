@@ -117,3 +117,32 @@ export function weekNutrition(goal: DietGoal, kind: string, waveName: string | n
   tips.push({ text: "Proteína todo dia na meta, dividida em 3–5 refeições.", ref: "protein" });
   return { adj, kcal: Math.max(1200, kcal + adj), tips };
 }
+
+// ── Ajustes rápidos da semana (atalhos) ──
+export type Preset = "corrida" | "destruido" | "voando";
+export const PRESETS: Record<Preset, { label: string; hint: string }> = {
+  corrida: { label: "Semana corrida", hint: "−30% de séries, mantém os principais" },
+  destruido: { label: "Estou destruído", hint: "Deload antecipado: metade das séries, RPE 6" },
+  voando: { label: "Estou voando", hint: "+1 série no 1º exercício de cada músculo" },
+};
+export function applyPreset(days: Record<string, PlannedEx[]>, p: Preset): Record<string, PlannedEx[]> {
+  const out: Record<string, PlannedEx[]> = {};
+  for (const [d, l] of Object.entries(days)) {
+    const seen = new Set<string>();
+    out[d] = l.map((e) => {
+      const first = !seen.has(e.muscle); seen.add(e.muscle);
+      if (p === "corrida") return { ...e, sets: Math.max(1, first ? e.sets - (e.sets >= 4 ? 1 : 0) : Math.round(e.sets * 0.6)) };
+      if (p === "destruido") return { ...e, sets: Math.max(1, Math.round(e.sets / 2)), rpe: 6, rir: 4 };
+      return first ? { ...e, sets: Math.min(6, e.sets + 1) } : e;
+    });
+  }
+  return out;
+}
+/** Move o treino de um dia para outro (troca se o destino já tiver treino). */
+export function moveDay(days: Record<string, PlannedEx[]>, from: string, to: string) {
+  if (from === to) return days;
+  const out = { ...days }, a = out[from] ?? [], b = out[to] ?? [];
+  out[to] = a; if (b.length) out[from] = b; else delete out[from];
+  return out;
+}
+export const totalSets = (days: Record<string, PlannedEx[]>) => Object.values(days).flat().reduce((a, e) => a + e.sets, 0);

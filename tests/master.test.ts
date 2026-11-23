@@ -41,3 +41,12 @@ test("nutrição: ajusta pelo ritmo real do peso", () => {
   assert.ok(weekNutrition("ganhar", "acumulacao", null, 1, 3000).adj < 0);
   assert.equal(weightRate([w("2026-11-20", 80)], "2026-11-22"), null);
 });
+import { applyPreset, moveDay, totalSets } from "../src/lib/master.ts";
+test("atalhos da semana e mover dia", () => {
+  const d = { "1": [E("Supino reto com barra", "peito", 4), E("Crucifixo na máquina (peck deck)", "peito", 3)], "3": [E("Rosca direta com barra", "biceps", 3)] };
+  assert.ok(totalSets(applyPreset(d, "corrida")) <= totalSets(d) * 0.8);
+  assert.equal(totalSets(applyPreset(d, "destruido")), 2 + 2 + 2);
+  assert.equal(applyPreset(d, "voando")["1"][0].sets, 5);
+  assert.deepEqual(Object.keys(moveDay(d, "3", "5")).sort(), ["1", "5"]);
+  const sw = moveDay(d, "1", "3"); assert.equal(sw["3"][0].name, "Supino reto com barra"); assert.equal(sw["1"][0].name, "Rosca direta com barra");
+});

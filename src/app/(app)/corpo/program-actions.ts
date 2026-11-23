@@ -50,3 +50,23 @@ export async function deleteProgram(id: string) {
   const sb = await createClient();
   await ok(sb.from("training_programs").delete().eq("id", Id.parse(id))); done();
 }
+
+/** Salva (ou desfaz, com days = null) o ajuste de uma semana da campanha. */
+export async function saveWeekOverride(programId: string, week: number, days: Record<string, z.input<typeof Ex>[]> | null, note = ""): Promise<string | null> {
+  const id = Id.safeParse(programId), w = z.number().int().min(1).max(200).safeParse(week);
+  if (!id.success || !w.success) return "Semana inválida.";
+  const sb = await createClient();
+  const { data, error } = await sb.from("training_programs").select("week_overrides").eq("id", id.data).single();
+  if (error) return /column|schema cache/i.test(error.message) ? "Rode o SQL 20261128000000_ajuste_semana.sql no Supabase." : error.message;
+  const all = { ...((data?.week_overrides ?? {}) as Record<string, unknown>) };
+  if (days === null) delete all[String(w.data)];
+  else {
+    const parsed = z.record(z.string().regex(/^[0-6]$/), z.array(Ex).max(25)).safeParse(days);
+    if (!parsed.success) return "Ajuste inválido.";
+    all[String(w.data)] = { days: parsed.data, note: note.slice(0, 80) };
+  }
+  const { error: e2 } = await sb.from("training_programs").update({ week_overrides: all }).eq("id", id.data);
+  if (e2) return e2.message;
+  revalidatePath("/treino"); done();
+  return null;
+}

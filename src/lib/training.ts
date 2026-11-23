@@ -45,6 +45,8 @@ export const dayShort = (title: string) => title === "Descanso" ? "–" : title.
 export type Program = {
   id: string; created_at?: string; name: string; goal: Goal; start_date: string; phases: Phase[];
   notes: string | null; active: boolean; archived: boolean;
+  /** Ajustes manuais por semana (chave = número da semana). Têm prioridade sobre a proposta do Mestre. */
+  week_overrides?: Record<string, { days: Record<string, PlannedEx[]>; note?: string }>;
 };
 
 // ── Datas (UTC, strings YYYY-MM-DD) ──

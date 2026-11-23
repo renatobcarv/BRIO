@@ -858,3 +858,5 @@ alter table pets add column if not exists spent int not null default 0 check (sp
 alter table pets add column if not exists active_beast text;
 -- Minigame de domar: resultado de cada oportunidade (uma tentativa só).
 alter table pets add column if not exists tame_tries jsonb not null default '{}'::jsonb;
+-- Ajustes da semana feitos pelo usuário sobre a proposta do Mestre: {"5": {"days": {"1": [...]}, "note": "Semana corrida"}}.
+alter table training_programs add column if not exists week_overrides jsonb not null default '{}'::jsonb;
