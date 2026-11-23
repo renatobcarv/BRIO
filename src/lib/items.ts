@@ -133,18 +133,56 @@ export function validEquipped(raw: unknown, unlocked: Gear[] | Iterable<string>)
 }
 
 /** Bônus de XP dos itens: só sobre eventos do atributo do item, a partir do dia em que foi equipado (sem retroativo). */
-export function itemBonus(events: XpEvent[], eq: Equipped, levels: Record<string, number> = {}): XpEvent[] {
+export type BonusSource = { attr: Attr; pct: number; at: string; name: string };
+/** Fontes de bônus equipadas: um item por atributo. */
+export const gearSources = (eq: Equipped, levels: Record<string, number> = {}): BonusSource[] =>
+  Object.values(eq).flatMap((s) => { const it = s && gearById(s.id); return it && s ? [{ attr: it.slot, pct: gearPct(it, levels[it.id]), at: s.at, name: it.name }] : []; });
+
+/** Bônus de XP (itens + fera domada ativa): só no atributo da fonte, a partir do dia em que foi ativada. Teto global de 15%. */
+export function itemBonus(events: XpEvent[], eq: Equipped, levels: Record<string, number> = {}, extra: BonusSource[] = []): XpEvent[] {
+  const sources = [...gearSources(eq, levels), ...extra];
   const base = events.reduce((a, e) => a + e.xp, 0), byDay = new Map<string, number>();
   for (const e of events) {
-    const s = eq[e.attr], it = s && gearById(s.id);
-    if (!it || e.date < s.at || e.label.startsWith("Bônus")) continue;
-    byDay.set(`${e.date}|${e.attr}|${it.name}`, (byDay.get(`${e.date}|${e.attr}|${it.name}`) ?? 0) + e.xp * gearPct(it, levels[it.id]) / 100);
+    if (e.label.startsWith("Bônus")) continue;
+    for (const src of sources) {
+      if (src.attr !== e.attr || e.date < src.at) continue;
+      const k = `${e.date}|${e.attr}|${src.name}`;
+      byDay.set(k, (byDay.get(k) ?? 0) + e.xp * src.pct / 100);
+    }
   }
   let out = [...byDay].map(([k, v]) => { const [date, attr, name] = k.split("|"); return { date, attr: attr as Attr, xp: Math.round(v), label: `Bônus · ${name}` }; }).filter((e) => e.xp > 0);
   const sum = out.reduce((a, e) => a + e.xp, 0), cap = Math.floor(base * ITEM_CAP);
   if (sum > cap) { const f = cap / sum; out = out.map((e) => ({ ...e, xp: Math.floor(e.xp * f) })).filter((e) => e.xp > 0); }
   return out;
 }
+
+// ── Domar feras (estilo "levante-se"): a fera derrotada pode virar sua aliada ──
+/** Atributo que cada fera domada fortalece quando está ativa. */
+export const BEAST_ATTR: Partial<Record<BeastId, Attr>> = {
+  golem: "forca", javali: "forca", lobo: "disciplina", juggernaut: "disciplina", serpe: "sabedoria", grifo: "sabedoria",
+  titan: "vigor", crocodilo: "vigor", sentinela: "ordem", guardiao: "servico",
+};
+/** Chance de domar: rara nas fracas, maior nas fortes; chefes +12%. 1→5%, 3→11%, 5→17%, chefe 29%. */
+export const tameChance = (threat: number, boss: boolean) => 0.02 + Math.max(1, Math.min(5, threat)) * 0.03 + (boss ? 0.12 : 0);
+export const MAX_STARS = 5;
+export type Tamed = { id: BeastId; since: string; stars: number; attempts: number };
+/** Domados a partir dos abates. O 1º sucesso doma; os seguintes dão estrelas (até 5). */
+export function tamed(ks: Kill[]): Tamed[] {
+  const m = new Map<BeastId, Tamed>();
+  for (const k of ks) {
+    if (k.angel || !BEAST_ATTR[k.beast]) continue;
+    const cur = m.get(k.beast);
+    if (cur) cur.attempts++;
+    if (roll(k.key + ":tame") >= tameChance(k.threat, k.boss)) { if (!cur) m.set(k.beast, { id: k.beast, since: "", stars: 0, attempts: 1 }); continue; }
+    if (!cur || !cur.since) m.set(k.beast, { id: k.beast, since: k.date, stars: 1, attempts: cur?.attempts ?? 1 });
+    else cur.stars = Math.min(MAX_STARS, cur.stars + 1);
+  }
+  return [...m.values()].filter((t) => t.since);
+}
+/** Nível da fera domada: cresce com o XP que você ganha depois de domá-la. */
+export const tamedLevel = (xpSince: number) => Math.min(99, 1 + Math.floor(Math.sqrt(Math.max(0, xpSince) / 150)));
+/** Bônus da fera ativa: 2% + 1% por estrela (máx. 7%), no atributo dela. */
+export const tamedPct = (stars: number) => 2 + Math.max(1, Math.min(MAX_STARS, stars));
 
 /** Troféus: um por fera abatida (sem bônus, pura honra). */
 export const trophyName = (beast: string) => `Troféu: ${beast}`;

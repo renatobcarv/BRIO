@@ -57,7 +57,7 @@ export async function renamePet(name: string): Promise<string | null> {
 
 async function walletState() {
   const sb = await createClient();
-  const { data: pet, error } = await sb.from("pets").select("equipped,bought,levels,spent").maybeSingle();
+  const { data: pet, error } = await sb.from("pets").select("equipped,bought,levels,spent,active_beast").maybeSingle();
   if (error) return { sb, err: "Rode o SQL dos itens (20261127000000_itens.sql) no Supabase." } as const;
   if (!pet) return { sb, err: "Adote um mascote primeiro." } as const;
   const g = await loadGame(sb, await getSettings(sb), todayISO());
@@ -101,5 +101,13 @@ export async function upgradeItem(id: string): Promise<string | null> {
   const cost = upgradeCost(it, lv); if (w.items.gold < cost) return "Ouro insuficiente para evoluir.";
   const levels = { ...((w.pet.levels ?? {}) as Record<string, number>), [id]: lv + 1 };
   const { error } = await w.sb.from("pets").update({ levels, spent: Number(w.pet.spent ?? 0) + cost }).not("user_id", "is", null);
+  return error ? error.message : doneItems();
+}
+
+/** Escolhe a fera domada que acompanha você (ou nenhuma). O servidor confere se ela foi mesmo domada. */
+export async function setActiveBeast(id: string | null): Promise<string | null> {
+  const w = await walletState(); if ("err" in w) return w.err!;
+  if (id !== null && !w.items.army.some((t) => t.id === id)) return "Você ainda não domou esta fera.";
+  const { error } = await w.sb.from("pets").update({ active_beast: id }).not("user_id", "is", null);
   return error ? error.message : doneItems();
 }

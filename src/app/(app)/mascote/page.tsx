@@ -4,6 +4,7 @@ import { loadGame } from "@/lib/game-data";
 import { todayISO } from "@/lib/date";
 import { PetPage, type PetView } from "@/components/pet/pet";
 import { Arsenal } from "@/components/pet/arsenal";
+import { Army } from "@/components/pet/army";
 
 export const dynamic = "force-dynamic";
 export default async function Page() {
@@ -24,6 +25,7 @@ export default async function Page() {
   return <>
     {err && <p className="hunt-card p-4 mb-4 text-[13px] text-[#ff8a80]">Não consegui calcular a evolução do mascote agora ({err}). O sorteio funciona normalmente.</p>}
     <PetPage p={pet} ready draws={d.data ?? []} month={todayISO().slice(0, 7)} />
+    {pet && items && <Army army={items.army} active={items.active} kills={items.kills} ready={items.ready} />}
     {pet && items && <Arsenal {...items} petName={pet.name} />}
   </>;
 }

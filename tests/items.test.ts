@@ -47,3 +47,18 @@ test("evolução: +1 ponto por nível e custo crescente", () => {
   assert.equal(gearPct(it, 1), 4); assert.equal(gearPct(it, 5), 8);
   assert.ok(upgradeCost(it, 1) < upgradeCost(it, 4)); assert.equal(PRICE.comum, 60);
 });
+
+import { BEAST_ATTR, tameChance, tamed, tamedLevel, tamedPct, itemBonus as ib } from "../src/lib/items.ts";
+test("domar: chance sobe com ameaça, chefes mais; estrelas até 5; anjos nunca", () => {
+  assert.ok(tameChance(1, false) < tameChance(5, false) && tameChance(5, false) < tameChance(5, true));
+  const ks = Array.from({ length: 400 }, (_, i) => ({ key: "k" + i, date: `2026-${String(1 + (i % 12)).padStart(2, "0")}-10`, beast: (i % 2 ? "guardiao" : "aureo") as never, threat: 5, boss: true, angel: i % 2 === 0 }));
+  const t = tamed(ks);
+  assert.equal(t.length, 1); assert.equal(t[0].id, "guardiao"); assert.ok(t[0].stars >= 1 && t[0].stars <= 5);
+  assert.deepEqual(tamed(ks), t);
+  assert.equal(Object.keys(BEAST_ATTR).length, 10);
+});
+test("fera ativa dá bônus no atributo dela, dentro do teto", () => {
+  assert.equal(tamedPct(1), 3); assert.equal(tamedPct(9), 7); assert.equal(tamedLevel(0), 1);
+  const b = ib([{ date: "2026-11-10", attr: "servico", xp: 1000, label: "campo" }], {}, {}, [{ attr: "servico", pct: 5, at: "2026-11-01", name: "Guardião" }]);
+  assert.deepEqual(b, [{ date: "2026-11-10", attr: "servico", xp: 50, label: "Bônus · Guardião" }]);
+});

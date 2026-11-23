@@ -4,3 +4,5 @@ alter table pets add column if not exists equipped jsonb not null default '{}'::
 alter table pets add column if not exists bought jsonb not null default '[]'::jsonb;
 alter table pets add column if not exists levels jsonb not null default '{}'::jsonb;
 alter table pets add column if not exists spent int not null default 0 check (spent >= 0);
+-- Fera domada ativa (acompanha você e dá bônus no atributo dela).
+alter table pets add column if not exists active_beast text;
