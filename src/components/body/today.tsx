@@ -64,7 +64,7 @@ export function BodyToday(props: {
       </Link>
 
       {/* Combustível */}
-      <Link href="/corpo?aba=alimentacao" className="glass rise block p-5 mt-4">
+      <Link href="/perfil?aba=corpo&sub=alimentacao" className="glass rise block p-5 mt-4">
         <div className="flex items-center justify-between"><p className="label flex items-center gap-1.5"><Ico d={HI.flame} size={13} />Combustível</p><span className="label !text-[10px]">dieta ›</span></div>
         <div className="grid grid-cols-2 gap-px bg-white/[.08] mt-3 border border-white/[.08]">
           <div className="bg-[#0b0b0b] p-3"><div className="flex items-center gap-2"><Ico d={HI.flame} size={13} /><span className="label !text-[9px]">Calorias</span></div><p className="num text-3xl mt-2">{props.food.kcal}<span className="text-sm text-white/40"> / {props.food.kcalGoal}</span></p><div className="mt-2"><Seg v={clamp(props.food.kcal / props.food.kcalGoal)} /></div></div>

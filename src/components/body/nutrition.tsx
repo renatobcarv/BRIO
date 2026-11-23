@@ -326,9 +326,9 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   return (
     <div className="dash-auto" style={{ ["--accent" as string]: R }}>
       <nav className="span-all flex items-stretch gap-px mb-4 border border-white/[.08] rounded-[8px] overflow-hidden bg-white/[.08]" aria-label="Dia">
-        <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/corpo?aba=alimentacao&d=${addDays(date, -1)}`} aria-label="Dia anterior">‹</Link>
+        <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/perfil?aba=corpo&sub=alimentacao&d=${addDays(date, -1)}`} aria-label="Dia anterior">‹</Link>
         <div className="flex-1 bg-[#080808] px-3 py-2 text-center"><p className="label !text-[9px]">{isToday ? "Hoje" : weekdayShort[dow(date)]}</p><p className="num text-xl leading-tight">{date.split("-").reverse().slice(0, 2).join("/")}</p></div>
-        <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/corpo?aba=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
+        <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/perfil?aba=corpo&sub=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
       </nav>
 
       {/* Placar do combustível */}
@@ -411,7 +411,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         <div className="relative grid grid-cols-7 gap-2 items-end h-36">
           <div className="absolute inset-x-0 border-t border-dashed border-white/25" style={{ bottom: `calc(${(goals.kcal / maxW) * 100}% * (1 - 18 / 144) + 18px)` }} />
           {week.map((w) => (
-            <Link key={w.date} href={`/corpo?aba=alimentacao&d=${w.date}`} className="flex flex-col items-center gap-1 h-full justify-end" title={`${w.kcal} kcal · ${w.protein} g`}>
+            <Link key={w.date} href={`/perfil?aba=corpo&sub=alimentacao&d=${w.date}`} className="flex flex-col items-center gap-1 h-full justify-end" title={`${w.kcal} kcal · ${w.protein} g`}>
               <i className="w-full max-w-6" style={{ height: `${(w.kcal / maxW) * 100}%`, minHeight: 2, background: w.date === date ? R : w.kcal > goals.kcal * 1.05 ? "#ff453a66" : "#ffffff33" }} />
               <span className={`text-[10px] ${w.date === date ? "text-white" : "text-muted"}`}>{weekdayShort[dow(w.date)]}</span>
             </Link>))}

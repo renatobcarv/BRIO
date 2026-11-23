@@ -3,9 +3,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 
 // Tudo que não cabe na barra de baixo do celular (mesma ordem do menu lateral).
-const MENU: [string, string][] = [["/perfil", "Perfil"], ["/corpo", "Corpo"], ["/status", "Status"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/configuracoes", "Configurações"]];
+const MENU: [string, string][] = [["/perfil", "Perfil"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/configuracoes", "Configurações"]];
 const INFO: Record<string, { sub: string; art?: CardArtName }> = {
-  "/perfil": { sub: "Você no BRIO: nível, semana, mascote, feras e itens", art: "conquistas" },
+  "/perfil": { sub: "Você no BRIO: visão geral, status (nível, patentes, conquistas) e corpo (dieta, peso)", art: "conquistas" },
   "/corpo": { sub: "Água, sono, peso e alimentação", art: "corpo" },
   "/status": { sub: "Nível, patentes, atributos e conquistas", art: "conquistas" },
   "/mascote": { sub: "Sorteio, coleção e o seu companheiro", art: "mascote" },

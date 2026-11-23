@@ -7,13 +7,20 @@ import { ATTRS, RANKS, RARITY, type Attr } from "@/lib/game";
 import { GEAR, TIER, gearById, gearPct } from "@/lib/items";
 import { ALL } from "@/lib/bestiary";
 import { CreaturePortrait } from "@/components/body/creature-portrait";
+import { StatusSheet } from "@/components/game/status";
+import { CorpoView } from "./corpo-view";
 
 export const dynamic = "force-dynamic";
 const A = "#ffb21e";
 const WD = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 /** Perfil: quem você é no BRIO, tudo num lugar (nível, patente, semana, mascote, feras, itens, atributos e conquistas). */
-export default async function Perfil() {
+const TABS = [["geral", "Visão geral"], ["status", "Status"], ["corpo", "Corpo"]] as const;
+type Tab = (typeof TABS)[number][0];
+
+export default async function Perfil({ searchParams }: { searchParams: Promise<{ aba?: string; sub?: string; d?: string }> }) {
+  const sp = await searchParams;
+  const tab: Tab = TABS.some(([k]) => k === sp.aba) ? (sp.aba as Tab) : "geral";
   const sb = await createClient();
   const [{ data: u }, s] = await Promise.all([sb.auth.getUser(), getSettings(sb)]);
   const today = todayISO(), g = await loadGame(sb, s, today);
@@ -26,7 +33,10 @@ export default async function Perfil() {
   const nextRank = RANKS.find((r) => r.min > g.level);
   const it = g.items, rare = [...done].sort((a, b) => ["lendaria", "epica", "rara", "comum"].indexOf(a.rarity) - ["lendaria", "epica", "rara", "comum"].indexOf(b.rarity)).slice(0, 6);
   return (
-    <div className="max-w-xl mx-auto pb-10">
+    <div className="perfil-page pb-10" data-tab={tab}>
+      {/* Capa: espaço pronto para arte (troque o fundo de .perfil-cover no CSS ou passe uma imagem). */}
+      <div aria-hidden className="perfil-cover pointer-events-none absolute inset-x-0 top-0 -z-10 h-[360px]" style={{ background: `radial-gradient(60% 80% at 50% 0%, ${A}22, transparent 70%)` }} />
+      <div className="max-w-xl mx-auto">
       <div className="flex items-center justify-between">
         <Link href="/configuracoes" aria-label="Configurações" className="grid place-items-center h-10 w-10 rounded-full bg-white/[.06]">⚙</Link>
         <span className="flex items-center gap-2 rounded-full bg-white/[.06] pl-3 pr-1 py-1"><span className="font-semibold" style={{ color: A }}>◉ {(it?.gold ?? 0).toLocaleString("pt-BR")}</span><Link href="/mascote" aria-label="Loja" className="grid place-items-center h-7 w-7 rounded-full text-black font-bold" style={{ background: A }}>+</Link></span>
@@ -46,6 +56,15 @@ export default async function Perfil() {
         <div><p className="text-[22px] font-bold">{g.total.toLocaleString("pt-BR")}</p><p className="text-[12px] text-white/50">XP total</p></div>
       </div>
 
+      </div>
+      <nav aria-label="Seções do perfil" className="perfil-tabs sticky top-0 z-20 -mx-4 px-4 py-2 mt-6 bg-[#050505]/90 backdrop-blur-xl">
+        <div className="max-w-xl mx-auto grid grid-cols-3 gap-1 p-1 rounded-[14px] bg-white/[.05]">
+          {TABS.map(([k, l]) => <Link key={k} href={`/perfil?aba=${k}`} aria-current={tab === k ? "page" : undefined} className={`rounded-[11px] py-2.5 text-center text-[14px] font-semibold ${tab === k ? "bg-[#f5f5f7] text-black" : "text-white/65"}`}>{l}</Link>)}
+        </div>
+      </nav>
+      {tab === "status" && <div className="perfil-section mt-4" data-section="status"><StatusSheet g={g} /></div>}
+      {tab === "corpo" && <div className="perfil-section mt-4" data-section="corpo"><CorpoView sp={{ aba: sp.sub, d: sp.d }} /></div>}
+      {tab === "geral" && <div className="perfil-section max-w-xl mx-auto" data-section="geral">
       <div className="grid grid-cols-7 gap-1.5 mt-6">
         {g.week.map((d) => { const on = d.date === today, n = d.xp > 0 ? Math.min(3, Math.ceil(d.xp / 120)) : 0; return (
           <div key={d.date} className="rounded-[14px] py-2.5 text-center" style={{ background: "rgba(255,255,255,.04)", outline: on ? `1.5px solid ${A}` : undefined }}>
@@ -97,6 +116,7 @@ export default async function Perfil() {
         {rare.length ? <ul className="grid grid-cols-2 gap-2 mt-3">{rare.map((a) => <li key={a.id} className="rounded-[12px] p-3 bg-white/[.03]"><p className="text-[10px] uppercase tracking-wider" style={{ color: RARITY[a.rarity].color }}>{RARITY[a.rarity].label}</p><p className="text-[13px] font-semibold leading-tight">{a.title}</p></li>)}</ul>
           : <p className="text-[13px] text-white/50 mt-2">Sua primeira conquista está a um dia 100% de distância.</p>}
       </section>
+      </div>}
     </div>
   );
 }

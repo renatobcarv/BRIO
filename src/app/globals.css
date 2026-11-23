@@ -813,3 +813,9 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 @keyframes medal-float { 50% { transform: translateY(-6px); } }
 .medal-float { animation: medal-float 5s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) { .medal-float { animation: none; } }
+
+/* ===== Perfil (Perfil + Status + Corpo): ganchos prontos para a camada visual ===== */
+.perfil-page { position: relative; isolation: isolate; }
+.app-shell:has(.perfil-page[data-tab="status"]), .app-shell:has(.perfil-page[data-tab="corpo"]) { max-width: 76rem; }
+/* Para colocar arte na capa: .perfil-cover { background: url(/perfil/capa.webp) center/cover; mask-image: linear-gradient(#000 40%, transparent); } */
+.perfil-section { animation: rise .35s ease both; }

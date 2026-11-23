@@ -139,8 +139,8 @@ export default async function Hoje() {
       <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} nextAt={clean.nextAt} />
       <div className="grid grid-cols-3 gap-3 mt-4">
         <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
-        <Mini href="/corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
-        <Mini href="/corpo?aba=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
+        <Mini href="/perfil?aba=corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
+        <Mini href="/perfil?aba=corpo&sub=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
       </div>
 
       {/* Relatório financeiro */}
