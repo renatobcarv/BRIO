@@ -3,6 +3,7 @@ import Image from "next/image";
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { createFromConsult, previewProgram } from "@/app/(app)/treino/coach-actions";
 import { FOCUS, REFS, type Focus, type TrainAnswers } from "@/lib/coach";
+import { GREET, HANDOFF, reactTo } from "@/lib/consult-talk";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
 
 const A = "#ffb21e";
@@ -40,6 +41,13 @@ const WHO = {
   dieta: { name: "Nutricionista", role: "Nutrição esportiva", art: "/cards/nutricionista.webp", color: "#9de3ac" },
 };
 const FIRST_DIET_STEP = Qs.findIndex((q) => q.who === "dieta");
+type Msg = { id: number; from: "treino" | "dieta" | "me"; text: string };
+let msgId = 0;
+/** Texto da resposta como a pessoa "falaria" no chat. */
+const said = (q: Q, val: unknown) => {
+  if (q.opts) { const l = (Array.isArray(val) ? val : [val]).map((v) => q.opts!.find((o) => o.v === v)?.l).filter(Boolean); return l.length ? l.join(", ") : "Sem prioridade"; }
+  const t = String(val ?? "").trim(); return t ? `${t}${q.unit ? ` ${q.unit}` : ""}` : "Pular";
+};
 const TEXT_HINTS: Record<string, string> = {
   injuries: "Ex.: dor no joelho ao agachar",
   likes: "Ex.: arroz, feijão e frango",
@@ -54,6 +62,11 @@ export function Consult() {
   const heading = useRef<HTMLHeadingElement>(null);
   const q = Qs[i];
   const specialist = WHO[q.who];
+  const [chat, setChat] = useState<Msg[]>([]), [typing, setTyping] = useState<"treino" | "dieta" | null>(null);
+  const endRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [chat, typing]);
+  const say = (from: Msg["from"], text: string) => setChat((c) => [...c, { id: ++msgId, from, text }]);
+  const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
   const value = Number(txt.trim().replace(",", "."));
   const valid = q.input === "number" ? Number.isFinite(value) && value > 0 : txt.trim().length > 0;
   useEffect(() => {
@@ -72,9 +85,18 @@ export function Consult() {
   };
   const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: thisMonday(), focus: (ans.focus as Focus) ?? "geral" });
   const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio" });
-  const next = (val: unknown) => {
+  const next = async (val: unknown) => {
+    if (typing) return;
     const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));
-    if (i + 1 < Qs.length) setI(i + 1);
+    say("me", said(q, val));
+    const nq = Qs[i + 1], r = reactTo(q.key, val);
+    setTyping(q.who); await wait(r ? 650 + Math.min(900, r.length * 12) : 450); setTyping(null);
+    if (r) say(q.who, r);
+    if (nq && nq.who !== q.who) {
+      await wait(350); setTyping(q.who); await wait(700); setTyping(null); say(q.who, HANDOFF);
+      await wait(400); setTyping(nq.who); await wait(1100); setTyping(null); say(nq.who, GREET[nq.who]);
+    }
+    if (nq) { await wait(250); setI(i + 1); }
     else start(async () => setRes(await previewProgram({ ...train(), ...{ goal: a.goal } })));
   };
   const finish = () => start(async () => {
@@ -85,7 +107,7 @@ export function Consult() {
   });
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); }}
+      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); setChat([{ id: ++msgId, from: "treino", text: GREET.treino }]); }}
         className="press mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#ffb21e55] bg-[linear-gradient(120deg,#2d2111,#111111_72%)] p-4 text-left">
         <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#ffc369] text-xl font-bold text-[#211400]">+</span>
         <span className="min-w-0"><span className="block font-semibold">Criar plano com especialistas</span><span className="block text-xs text-white/70">Treinador e nutricionista montam seu plano a partir das suas respostas.</span></span>
@@ -124,7 +146,21 @@ export function Consult() {
                   <p className="text-xs font-semibold text-[var(--consult-accent)]">{specialist.role}</p>
                   <p className="font-display text-2xl font-bold sm:text-3xl">{specialist.name}</p>
                 </div>
-                <div className="mt-3 rounded-xl border border-white/10 bg-[#18181a] p-4 sm:p-5">
+                {/* Conversa: histórico animado + "digitando…" */}
+                <div className="consult-chat mt-3 grid gap-2" aria-live="polite">
+                  {chat.slice(-8).map((m) => m.from === "me"
+                    ? <p key={m.id} className="chat-in justify-self-end max-w-[82%] rounded-2xl rounded-br-md px-3.5 py-2 text-[14px] font-medium text-[#141414]" style={{ background: "var(--consult-accent)" }}>{m.text}</p>
+                    : <div key={m.id} className="chat-in flex items-end gap-2 max-w-[90%]">
+                        <span className="relative size-8 shrink-0 overflow-hidden rounded-full border" style={{ borderColor: WHO[m.from].color }}><Image src={WHO[m.from].art} alt="" fill unoptimized sizes="32px" className="object-cover object-[60%_20%]" /></span>
+                        <p className="rounded-2xl rounded-bl-md bg-[#232325] px-3.5 py-2 text-[14px] leading-snug text-white/90"><span className="block text-[10px] font-semibold uppercase tracking-wider" style={{ color: WHO[m.from].color }}>{WHO[m.from].name}</span>{m.text}</p>
+                      </div>)}
+                  {typing && <div className="chat-in flex items-end gap-2">
+                    <span className="relative size-8 shrink-0 overflow-hidden rounded-full border" style={{ borderColor: WHO[typing].color }}><Image src={WHO[typing].art} alt="" fill unoptimized sizes="32px" className="object-cover object-[60%_20%]" /></span>
+                    <span className="typing-dots rounded-2xl rounded-bl-md bg-[#232325] px-4 py-3" aria-label={`${WHO[typing].name} está digitando`}><i /><i /><i /></span>
+                  </div>}
+                  <div ref={endRef} />
+                </div>
+                {!typing && <div key={i} className="chat-in mt-3 rounded-xl border border-white/10 bg-[#18181a] p-4 sm:p-5">
                   <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--consult-accent)]">
                     <span>Pergunta {i + 1} de {Qs.length}</span>
                     {q.skip && <span className="rounded-full border border-white/15 px-2 py-0.5 text-white/75">Opcional</span>}
@@ -152,7 +188,7 @@ export function Consult() {
                       {q.skip && <button type="button" disabled={busy} className="min-h-11 rounded-xl border border-white/20 px-4 text-sm font-medium text-white/80 hover:bg-white/10" onClick={() => next("")}>Pular</button>}
                     </div>
                   </form>}
-                </div>
+                </div>}
                 {i > 0 && <button type="button" className="mt-2 min-h-11 px-1 text-sm font-medium text-white/75 hover:text-white" disabled={busy} onClick={goBack}>← Voltar</button>}
                 {busy && <p role="status" className="mt-2 text-sm text-[var(--consult-accent)]">Os especialistas estão montando seu plano…</p>}
               </div>)}
