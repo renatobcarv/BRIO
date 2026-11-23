@@ -1,4 +1,5 @@
 "use client";
+import { PetRoulette } from "./roulette";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -57,6 +58,7 @@ export function PetPage({ p, ready, draws, month }: { p: PetView | null; ready: 
   const [err, setErr] = useState<string | null>(null);
   const [rolling, setRolling] = useState(false);
   const [got, setGot] = useState<{ species: string; duplicate: boolean } | null>(null);
+  const [spin, setSpin] = useState<{ species: string; duplicate: boolean } | null>(null);
   const [pick, setPick] = useState<string | null>(null), [name, setName] = useState("");
   const [evolution, setEvolution] = useState<PetStage | null>(null);
   const petId = p?.id;
@@ -80,12 +82,11 @@ export function PetPage({ p, ready, draws, month }: { p: PetView | null; ready: 
   const used = draws.filter((d) => d.month === month && !d.free).length, firstFree = draws.length === 0;
   const left = firstFree ? 1 : Math.max(0, DRAWS_PER_MONTH - used);
   const doDraw = () => start(async () => {
-    setErr(null); setGot(null); setRolling(true);
-    const [r] = await Promise.all([drawPet().catch(() => ({ error: "Sem conexão." }) as { error: string }), new Promise((ok) => setTimeout(ok, 1600))]);
-    setRolling(false);
-    if ("error" in r && r.error) { setErr(r.error); return; }
+    setErr(null); setGot(null); setSpin(null); setRolling(true);
+    const r = await drawPet().catch(() => ({ error: "Sem conexão." }) as { error: string });
+    if ("error" in r && r.error) { setRolling(false); setErr(r.error); return; }
     const rr = r as { species: string; duplicate: boolean };
-    setGot({ species: rr.species, duplicate: rr.duplicate }); router.refresh();
+    setSpin({ species: rr.species, duplicate: rr.duplicate }); // a roleta revela quando parar
   });
   const m = p ? MOOD[p.mood] ?? MOOD.satisfeito : null, hungry = p ? p.mood === "faminto" || p.mood === "com fome" : false;
   const chance = (k: string) => { const s = speciesOf(k); const tot = Object.values(RARITY).reduce((a, r) => a + r.weight, 0); return (RARITY[s.rarity].weight / SPECIES.filter((x) => x.rarity === s.rarity).length / tot) * 100; };
@@ -120,8 +121,9 @@ export function PetPage({ p, ready, draws, month }: { p: PetView | null; ready: 
           <button className="btn btn-accent mt-5 !min-h-14 !px-8" disabled={pending || left <= 0} onClick={doDraw}>{rolling ? "Sorteando…" : left > 0 ? "Sortear" : "Sem sorteios este mês"}</button>
           {err && <p className="text-[12.5px] text-[#ff453a] mt-3" role="alert">{err}</p>}
         </div>
-        <div className="grid place-items-center min-h-[240px]">
-          {rolling ? <span className="text-[110px] pet-spin" aria-label="Sorteando">❔</span>
+        <div className={`grid place-items-center min-h-[240px] min-w-0 ${spin ? "lg:col-span-2 lg:order-first" : ""}`}>
+          {spin ? <PetRoulette result={spin.species} onDone={() => { setGot(spin); setSpin(null); setRolling(false); router.refresh(); }} />
+            : rolling ? <span className="text-[110px] pet-spin" aria-label="Sorteando">❔</span>
             : got ? (() => { const s = speciesOf(got.species), r = RARITY[s.rarity]; return (
               <div className="text-center pet-reveal">
                 <PetPortrait species={s.key} stage={STAGES[0]} size={168} className="mx-auto pet-breathe" />
