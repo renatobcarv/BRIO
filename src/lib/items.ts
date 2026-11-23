@@ -33,6 +33,24 @@ export const GEAR: Gear[] = [
   g("elmo", "Elmo Inabalável", "disciplina", "epico", "seq30", "30 dias seguidos 100%", "Protege a mente nos dias sem vontade."),
   g("balanca", "Balança Fiel", "ordem", "comum", "sobra3", "3 meses com 10%+ de sobra", "Mordomo fiel no pouco."),
   g("ouro", "Ouro da Babilônia", "ordem", "epico", "babilonia", "6 meses guardando 10% ou mais", "Ouro que trabalha para quem o guarda."),
+  // Conquistas extras (16)
+  g("anel-ferro", "Anel do Ferro Diário", "forca", "epico", "treino200", "Registre 200 treinos", "Duzentas vezes você voltou ao ferro."),
+  g("pote", "Pote de Biscoitos", "forca", "raro", "biscoitos", "Acumule 10 recordes", "Cada recorde guardado para os dias duros."),
+  g("faixa500", "Faixa dos 500", "forca", "epico", "total500", "Some 500 kg nos três levantamentos", "Meia tonelada em três movimentos."),
+  g("fonte", "Fonte Constante", "vigor", "epico", "agua100", "Meta de água em 100 dias", "Cem dias sem deixar a fonte secar."),
+  g("pena-leve", "Pena Leve", "vigor", "raro", "peso5", "Perca 5 kg desde o maior registro", "Mais leve para ir mais longe."),
+  g("marca-alvo", "Marca do Alvo", "vigor", "epico", "pesometa", "Chegue ao seu peso-alvo", "Mirou, perseverou, chegou."),
+  g("marcador", "Marcador de Cem", "sabedoria", "comum", "biblia100", "Leia 100 capítulos da Bíblia", "Cem paradas no caminho da Palavra."),
+  g("vela", "Vela do Foco", "sabedoria", "epico", "deep", "10 estudos de 90 minutos ou mais", "Queima devagar, ilumina fundo."),
+  g("diario", "Diário de Couro", "sabedoria", "raro", "diario", "Escreva 30 entradas no diário", "Pensar no papel é pensar duas vezes."),
+  g("estante", "Estante Viva", "sabedoria", "lendario", "livro50", "Termine 50 livros", "Cinquenta vozes que agora moram em você."),
+  g("mapa", "Mapa do Território", "servico", "epico", "campo20d", "Saia ao campo em 20 dias de um mês", "Cada rua conhecida pelo nome."),
+  g("lanterna", "Lanterna do Ano", "servico", "lendario", "campo12", "12 meses com 50 horas ou mais", "Um ano inteiro levando luz."),
+  g("ampulheta", "Ampulheta da Aurora", "disciplina", "epico", "manha", "Missão principal antes das 7h em 30 dias", "Venceu o dia antes de o sol nascer."),
+  g("corrente66", "Elo dos 66", "disciplina", "raro", "66dias", "Missões em 66 dias diferentes", "O tempo de um hábito criar raiz."),
+  g("brasa-viva", "Brasa da Volta", "disciplina", "epico", "assuma", "30 dias limpos depois de um recomeço", "Caiu, assumiu, voltou mais forte."),
+  g("coroa", "Coroa do Ano Livre", "disciplina", "lendario", "limpo365", "365 dias limpos seguidos", "Um ano inteiro de domínio próprio."),
+  g("chave", "Chave do Celeiro", "ordem", "lendario", "babilonia12", "12 meses guardando 10% ou mais", "Abre o que foi guardado com paciência."),
   // Saque das feras (16): caem nas caçadas ou se compram com Ouro.
   d("presa-lobo", "Presa do Lobo", "forca", "comum", "Arrancada na primeira caçada em matilha."),
   d("chifre-javali", "Chifre do Javali", "forca", "raro", "Investida bruta, agora a seu favor."),
@@ -50,6 +68,15 @@ export const GEAR: Gear[] = [
   d("selo-guardiao", "Selo do Guardião", "disciplina", "lendario", "Marca de quem venceu o chefe da campanha."),
   d("moeda-antiga", "Moeda Antiga", "ordem", "comum", "Pequena, mas lembra que o pouco bem guardado cresce."),
   d("cofre-tita", "Cofre do Titã", "ordem", "raro", "Guarda com força o que foi conquistado com suor."),
+  // Saque extra (8)
+  d("garra-grifo", "Garra do Grifo", "forca", "raro", "Agarra a barra e não solta."),
+  d("musgo-golem", "Musgo do Golem", "vigor", "comum", "Cresce devagar, mas nunca para."),
+  d("lente-serpe", "Lente da Serpe", "sabedoria", "epico", "Mostra o que está escondido entre as linhas."),
+  d("alforje", "Alforje do Viajante", "servico", "comum", "Leva o necessário para o dia inteiro."),
+  d("sino-sentinela", "Sino da Sentinela", "servico", "epico", "Desperta quem precisa ouvir."),
+  d("ferradura", "Ferradura do Javali", "disciplina", "comum", "Pisa firme no mesmo caminho todo dia."),
+  d("balanca-croc", "Balança do Crocodilo", "ordem", "epico", "Paciente: espera o momento certo de agir."),
+  d("tesouro-jugg", "Tesouro do Juggernaut", "ordem", "lendario", "Só cai de quem sobrevive à Hell Week."),
 ];
 export const gearById = (id: string) => GEAR.find((x) => x.id === id);
 

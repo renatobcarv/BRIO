@@ -23,8 +23,13 @@ test("bônus só do atributo, só depois de equipar, nunca acima do teto", () =>
 });
 
 import { PRICE, dropChance, dropOf, economy, gearPct, kills, roll, upgradeCost, GEAR as ALLG } from "../src/lib/items.ts";
-test("32 equipamentos: 16 de conquista, 16 de saque", () => {
-  assert.equal(ALLG.length, 32); assert.equal(ALLG.filter((g) => g.source === "saque").length, 16);
+import { achievements as achv } from "../src/lib/game.ts";
+test("57 equipamentos: 33 de conquista (todas existem), 24 de saque com todas as raridades", () => {
+  assert.equal(ALLG.length, 57);
+  const sq = ALLG.filter((g) => g.source === "saque"); assert.equal(sq.length, 24);
+  for (const t of ["comum", "raro", "epico", "lendario"]) assert.ok(sq.some((g) => g.tier === t), t);
+  const ids = new Set(achv({ today: "2026-11-23", checks: [], fullDays: [], study: [], chapters: [], pioneer: [], workouts: [], waterDays: [], waterGoal: 1, sleep: [], readingPages: [], booksFinished: [], finance: [], weights: [] }).map((a) => a.id));
+  for (const g of ALLG.filter((x) => x.source === "conquista")) assert.ok(ids.has(g.from), g.id);
 });
 test("chance de saque sobe com a ameaça e chefe dá mais", () => {
   assert.ok(dropChance(1, false) < dropChance(3, false) && dropChance(3, false) < dropChance(5, false) && dropChance(5, false) < dropChance(5, true));
