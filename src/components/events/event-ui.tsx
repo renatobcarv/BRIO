@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { Medal } from "@/components/game/medal";
 import { LORE, wordOfDay } from "@/lib/event-lore";
 import { useEffect, useState } from "react";
@@ -41,13 +42,20 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
       style={{ borderColor: e.color + (live ? "aa" : "44"), background: `radial-gradient(120% 80% at 50% 0%, ${e.color}${live ? "40" : "1f"}, #0b0606 65%)`, boxShadow: live ? `0 20px 60px -24px ${e.color}` : undefined }}>
       {hot && <FireLayer contained />}
       <div className="relative">
-        <div className="flex items-center gap-2">
-          <span className={`h-2 w-2 rounded-full ${live ? "war-pulse" : ""}`} style={{ background: e.color, boxShadow: `0 0 10px ${e.color}` }} />
-          <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: e.color }}>ASCENSION EVENT · {STAGE[e.stage].toUpperCase()}</p>
+        <div className="flex items-start justify-between gap-2 sm:gap-4">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <span className={`h-2 w-2 shrink-0 rounded-full ${live ? "war-pulse" : ""}`} style={{ background: e.color, boxShadow: `0 0 10px ${e.color}` }} />
+              <p className="text-[10px] font-semibold tracking-[.3em]" style={{ color: e.color }}>ASCENSION EVENT · {STAGE[e.stage].toUpperCase()}</p>
+            </div>
+            <p className="font-display text-[29px] sm:text-[40px] leading-none mt-3 tracking-tight uppercase" style={{ textShadow: live ? `0 0 30px ${e.color}` : undefined }}>{e.title}</p>
+            <p className="text-sm text-ink/80 mt-2">{e.tagline}</p>
+            <p className="text-xs text-muted mt-1">{startLabel} – {endLabel} · {e.program}</p>
+          </div>
+          <Image src={`/eventos/${e.type}.webp`} width={384} height={384} alt="" unoptimized
+            className="pointer-events-none h-auto w-[72px] shrink-0 self-center sm:w-[120px]"
+            style={{ filter: `drop-shadow(0 0 14px ${e.color}65)` }} />
         </div>
-        <p className="font-display text-[40px] leading-none mt-3 tracking-tight uppercase" style={{ textShadow: live ? `0 0 30px ${e.color}` : undefined }}>{e.title}</p>
-        <p className="text-sm text-ink/80 mt-2">{e.tagline}</p>
-        <p className="text-xs text-muted mt-1">{startLabel} – {endLabel} · {e.program}</p>
         {(() => { const w = wordOfDay(e.type, new Date(Date.now() - 3 * 36e5).toISOString().slice(0, 10)); return (
           <blockquote className="mt-4 pl-3 border-l-2" style={{ borderColor: e.color }}>
             <p className="text-[15px] italic leading-snug text-ink/90">“{w.t}”</p>
