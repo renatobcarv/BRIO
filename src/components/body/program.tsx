@@ -2,6 +2,7 @@
 import { useState, useTransition } from "react";
 import { activateProgram, archiveProgram, deleteProgram, saveProgram } from "@/app/(app)/corpo/program-actions";
 import { Empty } from "@/components/ui";
+import type { Workout } from "./training-core";
 import { ProgramBuilder } from "./program-builder";
 import { Field, SectionTitle, Sheet, fmt, n } from "@/components/kit";
 import { shortDate, weekdayShort } from "@/lib/date";
@@ -199,9 +200,9 @@ function ProgramForm({ initial, today, onDone, overrides }: { initial: Omit<Prog
 }
 
 /* ───────── Tela ───────── */
-export function ProgramView({ programs, today, planDays, overrides }: {
+export function ProgramView({ programs, today, planDays, overrides, workouts, bodyweight }: {
   programs: Program[]; today: string; planDays: Record<string, { name: string; sets: number; reps: string; rest: number }[]>;
-  overrides: Record<string, Muscle>; sessionsDone: Record<string, number>;
+  overrides: Record<string, Muscle>; workouts: Workout[]; bodyweight: number | null; sessionsDone: Record<string, number>;
 }) {
   const [pending, start] = useTransition();
   const [form, setForm] = useState<null | (Omit<Program, "id" | "active" | "archived"> & { id?: string })>(null);
@@ -215,7 +216,7 @@ export function ProgramView({ programs, today, planDays, overrides }: {
     <div style={{ ["--accent" as string]: G }}>
       {active ? (
           <>
-            <ProgramBuilder key={active.id} program={active} today={today} overrides={overrides} />
+            <ProgramBuilder key={active.id} program={active} today={today} overrides={overrides} workouts={workouts} bodyweight={bodyweight} />
             <div className="flex gap-2 mt-5">
               <button className="btn flex-1" disabled={pending} onClick={() => { if (confirm("Arquivar esta campanha? O histórico fica guardado.")) start(() => archiveProgram(active.id)); }}>Arquivar</button>
               <button className="btn flex-1" onClick={fromPlan}>Nova campanha</button>

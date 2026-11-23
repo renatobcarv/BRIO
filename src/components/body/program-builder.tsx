@@ -3,9 +3,11 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { saveProgram } from "@/app/(app)/corpo/program-actions";
 import { Sheet } from "@/components/kit";
 import { haptic } from "@/components/game/xp";
-import { shortDate, weekdayShort } from "@/lib/date";
-import { GOALS, MUSCLES, PHASE_KINDS, dayTitle, guessMuscle, newPhaseId, phaseRanges, plannedSetsByMuscle, programPosition, totalWeeks,
+import { addDays, dow, shortDate, weekdayShort } from "@/lib/date";
+import { GOALS, MUSCLES, PHASE_KINDS, dayTitle, guessMuscle, isMainLift, newPhaseId, phaseRanges, plannedSetsByMuscle, programPosition, totalWeeks,
   type Goal, type Muscle, type Phase, type PhaseKind, type PlannedEx, type Program } from "@/lib/training";
+import { buildSession, isTimed, masterFor, type Workout } from "./training-core";
+import { ExerciseThumb } from "./exercise-media";
 import { LIBRARY, fromLibrary } from "./program";
 
 const R = "#ffb21e";
@@ -13,7 +15,7 @@ const DAYS = ["1", "2", "3", "4", "5", "6", "0"];
 const clone = <T,>(v: T): T => JSON.parse(JSON.stringify(v));
 
 /** Construtor de programa: tudo na mesma tela, salvando sozinho. */
-export function ProgramBuilder({ program, today, overrides }: { program: Program; today: string; overrides: Record<string, Muscle> }) {
+export function ProgramBuilder({ program, today, overrides, workouts, bodyweight }: { program: Program; today: string; overrides: Record<string, Muscle>; workouts: Workout[]; bodyweight: number | null }) {
   const [p, setP] = useState<Program>(() => clone(program));
   const pos = programPosition(p, today);
   const [ph, setPh] = useState(Math.max(0, pos.phaseIndex));
@@ -56,6 +58,17 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
   const delPhase = () => { if (p.phases.length === 1 || !confirm(`Excluir a fase "${phase.name}"?`)) return; setP((x) => ({ ...x, phases: x.phases.filter((_, i) => i !== ph) })); setPh(Math.max(0, ph - 1)); };
 
   const [tune, setTune] = useState(false);
+  const [editing, setEditing] = useState(false);
+  const [weekOffset, setWeekOffset] = useState(Math.max(0, pos.weekInPhase - 1));
+  const offset = Math.min(weekOffset, phase.weeks - 1);
+  const weekStart = addDays(ranges[ph].start, offset * 7);
+  const selectedDate = addDays(weekStart, (+day - dow(weekStart) + 7) % 7);
+  const weekNo = programPosition(p, weekStart).week;
+  const master = masterFor(p, weekStart, workouts);
+  const previewDays = master?.days ?? phase.days;
+  const preview = previewDays[day] ?? [];
+  const suggested = buildSession(selectedDate < today ? selectedDate : today, { dow: +day, label: "", focus: "" }, preview,
+    workouts, { programId: p.id, weekNo, phase: phase.name, deload: phase.kind === "deload" }, bodyweight);
   return (
     <div>
       {/* Cabeçalho */}
@@ -70,19 +83,19 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
       </div>
 
       {/* Fases */}
-      <p className="label mt-5">1 · Fases da campanha</p>
-      <div className="flex gap-1.5 overflow-x-auto mt-4 pb-1 -mx-1 px-1">
+      <h3 className="mt-5 font-display text-2xl">Fases da campanha</h3>
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:grid-cols-6">
         {p.phases.map((f, i) => {
           const on = i === ph, cur = i === pos.phaseIndex && pos.status === "andamento", c = PHASE_KINDS[f.kind].color;
           return (
-            <button key={f.id} onClick={() => { setPh(i); setOpen(null); setTune(false); haptic(6); }} className="press shrink-0 rounded-[8px] px-3 py-2 text-left border min-w-[76px]"
+            <button key={f.id} onClick={() => { setPh(i); setWeekOffset(cur ? Math.max(0, pos.weekInPhase - 1) : 0); setOpen(null); setTune(false); haptic(6); }} aria-pressed={on} className="press min-h-14 min-w-0 rounded-lg border px-2.5 py-2 text-left"
               style={{ borderColor: on ? c : "rgba(255,255,255,.08)", background: on ? `${c}26` : "#140808", boxShadow: on ? `0 0 16px -6px ${c}` : "none" }}>
-              <span className="block text-[13px] font-semibold truncate max-w-[110px]">{f.name}</span>
+              <span className="block text-[13px] font-semibold leading-snug">{f.name}</span>
               <span className="block text-[10px]" style={{ color: c }}>{f.name.trim() === PHASE_KINDS[f.kind].label ? `${f.weeks} sem` : PHASE_KINDS[f.kind].label}{cur ? " · agora" : ""}</span>
             </button>
           );
         })}
-        <button onClick={addPhase} className="press shrink-0 rounded-[8px] px-3 border border-dashed text-sm text-muted whitespace-nowrap" style={{ borderColor: "rgba(255,178,30,.35)" }}>+ Fase</button>
+        <button onClick={addPhase} className="press min-h-14 rounded-lg border border-dashed px-3 text-sm text-muted" style={{ borderColor: "rgba(255,178,30,.35)" }}>+ Fase</button>
       </div>
 
       {/* Fase selecionada */}
@@ -111,14 +124,36 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         {!tune && phase.notes && <p className="text-xs text-ink/70 mt-1.5">{phase.notes}</p>}
       </div>
 
-      <p className="label mt-6">2 · Treinos da semana · {phase.name}</p>
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="font-display text-2xl">Treinos da semana</h3>
+        <button type="button" className="btn !min-h-10 text-sm" aria-pressed={editing} onClick={() => { setEditing(!editing); setOpen(null); }}>{editing ? "Ver plano do Mestre" : "Editar plano base"}</button>
+      </div>
+      {!editing && (
+        <div className="mt-3 rounded-xl border border-[#ffb21e40] bg-[linear-gradient(135deg,#2b1d0c,#131211)] p-4">
+          <p className="text-xs font-semibold uppercase tracking-wider text-[#ffca70]">Semana {weekNo} · {shortDate(weekStart)} a {shortDate(addDays(weekStart, 6))}</p>
+          <div className="mt-1 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
+            <p className="font-display text-xl">{master?.wave ?? PHASE_KINDS[phase.kind].label}</p>
+            <p className="text-xs font-medium text-white/75">{Object.values(previewDays).filter((exercises) => exercises.length > 0).length} dias de treino</p>
+          </div>
+          {weekStart > today && <p className="mt-1 text-xs text-white/70">Prévia. O Mestre recalcula com os próximos registros.</p>}
+          {phase.weeks > 1 && <label className="mt-3 flex flex-wrap items-center gap-2 text-xs text-white/80">Semana nesta fase
+            <select className="field !w-auto !min-h-10" value={offset} onChange={(e) => setWeekOffset(Number(e.target.value))}>
+              {Array.from({ length: phase.weeks }, (_, i) => <option key={i} value={i}>{i + 1} de {phase.weeks}</option>)}
+            </select>
+          </label>}
+          {master?.changes.length ? <details className="mt-3 text-sm text-white/80">
+            <summary className="cursor-pointer text-[#ffca70]">Por que o Mestre escolheu este treino</summary>
+            <ul className="mt-2 list-disc space-y-1 pl-4">{master.changes.map((c, i) => <li key={i}>{c.text}</li>)}</ul>
+          </details> : null}
+        </div>
+      )}
 
       {/* Dias */}
       <div className="grid grid-cols-7 gap-1 mt-2">
         {DAYS.map((d) => {
-          const n = (phase.days[d] ?? []).length, on = d === day;
+          const n = ((editing ? phase.days : previewDays)[d] ?? []).length, on = d === day;
           return (
-            <button key={d} onClick={() => { setDay(d); setOpen(null); haptic(6); }} className="press rounded-xl py-2 text-center border"
+            <button key={d} aria-pressed={on} aria-label={`${weekdayShort[+d]} · ${n ? n + " exercícios" : "descanso"}`} onClick={() => { setDay(d); setOpen(null); haptic(6); }} className="press rounded-xl py-2 text-center border"
               style={{ borderColor: on ? R : "rgba(255,255,255,.06)", background: on ? "rgba(255,178,30,.16)" : "transparent", boxShadow: on ? `0 0 14px -6px ${R}` : "none" }}>
               <span className={`block text-[11px] ${on ? "text-ink font-semibold" : "text-muted"}`}>{weekdayShort[+d]}</span>
               <span className="block num text-sm mt-0.5" style={{ color: n ? (on ? R : "#f5f5f7") : "#84848a" }}>{n || "–"}</span>
@@ -127,6 +162,40 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         })}
       </div>
 
+      {!editing && (
+        <section className="mt-4" aria-label="Plano do dia">
+          <h4 className="font-display text-xl">{preview.length ? (dayTitle({ ...phase, days: previewDays }, day) || "Treino do dia") : "Dia de recuperação"}</h4>
+          <p className="mt-0.5 text-xs text-white/65">{weekdayShort[+day]} · {shortDate(selectedDate)}{preview.length ? ` · ${preview.length} exercícios` : ""}</p>
+          <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+            {preview.map((e, i) => {
+              const timed = isTimed(e.name, e.muscle);
+              const ex = suggested.exercises[i];
+              const kg = ex.sets[0]?.kg;
+              const original = phase.days[day]?.[i];
+              const rotated = !master?.adjusted && original && original.name !== e.name;
+              return (
+                <li key={i} className="min-w-0 rounded-xl border border-white/10 bg-[#121212] p-3">
+                  <div className="flex items-center gap-3">
+                    <ExerciseThumb name={e.name} size={48} />
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-semibold uppercase tracking-wider text-[#ffca70]">{timed ? "Condicionamento" : isMainLift(e.name) ? "Levantamento principal" : "Acessório"} · {MUSCLES[e.muscle]}</p>
+                      <p className="mt-0.5 font-semibold leading-tight">{e.name}</p>
+                    </div>
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 border-t border-white/10 pt-2 text-sm">
+                    <p><span className="block text-[11px] text-white/65">{timed ? "Duração" : "Séries × reps"}</span><strong>{timed ? e.reps : `${e.sets} × ${e.reps}`}</strong></p>
+                    {!timed && <p><span className="block text-[11px] text-white/65">{e.kg != null ? "Carga do plano" : "Carga inicial sugerida"}</span><strong className="text-[#ffca70]">{kg ? `${Number(kg).toLocaleString("pt-BR")} kg` : e.kg === 0 ? "0 kg" : "A definir"}</strong></p>}
+                  </div>
+                  {(e.rpe || e.rest > 0) && <p className="mt-2 text-xs text-white/65">{[e.rpe ? `Esforço ${e.rpe.toLocaleString("pt-BR")}/10` : "", e.rest > 0 ? `${e.rest} s de descanso` : ""].filter(Boolean).join(" · ")}</p>}
+                  {rotated && <p className="mt-2 text-xs text-[#ffca70]">Variação de {original.name}</p>}
+                  {e.notes && <p className="mt-1 text-xs text-white/75">{e.notes}</p>}
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+      )}
+      {editing && <>
       <input className="field mt-3 !min-h-12 font-semibold text-lg" placeholder={`Nome do treino · ${weekdayShort[+day]} (ex.: Lower A)`}
         value={phase.dayNames?.[day] ?? ""} onChange={(e) => setPhase({ dayNames: { ...(phase.dayNames ?? {}), [day]: e.target.value } })} aria-label="Nome do treino do dia" />
       {!phase.dayNames?.[day] && list.length > 0 && <p className="text-[11px] text-faint mt-1">Sem nome, aparece como “{dayTitle(phase, day)}”.</p>}
@@ -166,6 +235,9 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
                     <Quick values={cardio ? [4, 5, 6, 7] : [6, 7, 7.5, 8, 8.5, 9]} cur={e.rpe} onPick={(v) => upd(i, { rpe: Number(v), rir: Math.max(0, Math.round(10 - Number(v))) })} fmtv={(v) => String(v).replace(".", ",")} /></div>
                   {!cardio && <div><p className="text-sm text-muted mb-1.5">Descanso</p>
                     <Quick values={[60, 90, 120, 150, 180, 240]} cur={e.rest} onPick={(v) => upd(i, { rest: Number(v) })} fmtv={(v) => { const n = Number(v); return n % 60 ? `${Math.floor(n / 60)}:${n % 60}` : `${n / 60} min`; }} /></div>}
+                  {!cardio && <label className="grid gap-1 text-sm text-muted">Carga fixa (kg)
+                    <input type="number" min="0" step="any" className="field !min-h-10" value={e.kg ?? ""} placeholder="Usar sugestão do Mestre" onChange={(ev) => upd(i, { kg: ev.target.value === "" ? null : Math.max(0, Number(ev.target.value)) })} />
+                  </label>}
                   <input className="field !min-h-10 text-sm" placeholder="Observação técnica (opcional)" value={e.notes} onChange={(ev) => upd(i, { notes: ev.target.value })} />
                   <div className="flex gap-1.5">
                     <button className="btn !min-h-10 flex-1" disabled={i === 0} onClick={() => { move(i, -1); setOpen(i - 1); }}>↑ Subir</button>
@@ -184,6 +256,7 @@ export function ProgramBuilder({ program, today, overrides }: { program: Program
         </div>
       </div>
 
+      </>}
       {/* Volume da fase */}
       <div className="mt-4 rounded-[8px] p-3 bg-white/[.03]">
         <p className="text-[10px] font-semibold tracking-[.25em] text-muted">SÉRIES DIRETAS / SEMANA NESTA FASE</p>

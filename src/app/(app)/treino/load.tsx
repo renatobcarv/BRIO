@@ -20,7 +20,7 @@ export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: s
     ]);
     const nutrition = { goal: (dp.data?.goal ?? "manter") as "perder" | "manter" | "ganhar" | "recomp", kcal: dp.data?.kcal ?? s.kcal_goal ?? 0, weights: (wl.data ?? []).map((w) => ({ date: w.date as string, kg: N(w.kg) })) };
     const all = await Promise.all([
-      q("id,date,split_label,notes,duration_min,planned,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
+      q("id,date,split_label,notes,duration_min,planned,program_id,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
       sb.from("training_programs").select("*").eq("active", true).maybeSingle(),
     ]);
     let res = all[0]; const prog = all[1];
@@ -30,7 +30,7 @@ export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: s
     const data = res.data as any[] | null;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const workouts = (data ?? []).map((w: any) => ({ id: w.id, date: w.date, split_label: w.split_label, notes: w.notes, duration_min: w.duration_min,
-      planned: w.planned, week_no: w.week_no, phase: w.phase,
+      planned: w.planned, program_id: w.program_id, week_no: w.week_no, phase: w.phase,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       sets: (w.workout_sets ?? []).map((x: any) => ({ ...x, kg: N(x.kg), rpe: x.rpe != null ? N(x.rpe) : null })).sort((a: any, b: any) => a.exercise.localeCompare(b.exercise) || a.set_no - b.set_no) }));
     const [progs, wsP] = await Promise.all([
@@ -42,7 +42,7 @@ export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: s
     const programSlot = progs.error
       ? <p className="text-sm text-[#ff453a]">Rode a migração supabase/migrations/20261106000000_periodizacao.sql no Supabase para usar programas.</p>
       : <ProgramView programs={(progs.data ?? []) as Program[]} today={today} planDays={s.workout_plan.days}
-          overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={doneMap} />;
+          overrides={((s as unknown as { exercise_muscles?: Record<string, Muscle> }).exercise_muscles) ?? {}} sessionsDone={doneMap} workouts={workouts} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} />;
     const evs = computeEvents({ today, travel: s.travel ?? [], programs: (progs.error ? [] : progs.data ?? []) as Program[], proteinGoal: s.protein_goal_g, meals: [], sleep: [],
       workouts: workouts.map((w: { date: string; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] }) => ({ date: w.date, sets: w.sets })) });
     const hot = evs.find((e) => (e.stage === "ativo" || e.stage === "contagem") && (e.type === "hell_week" || e.type === "judgment" || e.type === "genesis"));

@@ -77,7 +77,7 @@ export function MasterCard({ program, workouts, today, nutrition, day, onViewDay
           <ul className="mt-2 grid gap-1.5">{nut.tips.map((t, i) => <li key={i} className="text-[13px] text-white/75">• {t.text}</li>)}</ul>
         </section>}
         <div>
-          <WeekEditor programId={program.id} week={m.week} days={m.days} adjusted={!!m.adjusted} suggestions={m.adjusted ? [] : suggestAdjustments(m.days, workouts.map((w) => ({ date: w.date, week_no: w.week_no, program_id: program.id, sets: w.sets })), { programId: program.id, kind: m.phase.kind, week: m.week, weekInPhase: 1, today })} />
+          <WeekEditor programId={program.id} week={m.week} days={m.days} adjusted={!!m.adjusted} suggestions={m.adjusted ? [] : suggestAdjustments(m.days, workouts, { programId: program.id, kind: m.phase.kind, week: m.week, weekInPhase: 1, today })} />
           <details className="mt-3 text-white/70">
             <summary className="min-h-10 cursor-pointer py-2 text-xs underline underline-offset-2">Estudos por trás do plano</summary>
             <ul className="mt-1 grid gap-1.5">

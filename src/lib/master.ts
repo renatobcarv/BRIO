@@ -1,7 +1,7 @@
 // O Mestre: toda semana lê seus registros e monta uma semana diferente.
 // Onda de estímulo, troca moderada de acessórios, volume que sobe e correção por RPE/conclusão. Puro e testável.
-import { BIG3, POOL, type RefKey } from "./coach.ts";
-import type { Muscle, PlannedEx, PhaseKind } from "./training.ts";
+import { POOL, type RefKey } from "./coach.ts";
+import { isMainLift, type Muscle, type PlannedEx, type PhaseKind } from "./training.ts";
 
 export type MWorkout = { date: string; week_no?: number | null; program_id?: string | null; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] };
 export type Change = { text: string; ref: RefKey };
@@ -21,10 +21,10 @@ export function shiftReps(r: string, by: number) {
   if (one) return String(Math.max(3, +one[1] + by));
   return r;
 }
-const altFor = (name: string, m: Muscle, turn: number) => {
+const altFor = (name: string, m: Muscle, turn: number, used: Set<string>) => {
   for (const pool of Object.values(POOL)) {
     const l = pool[m]; if (!l || !l.includes(name)) continue;
-    const opts = l.filter((x) => x !== name && !Object.values(BIG3).includes(x));
+    const opts = l.filter((x) => !used.has(x.toLowerCase()) && !isMainLift(x));
     return opts.length ? opts[turn % opts.length] : name;
   }
   return name;
@@ -63,17 +63,27 @@ export function masterWeek(base: Record<string, PlannedEx[]>, hist: MWorkout[], 
     else if (rate >= 0.9 && f.rpe != null && f.rpe <= f.target - 1.5) delta.set(m, +1);
     else if (rate >= 0.9 && ctx.kind === "acumulacao" && ctx.weekInPhase > 1) delta.set(m, +1);
   }
+  let rotated = 0;
   for (const [d, list] of Object.entries(base)) {
+    const used = new Set(list.map((e) => e.name.toLowerCase()));
     const seen = new Set<Muscle>();
     days[d] = list.map((e) => {
       const first = !seen.has(e.muscle); seen.add(e.muscle);
       let x: PlannedEx = { ...e };
       if (!special) {
-        const isBig = Object.values(BIG3).includes(e.name);
+        const isBig = isMainLift(e.name);
         x.reps = shiftReps(e.reps, isBig && wave.key === "metabolica" ? 2 : wave.shift);
         if (x.rpe != null) x.rpe = Math.min(10, Math.max(5, x.rpe + wave.rpe));
         x.rest = Math.round(e.rest * wave.rest);
-        if (rotate && !first && !isBig) x.name = altFor(e.name, e.muscle, turn);
+        const needsRecovery = (delta.get(e.muscle) ?? 0) < 0;
+        if (rotate && !needsRecovery && !first && !isBig && e.kg == null) {
+          const next = altFor(e.name, e.muscle, turn, used);
+          if (next !== e.name) {
+            x = { ...x, name: next, notes: "" };
+            used.add(next.toLowerCase());
+            rotated++;
+          }
+        }
       }
       const dv = delta.get(e.muscle) ?? 0;
       if (first && dv) x = { ...x, sets: Math.max(1, Math.min(6, x.sets + dv)) };
@@ -83,7 +93,7 @@ export function masterWeek(base: Record<string, PlannedEx[]>, hist: MWorkout[], 
   if (special) changes.push({ text: ctx.kind === "deload" ? "Semana de deload: o Mestre não mexe, é hora de recuperar." : "Semana de pico: foco nos levantamentos principais, sem variações.", ref: "deload" });
   else {
     changes.push({ text: `${wave.name}: ${wave.key === "forca" ? "menos repetições, mais carga e descanso maior" : wave.key === "metabolica" ? "mais repetições e descanso curto" : "faixa de repetições do plano, ritmo constante"}.`, ref: "dup" });
-    if (rotate) changes.push({ text: "Acessórios trocados nesta semana (os principais ficam): estímulo novo sem perder a referência de progresso.", ref: "variation" });
+    if (rotated) changes.push({ text: "Os acessórios variam para renovar o estímulo. Levantamentos principais, cargas fixas e grupos com fadiga mantêm a referência.", ref: "variation" });
   }
   if (fb && !fb.trained && ctx.week > 1) changes.push({ text: "Semana passada sem registro: o Mestre repete o volume em vez de subir.", ref: "overload" });
   const up = [...delta].filter(([, v]) => v > 0).map(([m]) => m), down = [...delta].filter(([, v]) => v < 0).map(([m]) => m);

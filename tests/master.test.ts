@@ -70,3 +70,16 @@ test("sugestões automáticas: fadiga, ausência, mover dia, troca habitual só 
   const tue = (d: string) => ({ date: d, week_no: 2, program_id: "p", sets: [{ exercise: "Supino reto com barra", kg: 80, reps: 5, rpe: 8 }] });
   assert.ok(suggestAdjustments(days, [tue("2026-11-04"), tue("2026-11-11"), tue("2026-11-18"), wed("2026-11-19")], c).some((x) => x.id.startsWith("mover-1-")));
 });
+
+test("rotação protege carga fixa e reduz o volume sem trocar exercícios em grupos fatigados", () => {
+  const fixed = { ...base["1"][1], kg: 45 };
+  const plan = { "1": [base["1"][0], fixed] };
+  assert.equal(masterWeek(plan, [], ctx(3)).days["1"][1].name, fixed.name);
+
+  const tired = [{ date: "2026-11-09", week_no: 2, program_id: "p", sets: [
+    { exercise: base["1"][0].name, kg: 80, reps: 8, rpe: 10 },
+  ] }];
+  const week = masterWeek(base, tired, ctx(3));
+  assert.equal(week.days["1"][0].sets, 2);
+  assert.equal(week.days["1"][1].name, base["1"][1].name);
+});

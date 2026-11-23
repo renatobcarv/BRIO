@@ -11,7 +11,7 @@ import { nextSetKg, setLoads, starterLoad, suggestLoad, type Suggestion } from "
 
 export const G = "#ffb21e";
 export type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
-export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
+export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; program_id?: string | null; week_no?: number | null; phase?: string | null };
 /** auto: a carga veio do app (pode ser reajustada ao vivo); vira false quando você digita. */
 export type LSet = { kg: string; reps: string; done: boolean; rpe?: string; auto?: boolean; warm?: boolean };
 export type Target = PlanExercise & Partial<Pick<PlannedEx, "kg" | "rpe" | "rir" | "notes">>;
@@ -68,16 +68,26 @@ export function buildSession(date: string, day: SplitDay, plan: Target[], workou
 }
 /** Plano do dia: fase atual do programa ativo, senão o plano semanal simples. */
 /** Semana do programa ajustada pelo Mestre (memo por programa+semana+registros). */
-const masterCache = new Map<string, ReturnType<typeof masterWeek>>();
+const masterCache = new WeakMap<Program, WeakMap<Workout[], Map<number, ReturnType<typeof masterWeek>>>>();
 export function masterFor(program: Program, today: string, workouts: Workout[]) {
   const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex];
   if (pos.status !== "andamento" || !ph) return null;
   const before = program.phases.slice(0, pos.phaseIndex).reduce((a, f) => a + f.weeks, 0);
   const ov = program.week_overrides?.[String(pos.week)];
-  const key = `${program.id}|${pos.week}|${workouts.length}|${workouts[0]?.id ?? ""}|${ov ? JSON.stringify(ov).length : 0}`;
-  let m = masterCache.get(key);
-  if (!m && ov) { const base = masterWeek(ph.days, [], { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before }); m = { ...base, days: ov.days, changes: [{ text: `Semana ajustada por você${ov.note ? `: ${ov.note}` : ""}. O Mestre respeita.`, ref: "rpe" }, ...base.changes.filter((c) => c.ref === "overload")] }; masterCache.set(key, m); }
-  if (!m) { m = masterWeek(ph.days, workouts.map((w) => ({ date: w.date, week_no: w.week_no, program_id: (w as { program_id?: string | null }).program_id ?? program.id, sets: w.sets })), { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before }); masterCache.set(key, m); }
+  let byHistory = masterCache.get(program);
+  if (!byHistory) { byHistory = new WeakMap(); masterCache.set(program, byHistory); }
+  let byWeek = byHistory.get(workouts);
+  if (!byWeek) { byWeek = new Map(); byHistory.set(workouts, byWeek); }
+  let m = byWeek.get(pos.week);
+  if (!m) {
+    const ctx = { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before };
+    const base = masterWeek(ph.days, workouts, ctx);
+    m = ov ? { ...base, days: ov.days, changes: [
+      { text: `Semana ajustada por você${ov.note ? `: ${ov.note}` : ""}. O Mestre respeita.`, ref: "rpe" },
+      ...base.changes.filter((c) => c.ref === "overload"),
+    ] } : base;
+    byWeek.set(pos.week, m);
+  }
   return { ...m, phase: ph, week: pos.week, adjusted: !!ov };
 }
 export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string, workouts: Workout[] = []): { list: Target[]; ctx: Ctx; title?: string } {
