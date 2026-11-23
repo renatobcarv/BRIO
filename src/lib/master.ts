@@ -1,6 +1,6 @@
 // O Mestre: toda semana lê seus registros e monta uma semana diferente.
 // Onda de estímulo, troca moderada de acessórios, volume que sobe e correção por RPE/conclusão. Puro e testável.
-import { POOL, type RefKey } from "./coach.ts";
+import { ISOLATION, POOL, type RefKey } from "./coach.ts";
 import { isMainLift, type Muscle, type PlannedEx, type PhaseKind } from "./training.ts";
 
 export type MWorkout = { date: string; week_no?: number | null; program_id?: string | null; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] };
@@ -72,7 +72,10 @@ export function masterWeek(base: Record<string, PlannedEx[]>, hist: MWorkout[], 
       let x: PlannedEx = { ...e };
       if (!special) {
         const isBig = isMainLift(e.name);
-        x.reps = shiftReps(e.reps, isBig && wave.key === "metabolica" ? 2 : wave.shift);
+        const iso = ISOLATION.test(x.name);
+        // Isolados nunca descem abaixo de 8 repetições (onda de força vale para os compostos).
+        x.reps = iso ? shiftReps(e.reps, Math.max(0, wave.shift)) : shiftReps(e.reps, isBig && wave.key === "metabolica" ? 2 : wave.shift);
+        if (iso) { const lo = Number(x.reps.split("-")[0]); if (lo < 8) x.reps = "8-12"; }
         if (x.rpe != null) x.rpe = Math.min(10, Math.max(5, x.rpe + wave.rpe));
         x.rest = Math.round(e.rest * wave.rest);
         const needsRecovery = (delta.get(e.muscle) ?? 0) < 0;
@@ -85,6 +88,8 @@ export function masterWeek(base: Record<string, PlannedEx[]>, hist: MWorkout[], 
           }
         }
       }
+      // Depois de qualquer troca: isolado nunca abaixo de 8 repetições.
+      if (!special && ISOLATION.test(x.name) && Number(x.reps.split("-")[0]) < 8) x = { ...x, reps: "8-12" };
       const dv = delta.get(e.muscle) ?? 0;
       if (first && dv) x = { ...x, sets: Math.max(1, Math.min(6, x.sets + dv)) };
       return x;

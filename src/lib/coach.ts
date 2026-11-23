@@ -113,6 +113,8 @@ export function blocks(goal: Goal, totalWeeks: number, level: Level): Block[] {
   return out;
 }
 
+/** Isolados ficam sempre em 8+ repetições: carga máxima em isolado rende pouco e machuca. */
+export const ISOLATION = /elevação lateral|elevação frontal|crossover|crucifixo|peck deck|rosca|tríceps|face pull|panturrilha|extensora|flexora|abdução|abdominal|prancha|elevação de pernas|glúteo na polia|pallof/i;
 const pick = (pool: Pool, m: Muscle, i: number) => { const l = pool[m] ?? []; return l.length ? l[i % l.length] : null; };
 let seq = 0;
 const pid = () => `c${Date.now().toString(36)}${(seq++).toString(36)}`;
@@ -133,12 +135,13 @@ export function buildProgram(a: TrainAnswers) {
         const occ = sp.slice(0, di).filter((x) => x.muscles.includes(m)).length;
         const main = strength && BIG3[m] && occ === 0 && a.equipment === "academia" ? BIG3[m]! : pick(pool, m, occ + mi);
         if (!main) return;
-        const compound = mi < 3 || !!BIG3[m];
+        const compound = !ISOLATION.test(main);
         const reps = b.kind === "realizacao" && !BIG3[m] ? "8-10" : main === BIG3[m] ? b.reps : compound ? b.reps : "10-15";
         const chunks = per > 4 ? [Math.ceil(per / 2), Math.floor(per / 2)] : [per];
         chunks.forEach((n, ci) => {
           const name = ci === 0 ? main : pick(pool, m, occ + mi + 1) ?? main;
-          list.push({ name, muscle: m, sets: Math.max(1, Math.min(6, n)), reps, kg: null, rpe: b.rpe, rir: Math.max(0, Math.round(10 - b.rpe)), rest: compound && ci === 0 ? 150 : 75, notes: "" });
+          const r = ISOLATION.test(name) ? (b.kind === "realizacao" ? "10-12" : b.kind === "intensificacao" ? "8-12" : "10-15") : reps;
+          list.push({ name, muscle: m, sets: Math.max(1, Math.min(6, n)), reps: r, kg: null, rpe: b.rpe, rir: Math.max(0, Math.round(10 - b.rpe)), rest: compound && ci === 0 ? 150 : 75, notes: "" });
         });
       });
       // Respeita o tempo da sessão: corta séries dos músculos sem prioridade, do fim para o começo.

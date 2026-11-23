@@ -31,14 +31,15 @@ export function MasterCard({ program, workouts, today, nutrition, day, onViewDay
   const percent = planned > 0 ? Math.round((done / planned) * 100) : null;
   const returning = day === "treino" && away;
   return (
-    <section className="hunt-card rise mt-4 min-w-0 overflow-hidden !border-[#a875303d]" aria-label="Briefing do Mestre">
+    <section className="span-all hunt-card rise mt-4 min-w-0 overflow-hidden !border-[#a875303d]" aria-label="Briefing do Mestre">
       <header className="relative isolate flex min-h-56 flex-col justify-end overflow-hidden p-4 sm:p-6">
         <Image src="/cards/mestre.webp" fill alt="" unoptimized sizes="(max-width: 768px) 100vw, 700px" className="-z-20 object-cover object-[68%_37%] sm:object-[center_37%]" />
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#080807_2%,#080807eb_29%,#08080728_73%),linear-gradient(0deg,#101011_1%,transparent_60%)]" />
         <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#ffd084]">O Mestre · Semana {m.week}</p>
         <h2 className="mt-2 max-w-[65%] text-balance font-display text-[clamp(1.65rem,4vw,3rem)] font-bold uppercase leading-[.98] tracking-tight text-white">{m.wave ?? m.phase.name}</h2>
       </header>
-      <div className="space-y-4 px-4 pb-5 sm:px-6">
+      <div className="grid gap-4 px-4 pb-5 sm:px-6 lg:grid-cols-2 lg:items-start">
+        <div className="space-y-4 min-w-0">
         <div className="rounded-xl border border-[#ffb21e55] border-l-[3px] border-l-[#ffb21e] bg-[linear-gradient(125deg,#2b200f,#141311_70%)] p-4">
           <p className="text-[10px] font-bold uppercase tracking-[.18em] text-[#ffcb68]">{returning ? "Ordem de retorno" : "Ordem do dia"}</p>
           <p className="mt-1.5 font-display text-2xl font-bold uppercase leading-tight text-white">{command}</p>
@@ -71,6 +72,8 @@ export function MasterCard({ program, workouts, today, nutrition, day, onViewDay
             ))}
           </ul>
         </section>
+        </div>
+        <div className="space-y-4 min-w-0">
         {nut && <section aria-label="Alimentação desta semana" className="rounded-xl border border-white/10 bg-white/[.035] p-4">
           <p className="text-[10px] font-bold uppercase tracking-[.16em] text-white/65">Alimentação desta semana</p>
           <p className="mt-1 text-xl font-bold">{nut.kcal.toLocaleString("pt-BR")} kcal/dia{nut.adj ? <span className="ml-2 text-[13px] font-semibold" style={{ color: A }}>{nut.adj > 0 ? "+" : ""}{nut.adj}</span> : null}</p>
@@ -84,6 +87,7 @@ export function MasterCard({ program, workouts, today, nutrition, day, onViewDay
               {[...new Set([...m.changes, ...(nut?.tips ?? [])].map((c) => c.ref))].map((r) => <li key={r} className="text-xs leading-snug">{REFS[r]}</li>)}
             </ul>
           </details>
+        </div>
         </div>
       </div>
     </section>

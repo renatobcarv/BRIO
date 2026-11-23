@@ -40,3 +40,12 @@ test("marcos: semana cumprida, fase e campanha só com treinos reais", () => {
   const all = campaignMilestones([p] as never, [s(1, "2026-11-02"), s(1, "2026-11-04"), s(2, "2026-11-09"), s(2, "2026-11-11"), s(3, "2026-11-16")]);
   assert.deepEqual(all.map((m) => m.xp), [120, 120, 400, 120, 400, 1000]);
 });
+import { ISOLATION } from "../src/lib/coach.ts";
+import { masterWeek } from "../src/lib/master.ts";
+test("isolados nunca abaixo de 8 repetições, em nenhuma fase ou onda", () => {
+  const r = buildProgram(A({ goal: "powerbuilding", days: 5 }));
+  for (const ph of r.program.phases) for (let w = 1; w <= 3; w++) {
+    const m = masterWeek(ph.days, [], { programId: "p", kind: ph.kind, week: w, weekInPhase: w });
+    for (const e of Object.values(m.days).flat()) if (ISOLATION.test(e.name)) assert.ok(Number(e.reps.split("-")[0]) >= 8, `${ph.kind} s${w} ${e.name} ${e.reps}`);
+  }
+});

@@ -96,7 +96,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         const vol = weekW.reduce((a, w) => a + volume(w.sets), 0), R = "#ffb21e";
         const pos = program ? programPosition(program, today) : null, ph = program && pos ? program.phases[pos.phaseIndex] : null;
         return (<>
-          <section className="hunt-card rise relative overflow-hidden p-5">
+          <section className="span-all hunt-card rise relative overflow-hidden p-5">
             <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
             <button onClick={() => programSlot && setSheet("program")} className="w-full text-left">
               <p className="label flex items-center gap-1.5"><Ico d={HI.target} size={13} color={R} />Campanha{program && pos?.status === "andamento" ? ` · semana ${pos.week} de ${pos.total}` : ""}</p>
@@ -113,7 +113,7 @@ export function Training({ today, split, plan, workouts, program = null, program
             </div>
           </section>
           {program && <MasterCard program={program} workouts={workouts} today={today} nutrition={nutrition} day={masterDay} onViewDay={() => setSelDate(today)} />}
-          <Consult />
+          <div className="span-all"><Consult /></div>
           </>);
       })()}
 
