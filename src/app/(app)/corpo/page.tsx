@@ -4,5 +4,5 @@ import { redirect } from "next/navigation";
 export default async function Page({ searchParams }: { searchParams: Promise<{ aba?: string; d?: string }> }) {
   const sp = await searchParams;
   if (sp.aba === "treino" || sp.aba === "programa") redirect(sp.aba === "programa" ? "/treino?aba=programa" : "/treino");
-  redirect(`/perfil?aba=corpo${sp.aba ? `&sub=${sp.aba}` : ""}${sp.d ? `&d=${sp.d}` : ""}`);
+  redirect(`/status?aba=corpo${sp.aba ? `&sub=${sp.aba}` : ""}${sp.d ? `&d=${sp.d}` : ""}`);
 }

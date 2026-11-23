@@ -97,7 +97,7 @@ export function StatusHud({ attrs }: { attrs: { key: string; label: string; colo
   const lv = levelOf(total), rank = rankOf(lv.level);
   const r = 30, c = 2 * Math.PI * r;
   return (
-    <Link href="/perfil?aba=status" className="glass rise block p-4 overflow-hidden relative" aria-label={`Nível ${lv.level}, ${rank.name}. Ver status`}>
+    <Link href="/status" className="glass rise block p-4 overflow-hidden relative" aria-label={`Nível ${lv.level}, ${rank.name}. Ver status`}>
       <div className="flex items-center gap-4 relative">
         <div className="relative h-[76px] w-[76px] shrink-0">
           <svg width="76" height="76" className="-rotate-90" aria-hidden>

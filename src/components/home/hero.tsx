@@ -18,7 +18,7 @@ export function HeroPlayer({ attrs }: { attrs: AttrChip[] }) {
   const { total, today } = useXp();
   const lv = levelOf(total), rank = rankOf(lv.level), next = RANKS.find((r) => r.min > lv.level);
   return (
-    <Link href="/perfil?aba=status" className="press block relative overflow-hidden rounded-[8px] p-5 border" aria-label={`Nível ${lv.level}, ${rank.name}`}
+    <Link href="/status" className="press block relative overflow-hidden rounded-[8px] p-5 border" aria-label={`Nível ${lv.level}, ${rank.name}`}
       style={{ borderColor: rank.color + "40", background: `radial-gradient(130% 90% at 15% 0%, ${rank.color}30, #0f0f11 60%)`, boxShadow: `0 20px 50px -30px ${rank.color}` }}>
       <p className="text-[10px] font-semibold tracking-[.32em] text-muted">ASCENSION</p>
       <div className="flex items-center gap-4 mt-2">
@@ -62,7 +62,7 @@ const ACTIONS = [
   { key: "campo", label: "Campo", accessibleLabel: "Campo, registrar pregação" },
   { key: "agua", label: "+250 ml", accessibleLabel: "+250 ml de água" },
   { key: "treino", label: "Treino", accessibleLabel: "Abrir treino", href: "/treino" },
-  { key: "peso", label: "Peso", accessibleLabel: "Peso, registrar peso corporal", href: "/perfil?aba=corpo&sub=peso" },
+  { key: "peso", label: "Peso", accessibleLabel: "Peso, registrar peso corporal", href: "/status?aba=corpo&sub=peso" },
   { key: "gasto", label: "Gasto", accessibleLabel: "Registrar gasto", href: "/financas?aba=lancamentos" },
 ] as const;
 
