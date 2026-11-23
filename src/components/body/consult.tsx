@@ -63,12 +63,12 @@ function WeekDayCard({ name, wd, list }: { name: string; wd: string; list: { nam
     <div className="chat-in rounded-[14px] border border-white/10 bg-white/[.03] p-3">
       <div className="flex items-baseline justify-between"><p className="font-semibold">{name}</p><p className="text-[11px] text-white/45">{wd} · {list.length} exerc. · {sets} séries</p></div>
       <ul className="mt-2 grid gap-1.5">{list.map((e, i) => {
-        const biset = e.notes.startsWith("Biset"), drop = /drop set/.test(e.notes), heavy = e.notes === "Dia pesado";
+        const biset = e.notes.startsWith("Superset"), drop = /drop set/.test(e.notes), cluster = /cluster/.test(e.notes), heavy = e.notes.startsWith("Dia pesado");
         return (
           <li key={i} className={`flex items-center gap-2 rounded-[10px] px-2.5 py-1.5 ${biset ? "border-l-2 border-[var(--consult-accent)] bg-white/[.04]" : "bg-white/[.02]"}`}>
             <ExerciseThumb name={e.name} size={28} />
             <span className="min-w-0 flex-1 truncate text-[13px]">{e.name}</span>
-            {(biset || drop || heavy) && <span className="shrink-0 rounded-full px-1.5 text-[9.5px] font-bold uppercase" style={{ background: "var(--consult-accent)", color: "#141414" }}>{biset ? "Biset" : drop ? "Drop" : "Pesado"}</span>}
+            {(biset || drop || heavy || cluster) && <span className="shrink-0 rounded-full px-1.5 text-[9.5px] font-bold uppercase" style={{ background: "var(--consult-accent)", color: "#141414" }}>{biset ? "Superset" : cluster ? "Cluster" : drop ? "Drop" : "Pesado"}</span>}
             <span className="shrink-0 font-mono text-[12px] text-white/80">{e.sets}×{e.reps}</span>
           </li>); })}</ul>
     </div>);

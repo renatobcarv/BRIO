@@ -83,3 +83,17 @@ test("rotação protege carga fixa e reduz o volume sem trocar exercícios em gr
   assert.equal(week.days["1"][0].sets, 2);
   assert.equal(week.days["1"][1].name, base["1"][1].name);
 });
+
+import { plateaus, plateauTechniques } from "../src/lib/master.ts";
+test("platô: só com histórico travado; isolado → drop, máquina → rest-pause, barra livre → nada", () => {
+  const w = (d: string, ex: string, kg: number) => ({ date: d, sets: [{ exercise: ex, kg, reps: 10, rpe: 8 }] });
+  const hist = ["2026-10-01", "2026-10-08", "2026-11-05", "2026-11-12", "2026-11-19"].flatMap((d) => [w(d, "Cadeira extensora", 50), w(d, "Agachamento livre", 100), w(d, "Leg press", 200)]);
+  const stuck = plateaus(hist, "2026-11-23");
+  assert.ok(stuck.has("Cadeira extensora") && stuck.has("Leg press") && stuck.has("Agachamento livre"));
+  const days = { "1": [E("Agachamento livre", "quadriceps"), E("Leg press", "quadriceps"), E("Cadeira extensora", "quadriceps")] };
+  const r = plateauTechniques(days, stuck);
+  assert.equal(r.days["1"][0].notes, "");
+  assert.match(r.days["1"][1].notes, /rest-pause/); assert.match(r.days["1"][2].notes, /drop set/);
+  const progressing = hist.map((x, i) => ({ ...x, sets: x.sets.map((y) => ({ ...y, kg: y.kg + i })) }));
+  assert.equal(plateaus(progressing, "2026-11-23").size, 0);
+});

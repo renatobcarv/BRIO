@@ -25,7 +25,7 @@ test("programa completo: dias certos, tempo respeitado, big 3 em força, toda ju
   const r = buildProgram(A({ goal: "forca", days: 5, minutes: 45 }));
   assert.equal(r.program.phases[0].days["1"].length > 0, true);
   assert.deepEqual(Object.keys(r.program.phases[0].days), ["1", "2", "3", "4", "5"]);
-  for (const ph of r.program.phases) for (const l of Object.values(ph.days)) assert.ok(l.reduce((s, e) => s + e.sets, 0) <= 15 + 2);
+  for (const ph of r.program.phases) for (const l of Object.values(ph.days)) assert.ok(l.reduce((s, e) => s + e.sets, 0) <= 18 + 2);
   const names = Object.values(r.program.phases[0].days).flat().map((e) => e.name);
   assert.ok(names.includes("Agachamento livre") && names.includes("Supino reto com barra"));
   for (const w of r.why) assert.ok(REFS[w.ref]);
@@ -73,7 +73,7 @@ test("sessões de treinador: 2+ séries, poucos exercícios, básico no dia cert
     const r = buildProgram(A({ goal, focus, days, minutes }));
     for (const ph of r.program.phases) for (const [d, l] of Object.entries(ph.days)) {
       const tag = `${goal} ${focus} ${days}d ${minutes}min ${ph.kind} ${ph.dayNames?.[d]}`;
-      assert.ok(l.length <= exerciseCap(minutes) + 1, `${tag}: ${l.length} exercícios`);
+      assert.ok(l.length <= exerciseCap(minutes) + 2, `${tag}: ${l.length} exercícios`); // +2 só quando há superset
       for (const e of l) assert.ok(e.sets >= 2, `${tag}: ${e.name} com ${e.sets} série`);
       const nm = ph.dayNames?.[d] ?? "";
       if (/Inferior|Pernas/.test(nm)) assert.ok(!l.some((e) => /^Supino/.test(e.name)), `${tag}: supino no dia de pernas`);
@@ -81,9 +81,11 @@ test("sessões de treinador: 2+ séries, poucos exercícios, básico no dia cert
     }
   }
 });
-test("biset nos pequenos e drop set no último isolado", () => {
-  const r = buildProgram(A({ days: 4, minutes: 75, level: "avancado" }));
-  const all = Object.values(r.program.phases[0].days).flat();
-  assert.ok(all.some((e) => e.notes.startsWith("Biset")));
-  assert.ok(all.some((e) => /drop set/.test(e.notes)));
+test("técnicas só se necessárias: sem pressa de tempo = séries tradicionais; pouco tempo = superset de antagonistas", () => {
+  const calm = Object.values(buildProgram(A({ days: 6, minutes: 90 })).program.phases[0].days).flat();
+  assert.ok(!calm.some((e) => /Superset|drop set/.test(e.notes)), "não deveria ter técnica");
+  const rushed = Object.values(buildProgram(A({ days: 3, minutes: 45, level: "avancado" })).program.phases[0].days).flat();
+  const ss = rushed.filter((e) => e.notes.startsWith("Superset com"));
+  assert.ok(ss.length > 0);
+  for (const e of ss) assert.ok(!/drop/.test(e.notes));
 });

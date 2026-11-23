@@ -80,7 +80,7 @@ export function masterFor(program: Program, today: string, workouts: Workout[]) 
   if (!byWeek) { byWeek = new Map(); byHistory.set(workouts, byWeek); }
   let m = byWeek.get(pos.week);
   if (!m) {
-    const ctx = { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before };
+    const ctx = { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before, today };
     const base = masterWeek(ph.days, workouts, ctx);
     m = ov ? { ...base, days: ov.days, changes: [
       { text: `Semana ajustada por você${ov.note ? `: ${ov.note}` : ""}. O Mestre respeita.`, ref: "rpe" },

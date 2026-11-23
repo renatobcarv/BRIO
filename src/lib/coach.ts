@@ -68,6 +68,10 @@ export const REFS = {
   rate: "Helms et al. (2014) e Iraki et al. (2019): perder ~0,5–1% do peso por semana preserva músculo; ganhar ~0,25–0,5% limita a gordura.",
   carbs: "Kerksick et al. (2017), JISSN (timing de nutrientes): carboidrato em volta do treino ajuda o desempenho em sessões de alto volume.",
   spec: "Grgic et al. (2018), Sports Med: treinar o levantamento mais vezes por semana (com volume igualado) melhora a força nele; Rønnestad et al. (2011): 1×/semana mantém a força.",
+  superset: "Zhang et al. (2025), Sports Med (meta-análise, 19 estudos): superset agonista-antagonista mantém o volume e o resultado em bem menos tempo; superset do mesmo músculo reduz o volume.",
+  dropset: "Sødal et al. (2023), Sports Med Open (meta-análise): drop set dá hipertrofia igual ao tradicional em metade a um terço do tempo, com mais desgaste.",
+  advanced: "Krzysztofik et al. (2019), IJERPH (revisão sistemática): técnicas avançadas não superam o tradicional com volume igualado; servem a treinados para romper platô e monotonia.",
+  restpause: "Prestes et al. (2019), J Strength Cond Res: rest-pause deu força igual ao tradicional, com ganho extra só no leg press (amostra pequena).",
   diets: "Aragon et al. (2017), JISSN (position stand): o déficit calórico manda; a melhor dieta é a que você consegue manter.",
 } as const;
 export type RefKey = keyof typeof REFS;
@@ -165,7 +169,8 @@ const pid = () => `c${Date.now().toString(36)}${(seq++).toString(36)}`;
 const BIGM: Muscle[] = ["peito", "costas", "quadriceps", "posteriores", "gluteos"];
 /** Quem sai primeiro quando a sessão estoura (o desenvolvimento já trabalha o ombro anterior). */
 const DROP_ORDER: Muscle[] = ["ombro_anterior", "abdomen", "panturrilhas", "gluteos", "ombro_posterior", "biceps", "triceps", "ombro_lateral"];
-const PAIRS: [Muscle, Muscle][] = [["biceps", "triceps"], ["ombro_lateral", "ombro_posterior"], ["panturrilhas", "abdomen"]];
+/** Pares agonista-antagonista (supersets que mantêm o volume, Zhang 2025). Nunca o mesmo músculo. */
+const ANTAGONISTS: [Muscle, Muscle][] = [["biceps", "triceps"], ["peito", "costas"], ["quadriceps", "posteriores"]];
 /** Máximo de exercícios por sessão pelo tempo (bons treinadores raramente passam de 7–8). */
 export const exerciseCap = (minutes: number) => (minutes <= 45 ? 5 : minutes <= 60 ? 6 : minutes <= 75 ? 7 : 8);
 
@@ -208,28 +213,31 @@ function buildSession(a: TrainAnswers, b: Block, d: { name: string; muscles: Mus
     } else out.push(mkEx(first, m, Math.max(2, Math.min(big ? 5 : 4, t)), iso(first) ? isoReps : b.reps, iso(first) ? 75 : big ? 150 : 90));
   }
   // 3. Cabe no tempo: primeiro tira o 2º exercício dos grupos grandes, depois grupos de menor prioridade; nunca 1 série.
-  const cap = exerciseCap(a.minutes), protectedN = new Set(out.slice(0, lifts.length).map((e) => e.name));
+  const natural = out.length, naturalSets = out.reduce((x, e) => x + e.sets, 0);
+  const needsTime = natural > exerciseCap(a.minutes) || naturalSets > maxSets;
+  const cap = exerciseCap(a.minutes) + (needsTime ? 2 : 0), protectedN = new Set(out.slice(0, lifts.length).map((e) => e.name));
   const total = () => out.reduce((x, e) => x + e.sets, 0);
   const secondOf = () => out.findLastIndex((e, i) => !protectedN.has(e.name) && !a.priority.includes(e.muscle) && out.findIndex((x) => x.muscle === e.muscle) !== i);
   const dropIdx = () => { for (const m of DROP_ORDER) { if (a.priority.includes(m)) continue; const i = out.findLastIndex((e) => e.muscle === m && !protectedN.has(e.name)); if (i >= 0) return i; } return -1; };
-  while (out.length > cap || total() > maxSets) {
-    if (total() > maxSets) { const big = out.reduce((k, e, i) => (!protectedN.has(e.name) && e.sets > 3 && (k < 0 || e.sets > out[k].sets) ? i : k), -1); if (big >= 0) { out[big].sets--; continue; } }
+  const setCap = needsTime ? Math.round(maxSets * 1.25) : maxSets; // superset economiza ~20–30% do tempo
+  while (out.length > cap || total() > setCap) {
+    if (total() > setCap) { const big = out.reduce((k, e, i) => (!protectedN.has(e.name) && e.sets > 3 && (k < 0 || e.sets > out[k].sets) ? i : k), -1); if (big >= 0) { out[big].sets--; continue; } }
     const i = secondOf() >= 0 ? secondOf() : dropIdx(); if (i < 0) break; out.splice(i, 1);
   }
-  // 4. Biset nos pequenos antagonistas (economiza tempo sem perder estímulo).
-  for (const [x, y] of PAIRS) {
-    const i = out.findIndex((e) => e.muscle === x && iso(e.name)), j = out.findIndex((e) => e.muscle === y && iso(e.name));
+  // 4. Estratégia SÓ se necessária: pouco tempo → superset agonista-antagonista (mantém volume, poupa tempo).
+  if (needsTime) for (const [x, y] of ANTAGONISTS) {
+    const i = out.findIndex((e) => e.muscle === x && !protectedN.has(e.name) && !e.notes), j = out.findIndex((e) => e.muscle === y && !protectedN.has(e.name) && !e.notes);
     if (i < 0 || j < 0) continue;
     const [p, q] = i < j ? [i, j] : [j, i], second = out.splice(q, 1)[0];
     out.splice(p + 1, 0, second);
     const n = Math.max(out[p].sets, second.sets); out[p].sets = n; out[p + 1].sets = n;
-    out[p] = { ...out[p], rest: 10, notes: `Biset com ${second.name}: uma série de cada, sem descanso entre elas.` };
-    out[p + 1] = { ...out[p + 1], notes: `Biset com ${out[p].name}: descanse só depois deste.` };
+    out[p] = { ...out[p], rest: 15, notes: `Superset com ${second.name} (antagonistas): uma série de cada, descanse depois do par. Motivo: o treino precisa caber em ${a.minutes} min.` };
+    out[p + 1] = { ...out[p + 1], notes: `Superset com ${out[p].name}: descanse só depois deste.` };
   }
-  // 5. Técnica de intensidade: drop set só no último isolado (não em iniciante, deload ou pico).
-  if (a.level !== "iniciante" && (b.kind === "acumulacao" || b.kind === "intensificacao")) {
-    const k = out.findLastIndex((e) => iso(e.name) && !e.notes.startsWith("Biset"));
-    if (k >= 0) out[k] = { ...out[k], notes: "Última série: drop set (tire ~20% da carga e continue até perto da falha)." };
+  // 5. Força avançada na intensificação: cluster no levantamento pesado (mantém a qualidade das reps pesadas).
+  if (a.level === "avancado" && strength && b.kind === "intensificacao") {
+    const k = out.findIndex((e) => e.notes === "Dia pesado");
+    if (k >= 0) out[k] = { ...out[k], notes: "Dia pesado · cluster: blocos de 2 reps com 15–20 s de pausa dentro da série, para manter a velocidade da barra." };
   }
   const injured = a.injuries.trim();
   return injured ? out.map((e) => ({ ...e, notes: [e.notes, "Atenção à lesão informada: pare se doer e troque o exercício."].filter(Boolean).join(" ") })) : out;

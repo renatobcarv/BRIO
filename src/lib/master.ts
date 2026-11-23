@@ -5,7 +5,7 @@ import { isMainLift, type Muscle, type PlannedEx, type PhaseKind } from "./train
 
 export type MWorkout = { date: string; week_no?: number | null; program_id?: string | null; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] };
 export type Change = { text: string; ref: RefKey };
-type Ctx = { programId: string; kind: PhaseKind | string; week: number; weekInPhase: number };
+type Ctx = { programId: string; kind: PhaseKind | string; week: number; weekInPhase: number; today?: string };
 
 const WAVES = [
   { key: "volume", name: "Semana de volume", shift: 0, rpe: -0.5, rest: 1 },
@@ -105,6 +105,10 @@ export function masterWeek(base: Record<string, PlannedEx[]>, hist: MWorkout[], 
   if (up.length) changes.push({ text: `+1 série em ${up.length} grupo(s) que você completou com folga: ${up.join(", ").replace(/_/g, " ")}.`, ref: "volume" });
   if (down.length) changes.push({ text: `−1 série em ${down.join(", ").replace(/_/g, " ")}: RPE acima do alvo na semana passada (fadiga).`, ref: "rpe" });
   changes.push({ text: "Carga de cada exercício sugerida pelo seu histórico (e1RM) e pelo RPE alvo.", ref: "overload" });
+  if (!special && ctx.today) {
+    const pt = plateauTechniques(days, plateaus(hist, ctx.today));
+    if (pt.used.length) { Object.assign(days, pt.days); changes.push({ text: `Platô detectado em ${pt.used.join(" e ")} (sem progresso há 3 semanas): técnica avançada só na última série.`, ref: "advanced" }); }
+  }
   return { days, changes, wave: special ? null : wave.name, feedback: fb };
 }
 
@@ -225,4 +229,33 @@ export function suggestAdjustments(days: Record<string, PlannedEx[]>, hist: MWor
   if (fb?.trained && fb.sessions < plannedDays.length && !out.some((x) => x.id === "corrida"))
     out.push({ id: "corrida", title: "Reduzir 30% das séries", why: `Você foi a ${fb.sessions} de ${plannedDays.length} treinos. Um plano mais curto ajuda a não faltar.`, ref: "overload", apply: (d) => applyPreset(d, "corrida") });
   return out.slice(0, 5);
+}
+
+
+// ── Técnicas avançadas SÓ quando há platô (Krzysztofik 2019: servem para romper platô em treinados) ──
+const MACHINE = /máquina|polia|leg press|hack|smith|cadeira|mesa|crossover|peck deck|puxada/i;
+/** Exercícios sem progresso de 1RM estimado nas últimas 3 semanas, com histórico suficiente. */
+export function plateaus(hist: MWorkout[], today: string) {
+  const t = Date.parse(today + "T12:00:00Z") / 864e5, e1 = (kg: number, r: number, rpe?: number | null) => kg * (1 + (r + (rpe && rpe >= 6 ? 10 - rpe : 0)) / 30);
+  const by = new Map<string, { recent: number; before: number; sessions: number }>();
+  for (const w of hist) {
+    const age = t - Date.parse(w.date + "T12:00:00Z") / 864e5; if (age < 0 || age > 56) continue;
+    for (const x of w.sets) { if (!(x.kg > 0) || !(x.reps > 0)) continue;
+      const v = by.get(x.exercise) ?? { recent: 0, before: 0, sessions: 0 }, val = e1(x.kg, x.reps, x.rpe);
+      if (age <= 21) v.recent = Math.max(v.recent, val); else v.before = Math.max(v.before, val); by.set(x.exercise, v); }
+  }
+  for (const w of hist) for (const n of new Set(w.sets.map((x) => x.exercise))) { const v = by.get(n); if (v) v.sessions++; }
+  return new Set([...by].filter(([, v]) => v.sessions >= 4 && v.before > 0 && v.recent > 0 && v.recent <= v.before * 1.005).map(([n]) => n));
+}
+/** Aplica técnica no exercício travado: isolado → drop set; máquina → rest-pause; barra livre pesada → nada (troca de faixa/variação é mais segura). */
+export function plateauTechniques(days: Record<string, PlannedEx[]>, stuck: Set<string>, max = 2) {
+  let n = 0; const used: string[] = [];
+  const out = Object.fromEntries(Object.entries(days).map(([d, l]) => [d, l.map((e) => {
+    if (n >= max || !stuck.has(e.name) || e.notes) return e;
+    const iso = ISOLATION.test(e.name), mach = MACHINE.test(e.name);
+    if (!iso && !mach) return e;
+    n++; used.push(e.name);
+    return { ...e, notes: iso ? "Platô: na última série, drop set (tire ~20% e continue até perto da falha)." : "Platô: na última série, rest-pause (15 s de pausa e mais 2–4 reps, 2 vezes)." };
+  })]));
+  return { days: out, used };
 }
