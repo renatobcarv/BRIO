@@ -22,7 +22,7 @@ import { TrainingSystem } from "./training-system";
 import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 import { NextWeeks } from "./next-weeks";
-import { MasterCard, type Nutrition } from "./master-card";
+import { MasterCard, type MasterDay, type Nutrition } from "./master-card";
 import { Consult } from "./consult";
 
 import { G, ORDER, buildSession, dayPlan, volume, e1rm, firstNum, isTimed, suggestionFor, type Session, type Workout } from "./training-core";
@@ -48,7 +48,10 @@ export function Training({ today, split, plan, workouts, program = null, program
   const [selDate, setSelDate] = useState(today);
   const [preview, setPreview] = useState(false);
   const [exView, setExView] = useState<string | null>(null);
-  const sel = weekDays.find((w) => w.date === selDate) ?? weekDays.find((w) => w.date === today)!;
+  const currentDay = weekDays.find((w) => w.date === today)!;
+  const sel = weekDays.find((w) => w.date === selDate) ?? currentDay;
+  const masterDay: MasterDay = session && !session.editingId ? "andamento"
+    : currentDay.status === "done" ? "feito" : currentDay.dp.list.length ? "treino" : "descanso";
 
   useEffect(() => { try { const raw = localStorage.getItem(KEY); if (raw) setSessionState(JSON.parse(raw)); } catch {} }, []);
   const setSession = (s: Session | null) => { setSessionState(s); try { if (s && !s.editingId) localStorage.setItem(KEY, JSON.stringify(s)); else localStorage.removeItem(KEY); } catch {} };
@@ -109,7 +112,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                 <div key={l} className="pt-3 text-center"><p className="label !text-[9px] flex items-center justify-center gap-1"><Ico d={ic} size={11} />{l}</p><p className="num text-2xl mt-1">{v}</p><p className="text-[10px] text-white/45">{u}</p></div>))}
             </div>
           </section>
-          {program && <MasterCard program={program} workouts={workouts} today={today} nutrition={nutrition} />}
+          {program && <MasterCard program={program} workouts={workouts} today={today} nutrition={nutrition} day={masterDay} onViewDay={() => setSelDate(today)} />}
           <Consult />
           </>);
       })()}
@@ -121,7 +124,7 @@ export function Training({ today, split, plan, workouts, program = null, program
           {programSlot && <button className="chip shrink-0 !min-h-10" onClick={() => setSheet("program")}>Campanha</button>}
         </div>
       </nav>
-      <section id="tr-hoje" className="glass rise p-5 mt-4 scroll-mt-20">
+      <section id="tr-hoje" tabIndex={-1} className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle action={<LinkBtn onClick={() => setSheet(program ? "program" : "plan")}>{program ? "Editar campanha" : "Editar plano"}</LinkBtn>}>{session ? "Missão em andamento" : "Esta semana"}</SectionTitle>
         {session ? (
           <>
