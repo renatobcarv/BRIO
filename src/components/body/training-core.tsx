@@ -1,5 +1,6 @@
 "use client";
 
+import { masterWeek } from "@/lib/master";
 import { todayWorkout } from "@/lib/training";
 
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
@@ -53,11 +54,25 @@ export function buildSession(date: string, day: SplitDay, plan: Target[], workou
   };
 }
 /** Plano do dia: fase atual do programa ativo, senão o plano semanal simples. */
-export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string): { list: Target[]; ctx: Ctx; title?: string } {
+/** Semana do programa ajustada pelo Mestre (memo por programa+semana+registros). */
+const masterCache = new Map<string, ReturnType<typeof masterWeek>>();
+export function masterFor(program: Program, today: string, workouts: Workout[]) {
+  const pos = programPosition(program, today), ph = program.phases[pos.phaseIndex];
+  if (pos.status !== "andamento" || !ph) return null;
+  const before = program.phases.slice(0, pos.phaseIndex).reduce((a, f) => a + f.weeks, 0);
+  const key = `${program.id}|${pos.week}|${workouts.length}|${workouts[0]?.id ?? ""}`;
+  let m = masterCache.get(key);
+  if (!m) { m = masterWeek(ph.days, workouts.map((w) => ({ date: w.date, week_no: w.week_no, program_id: (w as { program_id?: string | null }).program_id ?? program.id, sets: w.sets })), { programId: program.id, kind: ph.kind, week: pos.week, weekInPhase: pos.week - before }); masterCache.set(key, m); }
+  return { ...m, phase: ph, week: pos.week };
+}
+export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, today: string, workouts: Workout[] = []): { list: Target[]; ctx: Ctx; title?: string } {
   if (program) {
     const pos = programPosition(program, today);
     const ph = program.phases[pos.phaseIndex];
-    if (pos.status === "andamento" && ph) return { list: ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
+    if (pos.status === "andamento" && ph) {
+      const m = masterFor(program, today, workouts);
+      return { list: m?.days[String(d)] ?? ph.days[String(d)] ?? [], title: dayTitle(ph, String(d)), ctx: { programId: program.id, weekNo: pos.week, phase: ph.name, deload: ph.kind === "deload" } };
+    }
   }
   const list = plan.days[String(d)] ?? [];
   return { list, ctx: null, title: todayWorkout(d, plan.days as never, null, today).title };

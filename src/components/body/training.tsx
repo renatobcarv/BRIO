@@ -22,13 +22,14 @@ import { TrainingSystem } from "./training-system";
 import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 import { NextWeeks } from "./next-weeks";
+import { MasterCard, type Nutrition } from "./master-card";
 
 import { G, ORDER, buildSession, dayPlan, volume, e1rm, firstNum, isTimed, suggestionFor, type Session, type Workout } from "./training-core";
 import { Logger } from "./training-logger";
 import { PlanEditor } from "./plan-editor";
 export { e1rm, firstNum, historyOf, isTimed, lastFor, mmss, suggestionFor, type LEx, type LSet, type Session, type Target, type Workout } from "./training-core";
 
-export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false, bodyweight = null }: { today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean; bodyweight?: number | null }) {
+export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false, bodyweight = null, nutrition }: { nutrition?: Nutrition; today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean; bodyweight?: number | null }) {
   const [pending, start] = useTransition();
   const KEY = "brio-treino-em-andamento";
   const [session, setSessionState] = useState<Session | null>(null);
@@ -38,7 +39,7 @@ export function Training({ today, split, plan, workouts, program = null, program
   const todayDay = split.find((d) => d.dow === dow(today)) ?? { dow: dow(today), label: "Off", focus: "Descanso" };
   const monday = addDays(today, -((dow(today) + 6) % 7));
   const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(monday, i), d = dow(date), dp = dayPlan(d, plan, program, date), sd = split.find((x) => x.dow === d);
+    const date = addDays(monday, i), d = dow(date), dp = dayPlan(d, plan, program, date, workouts), sd = split.find((x) => x.dow === d);
     const done = workouts.some((w) => w.date === date);
     const status: "done" | "today" | "missed" | "rest" | "next" = done ? "done" : date === today ? "today" : !dp.list.length ? "rest" : date < today ? "missed" : "next";
     return { date, d, dp, label: dp.title ? dayShort(dp.title) : sd?.label ?? "—", focus: dp.title ?? sd?.focus ?? "", title: dp.title, status };
@@ -90,7 +91,7 @@ export function Training({ today, split, plan, workouts, program = null, program
         const prevStart = addDays(weekStart, -7), lastVol = workouts.filter((w) => w.date >= prevStart && w.date < weekStart).reduce((a, w) => a + volume(w.sets), 0);
         const vol = weekW.reduce((a, w) => a + volume(w.sets), 0), R = "#ffb21e";
         const pos = program ? programPosition(program, today) : null, ph = program && pos ? program.phases[pos.phaseIndex] : null;
-        return (
+        return (<>
           <section className="hunt-card rise relative overflow-hidden p-5">
             <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: R, boxShadow: `0 0 18px ${R}` }} />
             <button onClick={() => programSlot && setSheet("program")} className="w-full text-left">
@@ -106,7 +107,9 @@ export function Training({ today, split, plan, workouts, program = null, program
               {[[HI.dumbbell, "Semana", `${done}/${total}`, "treinos"], [HI.list, "Mês", String(monthW.length), "sessões"], [HI.bolt, "Volume", vol >= 1000 ? `${fmt(vol / 1000)} t` : `${Math.round(vol)} kg`, lastVol ? `${Math.round((vol / lastVol) * 100)}% da passada` : "na semana"]].map(([ic, l, v, u]) => (
                 <div key={l} className="pt-3 text-center"><p className="label !text-[9px] flex items-center justify-center gap-1"><Ico d={ic} size={11} />{l}</p><p className="num text-2xl mt-1">{v}</p><p className="text-[10px] text-white/45">{u}</p></div>))}
             </div>
-          </section>);
+          </section>
+          {program && <MasterCard program={program} workouts={workouts} today={today} nutrition={nutrition} />}
+          </>);
       })()}
 
       <nav aria-label="Ir para" className="span-all sticky top-14 md:top-0 z-20 -mx-4 px-4 py-2 mt-3 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent">

@@ -76,7 +76,7 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
 
   const loadDay = (d: number) => {
     const day = split.find((x) => x.dow === d) ?? { dow: d, label: "Treino", focus: "" };
-    const { list, ctx } = dayPlan(d, plan, program, s.date);
+    const { list, ctx } = dayPlan(d, plan, program, s.date, workouts);
     setS(buildSession(s.date, day, list, workouts, ctx));
   };
 
@@ -84,7 +84,7 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
     <>
       {!s.editingId && (
         <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1">
-          {ORDER.map((d) => { const day = split.find((x) => x.dow === d); const cnt = dayPlan(d, plan, program, s.date).list.length;
+          {ORDER.map((d) => { const day = split.find((x) => x.dow === d); const cnt = dayPlan(d, plan, program, s.date, workouts).list.length;
             return <button key={d} className="chip shrink-0" onClick={() => { if (!doneSets.length || confirm("Trocar o treino? As séries marcadas serão perdidas.")) loadDay(d); }}
               aria-pressed={s.label.startsWith(`${day?.label} ·`) && (day?.dow === dow(s.date) || cnt > 0)}>{weekdayShort[d]} · {day?.label ?? "—"}</button>; })}
         </div>

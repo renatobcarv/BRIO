@@ -3,6 +3,7 @@ import { petState } from "./pet.ts";
 import { achievements, xpEvents, type Attr } from "./game";
 import { BEAST_ATTR, tameOpportunities, type TameTries, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
 import { ALL, FERAS, bestiaryRecord } from "./bestiary";
+import { campaignMilestones } from "./coach";
 import "server-only";
 import { eaten } from "./meals.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -78,6 +79,8 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const bq = await sb.from("workouts").select("program_id,week_no,date").not("program_id", "is", null).limit(3000);
   const sessionsB = (bq.error ? [] : bq.data ?? []) as { program_id: string | null; week_no: number | null; date: string }[];
   const ks = kills(programs as never, sessionsB);
+  // Marcos da campanha (semana, fase e campanha cumpridas) viram XP de Força.
+  input.eventBonus = [...(input.eventBonus ?? []), ...campaignMilestones(programs as never, sessionsB).map((m) => ({ ...m, attr: "forca" as const }))];
   const eco = economy(ks, achievements(input).filter((x) => x.done).map((x) => x.id),
     { bought: (eqQ.data?.bought as string[]) ?? [], levels: (eqQ.data?.levels as Record<string, number>) ?? {}, spent: Number(eqQ.data?.spent ?? 0) });
   const equipped = validEquipped(eqQ.error ? null : eqQ.data?.equipped, eco.owned.keys());

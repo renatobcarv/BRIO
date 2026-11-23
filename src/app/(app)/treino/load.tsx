@@ -13,6 +13,12 @@ const N = (v: unknown) => Number(v) || 0;
 export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: string, openProgram: boolean) {
     const q = (cols: string) => sb.from("workouts").select(cols).order("date", { ascending: false }).order("created_at", { ascending: false }).limit(400);
     const bw = await sb.from("weight_logs").select("kg").order("date", { ascending: false }).limit(1).maybeSingle();
+    // Para o Mestre ajustar a alimentação: pesos das últimas 3 semanas e o plano alimentar.
+    const [wl, dp] = await Promise.all([
+      sb.from("weight_logs").select("date,kg").gte("date", new Date(Date.parse(today + "T12:00:00Z") - 21 * 864e5).toISOString().slice(0, 10)),
+      sb.from("diet_plans").select("goal,kcal").maybeSingle(),
+    ]);
+    const nutrition = { goal: (dp.data?.goal ?? "manter") as "perder" | "manter" | "ganhar" | "recomp", kcal: dp.data?.kcal ?? s.kcal_goal ?? 0, weights: (wl.data ?? []).map((w) => ({ date: w.date as string, kg: N(w.kg) })) };
     const all = await Promise.all([
       q("id,date,split_label,notes,duration_min,planned,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
       sb.from("training_programs").select("*").eq("active", true).maybeSingle(),
@@ -42,6 +48,6 @@ export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: s
     const hot = evs.find((e) => (e.stage === "ativo" || e.stage === "contagem") && (e.type === "hell_week" || e.type === "judgment" || e.type === "genesis"));
     const onFire = !!evs.find((e) => e.type === "hell_week" && (e.stage === "ativo" || e.stage === "contagem"));
     const warEvent = hot ? <Link href="/eventos" className="block mb-4"><EventCard e={hot} compact /></Link> : null;
-    const content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} />;
+    const content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} nutrition={nutrition} />;
   return { content, warEvent, onFire, workouts: workouts as { date: string; sets: { exercise: string; kg: number; reps: number }[] }[], bodyweight: bw.data ? N(bw.data.kg) : s.weight_start_kg };
 }
