@@ -86,12 +86,12 @@ export function MuscleMap({ list, compact = false }: { list: { name: string; set
   if (!ms.length) return null;
   const on = new Map(ms.map((x) => [x.m, x.main] as const));
   return (
-    <figure className={`grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center ${compact ? "gap-2" : "gap-3 rounded-xl border border-white/10 bg-[#15141a] p-3 sm:gap-5 sm:p-4"}`} aria-label={`Músculos do dia: ${ms.map((x) => MUSCLES[x.m]).join(", ")}`}>
+    <figure className={`grid min-w-0 items-center ${compact ? "grid-cols-[minmax(0,1fr)_minmax(0,1fr)] gap-2" : "gap-3 rounded-xl border border-white/10 bg-[#15141a] p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:gap-5 sm:p-4"}`} aria-label={`Músculos do dia: ${ms.map((x) => MUSCLES[x.m]).join(", ")}`}>
       <div className={`mx-auto grid w-full grid-cols-2 ${compact ? "max-w-32 gap-0.5" : "max-w-[18rem] gap-1.5"}`}>
         <Figure on={on} /><Figure back on={on} />
       </div>
-      <figcaption className="grid min-w-0 content-center gap-1.5">
-        {!compact && <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/65">Séries por músculo</p>}
+      <figcaption className={`grid min-w-0 content-center gap-1.5 ${compact ? "" : "grid-cols-2 sm:grid-cols-1"}`}>
+        {!compact && <p className="col-span-full mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/65">Séries por músculo</p>}
         {(compact ? ms.slice(0, 4) : ms).map(({ m, sets, main }) => (
           <span key={m} className={`flex min-w-0 items-center gap-1.5 ${compact ? "text-[11px]" : "text-xs sm:text-sm"}`}>
             <i className="size-2 shrink-0 rounded-sm" style={{ background: main ? "#ff713d" : "#ad5152" }} />
