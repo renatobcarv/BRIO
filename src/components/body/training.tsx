@@ -168,7 +168,7 @@ export function Training({ today, split, plan, workouts, program = null, program
               return (
                 <div key={sel.date} className="step-in-right">
                   {/* Cabeçalho do treino */}
-                  <div className="grid sm:grid-cols-[minmax(0,1fr)_minmax(0,300px)] gap-5 items-center">
+                  <div className="min-w-0">
                     <div className="min-w-0">
                       <p className="text-[12px] text-white/50">{when}{ctx ? ` · Semana ${ctx.weekNo}` : ""}{ctx?.phase ? ` · ${ctx.phase}` : ""}</p>
                       <h3 className="font-display text-[34px] sm:text-[40px] leading-[1.02] mt-1">{sel.title ?? (list.length ? "Treino" : "Descanso")}</h3>
@@ -187,11 +187,11 @@ export function Training({ today, split, plan, workouts, program = null, program
     <span className="text-[11px] shrink-0" style={{ color: done ? "#ffb21e" : "rgba(255,255,255,.5)" }}>{done ? `abatido ${done}×` : "treine para abater"}</span>
   </a>); })()}
                     </div>
-                    {list.length > 0 && <div className="hidden sm:block"><MuscleMap list={list as never} compact /></div>}
                   </div>
 
                   {list.length > 0 ? (
                     <>
+                      <div className="mt-4"><MuscleMap list={list} /></div>
                       <ol className="mt-5 divide-y divide-white/[.06] border-y border-white/[.06]">
                         {list.map((x, i) => {
                           const sg = x.kg == null ? suggestionFor(workouts, x, sel.date < today ? sel.date : today, !!ctx?.deload) : null;
@@ -211,7 +211,6 @@ export function Training({ today, split, plan, workouts, program = null, program
                             </li>);
                         })}
                       </ol>
-                      <div className="sm:hidden mt-5"><MuscleMap list={list as never} compact /></div>
                     </>
                   ) : <div className="mt-5 rounded-[10px] border border-white/[.06] p-6 text-center"><p className="text-[15px] text-white/70">Dia de descanso.</p><p className="text-[13px] text-white/45 mt-1">A adaptação acontece agora: sono, proteína e água.</p></div>}
 

@@ -11,59 +11,72 @@ export function musclesOf(list: { name: string; sets?: number; muscle?: string |
   return sorted.map(([m, sets]) => ({ m, sets, main: sets >= top * 0.5 }));
 }
 
-// Cada região descreve o lado esquerdo e é espelhada no eixo do corpo.
-type Shape = { m: Muscle; d: string };
+// Cada peça representa uma barriga muscular. O grupo define o destaque do treino.
+type Shape = { m?: Muscle; d: string };
 const FRONT: Shape[] = [
-  { m: "ombro_anterior", d: "M36 30Q28 28 23 34L21 43Q27 45 32 38Z" },
-  { m: "ombro_lateral", d: "M23 34Q18 37 17 45L17 53 23 47 24 42Z" },
-  { m: "peito", d: "M36 31Q43 30 49 34L49 49Q39 51 32 44Q30 39 36 31Z" },
-  { m: "biceps", d: "M26 46Q31 44 29 53L25 64Q20 67 19 61L20 54Z" },
-  { m: "abdomen", d: "M42 51Q46 52 49 51V57H42Z M41 59H49V65H41Z M41 67H49V73H42Z M42 75H49V86Q45 84 42 75Z" },
-  { m: "quadriceps", d: "M36 86Q42 86 48 94L45 115Q44 124 39 121Q33 115 34 102Z" },
-  { m: "panturrilhas", d: "M38 126Q44 124 44 132L43 150Q38 145 37 137Z" },
+  { d: "M53 33Q45 34 37 40Q45 39 55 44L59 39Z" },
+  { m: "ombro_lateral", d: "M33 40Q17 37 13 51L13 65Q20 64 23 56Z" },
+  { m: "ombro_anterior", d: "M33 41Q24 45 20 59Q19 66 24 68Q32 64 34 54L39 45Z" },
+  { m: "peito", d: "M40 43Q48 39 58 45L59 59Q56 69 45 69Q35 68 30 62Q33 49 40 43Z" },
+  { m: "biceps", d: "M25 68Q33 65 33 73Q33 83 25 91Q16 96 16 87Q17 77 25 68Z" },
+  { d: "M14 65Q12 73 10 84L13 87Q16 76 21 68Z M12 92Q20 92 17 99L8 115L5 113Z M17 96Q22 97 20 103L11 118L9 116Z" },
+  { m: "abdomen", d: "M50 71Q55 73 59 69L59 79Q54 82 49 79Z M49 82Q54 84 59 81V92Q54 94 49 91Z M49 94Q54 96 59 94V105Q54 108 51 104Z M51 107Q55 110 59 107V122Q55 119 51 107Z" },
+  { m: "abdomen", d: "M34 68Q39 72 43 73L38 79Z M37 81L44 76 46 80 40 85Z M40 87L47 82 47 87 42 92Z M42 94L47 90Q46 103 51 112L46 118Z" },
+  { m: "quadriceps", d: "M39 115Q44 119 46 129Q39 144 42 162Q35 158 33 147Q32 128 39 115Z M46 126Q51 127 52 134Q49 148 45 162Q42 151 46 126Z M54 135Q58 145 54 156Q52 165 47 163Q47 156 54 135Z" },
+  { d: "M50 118Q57 118 58 126L55 139Q51 129 50 118Z M42 164Q46 167 52 164L51 171Q47 176 43 170Z" },
+  { m: "panturrilhas", d: "M39 171Q44 171 45 181L44 197Q39 193 38 183Z M50 174Q54 177 52 187L47 199L48 183Z" },
+  { d: "M45 177Q47 176 48 179L45 204L42 206L44 190Z" },
 ];
 const BACK: Shape[] = [
-  { m: "ombro_posterior", d: "M35 30Q25 29 21 37L18 47Q25 49 30 43Z" },
-  { m: "costas", d: "M48 26 38 31 32 44Q38 44 47 39Z M32 47Q39 47 47 41L48 72Q41 68 37 58Z" },
-  { m: "triceps", d: "M25 45Q31 47 28 53L25 65Q19 67 19 60L20 53Z" },
-  { m: "gluteos", d: "M37 73Q44 72 49 78L49 88Q44 95 36 89Q33 87 37 73Z" },
-  { m: "posteriores", d: "M36 93Q42 96 48 92L46 109 45 121Q42 124 39 119Q35 112 35 103Z" },
-  { m: "panturrilhas", d: "M38 126Q43 122 45 130L43 149Q39 154 37 144Q35 137 38 126Z" },
+  { m: "costas", d: "M53 32Q47 35 37 40L45 42 57 53 59 39Z M59 42L51 57 57 68 59 62Z" },
+  { m: "ombro_lateral", d: "M33 40Q17 37 13 51L13 64Q20 60 23 53Z" },
+  { m: "ombro_posterior", d: "M34 40Q25 43 19 56Q19 64 25 65Q32 62 34 55L40 44Z" },
+  { m: "costas", d: "M40 44Q47 46 50 54Q46 62 34 61L30 57Z M32 63Q43 66 51 58L48 68 36 72Z M36 74Q49 70 53 65Q58 74 48 90L44 100Q39 88 36 74Z M57 72Q56 89 59 103L51 108Q47 101 50 91Z" },
+  { m: "triceps", d: "M25 66Q32 63 32 70Q28 81 20 87Q16 85 19 77Z M17 65Q20 64 21 67L16 83Q12 88 12 83Q11 74 17 65Z" },
+  { d: "M13 89Q19 87 19 93L10 113L6 113Z M18 94Q23 94 20 101L12 117L10 115Z" },
+  { m: "gluteos", d: "M44 100Q48 108 58 105L59 119Q55 131 45 129Q36 126 38 116Z" },
+  { m: "posteriores", d: "M38 128Q43 130 45 135L44 162Q36 157 35 147Q33 137 38 128Z M47 131Q55 130 58 123L55 143Q54 154 48 164L46 159Z" },
+  { d: "M43 164Q47 167 52 164L51 172Q47 175 43 170Z" },
+  { m: "panturrilhas", d: "M39 171Q45 172 46 179L45 191Q41 198 38 190Q35 181 39 171Z M49 172Q54 172 54 183Q52 194 47 195L46 189Z" },
+  { d: "M45 195L48 195 46 205 43 207Z" },
 ];
 
-const BODY = "M50 5C44 5 40 9 40 15Q40 22 45 25L44 28 29 30Q20 31 17 43L15 62 11 77 9 88Q9 92 13 92L17 88 20 77 25 65 30 47Q32 58 36 67L35 77Q31 93 34 114L36 124 35 137 39 154 38 160 34 164Q35 168 44 166L45 154 47 139 47 125 49 109 50 94 51 109 53 125 53 139 55 154 56 166Q65 168 66 164L62 160 61 154 65 137 64 124 66 114Q69 93 65 77L64 67Q68 58 70 47L75 65 80 77 83 88 87 92Q91 92 91 88L89 77 85 62 83 43Q80 31 71 30L56 28 55 25Q60 22 60 15C60 9 56 5 50 5Z";
-const CONTOURS = "M44 27Q47 32 50 32Q53 32 56 27M30 48Q34 58 39 60M70 48Q66 58 61 60M20 69Q17 76 15 84M80 69Q83 76 85 84M39 122Q42 128 45 122M61 122Q58 128 55 122M39 155 41 160M61 155 59 160";
+const BODY = "M60 8Q51 7 48 14L49 24 53 29 52 33Q46 36 37 39Q24 36 17 43Q11 49 11 64L9 80 9 89Q5 101 3 114L1 120 2 128 5 129 7 124 11 124 15 117Q21 107 24 96L32 80 35 65 39 83 43 99 37 113Q31 125 32 142L36 157 38 169Q34 180 37 192L41 203 38 211 33 215 34 218 46 218 49 213 49 201 54 186 55 169 56 153 59 136 60 133 61 136 64 153 65 169 66 186 71 201 71 213 74 218 86 218 87 215 82 211 79 203 83 192Q86 180 82 169L84 157 88 142Q89 125 83 113L77 99 81 83 85 65 88 80 96 96Q99 107 105 117L109 124 113 124 115 129 118 128 119 120 117 114Q115 101 111 89L111 80 109 64Q109 49 103 43Q96 36 83 39Q74 36 68 33L67 29 71 24 72 14Q69 7 60 8Z";
+const FACE = "M50 16 55 12 59 15 64 11 70 16M51 20l6 1m6 0 6-1m-9 1-2 4h3m-5 2q4 2 8 0m-9 5 5 6 5-6";
+const HAIR = "M48 17 46 12 50 9 48 6 54 7 55 3 60 6 65 2 65 6 72 5 70 9 75 11 71 17 67 13 63 14 60 12 54 15Z";
 
 function Figure({ back, on }: { back?: boolean; on: Map<Muscle, boolean> }) {
   const id = useId();
-  const shapes = back ? BACK : FRONT;
-
   return (
-    <div className="grid justify-items-center">
-      <svg viewBox="0 0 100 172" className="h-auto w-full" aria-hidden>
+    <div className="grid min-w-0 justify-items-center">
+      <svg viewBox="0 0 120 221" className="h-auto w-full max-w-36" aria-hidden="true">
         <defs>
-          <linearGradient id={`${id}-body`} x2="1" y2="0">
-            <stop stopColor="#191b23" /><stop offset=".5" stopColor="#30333f" /><stop offset="1" stopColor="#191b23" />
+          <linearGradient id={`${id}-muscle`} x2=".8" y2="1">
+            <stop stopColor="#767483" /><stop offset=".38" stopColor="#474551" /><stop offset="1" stopColor="#24232d" />
           </linearGradient>
           <linearGradient id={`${id}-active`} x2=".8" y2="1">
-            <stop stopColor="#ff9162" /><stop offset=".48" stopColor="#ff4b28" /><stop offset="1" stopColor="#a71f28" />
+            <stop stopColor="#ffcf86" /><stop offset=".42" stopColor="#ff713d" /><stop offset="1" stopColor="#b42a2d" />
+          </linearGradient>
+          <linearGradient id={`${id}-secondary`} x2=".8" y2="1">
+            <stop stopColor="#e68469" /><stop offset="1" stopColor="#88333e" />
           </linearGradient>
         </defs>
-        <path d={BODY} fill={`url(#${id}-body)`} stroke="#626777" strokeWidth="1.3" />
-        <path d={CONTOURS} fill="none" stroke="#858998" strokeOpacity=".47" strokeWidth=".8" />
-        {back && <path d="M50 31v42" fill="none" stroke="#858998" strokeOpacity=".45" />}
-        {shapes.map(({ m, d }) => {
-          const active = on.get(m);
+        <path d={BODY} fill="#262530" stroke="#8a8596" strokeWidth="1.1" strokeLinejoin="round" />
+        <path d={HAIR} fill="#17171e" stroke="#817c8d" strokeWidth=".7" />
+        <path d={back ? "M51 17Q60 21 69 17M53 25Q60 27 67 25M54 31Q60 37 66 31M60 45V103" : FACE} fill="none" stroke="#a6a0ad" strokeOpacity=".72" strokeWidth=".8" />
+        {(back ? BACK : FRONT).map(({ m, d }, i) => {
+          const active = m ? on.get(m) : undefined;
+          const gradient = active === true ? "active" : active === false ? "secondary" : "muscle";
           return (
-            <g key={m} fill={active ? `url(#${id}-active)` : active === false ? "#922d32" : "#3d414e"}
-              stroke={active ? "#ff966f" : active === false ? "#c75a51" : "#5f6474"} strokeWidth=".8" strokeLinejoin="round">
+            <g key={i} fill={`url(#${id}-${gradient})`} stroke={active === true ? "#ffc29a" : active === false ? "#f39985" : "#a19aaa"}
+              strokeOpacity={active === undefined ? ".72" : "1"} strokeWidth=".8" strokeLinejoin="round">
               <path d={d} />
-              <path d={d} transform="translate(100 0) scale(-1 1)" />
+              <path d={d} transform="translate(120 0) scale(-1 1)" />
             </g>
           );
         })}
       </svg>
-      <span aria-hidden className="text-[9px] uppercase tracking-wide text-white/50">{back ? "Costas" : "Frente"}</span>
+      <span aria-hidden="true" className="mt-1 text-[10px] font-medium uppercase tracking-wider text-white/65">{back ? "Costas" : "Frente"}</span>
     </div>
   );
 }
@@ -73,11 +86,19 @@ export function MuscleMap({ list, compact = false }: { list: { name: string; set
   if (!ms.length) return null;
   const on = new Map(ms.map((x) => [x.m, x.main] as const));
   return (
-    <figure className={`grid ${compact ? "grid-cols-[120px_1fr]" : "grid-cols-[minmax(0,170px)_1fr]"} gap-4 items-center`} aria-label={`Músculos do dia: ${ms.map((x) => MUSCLES[x.m]).join(", ")}`}>
-      <div className="grid grid-cols-2 gap-1"><Figure on={on} /><Figure back on={on} /></div>
-      <figcaption className="grid gap-1.5 content-center min-w-0">
-        {ms.slice(0, compact ? 4 : 8).map(({ m, sets, main }) => (
-          <span key={m} className="flex items-center gap-2 text-[13px] min-w-0"><i className="h-2.5 w-2.5 shrink-0" style={{ background: main ? "#ff5733" : "#922d32" }} /><span className={`flex-1 truncate ${main ? "text-white" : "text-white/60"}`}>{MUSCLES[m]}</span><span className="font-mono text-[11px] text-white/45 shrink-0">{sets}</span></span>))}
+    <figure className={`grid min-w-0 grid-cols-[minmax(0,1fr)_minmax(0,1fr)] items-center ${compact ? "gap-2" : "gap-3 rounded-xl border border-white/10 bg-[#15141a] p-3 sm:gap-5 sm:p-4"}`} aria-label={`Músculos do dia: ${ms.map((x) => MUSCLES[x.m]).join(", ")}`}>
+      <div className={`mx-auto grid w-full grid-cols-2 ${compact ? "max-w-32 gap-0.5" : "max-w-[18rem] gap-1.5"}`}>
+        <Figure on={on} /><Figure back on={on} />
+      </div>
+      <figcaption className="grid min-w-0 content-center gap-1.5">
+        {!compact && <p className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-white/65">Séries por músculo</p>}
+        {(compact ? ms.slice(0, 4) : ms).map(({ m, sets, main }) => (
+          <span key={m} className={`flex min-w-0 items-center gap-1.5 ${compact ? "text-[11px]" : "text-xs sm:text-sm"}`}>
+            <i className="size-2 shrink-0 rounded-sm" style={{ background: main ? "#ff713d" : "#ad5152" }} />
+            <span className={`flex-1 leading-tight ${compact ? "truncate" : "break-words"} ${main ? "text-white" : "text-white/75"}`}>{MUSCLES[m]}</span>
+            <span className="shrink-0 font-mono text-xs text-white/70">{sets}</span>
+          </span>
+        ))}
       </figcaption>
     </figure>
   );
