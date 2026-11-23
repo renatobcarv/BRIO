@@ -31,6 +31,7 @@ const primary: Item[] = [
   { href: "/pioneiro", label: "Pioneiro", color: "#f5f5f7", icon: pioneer },
 ];
 const secondary: Item[] = [
+  { href: "/perfil", label: "Perfil", color: "#ffb21e", icon: star },
   { href: "/corpo", label: "Corpo", color: "#30d158", icon: body },
   { href: "/status", label: "Status", color: "#ffb21e", icon: star },
   { href: "/mascote", label: "Mascote", color: "#ffb21e", icon: flame },
