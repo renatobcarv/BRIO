@@ -21,6 +21,7 @@ import { TrainingSystem } from "./training-system";
 import { suggestLoad, type Suggestion } from "@/lib/progression";
 import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
+import { NextWeeks } from "./next-weeks";
 
 const G = "#ffb21e";
 type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
@@ -340,6 +341,7 @@ export function Training({ today, split, plan, workouts, program = null, program
               <p className="text-sm mt-1" style={{ color: ph ? PHASE_KINDS[ph.kind].color : "#8a8a8f" }}>{program && pos ? (pos.status === "andamento" ? ph?.name : pos.status === "futuro" ? `Começa em ${pos.startsIn} dias` : "Campanha concluída") : "Fases, semanas e progressão de carga · criar ›"}</p>
               {program && <div className="mt-3"><Timeline p={program} today={today} /></div>}
             </button>
+            {program && pos?.status === "andamento" && <NextWeeks p={program} week={pos.week} />}
             <div className="mt-5 flex justify-between label !text-[9px]"><span>Sessões da semana</span><span style={{ color: R }}>{done}/{total}</span></div>
             <div className="flex gap-1 mt-1.5" aria-hidden>{Array.from({ length: Math.max(total, 1) }, (_, i) => <i key={i} className="h-3 flex-1" style={{ background: i < done ? R : "rgba(255,255,255,.08)" }} />)}</div>
             <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">
