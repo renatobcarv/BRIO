@@ -5,7 +5,7 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { todayISO } from "@/lib/date";
-import { gearById, unlockedGear, SLOTS } from "@/lib/items";
+import { MAX_LEVEL, PRICE, SLOTS, buyable, gearById, upgradeCost } from "@/lib/items";
 import { loadGame } from "@/lib/game-data";
 import { getSettings } from "@/lib/settings";
 import { DRAWS_PER_MONTH, DUPLICATE_ESSENCE, roll, SPECIES } from "@/lib/pet";
@@ -55,24 +55,51 @@ export async function renamePet(name: string): Promise<string | null> {
   revalidatePath("/", "layout"); return err(error);
 }
 
-/** Equipa (ou tira) um item no mascote. Confere no servidor se o item foi mesmo conquistado. */
+async function walletState() {
+  const sb = await createClient();
+  const { data: pet, error } = await sb.from("pets").select("equipped,bought,levels,spent").maybeSingle();
+  if (error) return { sb, err: "Rode o SQL dos itens (20261127000000_itens.sql) no Supabase." } as const;
+  if (!pet) return { sb, err: "Adote um mascote primeiro." } as const;
+  const g = await loadGame(sb, await getSettings(sb), todayISO());
+  return { sb, pet, items: g.items } as const;
+}
+const doneItems = () => { revalidatePath("/mascote"); revalidatePath("/"); revalidatePath("/status"); return null; };
+
+/** Equipa (ou tira) um item. O servidor confere se o item é mesmo seu. */
 export async function equipItem(slot: string, id: string | null): Promise<string | null> {
   if (!SLOTS.some((s) => s.slot === slot)) return "Espaço inválido.";
-  const sb = await createClient();
-  const { data: pet, error } = await sb.from("pets").select("equipped").maybeSingle();
-  if (error) return "Rode o SQL dos itens (20261127000000_itens.sql) no Supabase.";
-  if (!pet) return "Adote um mascote primeiro.";
-  const eq = { ...((pet.equipped ?? {}) as Record<string, unknown>) };
+  const w = await walletState(); if ("err" in w) return w.err!;
+  const eq = { ...((w.pet.equipped ?? {}) as Record<string, unknown>) };
   if (id === null) delete eq[slot];
   else {
     const it = gearById(id);
     if (!it || it.slot !== slot) return "Item inválido para este espaço.";
-    const g = await loadGame(sb, await getSettings(sb), todayISO());
-    if (!unlockedGear(g.achievements.filter((a) => a.done).map((a) => a.id)).some((x) => x.id === id)) return "Você ainda não conquistou este item.";
+    if (!w.items.owned[id]) return "Você ainda não tem este item.";
     eq[slot] = { id, at: todayISO() };
   }
-  const { error: e2 } = await sb.from("pets").update({ equipped: eq }).not("user_id", "is", null);
-  if (e2) return e2.message;
-  revalidatePath("/mascote"); revalidatePath("/"); revalidatePath("/status");
-  return null;
+  const { error } = await w.sb.from("pets").update({ equipped: eq }).not("user_id", "is", null);
+  return error ? error.message : doneItems();
+}
+
+/** Compra um item de saque com Ouro de caça. */
+export async function buyItem(id: string): Promise<string | null> {
+  const it = gearById(id); if (!it || !buyable(it)) return "Este item não está à venda.";
+  const w = await walletState(); if ("err" in w) return w.err!;
+  if (w.items.owned[id]) return "Você já tem este item.";
+  if (w.items.gold < PRICE[it.tier]) return "Ouro insuficiente. Cace mais feras no Treino.";
+  const bought = [...new Set([...((w.pet.bought as string[]) ?? []), id])];
+  const { error } = await w.sb.from("pets").update({ bought, spent: Number(w.pet.spent ?? 0) + PRICE[it.tier] }).not("user_id", "is", null);
+  return error ? error.message : doneItems();
+}
+
+/** Evolui um item (até o nível 5): +1 ponto percentual de bônus por nível. */
+export async function upgradeItem(id: string): Promise<string | null> {
+  const it = gearById(id); if (!it) return "Item inválido.";
+  const w = await walletState(); if ("err" in w) return w.err!;
+  if (!w.items.owned[id]) return "Você ainda não tem este item.";
+  const lv = w.items.levels[id] ?? 1; if (lv >= MAX_LEVEL) return "Este item já está no nível máximo.";
+  const cost = upgradeCost(it, lv); if (w.items.gold < cost) return "Ouro insuficiente para evoluir.";
+  const levels = { ...((w.pet.levels ?? {}) as Record<string, number>), [id]: lv + 1 };
+  const { error } = await w.sb.from("pets").update({ levels, spent: Number(w.pet.spent ?? 0) + cost }).not("user_id", "is", null);
+  return error ? error.message : doneItems();
 }

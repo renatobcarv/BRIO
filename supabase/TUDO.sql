@@ -851,3 +851,6 @@ drop policy if exists "dono" on pet_draws;
 create policy "dono" on pet_draws for all to authenticated using (user_id = auth.uid()) with check (user_id = auth.uid());
 -- Itens do mascote: o que está equipado em cada espaço ({"forca": {"id": "manopla", "at": "2026-11-23"}}).
 alter table pets add column if not exists equipped jsonb not null default '{}'::jsonb;
+alter table pets add column if not exists bought jsonb not null default '[]'::jsonb;
+alter table pets add column if not exists levels jsonb not null default '{}'::jsonb;
+alter table pets add column if not exists spent int not null default 0 check (spent >= 0);

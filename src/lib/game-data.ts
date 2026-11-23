@@ -1,7 +1,7 @@
 import { cleanDays as implicitClean, type Mark } from "./clean.ts";
 import { petState } from "./pet.ts";
 import { achievements, xpEvents, type Attr } from "./game";
-import { itemBonus, unlockedGear, validEquipped } from "./items";
+import { economy, itemBonus, kills, validEquipped } from "./items";
 import { FERAS, bestiaryRecord } from "./bestiary";
 import "server-only";
 import { eaten } from "./meals.ts";
@@ -73,16 +73,19 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     workouts: input.workouts.map((w) => ({ date: w.date, sets: w.sets })) });
   input.eventBonus = events.flatMap((e) => e.bonusXp.map((b) => ({ ...b, attr: (e.type === "sanctuary" ? "vigor" : e.type === "war_rations" ? "vigor" : "forca") as "forca" | "vigor" })));
   // Mascote: alimentado pelos eventos reais desde a adoção; às vezes dá bônus de XP.
-  // Itens equipados no mascote: bônus de XP limitado (15%) e só a partir do dia em que foram equipados.
-  const eqQ = await sb.from("pets").select("equipped").maybeSingle();
-  const unlocked = unlockedGear(achievements(input).filter((x) => x.done).map((x) => x.id));
-  const equipped = validEquipped(eqQ.error ? null : eqQ.data?.equipped, unlocked);
-  input.eventBonus = [...(input.eventBonus ?? []), ...itemBonus(xpEvents(input), equipped)];
+  // Itens do mascote: conquistas + saque das feras + loja (Ouro de caça). Bônus limitado a 15%, sem retroativo.
+  const eqQ = await sb.from("pets").select("equipped,bought,levels,spent").maybeSingle();
   const bq = await sb.from("workouts").select("program_id,week_no,date").not("program_id", "is", null).limit(3000);
-  const beasts = bestiaryRecord(programs as never, (bq.error ? [] : bq.data ?? []) as never);
+  const sessionsB = (bq.error ? [] : bq.data ?? []) as { program_id: string | null; week_no: number | null; date: string }[];
+  const ks = kills(programs as never, sessionsB);
+  const eco = economy(ks, achievements(input).filter((x) => x.done).map((x) => x.id),
+    { bought: (eqQ.data?.bought as string[]) ?? [], levels: (eqQ.data?.levels as Record<string, number>) ?? {}, spent: Number(eqQ.data?.spent ?? 0) });
+  const equipped = validEquipped(eqQ.error ? null : eqQ.data?.equipped, eco.owned.keys());
+  input.eventBonus = [...(input.eventBonus ?? []), ...itemBonus(xpEvents(input), equipped, eco.levels)];
+  const beasts = bestiaryRecord(programs as never, sessionsB as never);
   const trophies = FERAS.filter((id) => beasts[id].won > 0).map((id) => ({ id, won: beasts[id].won }));
   const petQ = await sb.from("pets").select("id,name,species,adopted_on,bonus_essence").maybeSingle();
   const pet = petQ.error || !petQ.data ? null : (() => { const st = petState(petQ.data.id, petQ.data.adopted_on, xpEvents(input), today, Number(petQ.data.bonus_essence ?? 0)); input.eventBonus = [...(input.eventBonus ?? []), ...st.bonus.map((b) => ({ ...b, attr: b.attr as Attr }))]; return { ...petQ.data, ...st }; })();
-  return { ...summarize(input), events, pet, petReady: !petQ.error, items: { unlocked: unlocked.map((x) => x.id), equipped, trophies, ready: !eqQ.error } };
+  return { ...summarize(input), events, pet, petReady: !petQ.error, items: { owned: Object.fromEntries(eco.owned), levels: eco.levels, gold: eco.gold, drops: eco.drops.slice(0, 12), kills: ks.length, equipped, trophies, ready: !eqQ.error } };
 }
 export type Game = Awaited<ReturnType<typeof loadGame>>;
