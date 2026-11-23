@@ -23,6 +23,7 @@ import { totalWeeks } from "@/lib/training";
 import { Timeline } from "./program";
 import { NextWeeks } from "./next-weeks";
 import { MasterCard, type Nutrition } from "./master-card";
+import { Consult } from "./consult";
 
 import { G, ORDER, buildSession, dayPlan, volume, e1rm, firstNum, isTimed, suggestionFor, type Session, type Workout } from "./training-core";
 import { Logger } from "./training-logger";
@@ -109,6 +110,7 @@ export function Training({ today, split, plan, workouts, program = null, program
             </div>
           </section>
           {program && <MasterCard program={program} workouts={workouts} today={today} nutrition={nutrition} />}
+          <Consult />
           </>);
       })()}
 
