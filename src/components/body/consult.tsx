@@ -16,7 +16,7 @@ const Qs: Q[] = [
   { who: "treino", key: "days", ask: "Quantos dias por semana você consegue treinar de verdade?", why: "Melhor um plano que você cumpre do que um perfeito que abandona.", opts: [2, 3, 4, 5, 6].map((n) => ({ v: n, l: `${n} dias` })) },
   { who: "treino", key: "minutes", ask: "Quanto tempo por treino?", opts: [45, 60, 75, 90].map((n) => ({ v: n, l: `${n} min` })) },
   { who: "treino", key: "equipment", ask: "Onde você vai treinar?", opts: [{ v: "academia", l: "Academia completa" }, { v: "halteres", l: "Halteres e banco" }, { v: "casa", l: "Em casa (peso do corpo)" }] },
-  { who: "treino", key: "priority", ask: "Algum grupo que você quer priorizar? (até 2)", why: "Prioridade ganha mais séries.", multi: 2, opts: (["peito", "costas", "ombro_lateral", "biceps", "triceps", "quadriceps", "posteriores", "gluteos"] as Muscle[]).map((m) => ({ v: m, l: MUSCLES[m] })) },
+  { who: "treino", key: "priority", ask: "Algum grupo que você quer priorizar? (até 3)", why: "Prioridade ganha +4 séries por semana. Escolher tudo é o mesmo que não priorizar nada.", multi: 3, opts: (["peito", "costas", "ombro_anterior", "ombro_lateral", "ombro_posterior", "biceps", "triceps", "quadriceps", "posteriores", "gluteos", "panturrilhas", "abdomen"] as Muscle[]).map((m) => ({ v: m, l: MUSCLES[m] })) },
   { who: "treino", key: "sleep", ask: "Quantas horas você dorme por noite, em média?", why: "Sono curto reduz a recuperação: o volume começa menor.", opts: [5, 6, 7, 8, 9].map((n) => ({ v: n, l: `${n}h${n === 9 ? "+" : ""}` })) },
   { who: "treino", key: "stress", ask: "Como está o estresse no dia a dia?", opts: [{ v: "baixo", l: "Baixo" }, { v: "medio", l: "Médio" }, { v: "alto", l: "Alto" }] },
   { who: "treino", key: "injuries", ask: "Alguma lesão ou dor que eu deva saber?", input: "text", skip: true },
@@ -58,7 +58,7 @@ export function Consult() {
         <span><span className="block font-semibold">Criar plano novo com especialistas</span><span className="block text-[12px] text-white/55">Treinador de periodização + nutricionista · perguntas, estudos e um plano feito para você</span></span>
       </button>
       {open && (
-        <div className="fixed inset-0 z-50 bg-black/95 overflow-y-auto" role="dialog" aria-modal aria-label="Consulta com especialistas">
+        <div className="fixed inset-0 z-50 bg-[#050505] overflow-y-auto" role="dialog" aria-modal aria-label="Consulta com especialistas">
           <div className="max-w-lg mx-auto p-4 pb-24">
             <div className="flex items-center justify-between"><p className="label">Consulta · {res ? "seu plano" : `${i + 1}/${Qs.length}`}</p><button className="btn !min-h-9 !px-3" onClick={() => setOpen(false)}>Fechar</button></div>
             {!res && <div className="h-1 rounded-full bg-white/10 mt-3"><i className="block h-1 rounded-full" style={{ width: `${((i + 1) / Qs.length) * 100}%`, background: A }} /></div>}
