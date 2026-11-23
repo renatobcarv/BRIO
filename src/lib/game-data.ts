@@ -4,6 +4,7 @@ import { achievements, xpEvents, type Attr } from "./game";
 import { BEAST_ATTR, tameOpportunities, type TameTries, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
 import { ALL, FERAS, bestiaryRecord } from "./bestiary";
 import { campaignMilestones } from "./coach";
+import { mindXp } from "./mind";
 import "server-only";
 import { eaten } from "./meals.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -74,6 +75,9 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     workouts: input.workouts.map((w) => ({ date: w.date, sets: w.sets })) });
   input.eventBonus = events.flatMap((e) => e.bonusXp.map((b) => ({ ...b, attr: (e.type === "sanctuary" ? "vigor" : e.type === "war_rations" ? "vigor" : "forca") as "forca" | "vigor" })));
   // Mascote: alimentado pelos eventos reais desde a adoção; às vezes dá bônus de XP.
+  // Mente: cada teste/treino cognitivo vale XP de Sabedoria.
+  const mq = await sb.from("mind_sessions").select("date,kind,total,correct").limit(2000);
+  if (!mq.error) input.eventBonus = [...(input.eventBonus ?? []), ...(mq.data ?? []).map((m) => ({ date: m.date as string, attr: "sabedoria" as const, xp: mindXp(m.kind as "teste" | "treino", m.correct as number, m.total as number), label: m.kind === "teste" ? "Teste cognitivo completo" : "Treino da Mente" }))];
   // Itens do mascote: conquistas + saque das feras + loja (Ouro de caça). Bônus limitado a 15%, sem retroativo.
   const eqQ = await sb.from("pets").select("equipped,bought,levels,spent,active_beast,tame_tries").maybeSingle();
   const bq = await sb.from("workouts").select("program_id,week_no,date").not("program_id", "is", null).limit(3000);
