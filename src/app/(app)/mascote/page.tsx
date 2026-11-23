@@ -3,6 +3,7 @@ import { getSettings } from "@/lib/settings";
 import { loadGame } from "@/lib/game-data";
 import { todayISO } from "@/lib/date";
 import { PetPage, type PetView } from "@/components/pet/pet";
+import { Arsenal } from "@/components/pet/arsenal";
 
 export const dynamic = "force-dynamic";
 export default async function Page() {
@@ -17,11 +18,12 @@ export default async function Page() {
       <p className="text-white/65 mt-2 text-[14px]">No Supabase, abra o SQL Editor e rode o <b>supabase/TUDO.sql</b> (ou só o <b>20261125000000_mascote.sql</b>). Depois recarregue esta página.</p>
       <p className="font-mono text-[11px] text-white/40 mt-3">Detalhe: {(d.error ?? p.error)?.message}</p>
     </section>);
-  let pet: PetView | null = null, err: string | null = null;
-  try { const g = await loadGame(sb, await getSettings(sb), todayISO()); pet = (g.pet as PetView | null) ?? null; }
+  let pet: PetView | null = null, err: string | null = null, items: Awaited<ReturnType<typeof loadGame>>["items"] | null = null;
+  try { const g = await loadGame(sb, await getSettings(sb), todayISO()); pet = (g.pet as PetView | null) ?? null; items = g.items; }
   catch (e) { err = e instanceof Error ? e.message : String(e); }
   return <>
     {err && <p className="hunt-card p-4 mb-4 text-[13px] text-[#ff8a80]">Não consegui calcular a evolução do mascote agora ({err}). O sorteio funciona normalmente.</p>}
     <PetPage p={pet} ready draws={d.data ?? []} month={todayISO().slice(0, 7)} />
+    {pet && items && <Arsenal {...items} petName={pet.name} />}
   </>;
 }

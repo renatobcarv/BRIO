@@ -1,6 +1,8 @@
 import { cleanDays as implicitClean, type Mark } from "./clean.ts";
 import { petState } from "./pet.ts";
-import { xpEvents, type Attr } from "./game";
+import { achievements, xpEvents, type Attr } from "./game";
+import { itemBonus, unlockedGear, validEquipped } from "./items";
+import { FERAS, bestiaryRecord } from "./bestiary";
 import "server-only";
 import { eaten } from "./meals.ts";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -71,8 +73,16 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     workouts: input.workouts.map((w) => ({ date: w.date, sets: w.sets })) });
   input.eventBonus = events.flatMap((e) => e.bonusXp.map((b) => ({ ...b, attr: (e.type === "sanctuary" ? "vigor" : e.type === "war_rations" ? "vigor" : "forca") as "forca" | "vigor" })));
   // Mascote: alimentado pelos eventos reais desde a adoção; às vezes dá bônus de XP.
+  // Itens equipados no mascote: bônus de XP limitado (15%) e só a partir do dia em que foram equipados.
+  const eqQ = await sb.from("pets").select("equipped").maybeSingle();
+  const unlocked = unlockedGear(achievements(input).filter((x) => x.done).map((x) => x.id));
+  const equipped = validEquipped(eqQ.error ? null : eqQ.data?.equipped, unlocked);
+  input.eventBonus = [...(input.eventBonus ?? []), ...itemBonus(xpEvents(input), equipped)];
+  const bq = await sb.from("workouts").select("program_id,week_no,date").not("program_id", "is", null).limit(3000);
+  const beasts = bestiaryRecord(programs as never, (bq.error ? [] : bq.data ?? []) as never);
+  const trophies = FERAS.filter((id) => beasts[id].won > 0).map((id) => ({ id, won: beasts[id].won }));
   const petQ = await sb.from("pets").select("id,name,species,adopted_on,bonus_essence").maybeSingle();
   const pet = petQ.error || !petQ.data ? null : (() => { const st = petState(petQ.data.id, petQ.data.adopted_on, xpEvents(input), today, Number(petQ.data.bonus_essence ?? 0)); input.eventBonus = [...(input.eventBonus ?? []), ...st.bonus.map((b) => ({ ...b, attr: b.attr as Attr }))]; return { ...petQ.data, ...st }; })();
-  return { ...summarize(input), events, pet, petReady: !petQ.error };
+  return { ...summarize(input), events, pet, petReady: !petQ.error, items: { unlocked: unlocked.map((x) => x.id), equipped, trophies, ready: !eqQ.error } };
 }
 export type Game = Awaited<ReturnType<typeof loadGame>>;

@@ -5,6 +5,9 @@ import { randomInt } from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { todayISO } from "@/lib/date";
+import { gearById, unlockedGear, SLOTS } from "@/lib/items";
+import { loadGame } from "@/lib/game-data";
+import { getSettings } from "@/lib/settings";
 import { DRAWS_PER_MONTH, DUPLICATE_ESSENCE, roll, SPECIES } from "@/lib/pet";
 
 const MISSING = "Rode a migração 20261125000000_mascote.sql no Supabase.";
@@ -50,4 +53,26 @@ export async function renamePet(name: string): Promise<string | null> {
   const sb = await createClient();
   const { error } = await sb.from("pets").update({ name: n.data }).not("user_id", "is", null);
   revalidatePath("/", "layout"); return err(error);
+}
+
+/** Equipa (ou tira) um item no mascote. Confere no servidor se o item foi mesmo conquistado. */
+export async function equipItem(slot: string, id: string | null): Promise<string | null> {
+  if (!SLOTS.some((s) => s.slot === slot)) return "Espaço inválido.";
+  const sb = await createClient();
+  const { data: pet, error } = await sb.from("pets").select("equipped").maybeSingle();
+  if (error) return "Rode o SQL dos itens (20261127000000_itens.sql) no Supabase.";
+  if (!pet) return "Adote um mascote primeiro.";
+  const eq = { ...((pet.equipped ?? {}) as Record<string, unknown>) };
+  if (id === null) delete eq[slot];
+  else {
+    const it = gearById(id);
+    if (!it || it.slot !== slot) return "Item inválido para este espaço.";
+    const g = await loadGame(sb, await getSettings(sb), todayISO());
+    if (!unlockedGear(g.achievements.filter((a) => a.done).map((a) => a.id)).some((x) => x.id === id)) return "Você ainda não conquistou este item.";
+    eq[slot] = { id, at: todayISO() };
+  }
+  const { error: e2 } = await sb.from("pets").update({ equipped: eq }).not("user_id", "is", null);
+  if (e2) return e2.message;
+  revalidatePath("/mascote"); revalidatePath("/"); revalidatePath("/status");
+  return null;
 }
