@@ -9,6 +9,8 @@ import { CountUp } from "@/components/count-up";
 import { fmt, n } from "@/components/kit";
 import { e1rm, isTimed, lastFor, mmss, type Session, type Workout } from "./training";
 import { liveAdjust } from "./training-core";
+import { briefing, reactSet, restLine, verdict, RPE_HINT } from "@/lib/mestre";
+import { waveOf } from "@/lib/master";
 
 const G = "#ffb21e";
 
@@ -65,6 +67,11 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const [clock, setClock] = useState(0);
   const [err, setErr] = useState<string | null>(null);
   const top = useRef<HTMLDivElement>(null);
+  // O Mestre: briefing no início, reação a cada série, dica no descanso.
+  const [say, setSay] = useState(() => {
+    const main = s.exercises.find((e) => !isTimed(e.name));
+    return briefing({ wave: s.weekNo ? waveOf(s.weekNo).name : null, label: s.label, main: main ? { name: main.name, kg: n(main.sets[0]?.kg ?? ""), sets: main.sets.length, reps: main.target?.reps ?? main.sets[0]?.reps ?? "" } : null, seed: s.date + s.label });
+  });
   useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, []);
   // Sessão aberta sem horário (restaurada ou iniciada por outro caminho): o cronômetro começa agora.
   useEffect(() => { if (!s.startedAt && !s.editingId) setS({ ...s, startedAt: Date.now() }); }, [s.startedAt]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -91,11 +98,13 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min${kg ? ` · ${fmt(kg)} km` : ""}` : `${ex.name} ${fmt(kg)}×${reps}`, G);
     const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
     if (old > 0 && now > old) setTimeout(() => celebrate("Novo recorde!", `${ex.name}: ${fmt(kg)} kg × ${reps}`), 300);
+    if (!timed) { const nk = next.exercises[cur.e].sets[cur.k + 1]; setSay(reactSet({ reps, rpe: set.rpe ? n(set.rpe) : null, targetReps: n(ex.target?.reps ?? "") || reps, targetRpe: ex.target?.rpe ?? null, pr: old > 0 && now > old, nextKg: nk ? n(nk.kg) : null, curKg: kg, last: !nk, seed: `${cur.e}-${cur.k}-${kg}` })); }
     else if (next.exercises[cur.e].sets.every((x) => x.done)) { setTimeout(() => { gain(15, `${ex.name} conquistado`, "#ffd28a"); haptic([30, 30, 80]); }, 450); }
     let nx: { e: number; k: number } | null = null;
     for (let e = cur.e; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
     if (!nx) for (let e = 0; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
-    if (nx) { setCur(nx); const r = ex.target?.rest ?? 90; if (r > 0) setRest(r); }
+    if (nx) { setCur(nx); const r = ex.target?.rest ?? 90; if (r > 0) setRest(r); if (nx.e !== cur.e) setTimeout(() => setSay(restLine(next.exercises[nx!.e].name, nx!.e + "")), 2600); }
+    else setSay(verdict({ done: next.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0), total: next.exercises.reduce((a, e) => a + e.sets.length, 0), prs: 0, volume: next.exercises.filter((e) => !isTimed(e.name)).reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0) }) + " Finalize para registrar.");
   };
 
   const finish = () => start(async () => {
@@ -140,6 +149,10 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
         {s.exercises.flatMap((e, i) => e.sets.map((x, j) => <i key={`${i}-${j}`} className="h-1.5 flex-1 rounded-full transition-all duration-500" style={{ background: x.done ? G : i === cur.e && j === cur.k ? "rgba(48,209,88,.4)" : "rgba(255,255,255,.08)", boxShadow: x.done ? `0 0 8px ${G}` : "none" }} />))}
       </div>
 
+      <div className="flex items-start gap-3 mb-4 rounded-[16px] p-3 border" style={{ borderColor: "#ffb21e44", background: "linear-gradient(120deg,#ffb21e14,transparent 70%)" }} aria-live="polite">
+        <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border font-display" style={{ borderColor: "#ffb21e", color: "#ffb21e" }}>M</span>
+        <p className="text-[14px] leading-snug"><span className="block text-[10px] uppercase tracking-[.2em] text-[#ffb21e]">O Mestre</span>{say}</p>
+      </div>
       {rest != null ? <Rest total={rest} onDone={() => setRest(null)} /> : (
         <div key={`${cur.e}-${cur.k}`} className="step-in-right">
           <p className="text-sm text-muted">Exercício {cur.e + 1} de {s.exercises.length}</p>
@@ -162,6 +175,8 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           <div className="mt-3">
             <p className="label mb-1.5">Esforço (RPE)</p>
             <div className="flex gap-1.5">{["6", "7", "8", "9", "10"].map((r) => <button key={r} className="chip flex-1 justify-center !min-h-11" aria-pressed={set.rpe === r} onClick={() => upd({ rpe: set.rpe === r ? "" : r })}>{r}</button>)}</div>
+            <div className="flex gap-1.5 mt-1">{["6", "7", "8", "9", "10"].map((r) => <span key={r} className="flex-1 text-center text-[10px] leading-tight text-white/45">{RPE_HINT[r]}</span>)}</div>
+            <p className="text-[11px] text-white/40 mt-1">RPE = esforço. Pense: quantas repetições boas ainda sairiam?</p>
           </div>
           <button className="btn w-full mt-4 !min-h-16 text-lg font-semibold text-black" style={{ background: G, boxShadow: `0 10px 30px -10px ${G}` }} disabled={!n(set.reps)} onClick={complete}>
             {timed ? "Concluído" : "Série feita"} <span className="opacity-60 text-sm ml-1">+{timed ? Math.min(30, Math.max(5, Math.round(n(set.reps)))) : Math.max(1, Math.round((n(set.kg) * n(set.reps)) / 100))} XP</span></button>

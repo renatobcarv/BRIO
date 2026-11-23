@@ -4,6 +4,7 @@ import { REFS } from "@/lib/coach";
 import { weekNutrition, weightRate, type DietGoal } from "@/lib/master";
 import { masterFor, type Workout } from "./training-core";
 import { WeekEditor } from "./week-editor";
+import { absence } from "@/lib/mestre";
 import type { Program } from "@/lib/training";
 
 const A = "#ffb21e";
@@ -17,6 +18,7 @@ export function MasterCard({ program, workouts, today, nutrition }: { program: P
   const rate = nutrition ? weightRate(nutrition.weights, today) : null;
   const nut = nutrition && nutrition.kcal > 0 ? weekNutrition(nutrition.goal, m.phase.kind, m.wave, rate, nutrition.kcal) : null;
   const fb = m.feedback;
+  const lastDate = workouts[0]?.date, away = lastDate ? absence(Math.round((Date.parse(today) - Date.parse(lastDate)) / 864e5)) : null;
   const done = fb ? [...fb.muscles.values()].reduce((a, x) => a + x.done, 0) : 0, planned = fb ? [...fb.muscles.values()].reduce((a, x) => a + x.planned, 0) : 0;
   return (
     <section className="hunt-card rise p-5 mt-4 relative overflow-hidden">
@@ -29,6 +31,7 @@ export function MasterCard({ program, workouts, today, nutrition }: { program: P
           {fb?.trained && <p className="text-[12px] text-white/55 mt-0.5">Semana passada: {fb.sessions} treino(s) · {done}/{planned} séries planejadas{planned ? ` (${Math.round((done / planned) * 100)}%)` : ""}</p>}
         </div>
       </div>
+      {away && <p className="relative mt-3 text-[13.5px] rounded-[12px] p-3 border" style={{ borderColor: A + "44" }}>{away}</p>}
       <ul className="relative mt-3 grid gap-2">
         {m.changes.map((c, i) => <li key={i} className="flex gap-2 text-[13.5px] leading-snug"><span style={{ color: A }}>›</span><span>{c.text}</span></li>)}
       </ul>
