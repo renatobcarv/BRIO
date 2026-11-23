@@ -52,7 +52,7 @@ export function EventCard({ e, compact = false }: { e: GameEvent; compact?: bool
             <p className="text-sm text-ink/80 mt-2">{e.tagline}</p>
             <p className="text-xs text-muted mt-1">{startLabel} – {endLabel} · {e.program}</p>
           </div>
-          <Image src={`/eventos/${e.type}.webp`} width={384} height={384} alt="" unoptimized
+          <Image src={`/cards/eventos/${e.type}.webp`} width={384} height={384} alt="" unoptimized
             className="pointer-events-none h-auto w-[72px] shrink-0 self-center sm:w-[120px]"
             style={{ filter: `drop-shadow(0 0 14px ${e.color}65)` }} />
         </div>
