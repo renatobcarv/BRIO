@@ -37,3 +37,41 @@ export function suggestLoad(history: HistSet[], target: { reps: string; rpe: num
   const reason = `${reps} reps @RPE ${String(rpe).replace(".", ",")} com 1RM estimado de ${Math.round(e1rm)} kg${capped ? " · limitado a +5% da última carga" : ""}${opts.deload ? " · semana de deload (−15%)" : ""}`;
   return { kg, e1rm: Math.round(e1rm), lastTop, reason, capped };
 }
+
+// ── Carga série a série ──
+/**
+ * Plano de cargas por série. Com poucas repetições (≤6, semana de força): 1 série principal no RPE alvo
+ * e as demais em recuo (−8%), prática comum de autorregulação por RPE (Helms et al. 2016). Senão, séries retas.
+ */
+export function setLoads(baseKg: number, sets: number, reps: number) {
+  const n = Math.max(1, Math.round(sets));
+  if (baseKg <= 0) return Array(n).fill(0) as number[];
+  if (reps <= 6 && n >= 3) return [roundPlate(baseKg), ...Array.from({ length: n - 1 }, () => roundPlate(baseKg * 0.92))];
+  return Array(n).fill(roundPlate(baseKg)) as number[];
+}
+
+/** Ajuste ao vivo: lê a série que acabou (kg, reps, RPE) e recalcula a próxima para o alvo. Sobe no máx. 5%, desce no máx. 10%. */
+export function nextSetKg(done: { kg: number; reps: number; rpe: number | null }, target: { reps: number; rpe: number | null }, plannedKg: number) {
+  if (!(done.kg > 0) || !(done.reps > 0) || !done.rpe) return plannedKg;
+  const want = loadFor(setE1rm(done), Math.max(1, target.reps), target.rpe ?? 8);
+  const base = plannedKg > 0 ? plannedKg : done.kg;
+  const kg = Math.min(base * 1.05, Math.max(base * 0.9, want));
+  if (Math.abs(kg - base) < 1.25) return base;
+  // Arredonda para dentro dos limites: subindo, para baixo; descendo, para cima.
+  return kg > base ? Math.max(base, Math.floor(kg / 2.5) * 2.5) : Math.min(base, Math.ceil(kg / 2.5) * 2.5);
+}
+
+/** Carga inicial sem histórico: fração conservadora do peso corporal para ~8–10 repetições (comece leve, o ajuste ao vivo corrige). */
+const STARTER: [RegExp, number, number][] = [
+  [/levantamento terra|terra\b/i, 0.7, 2.5], [/agachamento livre|agachamento frontal|hack/i, 0.55, 2.5], [/leg press/i, 1.1, 5],
+  [/supino reto com barra|supino máquina/i, 0.45, 2.5], [/supino.*halter/i, 0.16, 1], [/stiff com barra|good morning|elevação pélvica com barra/i, 0.45, 2.5],
+  [/remada curvada|remada máquina|remada baixa|puxada|pulldown/i, 0.4, 2.5], [/remada unilateral|stiff com halteres/i, 0.2, 1],
+  [/desenvolvimento com barra|desenvolvimento máquina/i, 0.3, 2.5], [/desenvolvimento com halteres|búlgaro|passada|afundo|goblet/i, 0.12, 1],
+  [/extensora|flexora|abdução|panturrilha/i, 0.3, 2.5], [/rosca direta|tríceps testa/i, 0.2, 1], [/elevação lateral|elevação frontal|crucifixo inverso/i, 0.06, 1],
+  [/rosca|tríceps francês|martelo/i, 0.09, 1], [/polia|corda|crossover|face pull|peck deck|crucifixo/i, 0.2, 2.5],
+];
+export function starterLoad(name: string, bodyweight: number | null) {
+  const bw = bodyweight && bodyweight > 30 ? bodyweight : 75;
+  for (const [re, f, step] of STARTER) if (re.test(name)) return Math.max(step, roundPlate(bw * f, step));
+  return null;
+}

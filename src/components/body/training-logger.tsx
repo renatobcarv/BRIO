@@ -23,7 +23,7 @@ import { type Program } from "@/lib/training";
 
 
 
-import { G, ORDER, buildSession, dayPlan, e1rm, isTimed, lastFor, mmss, type LSet, type Session, type Workout } from "./training-core";
+import { G, ORDER, buildSession, dayPlan, liveAdjust, e1rm, isTimed, lastFor, mmss, type LSet, type Session, type Workout } from "./training-core";
 
 export function RestTimer({ until, onDone, onAdd }: { until: number; onDone: () => void; onAdd: (s: number) => void }) {
   const [now, setNow] = useState(Date.now());
@@ -57,7 +57,8 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
     set({ exercises: s.exercises.map((e, i) => (i !== ei ? e : { ...e, sets: e.sets.map((x, j) => (j === si ? { ...x, ...p } : x)) })), startedAt: s.startedAt ?? Date.now() });
   const toggle = (ei: number, si: number) => {
     const x = s.exercises[ei].sets[si], on = !x.done;
-    updSet(ei, si, { done: on });
+    // Marcou como feita: as próximas séries automáticas se ajustam pelo RPE desta.
+    set({ exercises: s.exercises.map((e, i) => { if (i !== ei) return e; const ne = { ...e, sets: e.sets.map((y, j) => (j === si ? { ...y, done: on } : y)) }; return on ? liveAdjust(ne, si) : ne; }), startedAt: s.startedAt ?? Date.now() });
     const r = s.exercises[ei].target?.rest ?? 90;
     if (on && r > 0) setRest(Date.now() + r * 1000);
   };
@@ -113,6 +114,7 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                     {e.target ? `${e.target.sets}×${e.target.reps}${e.target.kg != null ? ` @ ${fmt(e.target.kg)} kg` : ""}${e.target.rpe ? ` · RPE ${fmt(e.target.rpe)}` : ""}${e.target.rir != null ? ` · RIR ${e.target.rir}` : ""}${e.target.rest ? ` · ${mmss(e.target.rest)}` : ""}` : "extra"}
                     {last && ` · última (${shortDate(last.date)}): ${last.sets.map((x) => `${fmt(Number(x.kg))}×${x.reps}`).join(", ")}`}
                   </p>
+                  {e.loadNote && <p className="text-[11px] mt-0.5" style={{ color: "#ffb21e" }}>{e.loadNote}</p>}
                 </div>
                 <button className="btn !min-h-9 !px-3 text-[12px]" onClick={() => setSwap(ei)}>Trocar</button>
                 <button className="btn !min-h-9 !px-3 text-muted" aria-label={`Remover ${e.name}`} onClick={() => set({ exercises: s.exercises.filter((_, i) => i !== ei) })}>✕</button>
@@ -128,7 +130,7 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
                   <span className="num text-muted">{si + 1}</span>
                   {isTimed(e.name, e.target && "muscle" in e.target ? String((e.target as { muscle?: string }).muscle) : undefined)
                     ? <input className="field !min-h-11 text-center num" inputMode="decimal" placeholder="km" value={x.kg === "0" ? "" : x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label="Distância em km (opcional)" />
-                    : <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label={`Carga série ${si + 1}`} />}
+                    : <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value, auto: false })} aria-label={`Carga série ${si + 1}`} />}
                   <input className="field !min-h-11 text-center num" inputMode="numeric" value={x.reps} placeholder={isTimed(e.name) ? "min" : ""} onChange={(ev) => updSet(ei, si, { reps: ev.target.value })} aria-label={isTimed(e.name) ? "Minutos" : `Repetições série ${si + 1}`} />
                   <input className="field !min-h-11 !px-1 text-center num text-sm" inputMode="decimal" placeholder="—" value={x.rpe ?? ""} onChange={(ev) => updSet(ei, si, { rpe: ev.target.value })} aria-label={`RPE série ${si + 1}`} />
                   <button aria-pressed={x.done} aria-label={`Concluir série ${si + 1}`} onClick={() => toggle(ei, si)}

@@ -6,14 +6,15 @@ import { todayWorkout } from "@/lib/training";
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 
-import { suggestLoad, type Suggestion } from "@/lib/progression";
+import { nextSetKg, setLoads, starterLoad, suggestLoad, type Suggestion } from "@/lib/progression";
 
 export const G = "#ffb21e";
 export type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
 export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
-export type LSet = { kg: string; reps: string; done: boolean; rpe?: string };
+/** auto: a carga veio do app (pode ser reajustada ao vivo); vira false quando você digita. */
+export type LSet = { kg: string; reps: string; done: boolean; rpe?: string; auto?: boolean };
 export type Target = PlanExercise & Partial<Pick<PlannedEx, "kg" | "rpe" | "rir" | "notes">>;
-export type LEx = { name: string; target?: Target; sets: LSet[] };
+export type LEx = { name: string; target?: Target; sets: LSet[]; loadNote?: string };
 export type Session = { date: string; label: string; exercises: LEx[]; notes: string; startedAt: number | null; editingId?: string;
   programId?: string | null; weekNo?: number | null; phase?: string | null; planned?: PlannedEx[] | null };
 
@@ -39,17 +40,21 @@ export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
 }
 
 export type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
-export function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null): Session {
+export function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null, bodyweight: number | null = null): Session {
   return {
     date, label: [day.label, day.focus, ctx ? `S${ctx.weekNo}` : ""].filter(Boolean).join(" · "), notes: "", startedAt: null,
     programId: ctx?.programId ?? null, weekNo: ctx?.weekNo ?? null, phase: ctx?.phase ?? null,
     planned: ctx ? (plan as PlannedEx[]).map((p) => ({ ...p })) : null,
     exercises: plan.map((p) => {
-      const last = lastFor(workouts, p.name, date);
-      const sug = p.kg == null ? suggestionFor(workouts, p, date, !!ctx?.deload) : null;
-      const kg = p.kg != null ? String(p.kg) : sug ? String(sug.kg) : last?.sets[0] ? String(last.sets[0].kg) : "";
-      return { name: p.name, target: p, sets: Array.from({ length: p.sets }, (_, i) => ({
-        kg: p.kg != null || sug ? kg : last?.sets[i] ? String(last.sets[i].kg) : last?.sets.at(-1) ? String(last.sets.at(-1)!.kg) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "" })) };
+      const last = lastFor(workouts, p.name, date), timed = isTimed(p.name, (p as { muscle?: string }).muscle);
+      const sug = p.kg == null && !timed ? suggestionFor(workouts, p, date, !!ctx?.deload) : null;
+      const starter = !timed && p.kg == null && !sug && !last ? starterLoad(p.name, bodyweight) : null;
+      const base = p.kg != null ? p.kg : sug ? sug.kg : last?.sets[0] ? Number(last.sets[0].kg) : starter ?? 0;
+      const reps = firstNum(p.reps) || 8;
+      const loads = timed ? [] : setLoads(base, p.sets, reps);
+      const note = timed ? undefined : p.kg != null ? "Carga definida no plano" : sug ? `Sugerida: ${sug.reason}` : last ? "Repetindo a última carga (registre o RPE para o app calibrar)" : starter ? "Carga inicial estimada pelo seu peso: comece leve, o app ajusta após a 1ª série" : undefined;
+      return { name: p.name, target: p, loadNote: note, sets: Array.from({ length: p.sets }, (_, i) => ({
+        kg: timed ? (last?.sets[i] ? String(last.sets[i].kg) : "") : loads[i] ? String(loads[i]) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "", auto: !timed && !!loads[i] })) };
     }),
   };
 }
@@ -79,3 +84,15 @@ export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, t
 }
 
 /* ───────────── Cronômetro de descanso ───────────── */
+
+/** Depois de uma série feita com RPE, recalcula as próximas séries automáticas do mesmo exercício. */
+export function liveAdjust(ex: LEx, doneIdx: number): LEx {
+  const d = ex.sets[doneIdx], rpe = Number(String(d?.rpe ?? "").replace(",", "."));
+  if (!d || !rpe || isTimed(ex.name)) return ex;
+  const reps = firstNum(ex.target?.reps ?? d.reps) || Number(d.reps) || 8;
+  return { ...ex, sets: ex.sets.map((x, j) => {
+    if (j <= doneIdx || x.done || x.auto === false) return x;
+    const kg = nextSetKg({ kg: Number(String(d.kg).replace(",", ".")), reps: Number(d.reps), rpe }, { reps, rpe: ex.target?.rpe ?? 8 }, Number(String(x.kg).replace(",", ".")) || 0);
+    return { ...x, kg: kg ? String(kg) : x.kg, auto: true };
+  }) };
+}

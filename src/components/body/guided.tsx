@@ -8,6 +8,7 @@ import { useXp, haptic } from "@/components/game/xp";
 import { CountUp } from "@/components/count-up";
 import { fmt, n } from "@/components/kit";
 import { e1rm, isTimed, lastFor, mmss, type Session, type Workout } from "./training";
+import { liveAdjust } from "./training-core";
 
 const G = "#ffb21e";
 
@@ -77,14 +78,15 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const bestBefore = (name: string) => Math.max(0, ...workouts.flatMap((w) => w.sets).filter((x) => x.exercise.toLowerCase() === name.toLowerCase()).map((x) => e1rm(Number(x.kg), x.reps)));
 
   const upd = (p: Partial<{ kg: string; reps: string; rpe: string }>) =>
-    setS({ ...s, startedAt: s.startedAt ?? Date.now(), exercises: s.exercises.map((e, i) => (i !== cur.e ? e : { ...e, sets: e.sets.map((x, j) => (j === cur.k ? { ...x, ...p } : x)) })) });
+    setS({ ...s, startedAt: s.startedAt ?? Date.now(), exercises: s.exercises.map((e, i) => (i !== cur.e ? e : { ...e, sets: e.sets.map((x, j) => (j === cur.k ? { ...x, ...p, ...(p.kg !== undefined ? { auto: false } : {}) } : x)) })) });
 
   const complete = () => {
     if (!ex || !set) return;
     const kg = n(set.kg), reps = n(set.reps);
     const next = { ...s, startedAt: s.startedAt ?? Date.now(), exercises: s.exercises.map((e, i) => (i !== cur.e ? e : { ...e, sets: e.sets.map((x, j) => (j === cur.k ? { ...x, done: true } : x)) })) };
-    // Próxima série ainda não feita; se o exercício terminou, pré-preenche a próxima com a mesma carga.
-    if (ex.sets[cur.k + 1] && !ex.sets[cur.k + 1].kg) next.exercises[cur.e].sets[cur.k + 1].kg = set.kg;
+    // Próximas séries: o app recalcula pelo RPE desta (se a carga for automática); sem carga, repete a atual.
+    next.exercises[cur.e] = liveAdjust(next.exercises[cur.e], cur.k);
+    if (ex.sets[cur.k + 1] && !next.exercises[cur.e].sets[cur.k + 1].kg) next.exercises[cur.e].sets[cur.k + 1].kg = set.kg;
     setS(next);
     gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min${kg ? ` · ${fmt(kg)} km` : ""}` : `${ex.name} ${fmt(kg)}×${reps}`, G);
     const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
@@ -144,6 +146,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           <div className="flex items-start gap-2"><p className="font-display text-[28px] leading-tight mt-0.5 flex-1">{ex.name}</p><button className="btn !min-h-9 !px-3 text-[12px] mt-1" onClick={() => setSwapOpen(true)}>Trocar</button></div>
           <SwapSheet open={swapOpen} name={ex.name} muscle={(ex.target as { muscle?: string } | undefined)?.muscle} onClose={() => setSwapOpen(false)} onPick={(nm) => setS({ ...s, exercises: s.exercises.map((e, i) => (i === cur.e ? { ...e, name: nm } : e)) })} />
           <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `Série ${cur.k + 1} de ${ex.sets.length}${ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
+          {!timed && set?.auto && ex.loadNote && <p className="text-[11.5px] text-white/50 mt-0.5">{cur.k > 0 && ex.sets[cur.k - 1]?.rpe ? "Carga recalculada pelo RPE da série anterior" : ex.loadNote}</p>}
           {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min${Number(x.kg) ? ` · ${fmt(Number(x.kg))} km` : ""}` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}
           <ExerciseHero name={ex.name} />
