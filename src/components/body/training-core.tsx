@@ -1,6 +1,7 @@
 "use client";
 
 import { masterWeek } from "@/lib/master";
+import { warmup } from "@/lib/gym-tools";
 import { todayWorkout } from "@/lib/training";
 
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
@@ -12,7 +13,7 @@ export const G = "#ffb21e";
 export type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
 export type Workout = { id: string; date: string; split_label: string | null; notes: string | null; duration_min: number | null; sets: DbSet[]; planned?: PlannedEx[] | null; week_no?: number | null; phase?: string | null };
 /** auto: a carga veio do app (pode ser reajustada ao vivo); vira false quando você digita. */
-export type LSet = { kg: string; reps: string; done: boolean; rpe?: string; auto?: boolean };
+export type LSet = { kg: string; reps: string; done: boolean; rpe?: string; auto?: boolean; warm?: boolean };
 export type Target = PlanExercise & Partial<Pick<PlannedEx, "kg" | "rpe" | "rir" | "notes">>;
 export type LEx = { name: string; target?: Target; sets: LSet[]; loadNote?: string };
 export type Session = { date: string; label: string; exercises: LEx[]; notes: string; startedAt: number | null; editingId?: string;
@@ -40,7 +41,9 @@ export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
 }
 
 export type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
+const WARM_RE = /agachamento livre|agachamento frontal|agachamento pausado|supino reto com barra|supino inclinado com barra|levantamento terra|terra\b|desenvolvimento com barra|remada curvada com barra/i;
 export function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null, bodyweight: number | null = null): Session {
+  const warmed = new Set<string>();
   return {
     date, label: [day.label, day.focus, ctx ? `S${ctx.weekNo}` : ""].filter(Boolean).join(" · "), notes: "", startedAt: null,
     programId: ctx?.programId ?? null, weekNo: ctx?.weekNo ?? null, phase: ctx?.phase ?? null,
@@ -53,8 +56,13 @@ export function buildSession(date: string, day: SplitDay, plan: Target[], workou
       const reps = firstNum(p.reps) || 8;
       const loads = timed ? [] : setLoads(base, p.sets, reps);
       const note = timed ? undefined : p.kg != null ? "Carga definida no plano" : sug ? `Sugerida: ${sug.reason}` : last ? "Repetindo a última carga (registre o RPE para o app calibrar)" : starter ? "Carga inicial estimada pelo seu peso: comece leve, o app ajusta após a 1ª série" : undefined;
-      return { name: p.name, target: p, loadNote: note, sets: Array.from({ length: p.sets }, (_, i) => ({
-        kg: timed ? (last?.sets[i] ? String(last.sets[i].kg) : "") : loads[i] ? String(loads[i]) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "", auto: !timed && !!loads[i] })) };
+      const work = Array.from({ length: p.sets }, (_, i) => ({
+        kg: timed ? (last?.sets[i] ? String(last.sets[i].kg) : "") : loads[i] ? String(loads[i]) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "", auto: !timed && !!loads[i] }));
+      // Aquecimento automático antes dos levantamentos principais com barra (até ~90% da carga de trabalho).
+      const isMain = !timed && WARM_RE.test(p.name) && !warmed.has(p.name) && (loads[0] ?? 0) >= 40;
+      if (isMain) warmed.add(p.name);
+      const warm = isMain ? warmup(loads[0]).filter((w) => w.kg < loads[0]).map((w) => ({ kg: String(w.kg), reps: String(w.reps), done: false, rpe: "", auto: false, warm: true })) : [];
+      return { name: p.name, target: p, loadNote: note, sets: [...warm, ...work] };
     }),
   };
 }
@@ -90,10 +98,10 @@ export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, t
 /** Depois de uma série feita com RPE, recalcula as próximas séries automáticas do mesmo exercício. */
 export function liveAdjust(ex: LEx, doneIdx: number): LEx {
   const d = ex.sets[doneIdx], rpe = Number(String(d?.rpe ?? "").replace(",", "."));
-  if (!d || !rpe || isTimed(ex.name)) return ex;
+  if (!d || d.warm || !rpe || isTimed(ex.name)) return ex;
   const reps = firstNum(ex.target?.reps ?? d.reps) || Number(d.reps) || 8;
   return { ...ex, sets: ex.sets.map((x, j) => {
-    if (j <= doneIdx || x.done || x.auto === false) return x;
+    if (j <= doneIdx || x.done || x.warm || x.auto === false) return x;
     const kg = nextSetKg({ kg: Number(String(d.kg).replace(",", ".")), reps: Number(d.reps), rpe }, { reps, rpe: ex.target?.rpe ?? 8 }, Number(String(x.kg).replace(",", ".")) || 0);
     return { ...x, kg: kg ? String(kg) : x.kg, auto: true };
   }) };

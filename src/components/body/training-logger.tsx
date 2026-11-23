@@ -67,7 +67,7 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
   const vol = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
 
   const finish = () => start(async () => {
-    const pick = (x: LSet) => (doneSets.length ? x.done : n(x.reps) > 0);
+    const pick = (x: LSet) => !x.warm && (doneSets.length ? x.done : n(x.reps) > 0);
     const sets = s.exercises.flatMap((e) => e.sets.filter(pick).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)), rpe: x.rpe && n(x.rpe) ? Math.min(10, Math.max(1, n(x.rpe))) : null })));
     const duration = s.startedAt && !s.editingId ? Math.round((Date.now() - s.startedAt) / 60000) : null;
     await saveWorkout({ date: s.date, split_label: s.label, notes: s.notes, duration_min: duration, sets,
@@ -127,7 +127,7 @@ export function Logger({ s, setS, workouts, onSaved, split, plan, program }: {
               <div className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-3 label"><span>#</span><span>kg</span><span>reps</span><span>RPE</span><span /></div>
               {e.sets.map((x, si) => (
                 <div key={si} className="grid grid-cols-[1.5rem_1fr_1fr_3.25rem_2.75rem] gap-2 items-center mt-1.5">
-                  <span className="num text-muted">{si + 1}</span>
+                  <span className="num text-muted" title={x.warm ? "Aquecimento" : undefined} style={x.warm ? { color: "#ffb21e" } : undefined}>{x.warm ? "A" : si + 1 - e.sets.filter((y) => y.warm).length}</span>
                   {isTimed(e.name, e.target && "muscle" in e.target ? String((e.target as { muscle?: string }).muscle) : undefined)
                     ? <input className="field !min-h-11 text-center num" inputMode="decimal" placeholder="km" value={x.kg === "0" ? "" : x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value })} aria-label="Distância em km (opcional)" />
                     : <input className="field !min-h-11 text-center num" inputMode="decimal" value={x.kg} onChange={(ev) => updSet(ei, si, { kg: ev.target.value, auto: false })} aria-label={`Carga série ${si + 1}`} />}

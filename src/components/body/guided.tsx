@@ -70,7 +70,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   // O Mestre: briefing no início, reação a cada série, dica no descanso.
   const [say, setSay] = useState(() => {
     const main = s.exercises.find((e) => !isTimed(e.name));
-    return briefing({ wave: s.weekNo ? waveOf(s.weekNo).name : null, label: s.label, main: main ? { name: main.name, kg: n(main.sets[0]?.kg ?? ""), sets: main.sets.length, reps: main.target?.reps ?? main.sets[0]?.reps ?? "" } : null, seed: s.date + s.label });
+    return briefing({ wave: s.weekNo ? waveOf(s.weekNo).name : null, label: s.label, main: main ? (() => { const w = main.sets.filter((x) => !x.warm); return { name: main.name, kg: n(w[0]?.kg ?? ""), sets: w.length, reps: main.target?.reps ?? w[0]?.reps ?? "" }; })() : null, seed: s.date + s.label });
   });
   useEffect(() => { top.current?.scrollIntoView({ behavior: "smooth", block: "start" }); }, []);
   // Sessão aberta sem horário (restaurada ou iniciada por outro caminho): o cronômetro começa agora.
@@ -80,7 +80,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
   const [swapOpen, setSwapOpen] = useState(false);
   const timed = ex ? isTimed(ex.name, (ex.target as { muscle?: string } | undefined)?.muscle) : false;
   const totalSets = s.exercises.reduce((a, e) => a + e.sets.length, 0), doneSets = s.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0);
-  const vol = s.exercises.filter((e) => !isTimed(e.name)).reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
+  const vol = s.exercises.filter((e) => !isTimed(e.name)).reduce((a, e) => a + e.sets.filter((x) => x.done && !x.warm).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0);
   const last = useMemo(() => (ex ? lastFor(workouts, ex.name, s.date) : null), [ex, workouts, s.date]);
   const bestBefore = (name: string) => Math.max(0, ...workouts.flatMap((w) => w.sets).filter((x) => x.exercise.toLowerCase() === name.toLowerCase()).map((x) => e1rm(Number(x.kg), x.reps)));
 
@@ -98,19 +98,20 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
     gain(timed ? Math.min(30, Math.max(5, Math.round(reps))) : Math.max(1, Math.round((kg * reps) / 100)), timed ? `${ex.name} · ${reps} min${kg ? ` · ${fmt(kg)} km` : ""}` : `${ex.name} ${fmt(kg)}×${reps}`, G);
     const old = timed ? 0 : bestBefore(ex.name), now = e1rm(kg, reps);
     if (old > 0 && now > old) setTimeout(() => celebrate("Novo recorde!", `${ex.name}: ${fmt(kg)} kg × ${reps}`), 300);
-    if (!timed) { const nk = next.exercises[cur.e].sets[cur.k + 1]; setSay(reactSet({ reps, rpe: set.rpe ? n(set.rpe) : null, targetReps: n(ex.target?.reps ?? "") || reps, targetRpe: ex.target?.rpe ?? null, pr: old > 0 && now > old, nextKg: nk ? n(nk.kg) : null, curKg: kg, last: !nk, seed: `${cur.e}-${cur.k}-${kg}` })); }
+    if (!timed && set.warm) setSay(cur.k + 1 < ex.sets.filter((x) => x.warm).length ? "Aquecendo. Sem pressa, sem esforço: só preparar o caminho." : "Aquecido. Agora é pra valer.");
+    else if (!timed) { const nk = next.exercises[cur.e].sets[cur.k + 1]; setSay(reactSet({ reps, rpe: set.rpe ? n(set.rpe) : null, targetReps: n(ex.target?.reps ?? "") || reps, targetRpe: ex.target?.rpe ?? null, pr: old > 0 && now > old, nextKg: nk ? n(nk.kg) : null, curKg: kg, last: !nk, seed: `${cur.e}-${cur.k}-${kg}` })); }
     else if (next.exercises[cur.e].sets.every((x) => x.done)) { setTimeout(() => { gain(15, `${ex.name} conquistado`, "#ffd28a"); haptic([30, 30, 80]); }, 450); }
     let nx: { e: number; k: number } | null = null;
     for (let e = cur.e; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
     if (!nx) for (let e = 0; e < next.exercises.length && !nx; e++) { const k = next.exercises[e].sets.findIndex((x) => !x.done); if (k >= 0) nx = { e, k }; }
-    if (nx) { setCur(nx); const r = ex.target?.rest ?? 90; if (r > 0) setRest(r); if (nx.e !== cur.e) setTimeout(() => setSay(restLine(next.exercises[nx!.e].name, nx!.e + "")), 2600); }
+    if (nx) { setCur(nx); const r = set.warm ? 45 : ex.target?.rest ?? 90; if (r > 0) setRest(r); if (nx.e !== cur.e) setTimeout(() => setSay(restLine(next.exercises[nx!.e].name, nx!.e + "")), 2600); }
     else setSay(verdict({ done: next.exercises.reduce((a, e) => a + e.sets.filter((x) => x.done).length, 0), total: next.exercises.reduce((a, e) => a + e.sets.length, 0), prs: 0, volume: next.exercises.filter((e) => !isTimed(e.name)).reduce((a, e) => a + e.sets.filter((x) => x.done).reduce((b, x) => b + n(x.kg) * n(x.reps), 0), 0) }) + " Finalize para registrar.");
   };
 
   const finish = () => start(async () => {
-    const sets = s.exercises.flatMap((e) => e.sets.filter((x) => x.done).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)), rpe: x.rpe && n(x.rpe) ? Math.min(10, Math.max(1, n(x.rpe))) : null })));
+    const sets = s.exercises.flatMap((e) => e.sets.filter((x) => x.done && !x.warm).map((x) => ({ exercise: e.name, kg: n(x.kg), reps: Math.round(n(x.reps)), rpe: x.rpe && n(x.rpe) ? Math.min(10, Math.max(1, n(x.rpe))) : null })));
     const min = s.startedAt ? Math.round((Date.now() - s.startedAt) / 60000) : 0;
-    const prs = s.exercises.filter((e) => !isTimed(e.name)).filter((e) => { const b = bestBefore(e.name); const top = Math.max(0, ...e.sets.filter((x) => x.done).map((x) => e1rm(n(x.kg), n(x.reps)))); return b > 0 && top > b; }).map((e) => e.name);
+    const prs = s.exercises.filter((e) => !isTimed(e.name)).filter((e) => { const b = bestBefore(e.name); const top = Math.max(0, ...e.sets.filter((x) => x.done && !x.warm).map((x) => e1rm(n(x.kg), n(x.reps)))); return b > 0 && top > b; }).map((e) => e.name);
     try {
       await saveWorkout({ date: s.date, split_label: s.label.slice(0, 80), notes: s.notes, duration_min: s.editingId ? null : min || null, sets,
         program_id: s.programId ?? null, week_no: s.weekNo ?? null, phase: s.phase ?? null, planned: s.planned ?? null }, s.editingId);
@@ -158,7 +159,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
           <p className="text-sm text-muted">Exercício {cur.e + 1} de {s.exercises.length}</p>
           <div className="flex items-start gap-2"><p className="font-display text-[28px] leading-tight mt-0.5 flex-1">{ex.name}</p><button className="btn !min-h-9 !px-3 text-[12px] mt-1" onClick={() => setSwapOpen(true)}>Trocar</button></div>
           <SwapSheet open={swapOpen} name={ex.name} muscle={(ex.target as { muscle?: string } | undefined)?.muscle} onClose={() => setSwapOpen(false)} onPick={(nm) => setS({ ...s, exercises: s.exercises.map((e, i) => (i === cur.e ? { ...e, name: nm } : e)) })} />
-          <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `Série ${cur.k + 1} de ${ex.sets.length}${ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
+          <p className="text-sm mt-1" style={{ color: G }}>{timed ? `Meta: ${ex.target?.reps ?? "livre"}` : `${set?.warm ? `Aquecimento ${cur.k + 1} de ${ex.sets.filter((x) => x.warm).length}` : `Série ${cur.k + 1 - ex.sets.filter((x) => x.warm).length} de ${ex.sets.filter((x) => !x.warm).length}`}${set?.warm ? " · leve, sem esforço" : ex.target ? ` · meta ${ex.target.reps} reps` : ""}`}{!set?.warm && ex.target?.rpe ? ` · RPE ${fmt(ex.target.rpe)}` : ""}</p>
           {!timed && set?.auto && ex.loadNote && <p className="text-[11.5px] text-white/50 mt-0.5">{cur.k > 0 && ex.sets[cur.k - 1]?.rpe ? "Carga recalculada pelo RPE da série anterior" : ex.loadNote}</p>}
           {last && <p className="text-xs text-muted mt-1">Última vez ({last.date.split("-").reverse().slice(0, 2).join("/")}): {last.sets.map((x) => (timed ? `${x.reps} min${Number(x.kg) ? ` · ${fmt(Number(x.kg))} km` : ""}` : `${fmt(Number(x.kg))}×${x.reps}`)).join(" · ")}</p>}
           {ex.target?.notes && <p className="text-xs text-gold mt-1">{ex.target.notes}</p>}
