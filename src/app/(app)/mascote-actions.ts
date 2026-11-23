@@ -57,7 +57,7 @@ export async function renamePet(name: string): Promise<string | null> {
 
 async function walletState() {
   const sb = await createClient();
-  const { data: pet, error } = await sb.from("pets").select("equipped,bought,levels,spent,active_beast").maybeSingle();
+  const { data: pet, error } = await sb.from("pets").select("equipped,bought,levels,spent,active_beast,tame_tries").maybeSingle();
   if (error) return { sb, err: "Rode o SQL dos itens (20261127000000_itens.sql) no Supabase." } as const;
   if (!pet) return { sb, err: "Adote um mascote primeiro." } as const;
   const g = await loadGame(sb, await getSettings(sb), todayISO());
@@ -109,5 +109,14 @@ export async function setActiveBeast(id: string | null): Promise<string | null> 
   const w = await walletState(); if ("err" in w) return w.err!;
   if (id !== null && !w.items.army.some((t) => t.id === id)) return "Você ainda não domou esta fera.";
   const { error } = await w.sb.from("pets").update({ active_beast: id }).not("user_id", "is", null);
+  return error ? error.message : doneItems();
+}
+
+/** Registra o resultado do minigame de domar. Uma tentativa por oportunidade; o servidor confere se ela existe e está aberta. */
+export async function attemptTame(key: string, ok: boolean): Promise<string | null> {
+  const w = await walletState(); if ("err" in w) return w.err!;
+  if (!w.items.pending.some((p) => p.key === key)) return "Esta fera não está mais ao seu alcance.";
+  const tries = { ...((w.pet.tame_tries ?? {}) as Record<string, string>), [key]: ok ? "ok" : "falha" };
+  const { error } = await w.sb.from("pets").update({ tame_tries: tries }).not("user_id", "is", null);
   return error ? error.message : doneItems();
 }

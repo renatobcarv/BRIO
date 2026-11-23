@@ -162,22 +162,31 @@ export const BEAST_ATTR: Partial<Record<BeastId, Attr>> = {
   golem: "forca", javali: "forca", lobo: "disciplina", juggernaut: "disciplina", serpe: "sabedoria", grifo: "sabedoria",
   titan: "vigor", crocodilo: "vigor", sentinela: "ordem", guardiao: "servico",
 };
-/** Chance de domar: rara nas fracas, maior nas fortes; chefes +12%. 1→5%, 3→11%, 5→17%, chefe 29%. */
-export const tameChance = (threat: number, boss: boolean) => 0.02 + Math.max(1, Math.min(5, threat)) * 0.03 + (boss ? 0.12 : 0);
+/** Chance de a fera derrotada abrir uma OPORTUNIDADE de domar (raríssima): 1→1%, 3→2%, 5→3%, chefe 6%. */
+export const tameChance = (threat: number, boss: boolean) => 0.005 + Math.max(1, Math.min(5, threat)) * 0.005 + (boss ? 0.03 : 0);
 export const MAX_STARS = 5;
 export type Tamed = { id: BeastId; since: string; stars: number; attempts: number };
-/** Domados a partir dos abates. O 1º sucesso doma; os seguintes dão estrelas (até 5). */
-export function tamed(ks: Kill[]): Tamed[] {
+/** Resultado do minigame por abate: "ok" domou, "falha" a fera fugiu (uma tentativa só). */
+export type TameTries = Record<string, "ok" | "falha">;
+/** Oportunidades abertas (ainda não tentadas). */
+export const tameOpportunities = (ks: Kill[], tries: TameTries = {}) =>
+  ks.filter((k) => !k.angel && BEAST_ATTR[k.beast] && roll(k.key + ":tame") < tameChance(k.threat, k.boss) && !tries[k.key]);
+/** Domados: só quem venceu o minigame. O 1º sucesso doma; os seguintes dão estrelas (até 5). */
+export function tamed(ks: Kill[], tries: TameTries = {}): Tamed[] {
   const m = new Map<BeastId, Tamed>();
   for (const k of ks) {
-    if (k.angel || !BEAST_ATTR[k.beast]) continue;
-    const cur = m.get(k.beast);
-    if (cur) cur.attempts++;
-    if (roll(k.key + ":tame") >= tameChance(k.threat, k.boss)) { if (!cur) m.set(k.beast, { id: k.beast, since: "", stars: 0, attempts: 1 }); continue; }
-    if (!cur || !cur.since) m.set(k.beast, { id: k.beast, since: k.date, stars: 1, attempts: cur?.attempts ?? 1 });
-    else cur.stars = Math.min(MAX_STARS, cur.stars + 1);
+    if (k.angel || !BEAST_ATTR[k.beast] || !tries[k.key]) continue;
+    const cur = m.get(k.beast) ?? { id: k.beast, since: "", stars: 0, attempts: 0 };
+    cur.attempts++;
+    if (tries[k.key] === "ok") { if (!cur.since) cur.since = k.date; cur.stars = Math.min(MAX_STARS, cur.stars + 1); }
+    m.set(k.beast, cur);
   }
   return [...m.values()].filter((t) => t.since);
+}
+/** Dificuldade do minigame do selo: zona menor e agulha mais rápida nas feras fortes e chefes. */
+export function sealDifficulty(threat: number, boss: boolean) {
+  const t = Math.max(1, Math.min(5, threat)) + (boss ? 1 : 0);
+  return { rounds: 3 + (boss ? 1 : 0), zoneDeg: Math.max(14, 46 - t * 6), speed: 160 + t * 45, speedUp: 1.18 };
 }
 /** Nível da fera domada: cresce com o XP que você ganha depois de domá-la. */
 export const tamedLevel = (xpSince: number) => Math.min(99, 1 + Math.floor(Math.sqrt(Math.max(0, xpSince) / 150)));

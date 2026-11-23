@@ -856,3 +856,5 @@ alter table pets add column if not exists levels jsonb not null default '{}'::js
 alter table pets add column if not exists spent int not null default 0 check (spent >= 0);
 -- Fera domada ativa (acompanha você e dá bônus no atributo dela).
 alter table pets add column if not exists active_beast text;
+-- Minigame de domar: resultado de cada oportunidade (uma tentativa só).
+alter table pets add column if not exists tame_tries jsonb not null default '{}'::jsonb;

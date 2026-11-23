@@ -1,7 +1,7 @@
 import { cleanDays as implicitClean, type Mark } from "./clean.ts";
 import { petState } from "./pet.ts";
 import { achievements, xpEvents, type Attr } from "./game";
-import { BEAST_ATTR, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
+import { BEAST_ATTR, tameOpportunities, type TameTries, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
 import { ALL, FERAS, bestiaryRecord } from "./bestiary";
 import "server-only";
 import { eaten } from "./meals.ts";
@@ -74,7 +74,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   input.eventBonus = events.flatMap((e) => e.bonusXp.map((b) => ({ ...b, attr: (e.type === "sanctuary" ? "vigor" : e.type === "war_rations" ? "vigor" : "forca") as "forca" | "vigor" })));
   // Mascote: alimentado pelos eventos reais desde a adoção; às vezes dá bônus de XP.
   // Itens do mascote: conquistas + saque das feras + loja (Ouro de caça). Bônus limitado a 15%, sem retroativo.
-  const eqQ = await sb.from("pets").select("equipped,bought,levels,spent,active_beast").maybeSingle();
+  const eqQ = await sb.from("pets").select("equipped,bought,levels,spent,active_beast,tame_tries").maybeSingle();
   const bq = await sb.from("workouts").select("program_id,week_no,date").not("program_id", "is", null).limit(3000);
   const sessionsB = (bq.error ? [] : bq.data ?? []) as { program_id: string | null; week_no: number | null; date: string }[];
   const ks = kills(programs as never, sessionsB);
@@ -82,7 +82,9 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     { bought: (eqQ.data?.bought as string[]) ?? [], levels: (eqQ.data?.levels as Record<string, number>) ?? {}, spent: Number(eqQ.data?.spent ?? 0) });
   const equipped = validEquipped(eqQ.error ? null : eqQ.data?.equipped, eco.owned.keys());
   // Feras domadas: a ativa dá bônus no atributo dela desde o dia em que foi domada.
-  const baseEv = xpEvents(input), army = tamed(ks);
+  const tries = ((eqQ.data as { tame_tries?: TameTries } | null)?.tame_tries ?? {}) as TameTries;
+  const baseEv = xpEvents(input), army = tamed(ks, tries);
+  const pending = tameOpportunities(ks, tries).map((k) => ({ key: k.key, beast: k.beast, threat: k.threat, boss: k.boss, date: k.date }));
   const army2 = army.map((t) => ({ ...t, level: tamedLevel(baseEv.filter((e) => e.date >= t.since).reduce((a, e) => a + e.xp, 0)) }));
   const active = army2.find((t) => t.id === (eqQ.data as { active_beast?: string } | null)?.active_beast) ?? null;
   const beastSrc = active ? [{ attr: BEAST_ATTR[active.id]!, pct: tamedPct(active.stars), at: active.since, name: ALL(active.id).name + " (domada)" }] : [];
@@ -91,6 +93,6 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const trophies = FERAS.filter((id) => beasts[id].won > 0).map((id) => ({ id, won: beasts[id].won }));
   const petQ = await sb.from("pets").select("id,name,species,adopted_on,bonus_essence").maybeSingle();
   const pet = petQ.error || !petQ.data ? null : (() => { const st = petState(petQ.data.id, petQ.data.adopted_on, xpEvents(input), today, Number(petQ.data.bonus_essence ?? 0)); input.eventBonus = [...(input.eventBonus ?? []), ...st.bonus.map((b) => ({ ...b, attr: b.attr as Attr }))]; return { ...petQ.data, ...st }; })();
-  return { ...summarize(input), events, pet, petReady: !petQ.error, items: { owned: Object.fromEntries(eco.owned), levels: eco.levels, gold: eco.gold, drops: eco.drops.slice(0, 12), kills: ks.length, equipped, trophies, ready: !eqQ.error, army: army2, active: active?.id ?? null } };
+  return { ...summarize(input), events, pet, petReady: !petQ.error, items: { owned: Object.fromEntries(eco.owned), levels: eco.levels, gold: eco.gold, drops: eco.drops.slice(0, 12), kills: ks.length, equipped, trophies, ready: !eqQ.error, army: army2, active: active?.id ?? null, pending } };
 }
 export type Game = Awaited<ReturnType<typeof loadGame>>;

@@ -49,13 +49,19 @@ test("evolução: +1 ponto por nível e custo crescente", () => {
 });
 
 import { BEAST_ATTR, tameChance, tamed, tamedLevel, tamedPct, itemBonus as ib } from "../src/lib/items.ts";
-test("domar: chance sobe com ameaça, chefes mais; estrelas até 5; anjos nunca", () => {
-  assert.ok(tameChance(1, false) < tameChance(5, false) && tameChance(5, false) < tameChance(5, true));
-  const ks = Array.from({ length: 400 }, (_, i) => ({ key: "k" + i, date: `2026-${String(1 + (i % 12)).padStart(2, "0")}-10`, beast: (i % 2 ? "guardiao" : "aureo") as never, threat: 5, boss: true, angel: i % 2 === 0 }));
-  const t = tamed(ks);
-  assert.equal(t.length, 1); assert.equal(t[0].id, "guardiao"); assert.ok(t[0].stars >= 1 && t[0].stars <= 5);
-  assert.deepEqual(tamed(ks), t);
+import { tameOpportunities, sealDifficulty } from "../src/lib/items.ts";
+test("domar é raríssimo e exige vencer o minigame; anjos nunca", () => {
+  assert.ok(tameChance(1, false) <= 0.011 && tameChance(5, true) <= 0.07);
+  const ks = Array.from({ length: 3000 }, (_, i) => ({ key: "k" + i, date: "2026-11-10", beast: (i % 2 ? "guardiao" : "aureo") as never, threat: 5, boss: true, angel: i % 2 === 0 }));
+  const ops = tameOpportunities(ks);
+  assert.ok(ops.length > 20 && ops.length < 160, String(ops.length)); // ~6% de 1500
+  assert.equal(tamed(ks).length, 0); // sem minigame, nada
+  const tries = { [ops[0].key]: "falha" as const, [ops[1].key]: "ok" as const, [ops[2].key]: "ok" as const };
+  const t = tamed(ks, tries);
+  assert.equal(t.length, 1); assert.equal(t[0].stars, 2); assert.equal(t[0].attempts, 3);
+  assert.equal(tameOpportunities(ks, tries).length, ops.length - 3);
   assert.equal(Object.keys(BEAST_ATTR).length, 10);
+  assert.ok(sealDifficulty(5, true).zoneDeg < sealDifficulty(1, false).zoneDeg);
 });
 test("fera ativa dá bônus no atributo dela, dentro do teto", () => {
   assert.equal(tamedPct(1), 3); assert.equal(tamedPct(9), 7); assert.equal(tamedLevel(0), 1);
