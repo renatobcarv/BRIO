@@ -7,6 +7,7 @@ import { Empty } from "@/components/ui";
 import { Field, Progress, SectionTitle, Segmented, Sheet, Stat, LinkBtn, n } from "@/components/kit";
 import { brl, monthLabel, shortDate, weekdayShort, dow } from "@/lib/date";
 import type { FinCategory } from "@/lib/settings";
+import { ImportStatement } from "./import";
 
 const A = "#ffb21e", IN = "#ffb21e", OUT = "#ff453a", GREY = "#8e8e93";
 export type Tx = { id: string; kind: "receita" | "fixo" | "variavel"; name: string; amount: number; category: string | null; date: string | null; paid: boolean; recurring: boolean; note: string | null; month: string; inst_group?: string | null; inst_no?: number | null; inst_total?: number | null };
@@ -150,6 +151,7 @@ export function Overview({ month, txs, prevTxs, history, cats, onAdd, onOpen }: 
           <p className="text-xs text-muted mt-1.5">Custos fixos: {brl(fixed)} ({inc ? Math.round((fixed / inc) * 100) : 0}% da renda)</p>
         </div>
         <button className="btn btn-accent w-full mt-4" onClick={onAdd}>+ Novo lançamento</button>
+        <ImportStatement cats={cats} />
       </section>
 
       <section className="glass rise p-5 mt-4">

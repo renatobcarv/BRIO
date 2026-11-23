@@ -174,3 +174,24 @@ export async function clearChat() {
   await sb.from("finance_chat_proposals").update({ status: "cancelled" }).eq("status", "pending");
   done();
 }
+
+// ── Importar extrato (OFX/CSV) ──
+const Imp = z.array(z.object({ date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/), amount: z.number().min(-1e10).max(1e10), name: z.string().trim().min(1).max(120),
+  category: z.string().max(40), kind: z.enum(["receita", "fixo", "variavel"]) })).max(2000);
+/** Salva as linhas do extrato como lançamentos pagos, ignorando as que já existem. Retorna quantas entraram. */
+export async function importStatement(rows: z.infer<typeof Imp>): Promise<number> {
+  const list = Imp.parse(rows);
+  if (!list.length) return 0;
+  const sb = await createClient();
+  const dates = list.map((r) => r.date).sort();
+  const { data: have } = await sb.from("finance_items").select("date,amount,name").gte("date", dates[0]).lte("date", dates.at(-1)!);
+  const key = (d: string, a: number, n: string) => `${d}|${Math.abs(a).toFixed(2)}|${n.toLowerCase()}`;
+  const seen = new Set((have ?? []).map((e) => key(e.date, Number(e.amount), e.name)));
+  const fresh = list.filter((r) => { const k = key(r.date, r.amount, r.name); if (seen.has(k)) return false; seen.add(k); return true; });
+  if (!fresh.length) return 0;
+  const { error } = await sb.from("finance_items").insert(fresh.map((r) => ({ kind: r.kind, name: r.name, amount: Math.abs(r.amount), category: r.category, date: r.date,
+    month: r.date.slice(0, 7) + "-01", paid: true, recurring: false, note: "Importado do extrato" })));
+  if (error) throw new Error(error.message);
+  done();
+  return fresh.length;
+}
