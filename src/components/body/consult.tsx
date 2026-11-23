@@ -1,5 +1,6 @@
 "use client";
-import { useState, useTransition } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { createFromConsult, previewProgram } from "@/app/(app)/treino/coach-actions";
 import { REFS, type TrainAnswers } from "@/lib/coach";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
@@ -32,16 +33,45 @@ const Qs: Q[] = [
   { who: "dieta", key: "budget", ask: "Orçamento para comida?", opts: [{ v: "economico", l: "Econômico" }, { v: "normal", l: "Normal" }, { v: "livre", l: "Sem aperto" }] },
   { who: "dieta", key: "cook", ask: "Quanto tempo para cozinhar?", opts: [{ v: "pouco", l: "Pouco" }, { v: "medio", l: "Médio" }, { v: "muito", l: "Bastante" }] },
 ];
-const WHO = { treino: { name: "Treinador", role: "Especialista em periodização", ini: "T" }, dieta: { name: "Nutricionista", role: "Nutrição esportiva", ini: "N" } };
+const WHO = {
+  treino: { name: "Treinador", role: "Planejamento do treino", art: "/cards/mestre.webp", color: "#ffc369" },
+  dieta: { name: "Nutricionista", role: "Nutrição esportiva", art: "/cards/nutricionista.webp", color: "#9de3ac" },
+};
+const FIRST_DIET_STEP = Qs.findIndex((q) => q.who === "dieta");
+const TEXT_HINTS: Record<string, string> = {
+  injuries: "Ex.: dor no joelho ao agachar",
+  likes: "Ex.: arroz, feijão e frango",
+  dislikes: "Ex.: batata-doce e beterraba",
+  restrictions: "Ex.: intolerância à lactose",
+};
 
 export function Consult() {
   const [open, setOpen] = useState(false), [i, setI] = useState(0), [ans, setAns] = useState<Record<string, unknown>>({ priority: [], injuries: "", likes: "", dislikes: "", restrictions: "" });
   const [txt, setTxt] = useState(""), [res, setRes] = useState<Awaited<ReturnType<typeof previewProgram>> | null>(null), [msg, setMsg] = useState(""), [busy, start] = useTransition();
+  const dialog = useRef<HTMLDialogElement>(null);
+  const heading = useRef<HTMLHeadingElement>(null);
   const q = Qs[i];
+  const specialist = WHO[q.who];
+  const value = Number(txt.trim().replace(",", "."));
+  const valid = q.input === "number" ? Number.isFinite(value) && value > 0 : txt.trim().length > 0;
+  useEffect(() => {
+    if (open && !dialog.current?.open) dialog.current?.showModal();
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    dialog.current?.scrollTo(0, 0);
+    heading.current?.focus({ preventScroll: true });
+  }, [open, i, res]);
+  const goBack = () => {
+    const previous = Qs[i - 1];
+    if (!previous) return;
+    setTxt(previous.input ? String(ans[previous.key] ?? "") : "");
+    setI(i - 1);
+  };
   const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: nextMonday() });
   const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio" });
   const next = (val: unknown) => {
-    const a = { ...ans, [q.key]: val }; setAns(a); setTxt("");
+    const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));
     if (i + 1 < Qs.length) setI(i + 1);
     else start(async () => setRes(await previewProgram({ ...train(), ...{ goal: a.goal } })));
   };
@@ -49,42 +79,84 @@ export function Consult() {
     const r = await createFromConsult(train(), diet(), true);
     if (r.error) return setMsg(r.error);
     setMsg(`Campanha ativada${r.diet ? ` e plano alimentar de ${r.diet.kcal} kcal / ${r.diet.protein} g de proteína salvo` : ""}.${r.dietError ? ` Dieta: ${r.dietError}` : ""}`);
-    setTimeout(() => { setOpen(false); location.reload(); }, 1800);
+    setTimeout(() => { dialog.current?.close(); location.reload(); }, 1800);
   });
   return (
     <>
-      <button onClick={() => { setOpen(true); setI(0); setRes(null); setMsg(""); }} className="w-full mt-4 rounded-[16px] p-4 text-left border flex items-center gap-3" style={{ borderColor: A + "55", background: `linear-gradient(120deg, ${A}1a, transparent 60%)` }}>
-        <span className="grid place-items-center h-11 w-11 rounded-full font-bold text-black" style={{ background: A }}>+</span>
-        <span><span className="block font-semibold">Criar plano novo com especialistas</span><span className="block text-[12px] text-white/55">Treinador de periodização + nutricionista · perguntas, estudos e um plano feito para você</span></span>
+      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); }}
+        className="press mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#ffb21e55] bg-[linear-gradient(120deg,#2d2111,#111111_72%)] p-4 text-left">
+        <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#ffc369] text-xl font-bold text-[#211400]">+</span>
+        <span className="min-w-0"><span className="block font-semibold">Criar plano com especialistas</span><span className="block text-xs text-white/70">Treinador e nutricionista montam seu plano a partir das suas respostas.</span></span>
+        <span aria-hidden="true" className="ml-auto text-xl text-[#ffc369]">↗</span>
       </button>
       {open && (
-        <div className="fixed inset-0 z-50 bg-[#050505] overflow-y-auto" role="dialog" aria-modal aria-label="Consulta com especialistas">
-          <div className="max-w-lg mx-auto p-4 pb-24">
-            <div className="flex items-center justify-between"><p className="label">Consulta · {res ? "seu plano" : `${i + 1}/${Qs.length}`}</p><button className="btn !min-h-9 !px-3" onClick={() => setOpen(false)}>Fechar</button></div>
-            {!res && <div className="h-1 rounded-full bg-white/10 mt-3"><i className="block h-1 rounded-full" style={{ width: `${((i + 1) / Qs.length) * 100}%`, background: A }} /></div>}
+        <dialog ref={dialog} onClose={() => setOpen(false)} aria-label="Consulta com especialistas"
+          style={{ "--consult-accent": specialist.color } as CSSProperties}
+          className="fixed inset-0 m-auto h-dvh max-h-dvh w-full max-w-none overflow-y-auto bg-[#101011] text-white backdrop:bg-black/80 sm:h-auto sm:max-h-[92dvh] sm:w-[min(42rem,calc(100%_-_2rem))] sm:rounded-2xl sm:border sm:border-white/15">
+          <div className="mx-auto max-w-2xl px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-5">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase tracking-[.16em] text-white/70">Consulta com especialistas</p>
+              <button type="button" className="min-h-11 rounded-xl border border-white/15 px-3 text-sm font-medium text-white/85 hover:bg-white/10" onClick={() => dialog.current?.close()}>Fechar</button>
+            </div>
+            {!res && (
+              <div className="mt-3 grid grid-cols-2 gap-3" role="progressbar" aria-label="Progresso da consulta" aria-valuemin={0} aria-valuemax={Qs.length} aria-valuenow={i + 1} aria-valuetext={`Pergunta ${i + 1} de ${Qs.length}`}>
+                {([[0, FIRST_DIET_STEP, "Treino"], [FIRST_DIET_STEP, Qs.length, "Nutrição"]] as const).map(([from, to, label]) => (
+                  <div key={label}>
+                    <div className="mb-1.5 flex justify-between gap-1 text-xs font-medium">
+                      <span className={i >= from && i < to ? "text-[var(--consult-accent)]" : "text-white/65"}>{label}</span>
+                      {i >= from && i < to && <span className="tabular-nums text-white/75">{i + 1}/{Qs.length}</span>}
+                    </div>
+                    <div className="flex gap-[3px]" aria-hidden="true">
+                      {Qs.slice(from, to).map((item, index) => <span key={item.key} className="h-1 flex-1 rounded-full"
+                        style={{ background: index + from <= i ? WHO[item.who].color : "#38383a" }} />)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
             {!res && q && (
-              <div className="mt-8">
-                <div className="flex items-center gap-3">
-                  <span className="grid place-items-center h-12 w-12 rounded-full border text-lg font-display" style={{ borderColor: A, color: A }}>{WHO[q.who].ini}</span>
-                  <span><span className="block font-semibold">{WHO[q.who].name}</span><span className="block text-[12px] text-white/50">{WHO[q.who].role}</span></span>
+              <div className="mt-4">
+                <div className="relative isolate flex min-h-[138px] flex-col justify-end overflow-hidden rounded-xl border border-white/10 p-4 sm:min-h-[168px] sm:p-5">
+                  <Image src={specialist.art} fill alt="" unoptimized sizes="(max-width: 640px) 100vw, 630px" className="-z-20 object-cover object-[66%_28%] sm:object-[center_28%]" />
+                  <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#0b0b0a_2%,#0b0b0abf_36%,transparent_80%),linear-gradient(0deg,#0b0b0a_0%,transparent_55%)]" />
+                  <p className="text-xs font-semibold text-[var(--consult-accent)]">{specialist.role}</p>
+                  <p className="font-display text-2xl font-bold sm:text-3xl">{specialist.name}</p>
                 </div>
-                <p className="text-[24px] font-semibold leading-snug mt-4">{q.ask}</p>
-                {q.why && <p className="text-[13px] text-white/50 mt-1">{q.why}</p>}
-                {q.opts && !q.multi && <div className="grid gap-2 mt-5">{q.opts.map((o) => <button key={String(o.v)} onClick={() => next(o.v)} className="text-left rounded-[14px] p-4 bg-white/[.05] hover:bg-white/[.09] text-[16px]">{o.l}</button>)}</div>}
-                {q.opts && q.multi && <>
-                  <div className="flex flex-wrap gap-2 mt-5">{q.opts.map((o) => { const sel = (ans[q.key] as unknown[]).includes(o.v); return <button key={String(o.v)} aria-pressed={sel} onClick={() => setAns({ ...ans, [q.key]: sel ? (ans[q.key] as unknown[]).filter((x) => x !== o.v) : [...(ans[q.key] as unknown[]), o.v].slice(-q.multi!) })} className={`rounded-full px-4 min-h-10 ${sel ? "bg-[#f5f5f7] text-black font-semibold" : "bg-white/[.06]"}`}>{o.l}</button>; })}</div>
-                  <button className="btn btn-accent w-full mt-5" onClick={() => next(ans[q.key])}>{(ans[q.key] as unknown[]).length ? "Continuar" : "Sem prioridade"}</button></>}
-                {q.input && <form className="mt-5 grid gap-2" onSubmit={(e) => { e.preventDefault(); if (q.input === "number" && !(+txt > 0)) return; next(q.input === "number" ? +txt.replace(",", ".") : txt); }}>
-                  <div className="flex items-baseline gap-2 rounded-[14px] bg-white/[.05] px-4 py-3"><input autoFocus inputMode={q.input === "number" ? "decimal" : "text"} value={txt} onChange={(e) => setTxt(e.target.value)} className="flex-1 bg-transparent outline-none text-[20px]" placeholder={q.input === "number" ? "0" : "Escreva aqui"} aria-label={q.ask} />{q.unit && <span className="text-white/45">{q.unit}</span>}</div>
-                  <button className="btn btn-accent">Continuar</button>
-                  {q.skip && <button type="button" className="btn" onClick={() => next("")}>Pular</button>}
-                </form>}
-                {i > 0 && <button className="text-[13px] text-white/45 mt-6" onClick={() => setI(i - 1)}>‹ Voltar</button>}
-                {busy && <p className="text-[13px] mt-4" style={{ color: A }}>Os especialistas estão montando seu plano…</p>}
+                <div className="mt-3 rounded-xl border border-white/10 bg-[#18181a] p-4 sm:p-5">
+                  <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--consult-accent)]">
+                    <span>Pergunta {i + 1} de {Qs.length}</span>
+                    {q.skip && <span className="rounded-full border border-white/15 px-2 py-0.5 text-white/75">Opcional</span>}
+                  </div>
+                  <h2 ref={heading} tabIndex={-1} className="text-balance text-[clamp(1.35rem,4vw,1.85rem)] font-semibold leading-tight outline-none">{q.ask}</h2>
+                  {q.why && <p className="mt-2 text-sm text-white/70">{q.why}</p>}
+                  {q.opts && !q.multi && <div className="mt-4 grid gap-2 sm:grid-cols-2">{q.opts.map((o) => (
+                    <button key={String(o.v)} type="button" disabled={busy} onClick={() => next(o.v)}
+                      className="flex min-h-12 items-center justify-between gap-2 rounded-xl border border-white/15 bg-white/[.04] px-3 py-2 text-left text-sm font-medium hover:border-[var(--consult-accent)] hover:bg-white/[.08] focus-visible:outline-2 focus-visible:outline-[var(--consult-accent)] disabled:opacity-50">
+                      {o.l}<span aria-hidden="true" className="text-[var(--consult-accent)]">→</span>
+                    </button>
+                  ))}</div>}
+                  {q.opts && q.multi && <>
+                    <div className="mt-4 flex flex-wrap gap-2">{q.opts.map((o) => { const sel = (ans[q.key] as unknown[]).includes(o.v); return <button key={String(o.v)} type="button" aria-pressed={sel} onClick={() => setAns({ ...ans, [q.key]: sel ? (ans[q.key] as unknown[]).filter((x) => x !== o.v) : [...(ans[q.key] as unknown[]), o.v].slice(-q.multi!) })} className={`min-h-11 rounded-full border px-3 text-sm ${sel ? "border-transparent bg-[var(--consult-accent)] font-semibold text-[#141414]" : "border-white/15 bg-white/[.04]"}`}>{o.l}</button>; })}</div>
+                    <button type="button" className="mt-4 min-h-11 w-full rounded-xl bg-[var(--consult-accent)] px-4 font-bold text-[#141414]" onClick={() => next(ans[q.key])}>{(ans[q.key] as unknown[]).length ? "Continuar" : "Sem prioridade"}</button>
+                  </>}
+                  {q.input && <form className="mt-4" onSubmit={(e) => { e.preventDefault(); if (valid && !busy) next(q.input === "number" ? value : txt.trim()); }}>
+                    <label htmlFor="consult-answer" className="mb-1.5 block text-sm font-medium text-white/80">Sua resposta</label>
+                    <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-[#101011] px-3 focus-within:border-[var(--consult-accent)] focus-within:ring-1 focus-within:ring-[var(--consult-accent)]">
+                      <input key={q.key} id="consult-answer" inputMode={q.input === "number" ? "decimal" : "text"} value={txt} onChange={(e) => setTxt(e.target.value)} className="min-h-12 min-w-0 flex-1 bg-transparent text-base !outline-none placeholder:text-white/55" placeholder={q.input === "number" ? "0" : TEXT_HINTS[q.key]} />
+                      {q.unit && <span className="text-sm text-white/65">{q.unit}</span>}
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <button type="submit" disabled={!valid || busy} className="min-h-11 flex-1 rounded-xl bg-[var(--consult-accent)] px-4 font-bold text-[#141414] disabled:opacity-45">Continuar <span aria-hidden="true">→</span></button>
+                      {q.skip && <button type="button" disabled={busy} className="min-h-11 rounded-xl border border-white/20 px-4 text-sm font-medium text-white/80 hover:bg-white/10" onClick={() => next("")}>Pular</button>}
+                    </div>
+                  </form>}
+                </div>
+                {i > 0 && <button type="button" className="mt-2 min-h-11 px-1 text-sm font-medium text-white/75 hover:text-white" disabled={busy} onClick={goBack}>← Voltar</button>}
+                {busy && <p role="status" className="mt-2 text-sm text-[var(--consult-accent)]">Os especialistas estão montando seu plano…</p>}
               </div>)}
             {res && "program" in res && res.program && (
               <div className="mt-6 grid gap-4">
-                <div><p className="text-[12px]" style={{ color: A }}>Treinador · plano proposto</p><p className="font-display text-3xl leading-tight">{res.program.name}</p><p className="text-[13px] text-white/55">Começa {res.program.start_date.split("-").reverse().join("/")} · o Mestre ajusta cada semana pelo seu registro</p></div>
+                <div><p className="text-[12px]" style={{ color: A }}>Treinador · plano proposto</p><h2 ref={heading} tabIndex={-1} className="font-display text-3xl leading-tight outline-none">{res.program.name}</h2><p className="text-[13px] text-white/55">Começa {res.program.start_date.split("-").reverse().join("/")} · o Mestre ajusta cada semana pelo seu registro</p></div>
                 <div className="flex gap-1">{res.program.phases.map((p) => <div key={p.id} className="rounded-[8px] py-2 text-center text-[11px]" style={{ flex: p.weeks, background: PHASE_KINDS[p.kind].color + "22", color: PHASE_KINDS[p.kind].color }}>{p.name}<br />{p.weeks}s</div>)}</div>
                 <div className="rounded-[14px] bg-white/[.04] p-4"><p className="label mb-2">Semana tipo</p>
                   {Object.entries(res.program.phases[0].days).map(([d, l]) => <div key={d} className="py-2 border-b border-white/[.06] last:border-0"><p className="text-[13px] font-semibold">{res.program.phases[0].dayNames?.[d]}</p><p className="text-[12px] text-white/55">{l.map((e) => `${e.name} ${e.sets}×${e.reps}`).join(" · ")}</p></div>)}</div>
@@ -96,9 +168,9 @@ export function Consult() {
                 <p className="text-[11.5px] text-white/40">Isto é orientação geral baseada em estudos, não substitui avaliação médica ou de um nutricionista. Com lesão, dor ou condição de saúde, consulte um profissional.</p>
                 {msg && <p className="text-sm" style={{ color: A }}>{msg}</p>}
               </div>)}
-            {res && "error" in res && res.error && <p className="mt-6 text-sm" style={{ color: A }}>{res.error}</p>}
+            {res && "error" in res && res.error && <div className="mt-6" role="alert"><p className="text-sm" style={{ color: A }}>{res.error}</p><button type="button" className="btn mt-3" onClick={() => setRes(null)}>Voltar à última pergunta</button></div>}
           </div>
-        </div>)}
+        </dialog>)}
     </>
   );
 }
