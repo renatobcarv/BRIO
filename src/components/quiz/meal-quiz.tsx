@@ -41,7 +41,7 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
   const plan = (slot && planned[slot]) || [], asPlanned = used === "plano";
   // Desta refeição primeiro, depois as outras
   const savedSorted = [...saved.filter((g) => g.slot === slot), ...saved.filter((g) => g.slot !== slot)].slice(0, 12);
-  const useSaved = (g: Saved, k: string) => { if (k === used) { setUsed(null); setPicked([]); return; } haptic(12); setUsed(k); setPicked(g.items.map((i) => ({ ...i }))); };
+  const applySaved = (g: Saved, k: string) => { if (k === used) { setUsed(null); setPicked([]); return; } haptic(12); setUsed(k); setPicked(g.items.map((i) => ({ ...i }))); };
 
   return (
     <Quiz color={G} xp={xp} onClose={onClose} rewardTitle={`${slotLabel} registrado`}
@@ -71,7 +71,7 @@ export function MealQuiz({ date, slots, foods, saved = [], planned = {}, doneSlo
               <p className="label mb-2">Refeições salvas</p>
               <div className="flex gap-2 overflow-x-auto pb-1 -mx-1 px-1 snap-x">
                 {savedSorted.map((g) => { const k = `${g.date}|${g.slot}`, on = used === k, kc = g.items.reduce((a, i) => a + i.kcal, 0), pr = g.items.reduce((a, i) => a + i.protein_g, 0), st = slotStyle(slots.find((x) => x.key === g.slot)?.label ?? g.slot); return (
-                  <button key={k} onClick={() => useSaved(g, k)} aria-pressed={on} className="press snap-start shrink-0 w-56 text-left rounded-[8px] p-3 border transition-colors"
+                  <button key={k} onClick={() => applySaved(g, k)} aria-pressed={on} className="press snap-start shrink-0 w-56 text-left rounded-[8px] p-3 border transition-colors"
                     style={{ borderColor: on ? G : st.color + "44", background: on ? `${G}1f` : `linear-gradient(160deg, ${st.color}14, transparent 70%)` }}>
                     <span className="flex items-center justify-between text-[11px]"><span style={{ color: st.color }}>{slots.find((x) => x.key === g.slot)?.label ?? g.slot}</span><span className="text-muted">{br(g.date)}</span></span>
                     <span className="block text-sm mt-1 leading-snug line-clamp-2">{g.items.map((i) => i.name).join(" · ")}</span>

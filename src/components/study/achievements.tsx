@@ -55,7 +55,7 @@ export function Achievements({ achievements, brioCerts, certs, certsReady, track
       <section>
         <p className="label mb-1">Certificados BRIO</p>
         <p className="text-[12.5px] text-white/50 mb-3">Emitidos quando uma avaliação ou projeto atinge nível 4+ (aplica em situação real). São registros pessoais, para imprimir ou salvar em PDF.</p>
-        {brioCerts.length === 0 ? <p className="text-sm text-white/45 border border-dashed border-white/10 p-5">Nenhum ainda. Estude com IA, use o modo Avaliar e peça "Avaliar meu domínio", ou conclua e avalie um projeto.</p> : (
+        {brioCerts.length === 0 ? <p className="text-sm text-white/45 border border-dashed border-white/10 p-5">Nenhum ainda. Estude com IA, use o modo Avaliar e peça “Avaliar meu domínio”, ou conclua e avalie um projeto.</p> : (
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {brioCerts.map((e) => { const m = MASTERY[masteryFromLevel(e.level)]; return (
               <a key={e.id} href={`/certificado/${e.id}`} target="_blank" rel="noopener" className="group relative border border-[#3a0000] bg-[#0a0606] p-4 hover:border-[#ffb21e66] transition-colors">

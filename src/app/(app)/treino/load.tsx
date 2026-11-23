@@ -13,10 +13,11 @@ const N = (v: unknown) => Number(v) || 0;
 export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: string, openProgram: boolean) {
     const q = (cols: string) => sb.from("workouts").select(cols).order("date", { ascending: false }).order("created_at", { ascending: false }).limit(400);
     const bw = await sb.from("weight_logs").select("kg").order("date", { ascending: false }).limit(1).maybeSingle();
-    let [res, prog] = await Promise.all([
+    const all = await Promise.all([
       q("id,date,split_label,notes,duration_min,planned,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
       sb.from("training_programs").select("*").eq("active", true).maybeSingle(),
     ]);
+    let res = all[0]; const prog = all[1];
     // Sem a migração de periodização: usa as colunas antigas.
     if (res.error) res = await q("id,date,split_label,notes,duration_min,workout_sets(exercise,set_no,reps,kg)");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

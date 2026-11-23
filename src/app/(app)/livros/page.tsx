@@ -30,7 +30,7 @@ export default async function Page() {
       {(() => { const bl = (books.data ?? []) as Book[], y = today.slice(0, 4), read = bl.filter((b) => b.status === "lido" && (b.finished_at ?? "").startsWith(y)).length;
         const ss = (sessions.data ?? []) as Session[], since = addDays(today, -6), pages = ss.filter((x) => x.date >= since).reduce((a, x) => a + Math.max(0, (x.to_page ?? 0) - (x.from_page ?? 0)), 0);
         return <Board icon={<LibraryIcon name="estante" />} label={`Livros lidos em ${y}`} big={String(read)} unit={`/ ${s.books_goal_year}`} bar={s.books_goal_year ? read / s.books_goal_year : 0}
-          stats={[[<LibraryIcon name="lendo" />, "Lendo", String(bl.filter((b) => b.status === "lendo").length), "agora"], [<LibraryIcon name="folhas" />, "Páginas", String(pages), "últimos 7 dias"], [<LibraryIcon name="notas" />, "Notas", String(noteList.length), "anotações"]]} />; })()}
+          stats={[[<LibraryIcon key="l" name="lendo" />, "Lendo", String(bl.filter((b) => b.status === "lendo").length), "agora"], [<LibraryIcon key="f" name="folhas" />, "Páginas", String(pages), "últimos 7 dias"], [<LibraryIcon key="n" name="notas" />, "Notas", String(noteList.length), "anotações"]]} />; })()}
       {books.error && <p className="glass p-4 mb-4 text-sm text-[#ff453a]">A tabela de livros ainda não existe. Rode a migração <code>supabase/migrations/20261105000000_livros.sql</code> no SQL Editor do Supabase.</p>}
       <ReadingMedals stats={readingStats((books.data ?? []) as Book[], (sessions.data ?? []) as Session[], noteList.length, s.books_goal_year, today)} />
       <Library books={(books.data ?? []) as Book[]} sessions={(sessions.data ?? []) as Session[]} notes={noteList} goal={s.books_goal_year} today={today} />

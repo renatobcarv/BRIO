@@ -41,7 +41,7 @@ export function CardioPanel({ name, km, min, bodyweight = 75, onChange, onRename
             <span className="text-[28px] font-bold text-white/40">:</span>
             <input className="w-12 bg-transparent !text-[34px] font-bold tracking-tight outline-none" inputMode="numeric" placeholder="00" maxLength={2} value={ss} onChange={(e) => setTime(mm, e.target.value)} aria-label="Segundos" />
           </span>
-          <span className="flex gap-1 mt-1">{[20, 30, 45, 60].map((x) => <button key={x} type="button" className="text-[11px] rounded-full bg-white/[.06] px-2 py-0.5" onClick={() => setTime(String(x), "")}>{x}'</button>)}</span>
+          <span className="flex gap-1 mt-1">{[20, 30, 45, 60].map((x) => <button key={x} type="button" className="text-[11px] rounded-full bg-white/[.06] px-2 py-0.5" onClick={() => setTime(String(x), "")}>{x}&apos;</button>)}</span>
         </div>
       </div>
       <div className="grid grid-cols-3 gap-2 text-center">

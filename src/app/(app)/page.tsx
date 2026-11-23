@@ -72,7 +72,7 @@ export default async function Hoje() {
   // Dias limpos + semana atual (seg → dom)
   const marks = (cleanQ.error ? [] : cleanQ.data ?? []) as Mark[];
   const clean = cleanStats(marks, today);
-  const cleanSet = new Set(cleanDays(marks, today));
+  const cleanSet = new Set(cleanDays(marks, today, Date.now()));
   const monday = addDays(today, -((new Date(today + "T12:00:00Z").getUTCDay() + 6) % 7));
   const week = Array.from({ length: 7 }, (_, i) => {
     const d = addDays(monday, i), m = marks.find((x) => x.date === d);

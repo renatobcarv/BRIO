@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { cleanStats, type Mark } from "../src/lib/clean.ts";
+import { cleanDays, cleanStats, type Mark } from "../src/lib/clean.ts";
 const L = (d: string): Mark => ({ date: d, kind: "limpo" }), R = (d: string): Mark => ({ date: d, kind: "recaida" });
 
 const N = (d: string) => Date.parse(d + "T23:00:00-03:00");
@@ -24,4 +24,9 @@ test("dias limpos só contam após 24h completas do recomeço", () => {
   assert.equal(cleanStats(rel, "2026-11-21", Date.parse("2026-11-21T21:59:00-03:00")).count, 0);
   assert.equal(cleanStats(rel, "2026-11-21", Date.parse("2026-11-21T22:00:00-03:00")).count, 1);
   assert.equal(cleanStats(rel, "2026-11-23", Date.parse("2026-11-23T23:00:00-03:00")).count, 3);
+});
+test("semana/XP seguem as 24h", () => {
+  const m: Mark[] = [L("2026-11-01"), { date: "2026-11-04", kind: "recaida", at: "2026-11-04T22:00:00-03:00" }];
+  const d = cleanDays(m, "2026-11-06", Date.parse("2026-11-06T10:00:00-03:00"));
+  assert.deepEqual(d, ["2026-11-01", "2026-11-02", "2026-11-03", "2026-11-05"]);
 });

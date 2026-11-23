@@ -24,7 +24,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     q<{ title: string; finished_at: string | null }>(sb.from("books").select("title,finished_at").eq("status", "lido").limit(2000)),
     q<{ month: string; kind: string; amount: number }>(sb.from("finance_items").select("month,kind,amount").limit(20000)),
     q<{ date: string; kg: number }>(sb.from("weight_logs").select("date,kg").order("date").limit(2000)),
-    q<{ date: string; kind: string }>(sb.from("clean_marks").select("date,kind").limit(5000)),
+    q<{ date: string; kind: string; at?: string }>(sb.from("clean_marks").select("date,kind,at:created_at").limit(5000)),
     q<{ date: string; item_key: string; created_at: string }>(sb.from("daily_checks").select("date,item_key,created_at").eq("done", true).limit(20000)),
     q<{ id: string }>(sb.from("journal_entries").select("id").limit(5000)),
     q<{ date: string; slot: string; protein_g: number }>(sb.from("meal_items").select("date,slot,protein_g").limit(20000)),
@@ -55,7 +55,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     booksFinished: books.filter((b) => b.finished_at).map((b) => ({ date: b.finished_at!, title: b.title })),
     finance: [...finByMonth].map(([month, v]) => ({ month, ...v })),
     weights: weights.map((w) => ({ date: w.date, kg: Number(w.kg) })),
-    cleanDays: implicitClean(cleanDays as Mark[], today),
+    cleanDays: implicitClean(cleanDays as Mark[], today, Date.now()),
     relapses: cleanDays.filter((c) => c.kind === "recaida").map((c) => c.date),
     // Hora local de São Paulo (UTC−3) em que a missão principal foi marcada
     morningDays: timed.filter((c) => c.item_key === (s.checklist.find((x) => x.primary) ?? s.checklist[0])?.key)

@@ -34,7 +34,7 @@ export function Partner({ photo, phrase }: { photo: string | null; phrase: strin
     <>
       <figure className="partner-frame glass rise mt-4 overflow-hidden !p-0 relative">
         {src ? (
-          // eslint-disable-next-line @next/next/no-img-element
+           
           <img src={src} alt="Maria Luísa" className={`w-full aspect-[4/5] md:aspect-[16/10] object-cover object-[50%_35%] transition-opacity ${pending ? "opacity-60" : ""}`} />
         ) : (
           <button onClick={() => file.current?.click()} className="w-full aspect-[4/3] grid place-items-center bg-white/[.03]">

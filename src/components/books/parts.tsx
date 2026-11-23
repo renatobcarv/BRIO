@@ -10,7 +10,7 @@ export function Cover({ src, title, authors, className = "", rounded = "rounded-
   const [err, setErr] = useState(false);
   const hue = [...title].reduce((a, c) => a + c.charCodeAt(0), 0) % 360;
   if (src && !err) {
-    // eslint-disable-next-line @next/next/no-img-element
+     
     return <img src={src} alt={`Capa de ${title}`} loading="lazy" onError={() => setErr(true)} className={`${rounded} object-cover bg-white/5 shadow-[0_10px_30px_-12px_rgba(0,0,0,.8)] ${className}`} />;
   }
   return (

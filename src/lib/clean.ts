@@ -7,8 +7,14 @@ export const MILESTONES = [1, 3, 7, 14, 30, 60, 90, 180, 365];
  * (não precisa marcar todo dia; esquecer de marcar não zera). Recaída é o único evento que quebra. */
 const next = (d: string) => { const x = new Date(d + "T12:00:00Z"); x.setUTCDate(x.getUTCDate() + 1); return x.toISOString().slice(0, 10); };
 
-export function cleanDays(marks: Mark[], today: string): string[] {
+export function cleanDays(marks: Mark[], today: string, now?: number): string[] {
   if (!marks.length) return [];
+  if (now != null) { // regra das 24h: a sequência atual só tem os dias já completados
+    const st = streakStart(marks)!, n = Math.max(0, Math.floor((now - st) / 864e5));
+    const lastRel = marks.filter((m) => m.kind === "recaida").map((m) => m.date).sort().at(-1) ?? "";
+    const all = cleanDays(marks, today), past = all.filter((d) => d <= lastRel || (d < new Date(st - 3 * 36e5).toISOString().slice(0, 10)));
+    return [...past, ...all.filter((d) => !past.includes(d)).slice(0, n)];
+  }
   const relapse = new Set(marks.filter((m) => m.kind === "recaida").map((m) => m.date));
   const start = marks.map((m) => m.date).sort()[0];
   const out: string[] = [];
