@@ -168,7 +168,7 @@ export function suggestAdjustments(days: Record<string, PlannedEx[]>, hist: MWor
   // 1. Fadiga ou volta depois de muito tempo → deload antecipado.
   if (away >= 10 || (avgRpe != null && avgRpe >= target + 1)) out.push({ id: "deload", title: "Semana mais leve (deload antecipado)", why: away >= 10 ? `${Math.round(away)} dias sem treinar: volte com metade das séries para o corpo readaptar.` : `RPE médio de ${avgRpe!.toFixed(1).replace(".", ",")} na semana passada, acima do alvo: sinal de fadiga acumulada.`, ref: "deload", apply: (d) => applyPreset(d, "destruido") });
   // 2. Semana passada incompleta → cortar volume para caber na vida real.
-  else if (fb?.trained && planned && done / planned < 0.6) out.push({ id: "corrida", title: "Reduzir 30% das séries", why: `Você fez ${Math.round((done / planned) * 100)}% das séries planejadas. Melhor um plano menor cumprido do que um grande abandonado.`, ref: "overload", apply: (d) => applyPreset(d, "corrida") });
+  else if (fb?.trained && planned && done / planned < 0.6) out.push({ id: "corrida", title: "Reduzir 30% das séries", why: `Você fez ${Math.round((done / planned) * 100)}% das séries planejadas${fb.sessions < plannedDays.length ? ` (foi a ${fb.sessions} de ${plannedDays.length} treinos)` : ""}. Melhor um plano menor cumprido do que um grande abandonado.`, ref: "overload", apply: (d) => applyPreset(d, "corrida") });
   // 3. Folga sobrando → subir volume.
   else if (fb?.trained && planned && done / planned >= 0.95 && avgRpe != null && avgRpe <= target - 1) out.push({ id: "voando", title: "+1 série no principal de cada músculo", why: `Tudo cumprido com RPE médio ${avgRpe.toFixed(1).replace(".", ",")}: há espaço para mais estímulo.`, ref: "volume", apply: (d) => applyPreset(d, "voando") });
 
@@ -180,20 +180,34 @@ export function suggestAdjustments(days: Record<string, PlannedEx[]>, hist: MWor
     if (alt) out.push({ id: `mover-${d}-${alt[0]}`, title: `Mover o treino de ${WDN[+d]} para ${WDN[+alt[0]]}`, why: `Nas últimas semanas você não treinou ${WDN[+d]}, mas treinou ${alt[1]}× às ${WDN[+alt[0]]}s.`, ref: "freq", apply: (x) => moveDay(x, d, alt[0]) });
   }
 
-  // 5. Exercício planejado que você sempre troca por outro do mesmo músculo → assumir a troca.
-  const logged = new Set(recent.flatMap((w) => w.sets.map((s) => s.exercise)));
   const plannedNames = new Set(Object.values(days).flat().map((e) => e.name));
-  for (const e of Object.values(days).flat()) {
-    if (logged.has(e.name) || recent.length < 2) continue;
-    const sub = [...logged].find((n) => !plannedNames.has(n) && Object.values(POOL).some((p) => (p[e.muscle] ?? []).includes(n)));
-    if (sub && !out.some((s) => s.id === `troca-${e.name}`)) out.push({ id: `troca-${e.name}`, title: `Trocar ${e.name} por ${sub}`, why: `Você não fez ${e.name} nas últimas semanas, mas registrou ${sub}, do mesmo músculo.`, ref: "variation", apply: (x) => Object.fromEntries(Object.entries(x).map(([k, l]) => [k, l.map((y) => (y.name === e.name ? { ...y, name: sub } : y))])) });
+  // 5. Exercício que você sempre troca por outro do mesmo músculo → assumir a troca.
+  // Só conta sessões em que o DIA foi treinado (outro exercício daquele dia foi feito): faltar ao treino não é trocar.
+  // Levantamentos principais nunca são trocados, e cada substituto é usado uma vez só.
+  const MAIN = /agachamento|supino|terra|deadlift|squat|bench/i, used = new Set<string>();
+  for (const [d, list] of Object.entries(days)) for (const e of list) {
+    if (MAIN.test(e.name) || hist.some((w) => w.sets.some((x) => x.exercise === e.name) && t - day(w.date) <= 21)) continue;
+    const others = new Set(list.filter((y) => y.name !== e.name).map((y) => y.name));
+    const dayDone = recent.filter((w) => w.sets.some((x) => others.has(x.exercise)));
+    if (dayDone.length < 2) continue;
+    const counts = new Map<string, number>();
+    for (const w of dayDone) for (const n of new Set(w.sets.map((x) => x.exercise)))
+      if (!plannedNames.has(n) && !used.has(n) && Object.values(POOL).some((p) => (p[e.muscle] ?? []).includes(n))) counts.set(n, (counts.get(n) ?? 0) + 1);
+    const best = [...counts].sort((a, b) => b[1] - a[1])[0];
+    if (!best || best[1] < 2) continue;
+    used.add(best[0]);
+    const sub = best[0];
+    out.push({ id: `troca-${e.name}`, title: `Trocar ${e.name} por ${sub}`, why: `Nas ${best[1]} vezes que você treinou esse dia (${WDN[+d]}), fez ${sub} no lugar de ${e.name}.`, ref: "variation", apply: (x) => Object.fromEntries(Object.entries(x).map(([k, l]) => [k, l.map((y) => (y.name === e.name ? { ...y, name: sub } : y))])) });
   }
 
-  // 6. Músculo que ficou para trás → trazer para o começo do treino.
-  for (const [m, f] of fb?.muscles ?? []) {
-    if (!fb?.trained || !f.planned || f.done / f.planned >= 0.5) continue;
-    out.push({ id: `prior-${m}`, title: `Começar pelos exercícios de ${m.replace(/_/g, " ")}`, why: `Só ${f.done} de ${f.planned} séries feitas semana passada: no início do treino você tem mais energia.`, ref: "volume",
+  // 6. Músculo que ficou para trás MESMO com todos os dias treinados → trazer para o começo do treino.
+  if (fb?.trained && fb.sessions >= plannedDays.length) for (const [m, f] of fb.muscles) {
+    if (!f.planned || f.done / f.planned >= 0.5) continue;
+    out.push({ id: `prior-${m}`, title: `Começar pelos exercícios de ${m.replace(/_/g, " ")}`, why: `Você foi a todos os treinos, mas fez só ${f.done} de ${f.planned} séries desse grupo: no fim do treino a energia acaba. No começo, ele recebe o melhor de você.`, ref: "volume",
       apply: (x) => Object.fromEntries(Object.entries(x).map(([k, l]) => [k, [...l.filter((y) => y.muscle === m), ...l.filter((y) => y.muscle !== m)]])) });
   }
+  // Semana incompleta: deixa claro que o problema foi faltar, não o plano.
+  if (fb?.trained && fb.sessions < plannedDays.length && !out.some((x) => x.id === "corrida"))
+    out.push({ id: "corrida", title: "Reduzir 30% das séries", why: `Você foi a ${fb.sessions} de ${plannedDays.length} treinos. Um plano mais curto ajuda a não faltar.`, ref: "overload", apply: (d) => applyPreset(d, "corrida") });
   return out.slice(0, 5);
 }
