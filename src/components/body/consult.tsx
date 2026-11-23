@@ -142,7 +142,7 @@ export function Consult() {
                   {q.input && <form className="mt-4" onSubmit={(e) => { e.preventDefault(); if (valid && !busy) next(q.input === "number" ? value : txt.trim()); }}>
                     <label htmlFor="consult-answer" className="mb-1.5 block text-sm font-medium text-white/80">Sua resposta</label>
                     <div className="flex items-center gap-2 rounded-xl border border-white/20 bg-[#101011] px-3 focus-within:border-[var(--consult-accent)] focus-within:ring-1 focus-within:ring-[var(--consult-accent)]">
-                      <input key={q.key} id="consult-answer" inputMode={q.input === "number" ? "decimal" : "text"} value={txt} onChange={(e) => setTxt(e.target.value)} className="min-h-12 min-w-0 flex-1 bg-transparent text-base !outline-none placeholder:text-white/55" placeholder={q.input === "number" ? "0" : TEXT_HINTS[q.key]} />
+                      <input key={q.key} id="consult-answer" inputMode={q.input === "number" ? "decimal" : "text"} value={txt} onChange={(e) => setTxt(e.target.value)} className="min-h-12 min-w-0 flex-1 bg-transparent text-base !text-white !outline-none placeholder:text-white/55" placeholder={q.input === "number" ? "0" : TEXT_HINTS[q.key]} />
                       {q.unit && <span className="text-sm text-white/65">{q.unit}</span>}
                     </div>
                     <div className="mt-3 flex flex-wrap gap-2">
