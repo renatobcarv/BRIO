@@ -16,7 +16,7 @@ const ORDERS = {
 } as const;
 
 export type MasterDay = keyof typeof ORDERS;
-export type Nutrition = { goal: DietGoal; kcal: number; weights: { date: string; kg: number }[] };
+export type Nutrition = { goal: DietGoal; kcal: number; weights: { date: string; kg: number }[]; sex?: "m" | "f" };
 
 /** Relatório do Mestre: o que muda nesta semana no treino e na alimentação, e por quê (com estudos). */
 export function MasterCard({ program, workouts, today, nutrition, day, onViewDay }: { program: Program; workouts: Workout[]; today: string; nutrition?: Nutrition; day: MasterDay; onViewDay: () => void }) {

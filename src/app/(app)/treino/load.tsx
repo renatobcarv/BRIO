@@ -16,9 +16,9 @@ export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: s
     // Para o Mestre ajustar a alimentação: pesos das últimas 3 semanas e o plano alimentar.
     const [wl, dp] = await Promise.all([
       sb.from("weight_logs").select("date,kg").gte("date", new Date(Date.parse(today + "T12:00:00Z") - 21 * 864e5).toISOString().slice(0, 10)),
-      sb.from("diet_plans").select("goal,kcal").maybeSingle(),
+      sb.from("diet_plans").select("goal,kcal,profile").maybeSingle(),
     ]);
-    const nutrition = { goal: (dp.data?.goal ?? "manter") as "perder" | "manter" | "ganhar" | "recomp", kcal: dp.data?.kcal ?? s.kcal_goal ?? 0, weights: (wl.data ?? []).map((w) => ({ date: w.date as string, kg: N(w.kg) })) };
+    const nutrition = { goal: (dp.data?.goal ?? "manter") as "perder" | "manter" | "ganhar" | "recomp", kcal: dp.data?.kcal ?? s.kcal_goal ?? 0, weights: (wl.data ?? []).map((w) => ({ date: w.date as string, kg: N(w.kg) })), sex: ((dp.data?.profile as { sex?: string } | null)?.sex === "f" ? "f" : "m") as "m" | "f" };
     const all = await Promise.all([
       q("id,date,split_label,notes,duration_min,planned,program_id,week_no,phase,workout_sets(exercise,set_no,reps,kg,rpe)"),
       sb.from("training_programs").select("*").eq("active", true).maybeSingle(),

@@ -25,6 +25,7 @@ import { NextWeeks } from "./next-weeks";
 import { startProgramNow } from "@/app/(app)/corpo/program-actions";
 import { MasterCard, type MasterDay, type Nutrition } from "./master-card";
 import { Consult } from "./consult";
+import { LiftRanks } from "./lift-ranks";
 
 import { G, ORDER, buildSession, dayPlan, volume, e1rm, firstNum, isTimed, suggestionFor, type Session, type Workout } from "./training-core";
 import { Logger } from "./training-logger";
@@ -233,6 +234,7 @@ export function Training({ today, split, plan, workouts, program = null, program
       <TrainingSystem today={today} bodyweight={bodyweight} plannedPerWeek={planned}
         sessions={workouts.map((w) => ({ date: w.date, week_no: w.week_no ?? null, duration_min: w.duration_min, sets: w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps, rpe: x.rpe ?? null })) }))}
         program={program ? { totalWeeks: totalWeeks(program), ended: programPosition(program, today).status === "concluido" } : null} />
+      <LiftRanks sets={workouts.flatMap((w) => w.sets.map((x) => ({ exercise: x.exercise, kg: Number(x.kg), reps: x.reps })))} bodyweight={bodyweight} sex={nutrition?.sex} />
       <section id="tr-recordes" className="glass rise p-5 mt-4 scroll-mt-20">
         <SectionTitle><span className="inline-flex items-center gap-1.5"><Ico d={HI.star} size={14} />Recordes pessoais</span></SectionTitle>
                 {(() => {
