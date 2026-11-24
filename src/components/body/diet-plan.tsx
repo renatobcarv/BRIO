@@ -1,4 +1,6 @@
 "use client";
+import Image from "next/image";
+import { MealArt } from "./meal-art";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { eatPlannedMeal, generateDietPlan, saveDietPlan, toggleIntake, type DietPlan, type QuizAnswers } from "@/app/(app)/corpo/diet-actions";
@@ -21,11 +23,12 @@ export function DietPlanCard({ plan, ready, date, doneSlots, intakes, phase }: {
 
   if (!ready) return <section className="hunt-card p-5 mb-4 span-all text-sm">Rode a migração <code className="text-[#ffb21e]">20261124000000_plano_dieta.sql</code> no Supabase para ativar o plano alimentar.</section>;
   if (!plan) return (
-    <section className="hunt-card relative p-6 mb-4 span-all text-center">
-      <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[2px] bg-[#ffb21e]" />
-      <p className="label">Plano alimentar</p>
-      <p className="font-display text-4xl mt-2">Sem dieta definida<span className="text-[#ffb21e]">.</span></p>
-      <p className="text-[14px] text-white/60 mt-2 max-w-md mx-auto">Responda um quiz rápido: objetivo, corpo, rotina, o que gosta, suplementos, remédios e água. O BRIO monta o cardápio do dia e ajusta pela fase do seu treino.</p>
+    <section className="hunt-card relative isolate mb-4 overflow-hidden p-5 text-left span-all sm:p-7">
+      <Image src="/cards/dieta/diario.webp" fill alt="" unoptimized className="-z-20 object-cover object-right sm:object-[right_45%]" />
+      <span aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#0d1511_10%,#0d1511eb_41%,#0d151166),linear-gradient(0deg,#0d1511,transparent_75%)]" />
+      <p className="text-xs font-semibold uppercase tracking-wider text-[#b9ed9d]">Plano alimentar</p>
+      <h2 className="mt-2 font-display text-4xl">Monte seu cardápio</h2>
+      <p className="mt-2 max-w-md text-sm text-white/85">Responda um quiz rápido: objetivo, corpo, rotina, o que gosta, suplementos, remédios e água. O BRIO monta o cardápio do dia e ajusta pela fase do seu treino.</p>
       <button className="btn btn-accent mt-5" onClick={() => setQuiz(true)}>Definir minha dieta →</button>
       <DietQuiz open={quiz} onClose={() => setQuiz(false)} onSaved={() => { setQuiz(false); router.refresh(); }} />
     </section>);
@@ -56,13 +59,15 @@ export function DietPlanCard({ plan, ready, date, doneSlots, intakes, phase }: {
       <div className="flex justify-between label !text-[9px] mt-5"><span>Refeições do plano</span><span style={{ color: A }}>{doneMeals}/{plan.meals.length}</span></div>
       <div className="flex gap-[3px] mt-1.5" aria-hidden>{plan.meals.map((m) => <i key={m.key} className="h-[5px] flex-1" style={{ background: doneSlots.includes(m.key) ? R : "rgba(255,255,255,.08)" }} />)}</div>
 
-      <ol className="grid lg:grid-cols-2 gap-px bg-white/[.06] border border-white/[.06] mt-3">
+      <ol className="mt-3 grid gap-2 lg:grid-cols-2">
         {plan.meals.map((m) => { const on = doneSlots.includes(m.key), kc = m.items.reduce((a, x) => a + x.kcal, 0), pr = m.items.reduce((a, x) => a + x.p, 0); return (
-          <li key={m.key} className={`bg-[#080808] p-4 ${on ? "opacity-70" : ""}`}>
-            <div className="flex items-baseline gap-2">
-              {m.time && <span className="font-mono text-[12px] text-[#ffb21e]">{m.time}</span>}
-              <p className="font-semibold flex-1">{m.label}</p>
-              <span className="font-mono text-[11px] text-white/50">{kc} kcal · {pr} g P</span>
+          <li key={m.key} className={`rounded-xl border bg-[#171817] p-3 ${on ? "border-[#b9ed9d55]" : "border-white/10"}`}>
+            <div className="flex items-center gap-3">
+              <MealArt label={m.label} />
+              <div className="min-w-0">
+                <p className="font-semibold">{m.label}</p>
+                <p className="mt-1 text-xs text-white/75">{m.time ? `${m.time} · ` : ""}{kc} kcal · {pr} g proteína</p>
+              </div>
             </div>
             <ul className="mt-2 grid gap-0.5">{m.items.map((x, i) => <li key={i} className="text-[13px] text-white/70 flex gap-2"><span className="text-[#ffb21e]">▪</span><span className="flex-1">{x.name}{x.qty ? <span className="text-white/40"> · {x.qty}</span> : null}</span></li>)}</ul>
             {on ? <p className="text-[12px] mt-3" style={{ color: "#30d158" }}>✓ Feita</p>

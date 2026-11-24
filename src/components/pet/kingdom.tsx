@@ -60,6 +60,7 @@ export function PetKingdom({ pet, today }: {
   const [visit, setVisit] = useState<string | null>(null);
   const [item, setItem] = useState<number | null>(null);
   const [reaction, setReaction] = useState<{ id: number; kind: "greet" | "seek" | "found"; line: string } | null>(null);
+  const [adventure, setAdventure] = useState(false);
   const [away, setAway] = useState(false);
   const [search, setSearch] = useState<Search | null>(null);
   const [bond, setBond] = useState(EMPTY_BOND);
@@ -110,6 +111,7 @@ export function PetKingdom({ pet, today }: {
 
   function visitHome(key: string | null) {
     setVisit(key);
+    setAdventure(false);
     setAway(false);
     setItem(null);
     setSearch(null);
@@ -155,7 +157,8 @@ export function PetKingdom({ pet, today }: {
           className="pet-habitat-resident absolute left-1/2 z-10 -translate-x-1/2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           aria-label={`Cumprimentar ${own?.name ?? species.name}`} onClick={() => react("greet", REACTIONS[species.key])}>
           <span key={reaction?.id ?? 0} data-pet-reaction={reaction?.kind} className="pet-play-motion relative block">
-            <PetPortrait species={species.key} stage={stage} alt="" size={300} className="pet-habitat-animal h-auto w-full" />
+            <PetPortrait species={species.key} stage={stage} alt="" size={300} adventure={adventure}
+              className="pet-habitat-animal h-auto w-full" />
             {reaction && <span className="pet-play-sparks pointer-events-none absolute inset-0" aria-hidden="true">
               {PARTICLES.slice(0, 7).map((style, i) => <i key={i} style={style} />)}
             </span>}
@@ -181,6 +184,10 @@ export function PetKingdom({ pet, today }: {
           </div>
           <div className="flex flex-wrap gap-2">
             <button type="button" className="btn" disabled={exploring} onClick={() => react("greet", REACTIONS[species.key])}>Cumprimentar</button>
+            <button type="button" className="btn" aria-pressed={adventure} disabled={exploring} onClick={() => {
+              setAdventure(!adventure);
+              react("greet", adventure ? "De volta à aparência da fase atual." : "Pose de aventura selecionada.");
+            }}>{adventure ? "Ver fase atual" : "Ver pose de aventura"}</button>
             {own && bond.days > 0 && <button type="button" className="btn" disabled={exploring} onClick={() => react("found", TRICKS[species.key])}>Mostrar truque</button>}
           </div>
         </div>

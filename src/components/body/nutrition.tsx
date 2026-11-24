@@ -1,12 +1,14 @@
 "use client";
 import Link from "next/link";
-import { HI, Ico, slotIcon } from "@/components/hunt-icons";
+import Image from "next/image";
+import { HI, Ico } from "@/components/hunt-icons";
 import { useEffect, useState, useTransition } from "react";
 import { copyMeals, deleteFood, deleteMealItem, saveFood, saveMealItem, setMealDone } from "@/app/(app)/corpo/actions";
 import { updateSettings } from "@/app/settings-actions";
 import { Field, Sheet, fmt, n } from "@/components/kit";
 import { addDays, weekdayShort, dow } from "@/lib/date";
 import type { MealSlot } from "@/lib/settings";
+import { MealArt } from "./meal-art";
 import { MealQuiz } from "@/components/quiz/meal-quiz";
 
 const G = "#30d158";
@@ -16,6 +18,8 @@ export type Food = { id: string; name: string; portion: string | null; kcal: num
 type Goals = { kcal: number; protein: number; carbs: number; fat: number };
 const sum = (l: Item[], k: keyof Pick<Item, "kcal" | "protein_g" | "carbs_g" | "fat_g">) => l.reduce((a, i) => a + Number(i[k]), 0);
 const slug = (s: string) => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "_").slice(0, 30) || "ref";
+
+const progressPercent = (value: number, goal: number) => goal > 0 ? Math.min(100, Math.max(0, value / goal * 100)) : 0;
 
 /** Fora do plano: slot "extra|comida|14:30" ou "extra|bebida|22:10" (sem migração). */
 export const isExtra = (slot: string) => slot.startsWith("extra|");
@@ -311,16 +315,16 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
   const kcal = sum(ate, "kcal"), prot = sum(ate, "protein_g"), carb = sum(ate, "carbs_g"), fat = sum(ate, "fat_g");
   const pendingKcal = sum(items.filter((i) => !isExtra(i.slot) && !doneSlots.includes(i.slot)), "kcal");
   const remaining = goals.kcal - kcal;
-  const maxW = Math.max(goals.kcal, ...week.map((w) => w.kcal)) * 1.1;
+  const maxW = Math.max(1, goals.kcal, ...week.map((w) => w.kcal)) * 1.1;
   const isToday = date === today;
   const extraSlots = [...new Set(items.map((i) => i.slot))].filter((k) => !isExtra(k) && !slots.some((s) => s.key === k)).map((k) => ({ key: k, label: k }));
   const off = items.filter((i) => isExtra(i.slot)).sort((a, b) => extraInfo(a.slot).time.localeCompare(extraInfo(b.slot).time));
   const offKcal = sum(off, "kcal");
 
   const R = "#ffb21e";
-  const over = kcal > goals.kcal * 1.05;
-  const Seg = ({ v, n = 12, c = R }: { v: number; n?: number; c?: string }) => (
-    <div className="flex gap-[3px]" aria-hidden>{Array.from({ length: n }, (_, i) => <i key={i} className="h-2 flex-1" style={{ background: i < Math.round(Math.min(1, v || 0) * n) ? c : "rgba(255,255,255,.08)" }} />)}</div>);
+  const over = goals.kcal > 0 && remaining < 0;
+  const energyColor = over ? "#ff998c" : "#a5ebae";
+  const completed = slots.filter((slot) => doneSlots.includes(slot.key)).length;
   const allSlots = [...slots, ...extraSlots];
 
   return (
@@ -331,48 +335,73 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
         <Link className="grid place-items-center w-12 bg-[#080808] text-lg" href={`/dieta?sub=alimentacao&d=${addDays(date, 1)}`} aria-label="Próximo dia">›</Link>
       </nav>
 
-      {/* Placar do combustível */}
-      <section className="hunt-card rise relative overflow-hidden p-5">
-        <span aria-hidden className="absolute left-0 top-0 bottom-0 w-[3px]" style={{ background: over ? "#ff453a" : R, boxShadow: `0 0 18px ${R}` }} />
-        <div className="flex items-start justify-between gap-3">
-          <div><p className="label flex items-center gap-1.5"><Ico d={HI.flame} size={13} color={R} />{remaining >= 0 ? "Restam hoje" : "Acima da meta"}</p>
-            <p className="num text-7xl leading-none mt-2" style={{ color: over ? "#ff453a" : undefined }}>{Math.abs(remaining).toLocaleString("pt-BR")}<span className="text-2xl text-white/40"> kcal</span></p></div>
-          <button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={() => setSheet({ kind: "goals" })}>metas</button>
+      <section className="hunt-card rise relative isolate overflow-hidden !border-[#84d6a645] bg-[#131a17] p-4 sm:p-5" aria-label="Resumo nutricional do dia">
+        <Image src="/cards/dieta/diario.webp" fill alt="" unoptimized
+          className="pointer-events-none -z-20 object-cover object-[right_45%] opacity-45" />
+        <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#101913_12%,#101913d9_49%,#10191350),linear-gradient(0deg,#101913_24%,transparent)]" />
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="font-display text-2xl font-bold">Diário alimentar</h2>
+          <button type="button" className="min-h-11 rounded-lg border border-white/20 bg-black/35 px-3 text-xs font-semibold hover:bg-white/10" onClick={() => setSheet({ kind: "goals" })}>Editar metas</button>
         </div>
-        <div className="mt-4 flex justify-between label !text-[9px]"><span>{kcal.toLocaleString("pt-BR")} comidas</span><span>meta {goals.kcal.toLocaleString("pt-BR")}</span></div>
-        <div className="mt-1.5"><Seg v={kcal / goals.kcal} n={20} c={over ? "#ff453a" : R} /></div>
-        <div className="grid grid-cols-3 mt-5 border-t border-white/[.08] divide-x divide-white/[.08]">
-          {([["Proteína", prot, goals.protein, HI.protein], ["Carbo", carb, goals.carbs, HI.carb], ["Gordura", fat, goals.fat, HI.fat]] as const).map(([l, v, g, ic], i) => (
-            <div key={l} className={`pt-3 ${i ? "pl-3" : ""} ${i < 2 ? "pr-3" : ""}`}>
-              <p className="label !text-[9px] flex items-center gap-1"><Ico d={ic} size={12} />{l}</p>
-              <p className="num text-2xl mt-1">{fmt(v, 0)}<span className="text-xs text-white/40"> / {g} g</span></p>
-              <div className="mt-1.5"><Seg v={v / g} n={8} c={i === 0 ? R : "#ffb21e"} /></div>
-            </div>))}
+        <div className="mt-4 flex flex-wrap items-center gap-4">
+          <div className="grid size-[105px] shrink-0 place-items-center rounded-full p-[7px]" aria-hidden="true"
+            style={{ background: `conic-gradient(${energyColor} ${progressPercent(kcal, goals.kcal)}%, #d8e9db30 0)` }}>
+            <span className="grid size-full place-content-center rounded-full bg-[#162019] text-center">
+              <strong className="num text-2xl leading-none">{fmt(kcal, 0)}</strong>
+              <span className="text-[10px] text-white/75">kcal consumidas</span>
+            </span>
+          </div>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-white/80">{goals.kcal > 0 ? over ? "Acima da meta" : "Restam para a meta" : "Energia consumida"}</p>
+            <p className="num text-4xl leading-tight" style={{ color: energyColor }}>{fmt(goals.kcal > 0 ? Math.abs(remaining) : kcal, 0)} <span className="text-lg">kcal</span></p>
+            <p className="text-xs text-white/75">{fmt(kcal, 0)} consumidas{goals.kcal > 0 ? ` · meta de ${fmt(goals.kcal, 0)} kcal` : ""}</p>
+          </div>
         </div>
-        {(offKcal > 0 || pendingKcal > 0) && <p className="text-[12px] text-white/55 mt-4">{offKcal ? `${offKcal.toLocaleString("pt-BR")} kcal fora do plano. ` : ""}{pendingKcal > 0 ? `${pendingKcal.toLocaleString("pt-BR")} kcal planejadas esperando você marcar a refeição como feita.` : ""}</p>}
-        <div className="grid grid-cols-[1fr_auto] gap-2 mt-5">
-          <button className="btn btn-accent inline-flex items-center justify-center gap-2" onClick={() => setSheet({ kind: "quiz" })}><Ico d={HI.plus} size={16} />Refeição</button>
+        <div className="mt-4 grid grid-cols-3 gap-1.5 sm:gap-2">
+          {([["Proteína", prot, goals.protein, HI.protein, "#b9ed9d"], ["Carboidrato", carb, goals.carbs, HI.carb, "#ffd28a"], ["Gordura", fat, goals.fat, HI.fat, "#d5b6ff"]] as const).map(([label, value, goal, icon, color]) => (
+            <div key={label} className="min-w-0 rounded-lg border border-white/10 bg-[#141915] p-2 sm:p-3">
+              <p className="flex flex-wrap items-center gap-1 text-[10px] font-semibold text-white/85 sm:text-xs"><Ico d={icon} size={13} color={color} />{label}</p>
+              <p className="num mt-1 text-xl" style={{ color }}>{fmt(value, 0)} <span className="text-[10px] text-white/75">g</span></p>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded bg-white/15" aria-hidden="true"><div className="h-full rounded" style={{ width: `${progressPercent(value, goal)}%`, background: color }} /></div>
+              <p className="mt-1 text-[10px] text-white/70">{goal > 0 ? `Meta ${goal} g` : "Sem meta"}</p>
+            </div>
+          ))}
+        </div>
+        {(offKcal > 0 || pendingKcal > 0) && (
+          <div className="mt-3 flex flex-wrap gap-1.5 text-xs text-white/85">
+            {pendingKcal > 0 && <span className="rounded-full border border-[#a5ebae40] bg-black/30 px-2.5 py-1.5">{fmt(pendingKcal, 0)} kcal ainda planejadas</span>}
+            {offKcal > 0 && <span className="rounded-full border border-[#ffd28a40] bg-black/30 px-2.5 py-1.5">{fmt(offKcal, 0)} kcal fora do plano</span>}
+          </div>
+        )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg bg-[#b9ed9d] px-3 text-sm font-bold text-[#122218] hover:bg-[#c9f7b2]" onClick={() => setSheet({ kind: "quiz" })}><Ico d={HI.plus} size={16} />Registrar refeição</button>
           <button className="btn inline-flex items-center gap-2" onClick={() => setSheet({ kind: "off" })}><Ico d={HI.cup} size={15} />Fora do plano</button>
         </div>
       </section>
 
-      {/* Refeições do dia em linha do tempo */}
-      <section className="glass rise p-5 mt-4">
-        <div className="flex items-center justify-between mb-3"><p className="label flex items-center gap-1.5"><Ico d={HI.list} size={13} />Refeições · {doneSlots.length}/{slots.length} feitas</p><button className="label !text-[10px] underline underline-offset-4 min-h-11" onClick={() => setSheet({ kind: "slots" })}>editar</button></div>
+      <section className="glass rise p-4 mt-4 sm:p-5">
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <div><h2 className="font-display text-xl">Refeições do dia</h2><p className="text-xs text-white/70">{completed} de {slots.length} marcadas como feitas</p></div>
+          <button className="min-h-11 text-xs font-semibold text-white/75 underline underline-offset-4" onClick={() => setSheet({ kind: "slots" })}>Editar refeições</button>
+        </div>
         {items.length === 0 && <button className="btn w-full mb-3" disabled={pending} onClick={() => start(() => copyMeals(addDays(date, -1), date))}>Copiar refeições de ontem</button>}
-        <ol className="relative">
-          <span aria-hidden className="absolute left-[13px] top-2 bottom-2 w-px bg-white/10" />
+        <ol className="grid gap-2.5">
           {allSlots.map((s) => {
             const list = items.filter((i) => i.slot === s.key), on = doneSlots.includes(s.key);
             return (
-              <li key={s.key} className="relative pl-10 py-2.5">
-                <button aria-pressed={on} aria-label={`Marcar ${s.label} como feita`} onClick={() => start(() => setMealDone(date, s.key, !on))}
-                  className="absolute left-0 top-2.5 h-7 w-7 grid place-items-center border bg-[#080808] transition-colors" style={{ borderColor: on ? R : "rgba(255,255,255,.25)", background: on ? R : "#080808" }}>
-                  {on && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" aria-hidden><path d="M5 12l5 5L20 7" /></svg>}
-                </button>
-                <div className="flex items-baseline gap-2">
-                  <p className={`font-semibold flex-1 flex items-center gap-2 ${on ? "text-white/55" : ""}`}><Ico d={slotIcon(s.label)} size={15} color={on ? R : "#a1a1a6"} />{s.label}</p>
-                  <p className="font-mono text-[11px] text-white/55">{sum(list, "kcal")} kcal · {fmt(sum(list, "protein_g"), 0)} g P</p>
+              <li key={s.key} className="rounded-xl border border-white/10 bg-[#171817] p-2.5">
+                <div className="flex items-center gap-2.5">
+                  <MealArt label={s.label} />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold leading-tight">{s.label}</p>
+                    <p className="mt-1 text-[11px] text-white/75">{fmt(sum(list, "kcal"), 0)} kcal · {fmt(sum(list, "protein_g"), 0)} g proteína</p>
+                    <p className={`mt-0.5 text-[10px] font-semibold ${on ? "text-[#b9ed9d]" : "text-white/65"}`}>{on ? "Consumida" : list.length ? "Planejada" : "Sem registro"}</p>
+                  </div>
+                  <button type="button" aria-pressed={on} aria-label={on ? `Desmarcar ${s.label}` : `Marcar ${s.label} como feita`}
+                    disabled={pending} onClick={() => start(() => setMealDone(date, s.key, !on))}
+                    className={`grid size-11 shrink-0 place-items-center rounded-lg border text-lg disabled:opacity-50 ${on ? "border-[#a5ebae] bg-[#a5ebae] text-[#122218]" : "border-white/25 bg-black/25 text-white/75 hover:border-[#a5ebae]"}`}>
+                    <span aria-hidden="true">{on ? "✓" : "○"}</span>
+                  </button>
                 </div>
                 {list.length > 0 && (
                   <ul className="mt-1">
@@ -383,7 +412,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
                         <span className="num text-sm w-12 text-right">{i.kcal}</span>
                       </button></li>))}
                   </ul>)}
-                <button className="text-[12px] text-white/50 hover:text-white mt-1 min-h-9 inline-flex items-center gap-1" onClick={() => setSheet({ kind: "add", slot: s.key })}><Ico d={HI.plus} size={12} />alimento</button>
+                <button className="mt-1 inline-flex min-h-10 items-center gap-1.5 text-xs font-semibold text-[#b9ed9d] hover:text-white" onClick={() => setSheet({ kind: "add", slot: s.key })}><Ico d={HI.plus} size={12} />Adicionar alimento</button>
               </li>);
           })}
         </ol>
@@ -392,7 +421,7 @@ export function Nutrition({ date, today, slots, items, doneSlots, foods, goals, 
       {/* Fora do plano */}
       <section className="glass rise p-5 mt-4">
         <div className="flex items-center justify-between"><p className="label flex items-center gap-1.5"><Ico d={HI.cup} size={13} />Fora do plano</p>{off.length > 0 && <p className="num text-lg" style={{ color: "#ff453a" }}>{offKcal} kcal</p>}</div>
-        {off.length === 0 ? <p className="text-sm text-white/50 mt-2">Nada fora do plano hoje. Assim que se caça.</p> : (
+        {off.length === 0 ? <p className="text-sm text-white/50 mt-2">Nenhum alimento ou bebida fora do plano nesta data.</p> : (
           <ul className="mt-2 divide-y divide-white/[.06]">
             {off.map((i) => { const x = extraInfo(i.slot); return (
               <li key={i.id}><button className="row-hover w-full flex items-center gap-3 min-h-11 px-2 text-left" onClick={() => setSheet({ kind: "edit", item: i })}>

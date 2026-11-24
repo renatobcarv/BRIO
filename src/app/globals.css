@@ -891,3 +891,13 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 @keyframes dg-hit { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
 .dg-hit { animation: dg-hit .3s ease; }
 @media (prefers-reduced-motion: reduce) { .dg-hit { animation: none; } }
+
+.dg-lunge { animation: dg-lunge .4s ease-out both; }
+@keyframes dg-lunge {
+  0%, 100% { transform: none; }
+  24% { transform: translateX(-8%) scale(.97); }
+  55% { transform: translate(15%, -4%) scale(1.12) rotate(4deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dg-lunge, .dg-hit { animation: none !important; }
+}
