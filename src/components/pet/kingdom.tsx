@@ -53,9 +53,11 @@ type Search = { target: number; tried: number[]; found: boolean };
 const EMPTY_BOND: Bond = { days: 0, last: "" };
 const BOND_LEVELS = ["Conhecendo você", "Confiança", "Cumplicidade", "Laço lendário"];
 
-export function PetKingdom({ pet, today }: {
+/** Status do mascote no próprio lar: nível (fase), vida e atalho para equipar. */
+export type PetHud = { level: number; stageName: string; progress: number; hp: number; maxHp: number; power: number; equipped: number };
+export function PetKingdom({ pet, today, hud }: {
   pet: { id: string; name: string; species: string; stage: PetStage } | null;
-  today: string;
+  today: string; hud?: PetHud | null;
 }) {
   const [visit, setVisit] = useState<string | null>(null);
   const [item, setItem] = useState<number | null>(null);
@@ -151,7 +153,15 @@ export function PetKingdom({ pet, today }: {
             {own ? `${own.name} · ${stage.name}` : species.name}
           </p>
           <h2 className="font-display text-3xl leading-tight text-white drop-shadow-md sm:text-4xl">{habitat.name}</h2>
-          <p className="mt-1 max-w-md text-sm text-white/85">{habitat.description}</p>
+          <p className={`mt-1 max-w-md text-sm text-white/85 ${own && hud ? "hidden sm:block" : ""}`}>{habitat.description}</p>
+          {own && hud && <div className="mt-2 w-full max-w-[220px] rounded-[12px] border border-white/15 bg-black/55 p-2.5 text-[12px] backdrop-blur-md sm:absolute sm:right-6 sm:top-6 sm:mt-0 sm:max-w-[260px] sm:p-3">
+            <div className="flex items-baseline justify-between"><span className="text-[11px] uppercase tracking-wider text-white/60">Nível</span><span className="font-display text-2xl text-white">{hud.level}<span className="ml-1 text-[12px] font-sans text-white/60">{hud.stageName}</span></span></div>
+            <div className="mt-1 h-1.5 rounded-full bg-white/15"><i className="block h-1.5 rounded-full" style={{ width: `${Math.round(hud.progress * 100)}%`, background: habitat.color }} /></div>
+            <div className="mt-2 flex items-baseline justify-between"><span className="text-[11px] uppercase tracking-wider text-white/60">Vida</span><span className="font-mono text-[12px] text-white">{hud.hp}/{hud.maxHp}</span></div>
+            <div className="mt-1 h-2 rounded-full bg-white/15"><i className="block h-2 rounded-full transition-all" style={{ width: `${Math.round((hud.hp / Math.max(1, hud.maxHp)) * 100)}%`, background: hud.hp < hud.maxHp * 0.3 ? "#ff453a" : "#30d158" }} /></div>
+            <div className="mt-2 flex items-center justify-between text-[12px] text-white/75"><span>Poder <b className="text-white">{hud.power}</b></span>
+              <a href="#arsenal" className="rounded-full bg-white px-3 py-1 text-[12px] font-semibold text-black">Equipar · {hud.equipped}/6</a></div>
+          </div>}
         </div>
         <button type="button" disabled={exploring} data-away={exploring}
           className="pet-habitat-resident absolute left-1/2 z-10 -translate-x-1/2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"

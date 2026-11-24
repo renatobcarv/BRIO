@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { choosePet, drawPet, renamePet } from "@/app/(app)/mascote-actions";
 import { PetPortrait } from "./portrait";
-import { PetKingdom } from "./kingdom";
+import { PetKingdom, type PetHud } from "./kingdom";
 import { Sheet } from "@/components/kit";
 import { DRAWS_PER_MONTH, DUPLICATE_ESSENCE, RARITY, SPECIES, STAGES, speciesOf, stageOf, type PetStage } from "@/lib/pet";
 
@@ -52,7 +52,7 @@ export function PetCard({ p }: { p: PetView | null }) {
 }
 
 type Draw = { species: string; month: string; free: boolean; duplicate: boolean };
-export function PetPage({ p, ready, draws, month, today }: { p: PetView | null; ready: boolean; draws: Draw[]; month: string; today: string }) {
+export function PetPage({ p, ready, draws, month, today, hud }: { p: PetView | null; ready: boolean; draws: Draw[]; month: string; today: string; hud?: PetHud | null }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export function PetPage({ p, ready, draws, month, today }: { p: PetView | null; 
 
   return (
     <div className="grid gap-4">
-      <PetKingdom key={p?.id ?? "visitante"} pet={p} today={today} />
+      <PetKingdom key={p?.id ?? "visitante"} pet={p} today={today} hud={hud} />
       {p && m && (
         <section className="hunt-card relative overflow-hidden p-6 lg:p-8 grid lg:grid-cols-2 gap-6 items-center">
           <div className="grid place-items-center"><PetArt p={p} size={300} /></div>

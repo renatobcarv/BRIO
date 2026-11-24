@@ -50,7 +50,7 @@ export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies,
         </span>{children}
       </li>); };
   return (
-    <section className="hunt-card p-5 mt-6">
+    <section id="arsenal" className="hunt-card p-5 mt-6 scroll-mt-20">
       <div className="flex items-end justify-between gap-3">
         <div><p className="label">Arsenal de {petName}</p><p className="font-display text-2xl mt-1">Equipamento</p></div>
         <div className="text-right"><p className="text-[22px] leading-none"><Coin v={gold} /></p><p className="text-[11px] text-white/45 mt-1">Ouro · {Object.keys(owned).length}/{GEAR.length} itens</p></div>

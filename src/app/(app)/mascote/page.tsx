@@ -6,6 +6,7 @@ import { PetPage, type PetView } from "@/components/pet/pet";
 import { Arsenal } from "@/components/pet/arsenal";
 import { Army } from "@/components/pet/army";
 import { Dungeons } from "@/components/pet/dungeons";
+import { power } from "@/lib/dungeon";
 
 export const dynamic = "force-dynamic";
 export default async function Page() {
@@ -25,7 +26,8 @@ export default async function Page() {
   catch (e) { err = e instanceof Error ? e.message : String(e); }
   return <>
     {err && <p className="hunt-card p-4 mb-4 text-[13px] text-[#ff8a80]">Não consegui calcular a evolução do mascote agora ({err}). O sorteio funciona normalmente.</p>}
-    <PetPage p={pet} ready draws={d.data ?? []} month={todayISO().slice(0, 7)} today={todayISO()} />
+    <PetPage p={pet} ready draws={d.data ?? []} month={todayISO().slice(0, 7)} today={todayISO()}
+      hud={pet && dungeon ? { level: dungeon.stage + 1, stageName: pet.stage.name, progress: pet.progress, hp: dungeon.hp, maxHp: dungeon.stats.maxHp, power: power(dungeon.stats), equipped: Object.keys(items?.equipped ?? {}).length } : null} />
     {pet && dungeon && <Dungeons d={dungeon} pet={{ name: pet.name, species: pet.species }} />}
     {pet && items && <Army army={items.army} active={items.active} kills={items.kills} ready={items.ready} pending={items.pending} />}
     {pet && items && <Arsenal {...items} petName={pet.name} />}
