@@ -97,3 +97,11 @@ test("platô: só com histórico travado; isolado → drop, máquina → rest-pa
   const progressing = hist.map((x, i) => ({ ...x, sets: x.sets.map((y) => ({ ...y, kg: y.kg + i })) }));
   assert.equal(plateaus(progressing, "2026-11-23").size, 0);
 });
+import { capDay } from "../src/lib/master.ts";
+test("planos antigos com 9 exercícios são enxutos para 7, sem tirar o principal", () => {
+  const l = [E("Supino reto com barra", "peito", 4), E("Supino inclinado com halteres", "peito"), E("Puxada frontal na polia", "costas"), E("Remada curvada com barra", "costas"),
+    E("Elevação lateral com halteres", "ombro_lateral"), E("Desenvolvimento com halteres", "ombro_anterior"), E("Face pull", "ombro_posterior"), E("Rosca direta com barra", "biceps"), E("Tríceps na polia (corda)", "triceps")];
+  const c = capDay(l);
+  assert.equal(c.length, 7); assert.equal(c[0].name, "Supino reto com barra");
+  assert.ok(c.every((e) => e.sets >= 2));
+});

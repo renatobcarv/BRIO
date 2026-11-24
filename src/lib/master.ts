@@ -105,6 +105,10 @@ export function masterWeek(base: Record<string, PlannedEx[]>, hist: MWorkout[], 
   if (up.length) changes.push({ text: `+1 série em ${up.length} grupo(s) que você completou com folga: ${up.join(", ").replace(/_/g, " ")}.`, ref: "volume" });
   if (down.length) changes.push({ text: `−1 série em ${down.join(", ").replace(/_/g, " ")}: RPE acima do alvo na semana passada (fadiga).`, ref: "rpe" });
   changes.push({ text: "Carga de cada exercício sugerida pelo seu histórico (e1RM) e pelo RPE alvo.", ref: "overload" });
+  // Limite de exercícios por sessão vale também para planos criados antes da regra.
+  let trimmed = 0;
+  for (const [d, l] of Object.entries(days)) { const c = capDay(l); trimmed += l.length - c.length; days[d] = c; }
+  if (trimmed) changes.push({ text: `Sessões enxutas: ${trimmed} exercício(s) a menos na semana (máx. 7 por treino). Menos exercícios, séries mais bem feitas.`, ref: "volume" });
   if (!special && ctx.today) {
     const pt = plateauTechniques(days, plateaus(hist, ctx.today));
     if (pt.used.length) { Object.assign(days, pt.days); changes.push({ text: `Platô detectado em ${pt.used.join(" e ")} (sem progresso há 3 semanas): técnica avançada só na última série.`, ref: "advanced" }); }
@@ -258,4 +262,21 @@ export function plateauTechniques(days: Record<string, PlannedEx[]>, stuck: Set<
     return { ...e, notes: iso ? "Platô: na última série, drop set (tire ~20% e continue até perto da falha)." : "Platô: na última série, rest-pause (15 s de pausa e mais 2–4 reps, 2 vezes)." };
   })]));
   return { days: out, used };
+}
+
+
+/** Planos antigos (antes da regra nova) podiam ter 8–9 exercícios: o Mestre enxuga para no máximo `cap`.
+ * Sai primeiro o 2º exercício do mesmo músculo, depois grupos que outros exercícios já trabalham. Nunca mexe no principal. */
+const LOW: string[] = ["ombro_anterior", "abdomen", "panturrilhas", "ombro_posterior", "gluteos", "biceps", "triceps", "ombro_lateral"];
+export function capDay(list: PlannedEx[], cap = 7): PlannedEx[] {
+  const out = [...list];
+  while (out.length > cap) {
+    const seen = new Set<string>();
+    let i = -1;
+    out.forEach((e, k) => { if (seen.has(e.muscle) && k > 0) i = k; seen.add(e.muscle); }); // último repetido
+    if (i < 0) for (const m of LOW) { const k = out.findLastIndex((e, j) => j > 0 && e.muscle === m); if (k >= 0) { i = k; break; } }
+    if (i < 0) break;
+    out.splice(i, 1);
+  }
+  return out;
 }
