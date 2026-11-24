@@ -73,7 +73,7 @@ test("sessões de treinador: 2+ séries, poucos exercícios, básico no dia cert
     const r = buildProgram(A({ goal, focus, days, minutes }));
     for (const ph of r.program.phases) for (const [d, l] of Object.entries(ph.days)) {
       const tag = `${goal} ${focus} ${days}d ${minutes}min ${ph.kind} ${ph.dayNames?.[d]}`;
-      assert.ok(l.length <= exerciseCap(minutes) + 2, `${tag}: ${l.length} exercícios`); // +2 só quando há superset
+      assert.ok(l.length <= exerciseCap(minutes), `${tag}: ${l.length} exercícios`);
       for (const e of l) assert.ok(e.sets >= 2, `${tag}: ${e.name} com ${e.sets} série`);
       const nm = ph.dayNames?.[d] ?? "";
       if (/Inferior|Pernas/.test(nm)) assert.ok(!l.some((e) => /^Supino/.test(e.name)), `${tag}: supino no dia de pernas`);

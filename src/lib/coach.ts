@@ -215,7 +215,7 @@ function buildSession(a: TrainAnswers, b: Block, d: { name: string; muscles: Mus
   // 3. Cabe no tempo: primeiro tira o 2º exercício dos grupos grandes, depois grupos de menor prioridade; nunca 1 série.
   const natural = out.length, naturalSets = out.reduce((x, e) => x + e.sets, 0);
   const needsTime = natural > exerciseCap(a.minutes) || naturalSets > maxSets;
-  const cap = exerciseCap(a.minutes) + (needsTime ? 2 : 0), protectedN = new Set(out.slice(0, lifts.length).map((e) => e.name));
+  const cap = exerciseCap(a.minutes), protectedN = new Set(out.slice(0, lifts.length).map((e) => e.name));
   const total = () => out.reduce((x, e) => x + e.sets, 0);
   const secondOf = () => out.findLastIndex((e, i) => !protectedN.has(e.name) && !a.priority.includes(e.muscle) && out.findIndex((x) => x.muscle === e.muscle) !== i);
   const dropIdx = () => { for (const m of DROP_ORDER) { if (a.priority.includes(m)) continue; const i = out.findLastIndex((e) => e.muscle === m && !protectedN.has(e.name)); if (i >= 0) return i; } return -1; };
