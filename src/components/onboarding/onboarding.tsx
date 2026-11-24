@@ -1,5 +1,6 @@
 "use client";
-import { useEffect, useState, useTransition } from "react";
+import Image from "next/image";
+import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
 import { accountSummary } from "@/app/(app)/boas-vindas/actions";
 import { saveGoal } from "@/app/(app)/metas/actions";
@@ -10,12 +11,40 @@ import { ModulesEditor } from "@/components/settings/modules";
 import { Consult } from "@/components/body/consult";
 import { ImportStatement } from "@/components/finance/import";
 import { PetRoulette } from "@/components/pet/roulette";
-import { SPECIES } from "@/lib/pet";
+import { PetPortrait } from "@/components/pet/portrait";
+import { SPECIES, STAGES } from "@/lib/pet";
 import type { FinCategory, ModuleKey } from "@/lib/settings";
+import styles from "./onboarding.module.css";
 
 const A = "#ffb21e";
 type Mode = "rapido" | "avancado";
 type Step = "modo" | "areas" | "metas" | "pessoa" | "sonhos" | "treino" | "financas" | "mascote" | "resumo" | "tutorial";
+const CHAPTERS: Record<Step, { label: string; color: string; art: string }> = {
+  modo: { label: "Boas-vindas", color: "#ffc66d", art: "modo" },
+  areas: { label: "Suas áreas", color: "#c7a7ff", art: "areas" },
+  metas: { label: "Primeira meta", color: "#ff9d91", art: "metas" },
+  pessoa: { label: "Pessoa especial", color: "#f7a9cf", art: "pessoa" },
+  sonhos: { label: "Quadro dos sonhos", color: "#b9b1ff", art: "sonhos" },
+  treino: { label: "Treino e dieta", color: "#ffb07b", art: "treino" },
+  financas: { label: "Finanças", color: "#8ce5ae", art: "financas" },
+  mascote: { label: "Seu mascote", color: "#8ddcff", art: "mascote" },
+  resumo: { label: "Seu BRIO", color: "#ffe09a", art: "resumo" },
+  tutorial: { label: "Tour do BRIO", color: "#9de9b9", art: "resumo" },
+};
+const TOUR_ART = ["modo", "treino", "resumo", "metas", "mascote", "areas"];
+
+function ChapterArt({ art, priority = false }: { art: string; priority?: boolean }) {
+  return <Image src={`/cards/onboarding/${art}.webp`} width={320} height={320} priority={priority} unoptimized alt="" className={styles.art} />;
+}
+
+function Notice({ children }: { children: string }) {
+  return <p role="alert" className={styles.notice}><span aria-hidden="true">!</span>{children}</p>;
+}
+
+function Sparks() {
+  return <span className={styles.sparks} aria-hidden="true"><i /><i /><i /><i /><i /><i /></span>;
+}
+
 const KEY = "brio:onboarding";
 const GOALS = [
   { t: "Perder peso", area: "fisica", unit: "kg", hint: "Quantos kg quer perder?" }, { t: "Ganhar massa muscular", area: "fisica", unit: "kg", hint: "Quantos kg quer ganhar?" },
@@ -33,32 +62,55 @@ const TOUR = [
 
 export function Onboarding({ name, modules, cats }: { name: string; modules: Record<ModuleKey, boolean>; cats: FinCategory[] }) {
   const router = useRouter();
+  const chapterHeading = useRef<HTMLHeadingElement>(null);
   const [mode, setMode] = useState<Mode | null>(null), [i, setI] = useState(0), [msg, setMsg] = useState(""), [busy, start] = useTransition();
   useEffect(() => { try { const v = JSON.parse(localStorage.getItem(KEY) ?? "null"); if (v?.mode) { setMode(v.mode); setI(v.i ?? 0); } } catch { /* sem storage */ } }, []);
   useEffect(() => { try { if (mode) localStorage.setItem(KEY, JSON.stringify({ mode, i })); } catch { /* sem storage */ } }, [mode, i]);
   const on = (m: ModuleKey) => modules[m] !== false;
   const steps: Step[] = (["modo", "areas", "metas", ...(mode === "avancado" ? ["pessoa", "sonhos"] as Step[] : []), "treino", ...(mode === "avancado" ? ["financas"] as Step[] : []), "mascote", "resumo", "tutorial"] as Step[])
     .filter((s) => (s === "sonhos" ? on("sonhos") : s === "treino" ? on("treino") || on("dieta") : s === "financas" ? on("financas") : s === "mascote" ? on("mascote") : true));
-  const step = steps[Math.min(i, steps.length - 1)];
-  const next = () => { setMsg(""); setI((x) => Math.min(steps.length - 1, x + 1)); window.scrollTo({ top: 0, behavior: "smooth" }); };
-  const back = () => { setMsg(""); setI((x) => Math.max(0, x - 1)); };
+  const index = Math.min(i, steps.length - 1);
+  const step = steps[index];
+  const chapter = CHAPTERS[step];
+  useEffect(() => {
+    if (step !== "modo") chapterHeading.current?.focus({ preventScroll: true });
+  }, [step]);
+  const next = () => { setMsg(""); setI((x) => Math.min(steps.length - 1, x + 1)); window.scrollTo({ top: 0 }); };
+  const back = () => { setMsg(""); setI(Math.max(0, index - 1)); window.scrollTo({ top: 0 }); };
   const finish = () => start(async () => { const e = await savePrefs({ onboarded: true }); if (e) return setMsg(e); try { localStorage.removeItem(KEY); } catch { /* ok */ } router.push("/"); router.refresh(); });
 
   return (
-    <div className="max-w-xl mx-auto pb-16">
-      {step !== "modo" && <div className="flex items-center gap-3 mb-6">
-        <button className="text-[13px] text-white/50 min-h-10" onClick={back}>‹ Voltar</button>
-        <div className="flex-1 flex gap-1" aria-label={`Passo ${i + 1} de ${steps.length}`}>{steps.map((s, k) => <i key={s} className="h-1 flex-1 rounded-full" style={{ background: k <= i ? A : "rgba(255,255,255,.1)" }} />)}</div>
-      </div>}
-      <div key={step} className="chat-in">
+    <div className={styles.shell} style={{ "--chapter": chapter.color } as CSSProperties}>
+      {step !== "modo" && (
+        <nav className={styles.progress} aria-label="Navegação da configuração">
+          <button type="button" onClick={back} className={styles.back}>← Voltar</button>
+          <div className={styles.track} role="progressbar" aria-label="Progresso da configuração" aria-valuemin={0} aria-valuemax={steps.length} aria-valuenow={index + 1}>
+            {steps.map((item, k) => <span key={item} data-state={k === index ? "current" : k < index ? "complete" : undefined} />)}
+          </div>
+          <span className={styles.count}>{index + 1}/{steps.length}</span>
+        </nav>
+      )}
+      <div key={step} className={styles.chapter}>
+        <header className={styles.hero}>
+          <div className={styles.heroCopy}>
+            <p>{step === "modo" ? "Bem-vindo ao BRIO" : "Configure seu BRIO"}</p>
+            <h1 ref={chapterHeading} tabIndex={-1}>{step === "modo" ? (name ? `Olá, ${name}.` : "Olá.") : chapter.label}</h1>
+            {step === "modo" && <span>Escolha um caminho para montar seu BRIO.</span>}
+          </div>
+          <div className={styles.heroVisual}>
+            <ChapterArt art={chapter.art} priority={step === "modo"} />
+            <Sparks />
+          </div>
+        </header>
+        <div className={styles.content}>
         {step === "modo" && <section>
-          <p className="label" style={{ color: A }}>Bem-vindo ao BRIO</p>
-          <h1 className="font-display text-5xl mt-2 leading-none">{name ? `Olá, ${name}.` : "Olá."}</h1>
-          <p className="text-white/65 mt-3">Vou montar o seu BRIO com você. Escolha como prefere:</p>
-          <div className="grid gap-3 mt-6">
+          <div className={styles.modes}>
             {([["rapido", "Rápido", "≈ 3 min · o essencial: áreas, uma meta, treino e mascote. O resto você ajusta depois."], ["avancado", "Avançado", "≈ 10 min · tudo: metas, pessoa especial, sonhos com fotos, treino e dieta com especialistas, extrato bancário e mascote."]] as const).map(([k, t, d]) => (
-              <button key={k} onClick={() => { setMode(k); setI(1); }} className="hunt-card p-5 text-left border" style={{ borderColor: k === "avancado" ? A + "66" : "rgba(255,255,255,.08)" }}>
-                <p className="font-display text-3xl">{t}</p><p className="text-[13.5px] text-white/60 mt-1">{d}</p></button>))}
+              <button key={k} onClick={() => { setMode(k); setI(1); }} className={styles.mode} data-mode={k}>
+                <ChapterArt art={k === "rapido" ? "metas" : "resumo"} />
+                <span><strong>{t}</strong><span>{d}</span></span>
+                <span aria-hidden="true">→</span>
+              </button>))}
           </div>
         </section>}
 
@@ -100,15 +152,16 @@ export function Onboarding({ name, modules, cats }: { name: string; modules: Rec
         {step === "resumo" && <Summary onNext={next} />}
 
         {step === "tutorial" && <Tour onFinish={finish} busy={busy} />}
+        </div>
       </div>
-      {msg && <p className="text-sm mt-4" role="alert" style={{ color: A }}>{msg}</p>}
+      {msg && <Notice>{msg}</Notice>}
     </div>
   );
 }
 
-function H({ t, d }: { t: string; d: string }) { return <><h1 className="font-display text-4xl leading-tight">{t}</h1><p className="text-white/60 mt-2 text-[14.5px]">{d}</p></>; }
-function Next({ onClick, label = "Continuar" }: { onClick: () => void; label?: string }) { return <button className="btn btn-accent w-full mt-5 !min-h-14" onClick={onClick}>{label}</button>; }
-function Skip({ onClick }: { onClick: () => void }) { return <button className="block mx-auto mt-3 text-[13px] text-white/45 underline underline-offset-2" onClick={onClick}>Pular por agora</button>; }
+function H({ t, d }: { t: string; d: string }) { return <><h2 className="font-display text-3xl font-bold leading-tight">{t}</h2><p className="text-white/60 mt-2 text-[14.5px]">{d}</p></>; }
+function Next({ onClick, label = "Continuar" }: { onClick: () => void; label?: string }) { return <button className={styles.next} onClick={onClick}>{label}</button>; }
+function Skip({ onClick }: { onClick: () => void }) { return <button className={styles.skip} onClick={onClick}>Pular por agora</button>; }
 
 function GoalsStep({ max, spiritual, onDone }: { max: number; spiritual: boolean; onDone: () => void }) {
   const [list, setList] = useState<{ t: string; area: string; unit: string; target: string; deadline: string }[]>([]), [err, setErr] = useState(""), [busy, start] = useTransition();
@@ -119,7 +172,7 @@ function GoalsStep({ max, spiritual, onDone }: { max: number; spiritual: boolean
   });
   return (<section>
     <H t={max > 1 ? "Suas metas principais" : "Sua meta principal"} d={`Escolha ${max > 1 ? `até ${max}` : "uma"} e dê um número. Cada 1% de progresso vale XP.`} />
-    <div className="flex flex-wrap gap-2 mt-5">{GOALS.filter((g) => spiritual || g.area !== "espiritual").map((g) => <button key={g.t} disabled={list.length >= max} onClick={() => add(g)} className="rounded-full px-4 min-h-10 bg-white/[.06] text-[14px] disabled:opacity-40">{g.t}</button>)}
+    <div className="flex flex-wrap gap-2 mt-5">{GOALS.filter((g) => spiritual || g.area !== "espiritual").map((g) => <button key={g.t} disabled={list.length >= max} onClick={() => add(g)} className={styles.choice}>{g.t}</button>)}
       <button disabled={list.length >= max} onClick={() => add(null)} className="rounded-full px-4 min-h-10 border border-dashed border-white/25 text-[14px] disabled:opacity-40">+ Outra</button></div>
     <div className="grid gap-3 mt-4">{list.map((g, k) => (
       <div key={k} className="hunt-card p-4 grid gap-2">
@@ -129,8 +182,8 @@ function GoalsStep({ max, spiritual, onDone }: { max: number; spiritual: boolean
         <label className="text-[12px] text-white/50">Prazo (opcional)<input type="date" className="field w-full mt-1" value={g.deadline} onChange={(e) => setList(list.map((x, j) => (j === k ? { ...x, deadline: e.target.value } : x)))} /></label>
         <button className="text-[12px] text-white/45 justify-self-start" onClick={() => setList(list.filter((_, j) => j !== k))}>Remover</button>
       </div>))}</div>
-    {err && <p className="text-sm mt-2" style={{ color: A }}>{err}</p>}
-    <button className="btn btn-accent w-full mt-5 !min-h-14" disabled={busy || !list.some((g) => g.t.trim() && Number(g.target) > 0)} onClick={save}>{busy ? "Salvando…" : "Salvar e continuar"}</button>
+    {err && <Notice>{err}</Notice>}
+    <button className={styles.next} disabled={busy || !list.some((g) => g.t.trim() && Number(g.target) > 0)} onClick={save}>{busy ? "Salvando…" : "Salvar e continuar"}</button>
     <Skip onClick={onDone} />
   </section>);
 }
@@ -142,13 +195,13 @@ function PetStep({ onDone }: { onDone: () => void }) {
     <H t="Seu companheiro de jornada" d="O primeiro sorteio é grátis. O mascote evolui com o seu XP real e te dá bônus nos dias bons." />
     <div className="mt-5 min-h-[220px] grid place-items-center">
       {spin ? <PetRoulette result={spin} onDone={() => { setGot(spin); setSpin(null); }} />
-        : sp ? <div className="text-center chat-in"><p className="label" style={{ color: A }}>Você tirou</p><p className="font-display text-5xl mt-1">{sp.name}</p><p className="text-white/60 text-[14px] mt-1">{sp.trait}</p></div>
+        : sp ? <div className={styles.reveal}><Sparks /><PetPortrait species={sp.key} stage={STAGES[0]} size={150} className="mx-auto" /><p className="label" style={{ color: A }}>Você tirou</p><p className="font-display text-5xl mt-1">{sp.name}</p><p className="text-white/60 text-[14px] mt-1">{sp.trait}</p></div>
         : <button className="btn btn-accent !min-h-16 !px-10 text-lg" disabled={busy} onClick={() => start(async () => { const r = await drawPet(); if (r.error) setErr(r.error); else if (r.species) setSpin(r.species); })}>Girar a roleta</button>}
     </div>
     {sp && <form className="grid gap-2 mt-4" onSubmit={(e) => { e.preventDefault(); start(async () => { const x = await choosePet(sp.key, nm || sp.name); if (x) setErr(x); else onDone(); }); }}>
       <input className="field" placeholder={`Nome do seu ${sp.name.toLowerCase()}`} value={nm} onChange={(e) => setNm(e.target.value)} maxLength={30} />
       <button className="btn btn-accent !min-h-14" disabled={busy}>Adotar e continuar</button></form>}
-    {err && <p className="text-sm mt-3" style={{ color: A }}>{err}</p>}
+    {err && <Notice>{err}</Notice>}
     <Skip onClick={onDone} />
   </section>);
 }
@@ -177,9 +230,13 @@ function Tour({ onFinish, busy }: { onFinish: () => void; busy: boolean }) {
   const [k, setK] = useState(0), t = TOUR[k];
   return (<section>
     <p className="label" style={{ color: A }}>Como usar · {k + 1}/{TOUR.length}</p>
-    <div key={k} className="chat-in hunt-card p-6 mt-3 min-h-[180px]"><p className="font-display text-3xl leading-tight">{t.t}</p><p className="text-white/70 mt-3 text-[15px] leading-relaxed">{t.d}</p></div>
+    <div key={k} className={styles.tourCard}>
+      <ChapterArt art={TOUR_ART[k]} />
+      <div><h2 className="font-display text-2xl leading-tight">{t.t}</h2><p className="mt-2 text-sm leading-relaxed text-white/80">{t.d}</p></div>
+      {k === TOUR.length - 1 && <Sparks />}
+    </div>
     <div className="flex gap-1 mt-4 justify-center">{TOUR.map((_, j) => <i key={j} className="h-1.5 w-6 rounded-full" style={{ background: j <= k ? A : "rgba(255,255,255,.12)" }} />)}</div>
     {k < TOUR.length - 1 ? <Next onClick={() => setK(k + 1)} label="Próximo" />
-      : <button className="btn btn-accent w-full mt-5 !min-h-14" disabled={busy} onClick={onFinish}>{busy ? "Abrindo…" : "Começar a usar o BRIO"}</button>}
+      : <button className={styles.next} disabled={busy} onClick={onFinish}>{busy ? "Abrindo…" : "Começar a usar o BRIO"}</button>}
   </section>);
 }
