@@ -27,12 +27,12 @@ import { MasterCard, type MasterDay, type Nutrition } from "./master-card";
 import { Consult } from "./consult";
 import { LiftRanks } from "./lift-ranks";
 
-import { G, ORDER, buildSession, dayPlan, volume, e1rm, firstNum, isTimed, suggestionFor, type Session, type Workout } from "./training-core";
+import { G, ORDER, buildSession, dayPlan, volume, e1rm, firstNum, isTimed, suggestionFor, type Session, type Workout , type Maxes } from "./training-core";
 import { Logger } from "./training-logger";
 import { PlanEditor } from "./plan-editor";
 export { e1rm, firstNum, historyOf, isTimed, lastFor, mmss, suggestionFor, type LEx, type LSet, type Session, type Target, type Workout } from "./training-core";
 
-export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false, bodyweight = null, nutrition }: { nutrition?: Nutrition; today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean; bodyweight?: number | null }) {
+export function Training({ today, split, plan, workouts, program = null, programSlot, openProgram = false, bodyweight = null, nutrition, maxes = {} }: { maxes?: Maxes; nutrition?: Nutrition; today: string; split: SplitDay[]; plan: WorkoutPlan; workouts: Workout[]; program?: Program | null; programSlot?: React.ReactNode; openProgram?: boolean; bodyweight?: number | null }) {
   const [pending, start] = useTransition();
   const KEY = "brio-treino-em-andamento";
   const [session, setSessionState] = useState<Session | null>(null);
@@ -218,7 +218,7 @@ export function Training({ today, split, plan, workouts, program = null, program
                   {doneW ? <p className="text-[14px] mt-5 font-semibold" style={{ color: "#30d158" }}>✓ Treino concluído neste dia</p> : (
                     <div className="grid grid-cols-[auto_1fr] gap-2 mt-5">
                       {list.length > 0 && <button className="btn !min-h-14 !px-5" onClick={() => setPreview(true)}>Ver</button>}
-                      <button className="btn btn-accent !min-h-14 !text-[15px] col-start-2" onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx, bodyweight); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: b ?? beastFor(undefined) }); } else setSession(ns); }}>
+                      <button className="btn btn-accent !min-h-14 !text-[15px] col-start-2" onClick={() => { const base = split.find((x) => x.dow === sel.d) ?? todayDay; const day = sel.title ? { ...base, label: sel.title, focus: "" } : base; const ns = buildSession(sel.date <= today ? sel.date : today, day, list, workouts, ctx, bodyweight, maxes); if (sel.date === today && list.length) { setIntro({ s: { ...ns, startedAt: Date.now() }, beast: b ?? beastFor(undefined) }); } else setSession(ns); }}>
                         {list.length ? (sel.date === today ? "Começar treino" : sel.date < today ? "Registrar este treino" : "Fazer hoje") : "Registrar treino extra"}</button>
                     </div>)}
                   {list.length > 0 && <WorkoutPreview open={preview} onClose={() => setPreview(false)} title={sel.title ?? "Treino"} items={list.map((x) => ({ name: x.name, detail: isTimed(x.name, (x as { muscle?: string }).muscle) ? `${x.reps} min` : `${x.sets}×${x.reps}${x.kg != null ? ` · ${fmt(x.kg)} kg` : ""}` }))} />}

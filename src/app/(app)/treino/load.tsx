@@ -48,6 +48,6 @@ export async function loadTrainingView(sb: SupabaseClient, s: Settings, today: s
     const hot = evs.find((e) => (e.stage === "ativo" || e.stage === "contagem") && (e.type === "hell_week" || e.type === "judgment" || e.type === "genesis"));
     const onFire = !!evs.find((e) => e.type === "hell_week" && (e.stage === "ativo" || e.stage === "contagem"));
     const warEvent = hot ? <Link href="/eventos" className="block mb-4"><EventCard e={hot} compact /></Link> : null;
-    const content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} nutrition={nutrition} />;
+    const content = <Training today={today} split={s.workout_split} plan={s.workout_plan} workouts={workouts} program={prog.error ? null : (prog.data as Program | null) ?? null} programSlot={programSlot} openProgram={openProgram} bodyweight={bw.data ? N(bw.data.kg) : s.weight_start_kg} nutrition={nutrition} maxes={(s.prefs?.maxes ?? {}) as Record<string, number>} />;
   return { content, warEvent, onFire, workouts: workouts as { date: string; sets: { exercise: string; kg: number; reps: number }[] }[], bodyweight: bw.data ? N(bw.data.kg) : s.weight_start_kg };
 }

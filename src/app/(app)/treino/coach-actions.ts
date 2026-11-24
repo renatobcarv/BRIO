@@ -1,7 +1,7 @@
 "use server";
 // Consulta com especialistas: cria a campanha de treino (periodização) e o plano alimentar a partir das respostas.
 import { z } from "zod";
-import { assessLevel, buildProgram, dietGoalFor, activityFor, type Level, type TrainAnswers } from "@/lib/coach";
+import { assessLevel, parseLift, buildProgram, dietGoalFor, activityFor, type Level, type TrainAnswers } from "@/lib/coach";
 import { createClient } from "@/lib/supabase/server";
 import { GOALS, MUSCLES } from "@/lib/training";
 import { saveProgram } from "@/app/(app)/corpo/program-actions";
@@ -51,6 +51,13 @@ export async function createFromConsult(t: unknown, d: unknown, withDiet: boolea
   if (!a.success) return { error: "Respostas do treino incompletas." };
   const lv = await honestLevel(a.data, d);
   const r = buildProgram({ ...(a.data as TrainAnswers), level: lv.level });
+  // Máximos informados viram as primeiras cargas (enquanto não houver histórico desses exercícios).
+  const maxes = Object.fromEntries(([["supino", a.data.bench], ["agachamento", a.data.squat], ["terra", a.data.deadlift]] as const)
+    .map(([k, v]) => { const p = v ? parseLift(v) : null; return [k, p ? Math.round(p.reps <= 1 ? p.kg : p.kg * (1 + Math.min(12, p.reps) / 30)) : null]; }).filter(([, v]) => v));
+  if (Object.keys(maxes).length) {
+    const sb = await createClient(); const { data: st } = await sb.from("settings").select("prefs").maybeSingle();
+    if (st) await sb.from("settings").update({ prefs: { ...((st.prefs ?? {}) as object), maxes } }).not("id", "is", null);
+  }
   let programId: string;
   try { programId = await saveProgram(r.program); }
   catch (e) { return { error: e instanceof Error ? e.message : "Não consegui salvar a campanha." }; }

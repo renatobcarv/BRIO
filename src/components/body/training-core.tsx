@@ -7,7 +7,7 @@ import { todayWorkout } from "@/lib/training";
 import type { PlanExercise, SplitDay, WorkoutPlan } from "@/lib/settings";
 import { dayTitle, programPosition, type PlannedEx, type Program } from "@/lib/training";
 
-import { nextSetKg, setLoads, starterLoad, suggestLoad, type Suggestion } from "@/lib/progression";
+import { loadFor, nextSetKg, setLoads, starterLoad, suggestLoad, type Suggestion } from "@/lib/progression";
 
 export const G = "#ffb21e";
 export type DbSet = { exercise: string; set_no: number; reps: number; kg: number; rpe?: number | null };
@@ -48,7 +48,10 @@ export function warmSets(work: number) {
   const w = warmup(work).filter((x) => x.kg < work * 0.92);
   return work < 70 ? w.filter((x) => x.kg <= work * 0.6).slice(0, 2) : w.slice(0, 4);
 }
-export function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null, bodyweight: number | null = null): Session {
+/** 1RM informado na consulta por levantamento (agachamento, supino, terra). */
+export type Maxes = Partial<Record<"agachamento" | "supino" | "terra", number>>;
+const MAX_RE: [RegExp, keyof Maxes][] = [[/^agachamento (livre|pausado)/i, "agachamento"], [/^supino (reto com barra|com pausa)/i, "supino"], [/^levantamento terra/i, "terra"]];
+export function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null, bodyweight: number | null = null, maxes: Maxes = {}): Session {
   const warmed = new Set<string>();
   return {
     date, label: [day.label, day.focus, ctx ? `S${ctx.weekNo}` : ""].filter(Boolean).join(" · "), notes: "", startedAt: null,
@@ -57,11 +60,13 @@ export function buildSession(date: string, day: SplitDay, plan: Target[], workou
     exercises: plan.map((p) => {
       const last = lastFor(workouts, p.name, date), timed = isTimed(p.name, (p as { muscle?: string }).muscle);
       const sug = p.kg == null && !timed ? suggestionFor(workouts, p, date, !!ctx?.deload) : null;
-      const starter = !timed && p.kg == null && !sug && !last ? starterLoad(p.name, bodyweight) : null;
+      const mk = MAX_RE.find(([re]) => re.test(p.name))?.[1], max = mk ? maxes[mk] : undefined;
+      const fromMax = !timed && p.kg == null && !sug && !last && max ? Math.floor(loadFor(max, firstNum(p.reps) || 5, p.rpe ?? 8) / 2.5) * 2.5 : null;
+      const starter = fromMax ?? (!timed && p.kg == null && !sug && !last ? starterLoad(p.name, bodyweight) : null);
       const base = p.kg != null ? p.kg : sug ? sug.kg : last?.sets[0] ? Math.floor((Number(last.sets[0].kg) * 0.9) / 2.5) * 2.5 : starter ?? 0;
       const reps = firstNum(p.reps) || 8;
       const loads = timed ? [] : setLoads(base, p.sets, reps);
-      const note = timed ? undefined : p.kg != null ? "Carga definida no plano" : sug ? `Sugerida: ${sug.reason}` : last ? "10% abaixo da última carga para calibrar: o app ajusta após a 1ª série" : starter ? "Carga inicial estimada pelo seu peso: comece leve, o app ajusta após a 1ª série" : undefined;
+      const note = timed ? undefined : p.kg != null ? "Carga definida no plano" : sug ? `Sugerida: ${sug.reason}` : last ? "10% abaixo da última carga para calibrar: o app ajusta após a 1ª série" : fromMax ? `Calculada pelo seu máximo informado (1RM ≈ ${max} kg) para ${p.reps} reps @RPE ${p.rpe ?? 8}` : starter ? "Carga inicial estimada pelo seu peso: comece leve, o app ajusta após a 1ª série" : undefined;
       const work = Array.from({ length: p.sets }, (_, i) => ({
         kg: timed ? (last?.sets[i] ? String(last.sets[i].kg) : "") : loads[i] ? String(loads[i]) : "", reps: String(firstNum(p.reps) || ""), done: false, rpe: "", auto: !timed && !!loads[i] }));
       // Aquecimento automático antes dos levantamentos principais com barra (até ~90% da carga de trabalho).
