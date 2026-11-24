@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Hourglass, MiniBottle } from "@/components/meters";
 import { Verse } from "@/components/ui";
 import { Checklist } from "@/components/home/checklist";
+import { Missions } from "@/components/home/missions";
 import { DailyText } from "@/components/home/daily-text";
 import { Greeting } from "@/components/home/greeting";
 import { Partner } from "@/components/home/partner";
@@ -60,6 +61,13 @@ export default async function Hoje() {
   ]);
   // Conta nova (criada com módulos no cadastro) que ainda não fez o onboarding: começa por ele.
   if (s.prefs?.modules && !s.prefs.onboarded) redirect("/boas-vindas");
+  // Missões de hoje = agenda do dia (eventos e tarefas), marcáveis na Home e espelhadas no Google Agenda.
+  const [evQ, gQ] = await Promise.all([
+    sb.from("calendar_events").select("id,title,start_time,end_time,done,kind,google_id").eq("date", today).order("start_time", { ascending: true, nullsFirst: false }),
+    sb.from("google_calendar").select("calendar_id").maybeSingle(),
+  ]);
+  const missions = (evQ.error ? [] : evQ.data ?? []).map((e) => ({ id: e.id as string, title: e.title as string, start_time: (e.start_time as string | null) ?? null, end_time: (e.end_time as string | null) ?? null, done: !!e.done, kind: (e.kind as string) ?? "evento", google: !!e.google_id }));
+  const googleOn = !gQ.error && !!gQ.data;
   const contactsQ = await sb.from("field_contacts").select("id,name,address").neq("status", "encerrado").order("next_visit", { nullsFirst: false }).limit(30);
 
   // Sequência
@@ -135,6 +143,7 @@ export default async function Hoje() {
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
       {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
+      <Missions date={today} items={missions} google={googleOn} />
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
       </div>
       <div className="dash-side min-w-0">

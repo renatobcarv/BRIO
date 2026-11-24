@@ -178,3 +178,24 @@ async function claudePlan(system: string, text: string, CATS: string[]): Promise
   if (!tu || tu.type !== "tool_use") return { reply: "Não entendi. Tente de novo com dia e horário.", items: [] };
   return tu.input as { reply: string; items: Partial<AgendaProposal>[] };
 }
+
+/** Marca uma missão/tarefa da agenda como feita (ou desfaz). */
+export async function setEventDone(id: string, done: boolean): Promise<string | null> {
+  const sb = await createClient();
+  const { error } = await sb.from("calendar_events").update({ done, updated_at: new Date().toISOString() }).eq("id", z.string().uuid().parse(id));
+  revalidatePath("/"); revalidatePath("/agenda");
+  return error ? (/column|schema cache/i.test(error.message) ? "Rode o SQL 20261202000000_missoes.sql no Supabase." : error.message) : null;
+}
+/** Cria uma tarefa rápida de hoje (com ou sem horário); vai para a agenda e, se conectado, para o Google Agenda. */
+export async function addTask(title: string, date: string, time: string | null): Promise<string | null> {
+  const end = time ? `${String(Math.min(23, Number(time.slice(0, 2)) + 1)).padStart(2, "0")}:${time.slice(3)}` : null;
+  const p = Ev.safeParse({ title, date, start_time: time, end_time: end && time && end > time ? end : null, category: "pessoal", location: null, notes: null, remind_min: time ? 15 : null });
+  if (!p.success) return p.error.issues[0]?.message ?? "Dados inválidos.";
+  const sb = await createClient();
+  let r = await sb.from("calendar_events").insert({ ...p.data, kind: "tarefa" }).select("id,google_id").single();
+  if (r.error && /column|schema cache/i.test(r.error.message)) r = await sb.from("calendar_events").insert(p.data).select("id,google_id").single(); // sem a migração
+  if (r.error || !r.data) return msg(r.error);
+  await mirror(sb, r.data.id, p.data, null);
+  revalidatePath("/"); revalidatePath("/agenda");
+  return null;
+}
