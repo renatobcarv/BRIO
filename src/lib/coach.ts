@@ -14,7 +14,7 @@ export type TrainAnswers = {
   /** Híbrido: corridas por semana e objetivo da corrida. */
   runs?: number; runGoal?: "saude" | "5k" | "10k" | "21k";
   /** Números de força para avaliar o nível com sinceridade ("80x5"). */
-  bench?: string; squat?: string;
+  bench?: string; squat?: string; deadlift?: string;
 };
 export type Focus = "geral" | "big3" | "agachamento" | "supino" | "terra";
 export const FOCUS: Record<Focus, { label: string; hint: string }> = {
@@ -142,7 +142,9 @@ export function split(days: number): { name: string; muscles: Muscle[] }[] {
 export function weeklySets(a: Pick<TrainAnswers, "level" | "priority" | "sleep" | "stress">, m: Muscle) {
   const base = { iniciante: 10, intermediario: 14, avancado: 18 }[a.level];
   const small = ["panturrilhas", "abdomen", "ombro_anterior", "ombro_posterior"].includes(m) ? 0.6 : 1;
-  let v = base * small + (a.priority.includes(m) ? 4 : 0);
+  // Pontos fracos: +4 séries com até 2 grupos; com mais, o extra se divide (nunca menos de +2).
+  const bonus = a.priority.length <= 2 ? 4 : Math.max(2, Math.round(8 / a.priority.length));
+  let v = base * small + (a.priority.includes(m) ? bonus : 0);
   if (a.sleep < 6.5 || a.stress === "alto") v *= 0.8;
   return Math.max(4, Math.round(v));
 }
@@ -398,11 +400,11 @@ export function parseLift(t: string): { kg: number; reps: number } | null {
 }
 const e1 = (x: { kg: number; reps: number }) => (x.reps <= 1 ? x.kg : x.kg * (1 + Math.min(12, x.reps) / 30));
 /** Padrões aproximados de força relativa (1RM ÷ peso corporal) para treino natural. */
-const STD = { m: { supino: [0.75, 1.25], agachamento: [1.0, 1.6] }, f: { supino: [0.45, 0.8], agachamento: [0.75, 1.25] } } as const;
-export function assessLevel(o: { self: Level; sex?: "m" | "f"; bodyweight?: number; bench?: string; squat?: string }) {
+const STD = { m: { supino: [0.75, 1.25], agachamento: [1.0, 1.6], terra: [1.25, 2.0] }, f: { supino: [0.45, 0.8], agachamento: [0.75, 1.25], terra: [1.0, 1.6] } } as const;
+export function assessLevel(o: { self: Level; sex?: "m" | "f"; bodyweight?: number; bench?: string; squat?: string; deadlift?: string }) {
   const bw = o.bodyweight && o.bodyweight > 30 ? o.bodyweight : null, sx = o.sex ?? "m";
   const scores: Level[] = [], notes: string[] = [];
-  for (const [k, raw] of [["supino", o.bench], ["agachamento", o.squat]] as const) {
+  for (const [k, raw] of [["supino", o.bench], ["agachamento", o.squat], ["terra", o.deadlift]] as const) {
     const p = raw ? parseLift(raw) : null; if (!p || !bw) continue;
     const rel = e1(p) / bw, [mid, high] = STD[sx][k];
     scores.push(rel >= high ? "avancado" : rel >= mid ? "intermediario" : "iniciante");

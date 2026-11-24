@@ -10,10 +10,10 @@ import { generateDietPlan, saveDietPlan, type QuizAnswers } from "@/app/(app)/co
 const Train = z.object({
   goal: z.enum(Object.keys(GOALS) as [string, ...string[]]), level: z.enum(["iniciante", "intermediario", "avancado"]),
   days: z.number().int().min(2).max(6), minutes: z.number().int().min(25).max(150), equipment: z.enum(["academia", "halteres", "casa"]),
-  weeks: z.number().int().min(4).max(24), priority: z.array(z.enum(Object.keys(MUSCLES) as [string, ...string[]])).max(3),
+  weeks: z.number().int().min(4).max(24), priority: z.array(z.enum(Object.keys(MUSCLES) as [string, ...string[]])).max(14),
   injuries: z.string().max(300), sleep: z.number().min(3).max(12), stress: z.enum(["baixo", "medio", "alto"]), start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   focus: z.enum(["geral", "big3", "agachamento", "supino", "terra"]).optional(),
-  bench: z.string().max(30).optional(), squat: z.string().max(30).optional(),
+  bench: z.string().max(30).optional(), squat: z.string().max(30).optional(), deadlift: z.string().max(30).optional(),
   style: z.enum(["moderno", "oldschool"]).optional(), runs: z.number().int().min(1).max(5).optional(), runGoal: z.enum(["saude", "5k", "10k", "21k"]).optional(),
 });
 const Diet = z.object({
@@ -34,7 +34,7 @@ async function honestLevel(t: z.infer<typeof Train>, d: unknown) {
     const bb = best(/^supino reto/i), sq = best(/^agachamento livre/i);
     bench ||= bb ? `${bb.kg}x${bb.reps}` : undefined; squat ||= sq ? `${sq.kg}x${sq.reps}` : undefined;
   }
-  return assessLevel({ self: t.level as Level, sex: dd.success ? dd.data.sex : undefined, bodyweight: dd.success ? dd.data.kg : undefined, bench, squat });
+  return assessLevel({ self: t.level as Level, sex: dd.success ? dd.data.sex : undefined, bodyweight: dd.success ? dd.data.kg : undefined, bench, squat, deadlift: t.deadlift });
 }
 
 /** Prévia do treino (não salva), com a avaliação sincera do nível. */

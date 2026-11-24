@@ -25,10 +25,11 @@ const Qs: Q[] = [
   { who: "treino", key: "minutes", ask: "Quanto tempo por treino?", why: "Treino curto bem feito vence treino longo pela metade.", opts: [
     { v: 30, l: "30 min · executivo", d: "Só o essencial: 4 exercícios, básicos primeiro" }, { v: 45, l: "45 min · enxuto", d: "5 exercícios" },
     { v: 60, l: "60 min · padrão", d: "6 exercícios" }, { v: 75, l: "75 min · completo", d: "7 exercícios" }, { v: 90, l: "90 min · longo", d: "8 exercícios" }] },
-  { who: "treino", key: "bench", skip: true, input: "text", ask: "Seu supino hoje? (carga × repetições, ex.: 80x5)", why: "Pra eu ser sincero sobre seu nível. Sem número, uso seus treinos registrados." },
-  { who: "treino", key: "squat", skip: true, input: "text", ask: "E o agachamento? (ex.: 100x5)" },
+  { who: "treino", key: "bench", skip: true, input: "text", ask: "Qual o máximo que você já fez no supino?", why: "Pode ser 1 repetição (ex.: 100) ou carga × repetições (ex.: 80x5). Uso para avaliar seu nível com sinceridade e calcular suas primeiras cargas." },
+  { who: "treino", key: "squat", skip: true, input: "text", ask: "E no agachamento, qual o máximo?", why: "Ex.: 140 ou 110x5. Não fez? É só pular." },
+  { who: "treino", key: "deadlift", skip: true, input: "text", ask: "E no levantamento terra?", why: "Ex.: 160 ou 130x5." },
   { who: "treino", key: "equipment", ask: "Onde você vai treinar?", opts: [{ v: "academia", l: "Academia completa" }, { v: "halteres", l: "Halteres e banco" }, { v: "casa", l: "Em casa (peso do corpo)" }] },
-  { who: "treino", key: "priority", ask: "Algum grupo que você quer priorizar? (até 3)", why: "Prioridade ganha +4 séries por semana. Escolher tudo é o mesmo que não priorizar nada.", multi: 3, opts: (["peito", "costas", "ombro_anterior", "ombro_lateral", "ombro_posterior", "biceps", "triceps", "quadriceps", "posteriores", "gluteos", "panturrilhas", "abdomen"] as Muscle[]).map((m) => ({ v: m, l: MUSCLES[m] })) },
+  { who: "treino", key: "priority", ask: "Qual o seu ponto fraco?", why: "Marque quantos quiser: esses grupos ganham séries extras. Quanto mais você marca, mais o extra é dividido entre eles.", multi: 99, opts: (["peito", "costas", "ombro_anterior", "ombro_lateral", "ombro_posterior", "biceps", "triceps", "quadriceps", "posteriores", "gluteos", "panturrilhas", "abdomen"] as Muscle[]).map((m) => ({ v: m, l: MUSCLES[m] })) },
   { who: "treino", key: "sleep", ask: "Quantas horas você dorme por noite, em média?", why: "Sono curto reduz a recuperação: o volume começa menor.", opts: [5, 6, 7, 8, 9].map((n) => ({ v: n, l: `${n}h${n === 9 ? "+" : ""}` })) },
   { who: "treino", key: "stress", ask: "Como está o estresse no dia a dia?", opts: [{ v: "baixo", l: "Baixo" }, { v: "medio", l: "Médio" }, { v: "alto", l: "Alto" }] },
   { who: "treino", key: "injuries", ask: "Alguma lesão ou dor que eu deva saber?", input: "text", skip: true },
@@ -48,8 +49,8 @@ const Qs: Q[] = [
   { who: "dieta", key: "cook", ask: "Quanto tempo para cozinhar?", opts: [{ v: "pouco", l: "Pouco" }, { v: "medio", l: "Médio" }, { v: "muito", l: "Bastante" }] },
 ];
 const WHO = {
-  treino: { name: "Treinador", role: "Planejamento do treino", art: "/cards/mestre.webp", color: "#ffc369" },
-  dieta: { name: "Nutricionista", role: "Nutrição esportiva", art: "/cards/nutricionista.webp", color: "#9de3ac" },
+  treino: { name: "Treinador", role: "Planejamento do treino", art: "/cards/mestre.webp", avatar: "/cards/mestre-avatar.webp", pos: "78% 20%", color: "#ffc369" },
+  dieta: { name: "Nutricionista", role: "Nutrição esportiva", art: "/cards/nutricionista.webp", avatar: "/cards/nutricionista-avatar.webp", pos: "77% 30%", color: "#9de3ac" },
 };
 const FIRST_DIET_STEP = Qs.findIndex((q) => q.who === "dieta");
 type Msg = { id: number; from: "treino" | "dieta" | "me"; text: string };
@@ -107,12 +108,15 @@ export function Consult() {
     heading.current?.focus({ preventScroll: true });
   }, [open, i, res]);
   const goBack = () => {
-    const previous = Qs[i - 1];
-    if (!previous) return;
+    let k = i - 1; while (k > 0 && Qs[k].when && !Qs[k].when!(ans)) k--;
+    const previous = Qs[k];
+    if (!previous || typing) return;
     setTxt(previous.input ? String(ans[previous.key] ?? "") : "");
-    setI(i - 1);
+    // Some com a última resposta e o que veio depois dela no chat.
+    setChat((c) => { const at = c.map((m) => m.from).lastIndexOf("me"); return at >= 0 ? c.slice(0, at) : c; });
+    setRes(null); setI(k);
   };
-  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], bench: String(ans.bench ?? "") || undefined, squat: String(ans.squat ?? "") || undefined, start: thisMonday(), focus: (ans.focus as Focus) ?? "geral", style: (ans.style as TrainAnswers["style"]) ?? "moderno", runs: ans.goal === "hibrido" ? (ans.runs as number) : undefined, runGoal: ans.goal === "hibrido" ? (ans.runGoal as TrainAnswers["runGoal"]) : undefined });
+  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], bench: String(ans.bench ?? "") || undefined, squat: String(ans.squat ?? "") || undefined, deadlift: String(ans.deadlift ?? "") || undefined, start: thisMonday(), focus: (ans.focus as Focus) ?? "geral", style: (ans.style as TrainAnswers["style"]) ?? "moderno", runs: ans.goal === "hibrido" ? (ans.runs as number) : undefined, runGoal: ans.goal === "hibrido" ? (ans.runGoal as TrainAnswers["runGoal"]) : undefined });
   const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio", dietGoal: ans.dietGoal as Diet["dietGoal"] });
   const next = async (val: unknown) => {
     if (typing) return;
@@ -137,7 +141,7 @@ export function Consult() {
   });
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); setChat([{ id: ++msgId, from: "treino", text: GREET.treino }]); }}
+      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); setChat([]); setTyping("treino"); setTimeout(() => { setTyping(null); setChat([{ id: ++msgId, from: "treino", text: GREET.treino }]); }, 1300); }}
         className="press mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#ffb21e55] bg-[linear-gradient(120deg,#2d2111,#111111_72%)] p-4 text-left">
         <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#ffc369] text-xl font-bold text-[#211400]">+</span>
         <span className="min-w-0"><span className="block font-semibold">Criar plano com especialistas</span><span className="block text-xs text-white/70">Treinador e nutricionista montam seu plano a partir das suas respostas.</span></span>
@@ -171,7 +175,7 @@ export function Consult() {
             {!res && q && (
               <div className="mt-4">
                 <div className="relative isolate flex min-h-[138px] flex-col justify-end overflow-hidden rounded-xl border border-white/10 p-4 sm:min-h-[168px] sm:p-5">
-                  <Image src={specialist.art} fill alt="" unoptimized sizes="(max-width: 640px) 100vw, 630px" className="-z-20 object-cover object-[66%_28%] sm:object-[center_28%]" />
+                  <Image src={specialist.art} fill alt="" unoptimized sizes="(max-width: 640px) 100vw, 630px" className="-z-20 object-cover" style={{ objectPosition: specialist.pos }} />
                   <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,#0b0b0a_2%,#0b0b0abf_36%,transparent_80%),linear-gradient(0deg,#0b0b0a_0%,transparent_55%)]" />
                   <p className="text-xs font-semibold text-[var(--consult-accent)]">{specialist.role}</p>
                   <p className="font-display text-2xl font-bold sm:text-3xl">{specialist.name}</p>
@@ -181,12 +185,12 @@ export function Consult() {
                   {chat.slice(-8).map((m) => m.from === "me"
                     ? <p key={m.id} className="chat-in justify-self-end max-w-[82%] rounded-2xl rounded-br-md px-3.5 py-2 text-[14px] font-medium text-[#141414]" style={{ background: "var(--consult-accent)" }}>{m.text}</p>
                     : <div key={m.id} className="chat-in flex items-end gap-2 max-w-[90%]">
-                        <span className="relative size-8 shrink-0 overflow-hidden rounded-full border" style={{ borderColor: WHO[m.from].color }}><Image src={WHO[m.from].art} alt="" fill unoptimized sizes="32px" className="object-cover object-[60%_20%]" /></span>
+                        <span className="relative size-10 shrink-0 overflow-hidden rounded-full border-2" style={{ borderColor: WHO[m.from].color }}><Image src={WHO[m.from].avatar} alt="" fill unoptimized sizes="40px" className="object-cover" /></span>
                         <p className="rounded-2xl rounded-bl-md bg-[#232325] px-3.5 py-2 text-[14px] leading-snug text-white/90"><span className="block text-[10px] font-semibold uppercase tracking-wider" style={{ color: WHO[m.from].color }}>{WHO[m.from].name}</span>{m.text}</p>
                       </div>)}
                   {typing && <div className="chat-in flex items-end gap-2">
-                    <span className="relative size-8 shrink-0 overflow-hidden rounded-full border" style={{ borderColor: WHO[typing].color }}><Image src={WHO[typing].art} alt="" fill unoptimized sizes="32px" className="object-cover object-[60%_20%]" /></span>
-                    <span className="typing-dots rounded-2xl rounded-bl-md bg-[#232325] px-4 py-3" aria-label={`${WHO[typing].name} está digitando`}><i /><i /><i /></span>
+                    <span className="relative size-10 shrink-0 overflow-hidden rounded-full border-2" style={{ borderColor: WHO[typing].color }}><Image src={WHO[typing].avatar} alt="" fill unoptimized sizes="40px" className="object-cover" /></span>
+                    <span className="rounded-2xl rounded-bl-md bg-[#232325] px-4 py-2.5" aria-label={`${WHO[typing].name} está digitando`}><span className="block text-[10px] font-semibold uppercase tracking-wider" style={{ color: WHO[typing].color }}>{WHO[typing].name} está digitando</span><span className="typing-dots mt-1.5"><i /><i /><i /></span></span>
                   </div>}
                   <div ref={endRef} />
                 </div>
@@ -205,7 +209,7 @@ export function Consult() {
                   ))}</div>}
                   {q.opts && q.multi && <>
                     <div className="mt-4 flex flex-wrap gap-2">{q.opts.map((o) => { const sel = (ans[q.key] as unknown[]).includes(o.v); return <button key={String(o.v)} type="button" aria-pressed={sel} onClick={() => setAns({ ...ans, [q.key]: sel ? (ans[q.key] as unknown[]).filter((x) => x !== o.v) : [...(ans[q.key] as unknown[]), o.v].slice(-q.multi!) })} className={`min-h-11 rounded-full border px-3 text-sm ${sel ? "border-transparent bg-[var(--consult-accent)] font-semibold text-[#141414]" : "border-white/15 bg-white/[.04]"}`}>{o.l}</button>; })}</div>
-                    <button type="button" className="mt-4 min-h-11 w-full rounded-xl bg-[var(--consult-accent)] px-4 font-bold text-[#141414]" onClick={() => next(ans[q.key])}>{(ans[q.key] as unknown[]).length ? "Continuar" : "Sem prioridade"}</button>
+                    <button type="button" className="mt-4 min-h-11 w-full rounded-xl bg-[var(--consult-accent)] px-4 font-bold text-[#141414]" onClick={() => next(ans[q.key])}>{(ans[q.key] as unknown[]).length ? `Continuar (${(ans[q.key] as unknown[]).length})` : "Nenhum ponto fraco"}</button>
                   </>}
                   {q.input && <form className="mt-4" onSubmit={(e) => { e.preventDefault(); if (valid && !busy) next(q.input === "number" ? value : txt.trim()); }}>
                     <label htmlFor="consult-answer" className="mb-1.5 block text-sm font-medium text-white/80">Sua resposta</label>
@@ -224,7 +228,7 @@ export function Consult() {
               </div>)}
             {res && "program" in res && res.program && (
               <div className="mt-6 grid gap-4">
-                <div><p className="text-[12px]" style={{ color: A }}>Treinador · plano proposto</p><h2 ref={heading} tabIndex={-1} className="font-display text-3xl leading-tight outline-none">{res.program.name}</h2><p className="text-[13px] text-white/55">Começa {res.program.start_date.split("-").reverse().join("/")} · o Mestre ajusta cada semana pelo seu registro</p></div>
+                <div><p className="text-[12px]" style={{ color: A }}>Treinador · plano proposto <button type="button" className="ml-2 text-white/60 underline underline-offset-2" onClick={() => setRes(null)}>← mudar respostas</button></p><h2 ref={heading} tabIndex={-1} className="font-display text-3xl leading-tight outline-none">{res.program.name}</h2><p className="text-[13px] text-white/55">Começa {res.program.start_date.split("-").reverse().join("/")} · o Mestre ajusta cada semana pelo seu registro</p></div>
                 {"assessment" in res && res.assessment && <p className="chat-in rounded-[14px] border p-3 text-[13.5px]" style={{ borderColor: res.assessment.changed ? "#ffb21e88" : "rgba(255,255,255,.1)", background: res.assessment.changed ? "#ffb21e12" : undefined }}><b className="block text-[11px] uppercase tracking-wider" style={{ color: "#ffb21e" }}>Avaliação do treinador</b>{res.assessment.msg}</p>}
                 <div className="flex gap-1">{res.program.phases.map((p) => <div key={p.id} className="rounded-[8px] py-2 text-center text-[11px]" style={{ flex: p.weeks, background: PHASE_KINDS[p.kind].color + "22", color: PHASE_KINDS[p.kind].color }}>{p.name}<br />{p.weeks}s</div>)}</div>
                 <div className="min-w-0"><p className="label mb-2">Semana tipo</p><div className="grid min-w-0 gap-3">
