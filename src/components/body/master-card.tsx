@@ -4,6 +4,7 @@ import { REFS } from "@/lib/coach";
 import { suggestAdjustments, weekNutrition, weightRate, type DietGoal } from "@/lib/master";
 import { masterFor, type Workout } from "./training-core";
 import { WeekEditor } from "./week-editor";
+import { MESTRE } from "@/lib/personas";
 import { absence } from "@/lib/mestre";
 import type { Program } from "@/lib/training";
 
@@ -38,7 +39,7 @@ export function MasterCard({ program, workouts, today, nutrition, day, onViewDay
         <div className="absolute inset-0 bg-[linear-gradient(90deg,#0b0b0c_0%,#0b0b0cf0_30%,#0b0b0c80_55%,transparent_80%)]" />
       </div>
       <header className="relative flex min-h-56 flex-col justify-end p-4 sm:p-6">
-        <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#ffd084]">O Mestre · Semana {m.week}</p>
+        <p className="text-[10px] font-bold uppercase tracking-[.22em] text-[#ffd084]">{MESTRE.short} · Semana {m.week}</p>
         <h2 className="mt-2 max-w-[65%] text-balance font-display text-[clamp(1.65rem,4vw,3rem)] font-bold uppercase leading-[.98] tracking-tight text-white">{m.wave ?? m.phase.name}</h2>
       </header>
       <div className="grid gap-4 px-4 pb-5 sm:px-6 lg:grid-cols-2 lg:items-start">

@@ -138,7 +138,7 @@ export function Onboarding({ name, modules, cats }: { name: string; modules: Rec
           </form><Skip onClick={next} /></section>}
 
         {step === "treino" && <section>
-          <H t="Treino e dieta sob medida" d="O treinador de periodização e a nutricionista fazem algumas perguntas e montam a sua campanha e o seu plano alimentar, com base em estudos." />
+          <H t="Treino e dieta sob medida" d="O Mestre Augusto (treinador de periodização) e a Helena (nutricionista) fazem algumas perguntas e montam a sua campanha e o seu plano alimentar, com base em estudos." />
           <Consult />
           <p className="text-[12.5px] text-white/45 mt-3">Quando terminar a consulta, a página recarrega e você continua daqui.</p>
           <Next onClick={next} label="Já fiz / continuar" /><Skip onClick={next} /></section>}

@@ -5,6 +5,7 @@ import { createFromConsult, previewProgram } from "@/app/(app)/treino/coach-acti
 import { ExerciseThumb } from "@/components/body/exercise-media";
 import { FOCUS, REFS, type Focus, type TrainAnswers } from "@/lib/coach";
 import { GREET, HANDOFF, reactTo } from "@/lib/consult-talk";
+import { MESTRE, NUTRI } from "@/lib/personas";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
 
 const A = "#ffb21e";
@@ -34,7 +35,7 @@ const Qs: Q[] = [
   { who: "treino", key: "stress", ask: "Como está o estresse no dia a dia?", opts: [{ v: "baixo", l: "Baixo" }, { v: "medio", l: "Médio" }, { v: "alto", l: "Alto" }] },
   { who: "treino", key: "injuries", ask: "Alguma lesão ou dor que eu deva saber?", input: "text", skip: true },
   { who: "treino", key: "weeks", ask: "Quanto tempo de campanha?", opts: [8, 12, 16].map((n) => ({ v: n, l: `${n} semanas` })) },
-  { who: "dieta", key: "dietGoal", ask: "Agora é comigo, a nutricionista. Qual seu objetivo com a alimentação?", opts: [
+  { who: "dieta", key: "dietGoal", ask: "Qual seu objetivo com a alimentação?", opts: [
     { v: "perder", l: "Emagrecer", d: "Perder gordura com déficit moderado e proteína alta" }, { v: "ganhar", l: "Ganhar músculo", d: "Superávit pequeno para crescer com pouca gordura" },
     { v: "recomp", l: "Shape estético", d: "Secar e definir mantendo (ou ganhando) músculo" }, { v: "manter", l: "Manter", d: "Comer para render e recuperar" }] },
   { who: "dieta", key: "sex", ask: "Sexo biológico?", why: "Entra na fórmula do gasto calórico (Mifflin–St Jeor).", opts: [{ v: "m", l: "Masculino" }, { v: "f", l: "Feminino" }] },
@@ -49,8 +50,8 @@ const Qs: Q[] = [
   { who: "dieta", key: "cook", ask: "Quanto tempo para cozinhar?", opts: [{ v: "pouco", l: "Pouco" }, { v: "medio", l: "Médio" }, { v: "muito", l: "Bastante" }] },
 ];
 const WHO = {
-  treino: { name: "Treinador", role: "Planejamento do treino", art: "/cards/mestre.webp", avatar: "/cards/mestre-avatar.webp", pos: "78% 20%", color: "#ffc369" },
-  dieta: { name: "Nutricionista", role: "Nutrição esportiva", art: "/cards/nutricionista.webp", avatar: "/cards/nutricionista-avatar.webp", pos: "77% 30%", color: "#9de3ac" },
+  treino: { name: MESTRE.short, role: MESTRE.role, art: "/cards/mestre.webp", avatar: "/cards/mestre-avatar.webp", pos: "78% 20%", color: "#ffc369" },
+  dieta: { name: NUTRI.short, role: NUTRI.role, art: "/cards/nutricionista.webp", avatar: "/cards/nutricionista-avatar.webp", pos: "77% 30%", color: "#9de3ac" },
 };
 const FIRST_DIET_STEP = Qs.findIndex((q) => q.who === "dieta");
 type Msg = { id: number; from: "treino" | "dieta" | "me"; text: string };

@@ -4,6 +4,7 @@ import { saveWeekOverride } from "@/app/(app)/corpo/program-actions";
 import { POOL } from "@/lib/coach";
 import { PRESETS, applyPreset, moveDay, totalSets, type Preset, type Suggestion } from "@/lib/master";
 import { REFS } from "@/lib/coach";
+import { MESTRE } from "@/lib/personas";
 import { MUSCLES, type PlannedEx } from "@/lib/training";
 import { Sheet } from "@/components/kit";
 
@@ -22,7 +23,7 @@ export function WeekEditor({ programId, week, days: initial, adjusted, suggestio
   const keys = Object.keys(days).sort((a, b) => (+a || 7) - (+b || 7));
   return (
     <>
-      {!adjusted && suggestions.length > 0 && <p className="text-[12.5px] mt-3" style={{ color: A }}>O Mestre tem {suggestions.length} sugest{suggestions.length > 1 ? "ões" : "ão"} para esta semana.</p>}
+      {!adjusted && suggestions.length > 0 && <p className="text-[12.5px] mt-3" style={{ color: A }}>{MESTRE.short} tem {suggestions.length} sugest{suggestions.length > 1 ? "ões" : "ão"} para esta semana.</p>}
       <button className="btn w-full mt-2" onClick={() => { setDays(initial); setOpen(true); setMsg(""); setManual(false); }}>{adjusted ? "Ver ajuste da semana" : suggestions.length ? "Ver sugestões do Mestre" : "Ajustar semana"}</button>
       <Sheet accent={A} open={open} onClose={() => setOpen(false)} title={`Semana ${week} · ajuste`}>
         {suggestions.length > 0 ? <>

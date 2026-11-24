@@ -9,6 +9,7 @@ import { CountUp } from "@/components/count-up";
 import { fmt, n } from "@/components/kit";
 import { e1rm, isTimed, lastFor, mmss, type Session, type Workout } from "./training";
 import { liveAdjust } from "./training-core";
+import { MESTRE } from "@/lib/personas";
 import { briefing, reactSet, restLine, verdict, RPE_HINT } from "@/lib/mestre";
 import { waveOf } from "@/lib/master";
 
@@ -154,7 +155,7 @@ export function GuidedLogger({ s, setS, workouts, onSaved }: { s: Session; setS:
 
       <div className="flex items-start gap-3 mb-4 rounded-[16px] p-3 border" style={{ borderColor: "#ffb21e44", background: "linear-gradient(120deg,#ffb21e14,transparent 70%)" }} aria-live="polite">
         <span className="grid place-items-center h-9 w-9 shrink-0 rounded-full border font-display" style={{ borderColor: "#ffb21e", color: "#ffb21e" }}>M</span>
-        <p className="text-[14px] leading-snug"><span className="block text-[10px] uppercase tracking-[.2em] text-[#ffb21e]">O Mestre</span>{say}</p>
+        <p className="text-[14px] leading-snug"><span className="block text-[10px] uppercase tracking-[.2em] text-[#ffb21e]">{MESTRE.short}</span>{say}</p>
       </div>
       {allDone ? (
         <div className="chat-in rounded-[18px] border p-6 text-center" style={{ borderColor: G + "66", background: `radial-gradient(80% 90% at 50% 0%, ${G}1f, transparent 70%)` }}>

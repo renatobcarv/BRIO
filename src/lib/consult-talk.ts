@@ -1,8 +1,8 @@
 // Conversa da consulta: o que o treinador e a nutricionista respondem a cada resposta. Puro e testável.
 export type Who = "treino" | "dieta";
 export const GREET: Record<Who, string> = {
-  treino: "Fala! Eu sou o treinador. Vou te fazer umas perguntas rápidas pra montar uma periodização que caiba na sua vida, não na de outra pessoa.",
-  dieta: "Oi, agora é comigo, a nutricionista. Com o treino definido, vou ajustar a comida pra ele render. Prometo que é rápido.",
+  treino: "Fala! Eu sou o Augusto, seu treinador. Vou te fazer umas perguntas rápidas pra montar uma periodização que caiba na sua vida, não na de outra pessoa.",
+  dieta: "Oi, eu sou a Helena, sua nutricionista. Com o treino definido, vou ajustar a comida pra ele render. Prometo que é rápido.",
 };
 
 /** Reação curta e humana à resposta (ou null para seguir direto). */
@@ -38,4 +38,4 @@ export function reactTo(key: string, val: unknown): string | null {
   }
 }
 /** Passagem de vez entre especialistas. */
-export const HANDOFF = "Treino desenhado. Vou te passar pra nutricionista, que cuida da parte que faz o treino render.";
+export const HANDOFF = "Treino desenhado. Vou te passar pra Helena, nossa nutricionista, que cuida da parte que faz o treino render.";
