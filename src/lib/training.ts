@@ -20,6 +20,7 @@ export type PhaseKind = keyof typeof PHASE_KINDS;
 export const GOALS = {
   powerbuilding: "Powerbuilding", forca: "Força", hipertrofia: "Hipertrofia",
   recomposicao: "Recomposição corporal", emagrecimento: "Emagrecimento", condicionamento: "Condicionamento",
+  hibrido: "Híbrido (corrida + hipertrofia)",
 } as const;
 export type Goal = keyof typeof GOALS;
 

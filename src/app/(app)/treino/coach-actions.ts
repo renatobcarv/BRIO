@@ -12,6 +12,7 @@ const Train = z.object({
   weeks: z.number().int().min(4).max(24), priority: z.array(z.enum(Object.keys(MUSCLES) as [string, ...string[]])).max(3),
   injuries: z.string().max(300), sleep: z.number().min(3).max(12), stress: z.enum(["baixo", "medio", "alto"]), start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   focus: z.enum(["geral", "big3", "agachamento", "supino", "terra"]).optional(),
+  style: z.enum(["moderno", "oldschool"]).optional(), runs: z.number().int().min(1).max(5).optional(), runGoal: z.enum(["saude", "5k", "10k", "21k"]).optional(),
 });
 const Diet = z.object({
   sex: z.enum(["m", "f"]), age: z.number().int().min(14).max(90), cm: z.number().min(120).max(230), kg: z.number().min(35).max(250),
@@ -37,7 +38,7 @@ export async function createFromConsult(t: unknown, d: unknown, withDiet: boolea
   if (!withDiet) return { programId };
   const dd = Diet.safeParse(d);
   if (!dd.success) return { programId, dietError: "Respostas da dieta incompletas." };
-  const q: QuizAnswers = { sex: dd.data.sex, age: dd.data.age, cm: dd.data.cm, kg: dd.data.kg, activity: activityFor(a.data.days), goal: dd.data.dietGoal ?? dietGoalFor(a.data.goal as TrainAnswers["goal"]),
+  const q: QuizAnswers = { sex: dd.data.sex, age: dd.data.age, cm: dd.data.cm, kg: dd.data.kg, activity: activityFor(a.data.days + (a.data.goal === "hibrido" ? Math.ceil((a.data.runs ?? 3) / 2) : 0)), goal: dd.data.dietGoal ?? dietGoalFor(a.data.goal as TrainAnswers["goal"]),
     meals: dd.data.meals, times: [], likes: dd.data.likes, dislikes: dd.data.dislikes, restrictions: dd.data.restrictions, budget: dd.data.budget, cook: dd.data.cook, supplements: [], meds: [] };
   const g = await generateDietPlan(q);
   if (!g.plan) return { programId, dietError: g.error ?? "Não consegui montar a dieta." };

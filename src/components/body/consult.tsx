@@ -10,12 +10,15 @@ import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/train
 const A = "#ffb21e";
 type Diet = { sex: "m" | "f"; age: number; cm: number; kg: number; meals: number; likes: string; dislikes: string; restrictions: string; budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito" };
 type Opt<T> = { v: T; l: string; d?: string };
-type Q = { who: "treino" | "dieta"; key: string; ask: string; why?: string; opts?: Opt<unknown>[]; multi?: number; input?: "number" | "text"; unit?: string; skip?: boolean };
+type Q = { who: "treino" | "dieta"; key: string; ask: string; why?: string; opts?: Opt<unknown>[]; multi?: number; input?: "number" | "text"; unit?: string; skip?: boolean; when?: (a: Record<string, unknown>) => boolean };
 
 /** O plano começa JÁ: semana 1 = esta semana (segunda-feira atual, no horário de Brasília). */
 const thisMonday = () => { const d = new Date(Date.now() - 3 * 36e5); d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() + 6) % 7)); return d.toISOString().slice(0, 10); };
 const Qs: Q[] = [
   { who: "treino", key: "goal", ask: "Qual é o seu objetivo principal agora?", opts: (Object.keys(GOALS) as Goal[]).map((g) => ({ v: g, l: GOALS[g] })) },
+  { who: "treino", key: "runs", when: (a) => a.goal === "hibrido", ask: "Quantas corridas por semana você consegue?", why: "Maioria leve, uma forte. Corrida e força convivem bem quando bem distribuídas.", opts: [2, 3, 4, 5].map((n) => ({ v: n, l: `${n} corridas` })) },
+  { who: "treino", key: "runGoal", when: (a) => a.goal === "hibrido", ask: "E na corrida, qual o objetivo?", opts: [{ v: "saude", l: "Saúde e fôlego" }, { v: "5k", l: "Correr 5 km bem" }, { v: "10k", l: "10 km" }, { v: "21k", l: "Meia maratona (21 km)" }] },
+  { who: "treino", key: "style", ask: "Que estilo de treino de força você curte?", why: "Os dois funcionam; o melhor é o que você segue com vontade.", opts: [{ v: "moderno", l: "Moderno", d: "Máquinas, polias e variedade" }, { v: "oldschool", l: "Old school", d: "Barra, básicos pesados, poucos exercícios, séries retas" }] },
   { who: "treino", key: "focus", ask: "Quer um foco nos levantamentos básicos?", why: "Especializar = treinar o levantamento mais vezes por semana, com pesado, volume e técnica.", opts: (Object.keys(FOCUS) as Focus[]).map((f) => ({ v: f, l: FOCUS[f].label, d: FOCUS[f].hint })) },
   { who: "treino", key: "level", ask: "Há quanto tempo você treina com consistência?", why: "Define o volume inicial: iniciantes crescem com menos.", opts: [{ v: "iniciante", l: "Menos de 1 ano" }, { v: "intermediario", l: "1 a 3 anos" }, { v: "avancado", l: "Mais de 3 anos" }] },
   { who: "treino", key: "days", ask: "Quantos dias por semana você consegue treinar de verdade?", why: "Melhor um plano que você cumpre do que um perfeito que abandona.", opts: [2, 3, 4, 5, 6].map((n) => ({ v: n, l: `${n} dias` })) },
@@ -102,20 +105,21 @@ export function Consult() {
     setTxt(previous.input ? String(ans[previous.key] ?? "") : "");
     setI(i - 1);
   };
-  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: thisMonday(), focus: (ans.focus as Focus) ?? "geral" });
+  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: thisMonday(), focus: (ans.focus as Focus) ?? "geral", style: (ans.style as TrainAnswers["style"]) ?? "moderno", runs: ans.goal === "hibrido" ? (ans.runs as number) : undefined, runGoal: ans.goal === "hibrido" ? (ans.runGoal as TrainAnswers["runGoal"]) : undefined });
   const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio" });
   const next = async (val: unknown) => {
     if (typing) return;
     const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));
     say("me", said(q, val));
-    const nq = Qs[i + 1], r = reactTo(q.key, val);
+    let ni = i + 1; while (Qs[ni]?.when && !Qs[ni].when!(a)) ni++;
+    const nq = Qs[ni], r = reactTo(q.key, val);
     setTyping(q.who); await wait(r ? 650 + Math.min(900, r.length * 12) : 450); setTyping(null);
     if (r) say(q.who, r);
     if (nq && nq.who !== q.who) {
       await wait(350); setTyping(q.who); await wait(700); setTyping(null); say(q.who, HANDOFF);
       await wait(400); setTyping(nq.who); await wait(1100); setTyping(null); say(nq.who, GREET[nq.who]);
     }
-    if (nq) { await wait(250); setI(i + 1); }
+    if (nq) { await wait(250); setI(ni); }
     else start(async () => setRes(await previewProgram({ ...train(), ...{ goal: a.goal } })));
   };
   const finish = () => start(async () => {

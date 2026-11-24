@@ -9,6 +9,10 @@ export type TrainAnswers = {
   priority: Muscle[]; injuries: string; sleep: number; stress: "baixo" | "medio" | "alto"; start: string;
   /** Especialização nos básicos: geral, os 3 (powerlifting) ou foco num levantamento. */
   focus?: Focus;
+  /** Estilo: moderno (máquinas e variedade) ou old school (barra, básicos pesados, poucos exercícios). */
+  style?: "moderno" | "oldschool";
+  /** Híbrido: corridas por semana e objetivo da corrida. */
+  runs?: number; runGoal?: "saude" | "5k" | "10k" | "21k";
 };
 export type Focus = "geral" | "big3" | "agachamento" | "supino" | "terra";
 export const FOCUS: Record<Focus, { label: string; hint: string }> = {
@@ -72,6 +76,10 @@ export const REFS = {
   dropset: "Sødal et al. (2023), Sports Med Open (meta-análise): drop set dá hipertrofia igual ao tradicional em metade a um terço do tempo, com mais desgaste.",
   advanced: "Krzysztofik et al. (2019), IJERPH (revisão sistemática): técnicas avançadas não superam o tradicional com volume igualado; servem a treinados para romper platô e monotonia.",
   restpause: "Prestes et al. (2019), J Strength Cond Res: rest-pause deu força igual ao tradicional, com ganho extra só no leg press (amostra pequena).",
+  concurrent: "Schumann et al. (2022), Sports Med (43 estudos): treino concorrente não atrapalha hipertrofia nem força máxima; prejudica a potência explosiva, mais ainda na mesma sessão.",
+  running: "Lundberg et al. (2022), Sports Med: a pequena interferência aparece mais com corrida do que com bike, nas fibras tipo I. Separe corrida e pernas.",
+  polarized: "Stöggl & Sperlich (2014), Front Physiol: distribuição polarizada (maioria leve, pouco muito forte) foi a que mais melhorou o desempenho de endurance.",
+  oldschool: "Paoli et al. (2017), Front Physiol: com o mesmo volume, multiarticulares deram ganhos iguais ou maiores que isolados em força e composição corporal.",
   diets: "Aragon et al. (2017), JISSN (position stand): o déficit calórico manda; a melhor dieta é a que você consegue manter.",
 } as const;
 export type RefKey = keyof typeof REFS;
@@ -243,9 +251,75 @@ function buildSession(a: TrainAnswers, b: Block, d: { name: string; muscles: Mus
   return injured ? out.map((e) => ({ ...e, notes: [e.notes, "Atenção à lesão informada: pare se doer e troque o exercício."].filter(Boolean).join(" ") })) : out;
 }
 
+// ── Old school: barra, básicos pesados, poucos exercícios, séries retas (sem superset/drop) ──
+const OLD: Pool = {
+  peito: ["Supino reto com barra", "Supino inclinado com barra", "Paralelas"],
+  costas: ["Remada curvada com barra", "Barra fixa", "Levantamento terra"],
+  quadriceps: ["Agachamento livre", "Agachamento frontal", "Leg press"],
+  posteriores: ["Stiff com barra", "Good morning", "Mesa flexora"],
+  gluteos: ["Elevação pélvica com barra", "Passada com halteres"],
+  ombro_lateral: ["Desenvolvimento com barra", "Elevação lateral com halteres"],
+  ombro_anterior: ["Desenvolvimento com barra"], ombro_posterior: ["Remada alta", "Crucifixo inverso com halteres"],
+  biceps: ["Rosca direta com barra", "Rosca martelo"], triceps: ["Tríceps testa com barra", "Paralelas"],
+  panturrilhas: ["Panturrilha em pé na máquina"], abdomen: ["Elevação de pernas", "Abdominal na polia"],
+};
+function oldSchool(l: PlannedEx[], b: Block, cap: number): PlannedEx[] {
+  const out = l.map((e) => {
+    const iso = ISOLATION.test(e.name), notes = e.notes.startsWith("Superset") ? "" : e.notes;
+    if (b.kind === "deload" || b.kind === "realizacao") return { ...e, notes, rest: iso ? 90 : 180 };
+    return { ...e, notes, reps: iso ? "8-12" : b.kind === "intensificacao" ? "5-6" : "6-8", sets: iso ? e.sets : Math.max(e.sets, 4), rest: iso ? 90 : 180 };
+  });
+  // Poucos exercícios: sai primeiro o 2º do mesmo músculo, depois os isolados.
+  while (out.length > cap) {
+    const seen = new Set<string>(); let i = -1;
+    out.forEach((e, k) => { if (seen.has(e.muscle) && k > 0) i = k; seen.add(e.muscle); });
+    if (i < 0) i = out.findLastIndex((e, k) => k > 0 && ISOLATION.test(e.name));
+    if (i < 0) break; out.splice(i, 1);
+  }
+  return out;
+}
+
+// ── Híbrido: corrida polarizada (maioria leve, pouco forte), separada das pernas ──
+type RunGoal = "saude" | "5k" | "10k" | "21k";
+const LONG: Record<RunGoal, [number, number]> = { saude: [40, 50], "5k": [40, 55], "10k": [55, 75], "21k": [70, 110] };
+const run = (name: string, reps: string, notes: string): PlannedEx => ({ name, muscle: "cardio", sets: 1, reps, kg: null, rpe: null, rir: null, rest: 0, notes });
+export function runSessions(n: number, goal: RunGoal, kind: string): PlannedEx[] {
+  const k = Math.max(1, Math.min(5, Math.round(n))), [lo, hi] = LONG[goal];
+  if (kind === "deload") return Array.from({ length: Math.min(2, k) }, () => run("Corrida leve (Z2)", "25-30 min", "Conversando sem esforço. Semana de recuperação."));
+  const hard = kind === "intensificacao"
+    ? run("Intervalado", goal === "21k" ? "5×5 min" : "6×3 min", "Forte (RPE 8–9), recuperação trotando igual ao tempo do tiro. Aquecimento 10 min.")
+    : run("Intervalado", goal === "5k" ? "8×400 m" : "5×1 km", "Ritmo de prova ou um pouco mais rápido. Aquecimento 10 min.");
+  const list: PlannedEx[] = [run("Corrida leve (Z2)", "30-40 min", "Ritmo em que dá para conversar. A base de tudo.")];
+  if (k >= 2) list.push(hard);
+  if (k >= 3) list.push(run("Corrida longa", `${lo}-${hi} min`, "Leve e constante. Leve água se passar de 60 min."));
+  if (k >= 4) list.push(run("Tempo run (limiar)", "20-25 min", "Confortavelmente difícil: frases curtas, não conversa."));
+  if (k >= 5) list.push(run("Corrida leve (Z2)", "25-35 min", "Recuperativa, bem leve."));
+  if (kind === "realizacao") return list.map((r) => (r.name === "Corrida longa" ? { ...r, reps: `${Math.round(lo * 0.7)}-${lo} min`, notes: "Semana de pico: mais curta, pernas descansadas." } : r));
+  return list;
+}
+const LOWER_DAY = (m: Muscle[]) => m.includes("quadriceps") || m.includes("posteriores");
+/** Encaixa as corridas: longa no fim de semana; forte longe das pernas (nunca na véspera); leves nos dias livres ou depois do treino de superior. */
+function addRuns(days: Record<string, PlannedEx[]>, names: Record<string, string>, keys: string[], sp: { muscles: Muscle[] }[], b: Block, n: number, goal: RunGoal) {
+  const runs = runSessions(n, goal, b.kind), lower = new Set(keys.filter((_, i) => LOWER_DAY(sp[i].muscles)));
+  const order = ["1", "2", "3", "4", "5", "6", "0"], nextOf = (d: string) => order[(order.indexOf(d) + 1) % 7];
+  const free = order.filter((d) => !days[d]?.length), used = new Set<string>();
+  const place = (r: PlannedEx, pref: string[]) => {
+    const d = pref.find((x) => !used.has(x)) ?? order.find((x) => !used.has(x) && !lower.has(x)) ?? order.find((x) => !used.has(x)) ?? "0";
+    used.add(d);
+    if (days[d]?.length) days[d] = [...days[d], { ...r, notes: `${r.notes} Depois da força (ou 6 h depois, se der).` }];
+    else { days[d] = [r]; names[d] = r.name; }
+  };
+  for (const r of runs) {
+    if (r.name === "Corrida longa") place(r, ["0", "6", ...free].filter((d) => free.includes(d)));
+    else if (r.name === "Intervalado" || r.name.startsWith("Tempo")) place(r, free.filter((d) => !lower.has(nextOf(d)) && !lower.has(d)));
+    else place(r, [...free, ...keys.filter((d) => !lower.has(d))]);
+  }
+}
+
 /** Monta o programa completo a partir das respostas. */
 export function buildProgram(a: TrainAnswers) {
-  const sp = split(a.days), keys = DAY_KEYS[sp.length], pool = POOL[a.equipment];
+  const old = a.style === "oldschool" && a.equipment !== "casa";
+  const sp = split(a.days), keys = DAY_KEYS[sp.length], pool = old ? OLD : POOL[a.equipment];
   const maxSets = Math.max(10, Math.floor(a.minutes / 3.2)); // ~3 min por série com descanso
   const strength = a.goal === "forca" || a.goal === "powerbuilding" || (a.focus ?? "geral") !== "geral";
   const bl = blocks((a.focus ?? "geral") !== "geral" ? "forca" : a.goal, a.weeks, a.level);
@@ -254,10 +328,14 @@ export function buildProgram(a: TrainAnswers) {
   const sched = liftSchedule(focus, sp.length, fits);
   const phases: Phase[] = bl.map((b) => {
     const days: Record<string, PlannedEx[]> = {}, dayNames: Record<string, string> = {};
+    const bb = a.goal === "hibrido" ? { ...b, mult: b.mult * 0.85 } : b; // híbrido: um pouco menos de volume de força para caber a corrida
     sp.forEach((d, di) => {
-      days[keys[di]] = buildSession(a, b, d, di, sp, pool, focus, sched[di] ?? [], strength, maxSets);
+      let l = buildSession(a, bb, d, di, sp, pool, focus, sched[di] ?? [], strength, maxSets);
+      if (old) l = oldSchool(l, b, exerciseCap(a.minutes) - 1);
+      days[keys[di]] = l;
       dayNames[keys[di]] = d.name;
     });
+    if (a.goal === "hibrido") addRuns(days, dayNames, keys, sp, b, a.runs ?? 3, a.runGoal ?? "saude");
     return { id: pid(), name: b.name, kind: b.kind, weeks: b.weeks, notes: b.notes, days, dayNames };
   });
   const totalWeeks = bl.reduce((s, b) => s + b.weeks, 0);
@@ -268,9 +346,11 @@ export function buildProgram(a: TrainAnswers) {
     { text: "Carga guiada por RPE/RIR: o peso se ajusta ao seu dia, sem chute.", ref: "rpe" },
     { text: "Deload a cada 4–6 semanas para recuperar e continuar progredindo.", ref: "deload" },
   ];
+  if (a.goal === "hibrido") why.push({ text: `${a.runs ?? 3} corridas por semana, maioria leve e uma forte: força e corrida convivem bem.`, ref: "concurrent" }, { text: "Corrida separada dos dias de perna; intervalado nunca na véspera de perna.", ref: "running" }, { text: "Distribuição polarizada: muita corrida leve, pouca e boa corrida forte.", ref: "polarized" });
+  if (old) why.push({ text: "Old school: barra, básicos pesados, poucos exercícios e séries retas.", ref: "oldschool" });
   if (focus !== "geral") why.push({ text: `${FOCUS[focus].label}: ${FOCUS[focus].hint}. Pesado, volume e técnica em dias diferentes.`, ref: "spec" });
   if (a.sleep < 6.5 || a.stress === "alto") why.push({ text: "Sono curto ou estresse alto: o volume começa 20% menor e sobe conforme você recupera.", ref: "sleep" });
-  const GOAL_NAME: Record<Goal, string> = { powerbuilding: "Powerbuilding", forca: "Força", hipertrofia: "Hipertrofia", recomposicao: "Recomposição", emagrecimento: "Emagrecimento", condicionamento: "Condicionamento" };
+  const GOAL_NAME: Record<Goal, string> = { powerbuilding: "Powerbuilding", forca: "Força", hipertrofia: "Hipertrofia", recomposicao: "Recomposição", emagrecimento: "Emagrecimento", condicionamento: "Condicionamento", hibrido: "Híbrido" };
   return { program: { name: `${GOAL_NAME[a.goal]} · ${totalWeeks} semanas`, goal: a.goal, start_date: a.start, phases, notes: why.map((w) => `• ${w.text}`).join("\n") }, why, totalWeeks };
 }
 

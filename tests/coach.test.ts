@@ -74,7 +74,7 @@ test("sessões de treinador: 2+ séries, poucos exercícios, básico no dia cert
     for (const ph of r.program.phases) for (const [d, l] of Object.entries(ph.days)) {
       const tag = `${goal} ${focus} ${days}d ${minutes}min ${ph.kind} ${ph.dayNames?.[d]}`;
       assert.ok(l.length <= exerciseCap(minutes), `${tag}: ${l.length} exercícios`);
-      for (const e of l) assert.ok(e.sets >= 2, `${tag}: ${e.name} com ${e.sets} série`);
+      for (const e of l) if (e.muscle !== "cardio") assert.ok(e.sets >= 2, `${tag}: ${e.name} com ${e.sets} série`);
       const nm = ph.dayNames?.[d] ?? "";
       if (/Inferior|Pernas/.test(nm)) assert.ok(!l.some((e) => /^Supino/.test(e.name)), `${tag}: supino no dia de pernas`);
       if (/Superior|Empurrar|Puxar/.test(nm)) assert.ok(!l.some((e) => /^Agachamento|^Levantamento terra/.test(e.name)), `${tag}: agachamento/terra no superior`);
@@ -88,4 +88,26 @@ test("técnicas só se necessárias: sem pressa de tempo = séries tradicionais;
   const ss = rushed.filter((e) => e.notes.startsWith("Superset com"));
   assert.ok(ss.length > 0);
   for (const e of ss) assert.ok(!/drop/.test(e.notes));
+});
+import { runSessions } from "../src/lib/coach.ts";
+test("híbrido: corridas polarizadas, longa no fim de semana, forte longe das pernas", () => {
+  const r = buildProgram(A({ goal: "hibrido", days: 4, runs: 3, runGoal: "10k" }));
+  const ph = r.program.phases[0], order = ["1", "2", "3", "4", "5", "6", "0"];
+  const where = (n: string) => Object.entries(ph.days).filter(([, l]) => l.some((e) => e.name === n)).map(([d]) => d);
+  const runs = Object.values(ph.days).flat().filter((e) => e.muscle === "cardio");
+  assert.equal(runs.length, 3);
+  assert.ok(["0", "6"].includes(where("Corrida longa")[0]));
+  const lower = Object.entries(ph.days).filter(([, l]) => l.some((e) => e.muscle === "quadriceps")).map(([d]) => d);
+  for (const d of where("Intervalado")) { assert.ok(!lower.includes(d)); assert.ok(!lower.includes(order[(order.indexOf(d) + 1) % 7]), `intervalado na véspera de perna: ${d}`); }
+  assert.ok(r.why.some((w) => w.ref === "concurrent"));
+  assert.equal(runSessions(4, "5k", "deload").length, 2);
+});
+test("old school: barra e básicos, poucos exercícios, sem superset", () => {
+  const r = buildProgram(A({ style: "oldschool", days: 4, minutes: 60 }));
+  for (const l of Object.values(r.program.phases[0].days)) {
+    assert.ok(l.length <= exerciseCap(60) - 1);
+    assert.ok(!l.some((e) => e.notes.startsWith("Superset")));
+  }
+  const names = Object.values(r.program.phases[0].days).flat().map((e) => e.name);
+  assert.ok(names.includes("Supino reto com barra") && names.includes("Remada curvada com barra"));
 });

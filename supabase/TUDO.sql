@@ -879,3 +879,6 @@ create policy "dono" on mind_sessions for all to authenticated using (user_id = 
 -- prefs: preferências livres (módulos ligados/desligados e ajustes futuros), sem precisar de nova migração.
 alter table settings add column if not exists partner_name text check (partner_name is null or char_length(partner_name) <= 60);
 alter table settings add column if not exists prefs jsonb not null default '{}'::jsonb;
+-- Objetivo híbrido (corrida + hipertrofia) nas campanhas.
+alter table training_programs drop constraint if exists training_programs_goal_check;
+alter table training_programs add constraint training_programs_goal_check check (goal in ('forca','hipertrofia','powerbuilding','emagrecimento','condicionamento','recomposicao','hibrido'));
