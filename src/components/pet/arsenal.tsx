@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState, useTransition } from "react";
 import { buyItem, equipItem, upgradeItem } from "@/app/(app)/mascote-actions";
 import { CreaturePortrait } from "@/components/body/creature-portrait";
@@ -18,6 +19,16 @@ function Glyph({ slot, color, size = 26 }: { slot: Attr; color: string; size?: n
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d={GLYPH[slot]} /></svg>;
 }
 
+function GearArt({ item, size = 56 }: { item: Gear; size?: number }) {
+  return (
+    <span className="relative block shrink-0 overflow-hidden rounded-lg border bg-[#101014]"
+      style={{ width: size, height: size, borderColor: TIER[item.tier].color + "55" }}>
+      <Image src={`/cards/itens/${item.id}.webp`} width={size} height={size} alt="" unoptimized
+        className="h-full w-full object-contain mix-blend-screen" />
+    </span>
+  );
+}
+
 type Props = { owned: Record<string, string>; levels: Record<string, number>; gold: number; drops: { date: string; beast: BeastId; item: string; dup: boolean }[]; kills: number;
   equipped: Equipped; trophies: { id: BeastId; won: number }[]; ready: boolean; petName: string };
 const Coin = ({ v }: { v: number }) => <span className="font-semibold" style={{ color: A }}>◉ {v.toLocaleString("pt-BR")}</span>;
@@ -29,8 +40,8 @@ export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies,
   const run = (f: () => Promise<string | null>, ok = "") => start(async () => { const e = await f(); setMsg(e ?? ok); if (!e) setSlot(null); });
   const Row = ({ x, children }: { x: Gear; children?: React.ReactNode }) => { const c = TIER[x.tier].color, mine = has(x.id);
     return (
-      <li className="flex items-center gap-3 rounded-[14px] p-3 border" style={{ borderColor: equipped[x.slot]?.id === x.id ? c : "rgba(255,255,255,.07)", opacity: mine || tab === "loja" ? 1 : 0.55 }}>
-        <span className="relative grid place-items-center h-11 w-11 shrink-0 rounded-full" style={{ background: mine ? c + "1f" : "rgba(255,255,255,.04)" }}><Glyph slot={x.slot} color={mine ? c : "rgba(255,255,255,.35)"} />
+      <li className="flex items-center gap-2 rounded-[14px] p-2.5 border sm:gap-3 sm:p-3" style={{ borderColor: equipped[x.slot]?.id === x.id ? c : "rgba(255,255,255,.07)", opacity: mine || tab === "loja" ? 1 : 0.7 }}>
+        <span className="relative shrink-0"><GearArt item={x} />
           {mine && lv(x.id) > 1 && <b className="absolute -bottom-1 -right-1 text-[9px] rounded-full px-1 bg-black border" style={{ borderColor: A, color: A }}>N{lv(x.id)}</b>}</span>
         <span className="flex-1 min-w-0">
           <span className="block text-[14px] font-semibold leading-tight">{x.name}</span>
@@ -59,7 +70,9 @@ export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies,
             const avail = GEAR.filter((x) => x.slot === s && has(x.id)).length;
             return (
               <button key={s} onClick={() => setSlot(s)} className="rounded-[14px] p-3 text-center border" style={{ borderColor: it ? c + "66" : "rgba(255,255,255,.07)", background: it ? `radial-gradient(90% 80% at 50% 20%, ${c}22, #0b0b0d 75%)` : "rgba(255,255,255,.03)" }}>
-                <span className="mx-auto grid place-items-center h-11 w-11 rounded-full" style={{ background: it ? c + "1f" : "rgba(255,255,255,.04)" }}><Glyph slot={s} color={it ? c : "rgba(255,255,255,.35)"} /></span>
+                <span className="mx-auto grid size-14 place-items-center">
+                  {it ? <GearArt item={it} /> : <span className="grid size-11 place-items-center rounded-full bg-white/[.04]"><Glyph slot={s} color="rgba(255,255,255,.35)" /></span>}
+                </span>
                 <span className="block text-[10px] text-white/45 mt-1.5">{label} · {ATTRS[s].label}</span>
                 <span className="block text-[12px] font-semibold leading-tight mt-0.5 line-clamp-2">{it ? it.name : avail ? `${avail} disponível` : "Vazio"}</span>
                 {it && <span className="block text-[10.5px]" style={{ color: A }}>+{gearPct(it, lv(it.id))}% XP</span>}
@@ -70,6 +83,7 @@ export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies,
           {drops.length === 0 ? <p className="text-[13px] text-white/50 mt-2">{kills ? `${kills} abates até agora, nenhum item ainda. Feras mais fortes e chefes deixam mais.` : "Cumpra um treino da campanha para a primeira caçada."}</p> : (
             <ul className="mt-2 divide-y divide-white/[.06]">{drops.map((d, i) => { const it = gearById(d.item)!; return (
               <li key={i} className="flex items-center gap-3 py-2 text-[13px]"><span className="font-mono text-[11px] text-white/40 w-11">{d.date.slice(8)}/{d.date.slice(5, 7)}</span>
+                <GearArt item={it} size={36} />
                 <span className="flex-1 min-w-0 truncate">{ALL(d.beast).name} deixou <b style={{ color: TIER[it.tier].color }}>{it.name}</b></span>
                 {d.dup && <span className="text-[11px] text-white/45">repetido → <Coin v={Math.round(PRICE[it.tier] / 3)} /></span>}</li>); })}</ul>)}
         </div>
