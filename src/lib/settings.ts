@@ -52,7 +52,7 @@ export const DEFAULT_CATEGORIES: FinCategory[] = [
 export const DEFAULT_CHECKLIST: ChecklistItem[] = [
   { key: "oracao_estudo", label: "Oração da manhã + estudo pessoal (30 min)", primary: true },
   { key: "biblia", label: "Leitura da Bíblia" },
-  { key: "faculdade", label: "Faculdade" },
+  { key: "estudo", label: "Estudo ou trabalho focado" },
   { key: "treino", label: "Treino ou cardio feito" },
   { key: "agua", label: "Meta de água batida" },
   { key: "refeicoes", label: "4 refeições / proteína batida" },

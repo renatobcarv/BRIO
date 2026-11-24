@@ -1,7 +1,8 @@
 -- BRIO — valores padrão. Rode DEPOIS de criar seu usuário em Authentication → Users.
--- Troque o e-mail abaixo se necessário.
+-- Opcional: só para preencher uma conta criada manualmente. Contas criadas pelo app já recebem tudo no onboarding.
+-- Troque SEU_EMAIL@EXEMPLO.COM pelo e-mail da conta.
 do $$
-declare uid uuid := (select id from auth.users where email = 'renato.bcarvalho7@gmail.com');
+declare uid uuid := (select id from auth.users where email = 'SEU_EMAIL@EXEMPLO.COM');
 begin
   if uid is null then raise exception 'Usuário não encontrado. Crie-o antes em Authentication → Users.'; end if;
 
@@ -25,7 +26,7 @@ begin
       {"dow":6,"label":"D4","focus":"Peito / Tríceps / Abs"},
       {"dow":0,"label":"Off","focus":"Descanso total"}
     ]'::jsonb,
-    'Escreva aqui a frase dela.')
+    null)
   on conflict (user_id) do nothing;
 
   insert into streaks (user_id) values (uid) on conflict (user_id) do nothing;

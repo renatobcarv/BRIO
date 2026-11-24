@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { CardArt } from "@/components/card-art";
 import Link from "next/link";
 import { Hourglass, MiniBottle } from "@/components/meters";
@@ -57,6 +58,8 @@ export default async function Hoje() {
     sb.from("journal_entries").select("id").eq("date", today).like("text", "Texto do dia:%").limit(1),
     sb.from("clean_marks").select("date,kind,at:created_at").gte("date", addDays(today, -800)),
   ]);
+  // Conta nova (criada com módulos no cadastro) que ainda não fez o onboarding: começa por ele.
+  if (s.prefs?.modules && !s.prefs.onboarded) redirect("/boas-vindas");
   const contactsQ = await sb.from("field_contacts").select("id,name,address").neq("status", "encerrado").order("next_visit", { nullsFirst: false }).limit(30);
 
   // Sequência

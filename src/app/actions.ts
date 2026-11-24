@@ -35,6 +35,6 @@ export async function signUp(_: SignUpState, form: FormData): Promise<SignUpStat
   const { data, error } = await supabase.auth.signUp({ email: r.data.email, password: r.data.password,
     options: { data: { name: r.data.name, plan: planById(r.data.plan).id, focus: r.data.focus, trial_started: new Date().toISOString() } } });
   if (error) return { error: /registered|exists/i.test(error.message) ? "Esse e-mail já tem conta. Entre pelo login." : /signups not allowed|disabled/i.test(error.message) ? "Os cadastros estão fechados no momento." : error.message };
-  if (data.session) redirect("/?bemvindo=1");
+  if (data.session) redirect("/boas-vindas");
   return { sent: r.data.email };
 }
