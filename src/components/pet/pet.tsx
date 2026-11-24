@@ -52,7 +52,7 @@ export function PetCard({ p }: { p: PetView | null }) {
 }
 
 type Draw = { species: string; month: string; free: boolean; duplicate: boolean };
-export function PetPage({ p, ready, draws, month }: { p: PetView | null; ready: boolean; draws: Draw[]; month: string }) {
+export function PetPage({ p, ready, draws, month, today }: { p: PetView | null; ready: boolean; draws: Draw[]; month: string; today: string }) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [err, setErr] = useState<string | null>(null);
@@ -93,7 +93,7 @@ export function PetPage({ p, ready, draws, month }: { p: PetView | null; ready: 
 
   return (
     <div className="grid gap-4">
-      <PetKingdom pet={p} />
+      <PetKingdom key={p?.id ?? "visitante"} pet={p} today={today} />
       {p && m && (
         <section className="hunt-card relative overflow-hidden p-6 lg:p-8 grid lg:grid-cols-2 gap-6 items-center">
           <div className="grid place-items-center"><PetArt p={p} size={300} /></div>

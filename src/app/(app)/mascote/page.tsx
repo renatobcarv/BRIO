@@ -24,7 +24,7 @@ export default async function Page() {
   catch (e) { err = e instanceof Error ? e.message : String(e); }
   return <>
     {err && <p className="hunt-card p-4 mb-4 text-[13px] text-[#ff8a80]">Não consegui calcular a evolução do mascote agora ({err}). O sorteio funciona normalmente.</p>}
-    <PetPage p={pet} ready draws={d.data ?? []} month={todayISO().slice(0, 7)} />
+    <PetPage p={pet} ready draws={d.data ?? []} month={todayISO().slice(0, 7)} today={todayISO()} />
     {pet && items && <Army army={items.army} active={items.active} kills={items.kills} ready={items.ready} pending={items.pending} />}
     {pet && items && <Arsenal {...items} petName={pet.name} />}
   </>;
