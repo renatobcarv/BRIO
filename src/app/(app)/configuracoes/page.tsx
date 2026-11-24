@@ -1,3 +1,6 @@
+import { ModulesEditor } from "@/components/settings/modules";
+import { Signature } from "@/components/signature";
+import { MODULES, moduleOn, type ModuleKey } from "@/lib/settings";
 import Link from "next/link";
 import { Card, PageHeader } from "@/components/ui";
 import { BrioMark } from "@/components/brand";
@@ -20,13 +23,14 @@ export default async function Config() {
     <div className="dash-auto">
       <PageHeader eyebrow="Ajustes" title="Configurações" color="#9a978f" />
       <nav className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1 mb-2 sticky top-0 z-10 py-2 bg-[#000]/80 backdrop-blur">
-        {[["rotina", "Rotina"], ["metas", "Metas"], ["treino", "Treino"], ["maria-luisa", "Maria Luisa"], ["dados", "Dados"], ["conta", "Conta"]].map(([id, t]) =>
+        {[["modulos", "Módulos"], ["rotina", "Rotina"], ["metas", "Metas"], ["treino", "Treino"], ["pessoa-especial", "Pessoa especial"], ["dados", "Dados"], ["conta", "Conta"]].map(([id, t]) =>
           <a key={id} href={`#${id}`} className="chip shrink-0 !min-h-9 text-xs">{t}</a>)}
       </nav>
       <Group id="rotina" title="Rotina" hint="O que você marca todo dia na tela inicial."><ChecklistEditor initial={s.checklist} /></Group>
       <Group id="metas" title="Metas" hint="Água, calorias, proteína, peso e ministério."><DefaultsEditor s={s} /></Group>
       <Group id="treino" title="Treino" hint="Divisão usada quando não há campanha ativa."><SplitEditor initial={s.workout_split} /></Group>
-      <Group id="maria-luisa" title="Maria Luisa" hint="Foto e frase do card da tela inicial."><PartnerEditor phrase={s.partner_phrase ?? ""} photo={photo} /></Group>
+      <Group id="modulos" title="Módulos" hint="Escolha o que aparece no seu BRIO. Dá para mudar quando quiser."><ModulesEditor on={Object.fromEntries((Object.keys(MODULES) as ModuleKey[]).map((m) => [m, moduleOn(s, m)])) as Record<ModuleKey, boolean>} /></Group>
+      <Group id="pessoa-especial" title="Pessoa especial" hint="Nome, foto e frase do card da tela inicial."><PartnerEditor name={s.partner_name ?? ""} phrase={s.partner_phrase ?? ""} photo={photo} /></Group>
       <Group id="dados" title="Dados" hint="Seus dados são seus: exporte e importe quando quiser."><Backup /></Group>
       <div id="conta" className="scroll-mt-16" />
       <Card className="mt-4">
@@ -45,6 +49,7 @@ export default async function Config() {
         <p className="text-xs tracking-[.3em] mt-2 pl-[.3em]">BRIO</p>
         <p className="text-[11px] text-muted mt-1">Vigor com honra · sobre o app</p>
       </Link>
+      <Signature />
     </div>
   );
 }

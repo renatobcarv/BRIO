@@ -102,23 +102,25 @@ export function SplitEditor({ initial }: { initial: SplitDay[] }) {
   );
 }
 
-export function PartnerEditor({ phrase, photo }: { phrase: string; photo: string | null }) {
+export function PartnerEditor({ name, phrase, photo }: { name: string; phrase: string; photo: string | null }) {
   const [pending, start] = useTransition();
   const [ok, setOk] = useState(false);
   const [err, setErr] = useState("");
   const [preview, setPreview] = useState(photo);
   return (
     <Card className="mt-4">
-      <p className="label mb-3">Maria Luisa</p>
+      <p className="label mb-1">Pessoa especial</p>
+      <p className="text-[12.5px] text-white/50 mb-3">Alguém por quem você luta: aparece na Home e nos Sonhos. Deixe o nome vazio para esconder.</p>
       <form action={(fd) => start(async () => { setErr(""); try { await savePartner(fd); setOk(true); } catch (e) { setErr((e as Error).message); } })} className="grid gap-3">
         <div className="flex items-center gap-4">
           { }
-          {preview ? <img src={preview} alt="Maria Luisa" className="h-20 w-20 rounded-[8px] object-cover" /> : <span className="h-20 w-20 rounded-[8px] bg-white/5 grid place-items-center text-muted text-xs">sem foto</span>}
+          {preview ? <img src={preview} alt={name || "Pessoa especial"} className="h-20 w-20 rounded-[8px] object-cover" /> : <span className="h-20 w-20 rounded-[8px] bg-white/5 grid place-items-center text-muted text-xs">sem foto</span>}
           <label className="btn cursor-pointer">Escolher foto
             <input type="file" name="photo" accept="image/*" className="sr-only"
               onChange={(e) => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)); setOk(false); }} /></label>
         </div>
-        <textarea name="phrase" className="field font-display italic" defaultValue={phrase} placeholder="Uma frase dela" onChange={() => setOk(false)} />
+        <input name="name" className="field" defaultValue={name} maxLength={60} placeholder="Nome (ex.: o nome do seu filho, esposa, mãe…)" onChange={() => setOk(false)} />
+        <textarea name="phrase" className="field font-display italic" defaultValue={phrase} placeholder="Uma frase que te lembra por quê" onChange={() => setOk(false)} />
         {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
         <div className="flex items-center gap-3"><button className="btn btn-accent" disabled={pending}>{pending ? "Salvando…" : "Salvar"}</button><Saved ok={ok} /></div>
       </form>

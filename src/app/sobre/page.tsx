@@ -1,3 +1,4 @@
+import { Signature } from "@/components/signature";
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
@@ -222,6 +223,8 @@ export default function Site() {
           <span className="flex items-center gap-3"><BrioWordmark height={18} /> Vigor com honra</span>
           <span className="flex gap-4"><Link href="/privacidade" className="hover:text-ink min-h-11 inline-flex items-center">Privacidade</Link><Link href="/termos" className="hover:text-ink min-h-11 inline-flex items-center">Termos</Link><Link href="/login" className="hover:text-ink min-h-11 inline-flex items-center">Entrar</Link></span>
         </div>
+        <Signature />
+        <div className="h-6" />
       </footer>
     </main>
   );

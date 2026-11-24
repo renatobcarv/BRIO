@@ -12,7 +12,9 @@ export type Settings = {
   pioneer_goal_minutes: number; water_goal_ml: number; kcal_goal: number; protein_goal_g: number;
   weight_start_kg: number; weight_goal_kg: number; weight_rate_kg_week: number;
   checklist: ChecklistItem[]; workout_split: SplitDay[];
-  partner_phrase: string | null; partner_photo_path: string | null;
+  partner_name: string | null; partner_phrase: string | null; partner_photo_path: string | null;
+  /** Preferências livres por conta: módulos e ajustes (pequenos ou grandes) sem nova migração. */
+  prefs: Prefs;
   daily_text: string | null; daily_text_date: string | null;
   meal_slots: MealSlot[]; carbs_goal_g: number; fat_goal_g: number;
   workout_plan: WorkoutPlan; finance_categories: FinCategory[]; travel?: { start: string; end: string }[];
@@ -56,6 +58,16 @@ export const DEFAULT_CHECKLIST: ChecklistItem[] = [
   { key: "refeicoes", label: "4 refeições / proteína batida" },
   { key: "sono", label: "Dormi 7h+" },
 ];
+/** Checklist para quem não escolheu a vida espiritual no cadastro. */
+export const NEUTRAL_CHECKLIST: ChecklistItem[] = [
+  { key: "missao", label: "Missão principal do dia", primary: true },
+  { key: "leitura", label: "Leitura (10 páginas)" },
+  { key: "estudo", label: "Estudo / trabalho focado" },
+  { key: "treino", label: "Treino ou cardio feito" },
+  { key: "agua", label: "Meta de água batida" },
+  { key: "refeicoes", label: "Refeições / proteína batida" },
+  { key: "sono", label: "Dormi 7h+" },
+];
 export const DEFAULT_SPLIT: SplitDay[] = [
   { dow: 1, label: "D1", focus: "Costas / Ombro / Abs" },
   { dow: 2, label: "D2", focus: "Perna" },
@@ -67,12 +79,41 @@ export const DEFAULT_SPLIT: SplitDay[] = [
 ];
 
 /** Lê as configurações; cria a linha com padrões se ainda não existir. */
+export type ModuleKey = "espiritual" | "pioneiro" | "treino" | "dieta" | "financas" | "estudos" | "agenda" | "livros" | "sonhos" | "mascote";
+export const MODULES: Record<ModuleKey, { label: string; hint: string; href: string }> = {
+  espiritual: { label: "Espiritual", hint: "Bíblia, estudo pessoal e oração", href: "/espiritual" },
+  pioneiro: { label: "Ministério (Pioneiro)", hint: "Horas, revisitas e metas de campo", href: "/pioneiro" },
+  treino: { label: "Treino", hint: "Campanha, Mestre e cargas", href: "/treino" },
+  dieta: { label: "Dieta", hint: "Plano alimentar e refeições", href: "/status?aba=corpo" },
+  financas: { label: "Finanças", hint: "Orçamento, extrato e investimentos", href: "/financas" },
+  estudos: { label: "Estudos", hint: "Tutor e domínio de matérias", href: "/estudos" },
+  agenda: { label: "Agenda", hint: "Compromissos e rotina", href: "/agenda" },
+  livros: { label: "Livros", hint: "Leituras e anotações", href: "/livros" },
+  sonhos: { label: "Sonhos", hint: "Quadro dos seus sonhos", href: "/sonhos" },
+  mascote: { label: "Mascote", hint: "Companheiro, itens e feras", href: "/mascote" },
+};
+export type Prefs = { modules?: Partial<Record<ModuleKey, boolean>>; [k: string]: unknown };
+/** Módulo ligado? Contas antigas (sem prefs) veem tudo; contas novas, o que escolheram no cadastro. */
+export const moduleOn = (s: Pick<Settings, "prefs">, m: ModuleKey) => s.prefs?.modules?.[m] ?? true;
+/** Do foco escolhido no cadastro para os módulos iniciais (o resto pode ser ligado nas Configurações). */
+export function modulesFromFocus(focus: string[]): Partial<Record<ModuleKey, boolean>> {
+  const f = new Set(focus), on = (k: string) => f.size === 0 || f.has(k);
+  return { espiritual: on("espiritual"), pioneiro: f.has("ministerio"), treino: on("treino"), dieta: on("dieta"), financas: on("financas"),
+    estudos: on("estudos"), agenda: on("agenda"), livros: on("estudos") || on("habitos"), sonhos: true, mascote: true };
+}
+
 export async function getSettings(sb: SupabaseClient): Promise<Settings> {
   let { data } = await sb.from("settings").select("*").maybeSingle();
   if (!data) {
+    // Conta nova: módulos a partir do foco escolhido no cadastro; checklist e categorias neutros.
+    const { data: u } = await sb.auth.getUser();
+    const focus = Array.isArray(u.user?.user_metadata?.focus) ? (u.user!.user_metadata.focus as string[]) : [];
+    const modules = modulesFromFocus(focus);
     const ins = await sb.from("settings")
-      .insert({ checklist: DEFAULT_CHECKLIST, workout_split: DEFAULT_SPLIT }).select("*").single();
-    data = ins.data;
+      .insert({ checklist: modules.espiritual ? DEFAULT_CHECKLIST : NEUTRAL_CHECKLIST, workout_split: DEFAULT_SPLIT, prefs: { modules },
+        finance_categories: modules.espiritual ? DEFAULT_CATEGORIES : DEFAULT_CATEGORIES.filter((c) => c.key !== "ofertas") }).select("*").single();
+    // Banco sem a migração de contas: cria sem prefs (o resto funciona igual).
+    data = ins.error ? (await sb.from("settings").insert({ checklist: DEFAULT_CHECKLIST, workout_split: DEFAULT_SPLIT }).select("*").single()).data : ins.data;
   }
   const s = data as Settings;
   if (!Array.isArray(s.checklist) || !s.checklist.length) s.checklist = DEFAULT_CHECKLIST;
@@ -84,6 +125,8 @@ export async function getSettings(sb: SupabaseClient): Promise<Settings> {
   if (!s.workout_plan?.days) s.workout_plan = DEFAULT_PLAN;
   s.workout_plan.prs ??= DEFAULT_PLAN.prs;
   if (!Array.isArray(s.finance_categories) || !s.finance_categories.length) s.finance_categories = DEFAULT_CATEGORIES;
-  if (!s.partner_phrase || s.partner_phrase === "Escreva aqui a frase dela.") s.partner_phrase = "Tijolo por tijolinho";
+  s.prefs = s.prefs && typeof s.prefs === "object" ? s.prefs : {};
+  s.partner_name = s.partner_name?.trim() || null;
+  if (s.partner_phrase === "Escreva aqui a frase dela.") s.partner_phrase = null;
   return s;
 }

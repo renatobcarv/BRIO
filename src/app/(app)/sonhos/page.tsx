@@ -15,6 +15,6 @@ export default async function Sonhos() {
   const signed = paths.length ? (await sb.storage.from("privado").createSignedUrls(paths, 3600)).data ?? [] : [];
   const url = new Map(signed.map((x) => [x.path, x.signedUrl]));
   const dreams: Dream[] = rows.map((r) => ({ ...r, image: r.image_path ? url.get(r.image_path) ?? null : null }));
-  const maria = await signedPhoto(sb, s.partner_photo_path);
-  return <DreamBoard today={todayISO()} dreams={dreams} ready={!q.error} maria={{ photo: maria, phrase: s.partner_phrase ?? "" }} />;
+  const special = await signedPhoto(sb, s.partner_photo_path);
+  return <DreamBoard today={todayISO()} dreams={dreams} ready={!q.error} special={{ name: s.partner_name, photo: special, phrase: s.partner_phrase ?? "" }} />;
 }

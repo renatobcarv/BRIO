@@ -7,7 +7,7 @@ const CATS = ["familia", "casa", "viagem", "carreira", "espiritual", "saude", "f
 const msg = (m: string) => (/dreams/.test(m) ? "Rode a migração 20261120000000_sonhos.sql no Supabase." : m);
 const done = () => { revalidatePath("/sonhos"); revalidatePath("/"); };
 
-/** Cria ou edita um sonho; a imagem vai para o bucket privado (mesmo padrão da foto da Maria). */
+/** Cria ou edita um sonho; a imagem vai para o bucket privado (mesmo padrão da foto da pessoa especial). */
 export async function saveDream(form: FormData): Promise<string | null> {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();

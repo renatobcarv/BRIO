@@ -4,8 +4,8 @@ import { useRef, useState, useTransition } from "react";
 import { savePartner } from "@/app/(app)/configuracoes/actions";
 import { Sheet } from "@/components/kit";
 
-/** Cartão da Maria Luisa: foto e frase trocáveis ali mesmo. */
-export function Partner({ photo, phrase }: { photo: string | null; phrase: string }) {
+/** Cartão da pessoa especial (nome definido nas Configurações): foto e frase trocáveis ali mesmo. */
+export function Partner({ name, photo, phrase }: { name: string; photo: string | null; phrase: string }) {
   const [pending, start] = useTransition();
   const [src, setSrc] = useState(photo);
   const [text, setText] = useState(phrase);
@@ -35,16 +35,16 @@ export function Partner({ photo, phrase }: { photo: string | null; phrase: strin
       <figure className="partner-frame glass rise mt-4 overflow-hidden !p-0 relative">
         {src ? (
            
-          <img src={src} alt="Maria Luísa" className={`w-full aspect-[4/5] md:aspect-[16/10] object-cover object-[50%_35%] transition-opacity ${pending ? "opacity-60" : ""}`} />
+          <img src={src} alt={name} className={`w-full aspect-[4/5] md:aspect-[16/10] object-cover object-[50%_35%] transition-opacity ${pending ? "opacity-60" : ""}`} />
         ) : (
           <button onClick={() => file.current?.click()} className="w-full aspect-[4/3] grid place-items-center bg-white/[.03]">
-            <span className="text-center"><span className="block text-4xl text-muted">＋</span><span className="text-sm text-muted">Adicionar foto dela</span></span>
+            <span className="text-center"><span className="block text-4xl text-muted">＋</span><span className="text-sm text-muted">Adicionar foto</span></span>
           </button>
         )}
         <figcaption className={`${src ? "partner-caption absolute inset-x-0 bottom-0" : ""} px-5 pb-5 sm:px-7 sm:pb-7`}>
           <p className="flex items-center gap-2 text-sm font-semibold text-[#ffe0a8]">
             <Image src="/painel/tiara.webp" width={29} height={29} alt="" unoptimized className="object-contain" />
-            Maria Luísa
+            {name}
           </p>
           <button onClick={() => setEditing(true)} title="Editar frase" className="partner-phrase mt-1 block text-left text-[clamp(1.35rem,2.5vw,2.15rem)] font-semibold leading-tight text-[#fff6e8]">{text}</button>
         </figcaption>

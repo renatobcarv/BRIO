@@ -15,7 +15,7 @@ const FALLBACK = ["linear-gradient(150deg,#ff9f0a,#3a0505 70%)", "linear-gradien
 const daysTo = (iso: string, today: string) => Math.round((Date.parse(iso) - Date.parse(today)) / 864e5);
 const br = (iso: string) => iso.split("-").reverse().join("/");
 
-export function DreamBoard({ today, dreams, ready, maria }: { today: string; dreams: Dream[]; ready: boolean; maria: { photo: string | null; phrase: string } }) {
+export function DreamBoard({ today, dreams, ready, special }: { today: string; dreams: Dream[]; ready: boolean; special: { name: string | null; photo: string | null; phrase: string } }) {
   const [form, setForm] = useState<null | Partial<Dream>>(null);
   const open = dreams.filter((d) => !d.done_at), done = dreams.filter((d) => d.done_at);
   return (
@@ -27,17 +27,18 @@ export function DreamBoard({ today, dreams, ready, maria }: { today: string; dre
       {!ready && <p className="glass p-4 mb-4 text-sm text-[#ff6961]">Rode a migração <b>supabase/migrations/20261120000000_sonhos.sql</b> no Supabase.</p>}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 auto-rows-[160px] sm:auto-rows-[190px]">
-        {/* Maria Luisa em destaque */}
-        <section className="rise relative col-span-2 row-span-2 rounded-[8px] overflow-hidden border border-white/10" style={{ background: maria.photo ? undefined : FALLBACK[0] }}>
-          {maria.photo && <img src={maria.photo} alt="Maria Luisa" className="absolute inset-0 h-full w-full object-cover" />}
+        {/* Pessoa especial em destaque (só se configurada) */}
+        {special.name && <>
+        <section className="rise relative col-span-2 row-span-2 rounded-[8px] overflow-hidden border border-white/10" style={{ background: special.photo ? undefined : FALLBACK[0] }}>
+          {special.photo && <img src={special.photo} alt={special.name} className="absolute inset-0 h-full w-full object-cover" />}
           <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, transparent 35%, rgba(10,10,10,.85))" }} />
           <div className="absolute inset-x-0 bottom-0 p-5">
             <p className="text-[10px] font-bold tracking-[.35em] text-[#ffd28a]">MEU MAIOR MOTIVO</p>
-            <p className="font-display text-3xl mt-1">Maria Luisa</p>
-            {maria.phrase && <p className="text-white/85 mt-1 italic">“{maria.phrase}”</p>}
-            {!maria.photo && <Link href="/configuracoes#maria-luisa" className="inline-block text-xs underline mt-2">Adicionar a foto dela</Link>}
+            <p className="font-display text-3xl mt-1">{special.name}</p>
+            {special.phrase && <p className="text-white/85 mt-1 italic">“{special.phrase}”</p>}
+            {!special.photo && <Link href="/configuracoes#pessoa-especial" className="inline-block text-xs underline mt-2">Adicionar foto</Link>}
           </div>
-        </section>
+        </section></>}
 
         {open.map((d, i) => (
           <button key={d.id} onClick={() => setForm(d)} className={`rise press relative text-left rounded-[8px] overflow-hidden border border-white/10 ${i % 5 === 1 ? "row-span-2" : ""}`}
@@ -92,7 +93,7 @@ function DreamForm({ d, onDone }: { d: Partial<Dream>; onDone: () => void }) {
         <span className="absolute inset-0 grid place-items-center bg-black/30 text-sm font-semibold">{preview ? "Trocar foto" : "📷 Escolher foto do sonho"}</span>
         <input type="file" name="image" accept="image/*" className="sr-only" onChange={(e) => { const f = e.target.files?.[0]; if (f) setPreview(URL.createObjectURL(f)); }} />
       </label>
-      <Field label="Sonho"><input name="title" className="field" defaultValue={d.title ?? ""} placeholder="Ex.: Viajar com a Maria para a praia" required /></Field>
+      <Field label="Sonho"><input name="title" className="field" defaultValue={d.title ?? ""} placeholder="Ex.: Viajar para a praia com quem eu amo" required /></Field>
       <div className="flex flex-wrap gap-1.5">{Object.entries(CAT).map(([k, c]) => <button key={k} type="button" className="chip !min-h-9 text-xs" aria-pressed={cat === k} onClick={() => setCat(k)}>{c.e} {c.label}</button>)}</div>
       <Field label="Por que isso importa"><textarea name="why" className="field !min-h-[70px]" defaultValue={d.why ?? ""} placeholder="O que muda quando acontecer?" /></Field>
       <Field label="Até quando (opcional)"><input type="date" name="target_date" className="field" defaultValue={d.target_date ?? ""} /></Field>

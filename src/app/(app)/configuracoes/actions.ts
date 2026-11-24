@@ -34,11 +34,12 @@ export async function savePartner(form: FormData) {
   if (!user) throw new Error("não autenticado");
   const phrase = z.string().max(300).parse(form.get("phrase") ?? "");
   const patch: Record<string, string | null> = { partner_phrase: phrase || null };
+  if (form.has("name")) patch.partner_name = z.string().trim().max(60).parse(form.get("name") ?? "") || null;
   const file = form.get("photo");
   if (file instanceof File && file.size > 0) {
     if (!file.type.startsWith("image/") || file.size > 5 * 1024 * 1024) throw new Error("Use uma imagem de até 5 MB.");
     const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "");
-    const path = `${user.id}/maria-luisa-${Date.now()}.${ext}`;
+    const path = `${user.id}/pessoa-especial-${Date.now()}.${ext}`;
     const { error } = await sb.storage.from("privado").upload(path, file, { contentType: file.type, upsert: true });
     if (error) throw new Error(error.message);
     const { data: old } = await sb.from("settings").select("partner_photo_path").maybeSingle();
@@ -67,4 +68,18 @@ export async function importBackup(json: string) {
   }
   all();
   return report;
+}
+
+/** Preferências livres da conta (módulos e ajustes). Mescla com o que já existe; aceita só chaves simples. */
+export async function savePrefs(patch: Record<string, unknown>): Promise<string | null> {
+  const P = z.record(z.string().regex(/^[a-z_]{1,40}$/), z.union([z.boolean(), z.number(), z.string().max(200), z.record(z.string().regex(/^[a-z_]{1,40}$/), z.boolean())]));
+  const p = P.safeParse(patch); if (!p.success) return "Ajuste inválido.";
+  const sb = await createClient();
+  const { data, error } = await sb.from("settings").select("prefs").maybeSingle();
+  if (error) return /column|schema cache/i.test(error.message) ? "Rode o SQL 20261130000000_contas.sql no Supabase." : error.message;
+  const cur = (data?.prefs ?? {}) as Record<string, unknown>, next: Record<string, unknown> = { ...cur };
+  for (const [k, v] of Object.entries(p.data)) next[k] = typeof v === "object" && v && typeof cur[k] === "object" ? { ...(cur[k] as object), ...v } : v;
+  const { error: e2 } = await sb.from("settings").update({ prefs: next }).not("id", "is", null);
+  if (e2) return e2.message;
+  all(); return null;
 }

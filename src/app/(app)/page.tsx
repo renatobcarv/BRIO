@@ -114,11 +114,11 @@ export default async function Hoje() {
       <section className="rise mt-4" aria-label="Quadro dos sonhos">
         <div className="flex items-end justify-between mb-2"><p className="label">Quadro dos sonhos · por quem você caça</p><Link href="/sonhos" className="label !text-[10px] underline underline-offset-4 min-h-11 inline-flex items-center">ver tudo</Link></div>
         <div className="flex gap-2 overflow-x-auto snap-x pb-1 -mx-1 px-1">
-          <Link href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-[#3a0000] bg-[#0b0b0b]">
-            {photo && <img src={photo} alt="Maria Luisa" className="absolute inset-0 h-full w-full object-cover" />}
+          {s.partner_name && <Link href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-[#3a0000] bg-[#0b0b0b]">
+            {photo && <img src={photo} alt={s.partner_name} className="absolute inset-0 h-full w-full object-cover" />}
             <span className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
-            <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] !text-[#ffb21e] block">Meu maior motivo</span><span className="font-display text-xl uppercase italic leading-none block mt-1">Maria Luisa</span></span>
-          </Link>
+            <span className="absolute left-2.5 right-2.5 bottom-2.5"><span className="label !text-[9px] !text-[#ffb21e] block">Meu maior motivo</span><span className="font-display text-xl uppercase italic leading-none block mt-1">{s.partner_name}</span></span>
+          </Link>}
           {dreams.map((d) => (
             <Link key={d.id} href="/sonhos" className="dream-mini snap-start shrink-0 relative isolate w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-white/10 bg-[#0b0b0b]">
               {dUrl(d.image_path) ? <img src={dUrl(d.image_path)!} alt="" className="absolute inset-0 h-full w-full object-cover" /> : <CardArt name="sonhos" cover />}
@@ -186,7 +186,7 @@ export default async function Hoje() {
       </Link>
 
       <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>
-      <Partner photo={photo} phrase={s.partner_phrase ?? "Tijolo por tijolinho"} />
+      {s.partner_name && <Partner name={s.partner_name} photo={photo} phrase={s.partner_phrase ?? ""} />}
       <Verse area="inicio" />
       </div>
       </div>

@@ -22,14 +22,14 @@ const studyI = I("M2 9l10-5 10 5-10 5zM6 11v5c3 2 9 2 12 0v-5M22 9v6");
 const dreamI = I("M12 3l2.4 4.9 5.4.8-3.9 3.8.9 5.4L12 15.4 7.2 17.9l.9-5.4-3.9-3.8 5.4-.8zM5 21h14");
 const gear = I("M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.2-2.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 2.9-1.2V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 2.9 1.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0 1.2 2.9H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z");
 
-const primary: Item[] = [
+const PRIMARY: Item[] = [
   { href: "/", label: "Início", color: "#ffb21e", icon: home },
   { href: "/metas", label: "Metas", color: "#ff9f0a", icon: goals },
   { href: "/treino", label: "Treino", color: "#ffb21e", icon: dumbbell },
   { href: "/espiritual", label: "Espiritual", color: "#ffb21e", icon: spirit },
   { href: "/pioneiro", label: "Pioneiro", color: "#f5f5f7", icon: pioneer },
 ];
-const secondary: Item[] = [
+const SECONDARY: Item[] = [
   { href: "/status", label: "Status", color: "#ffb21e", icon: body },
   { href: "/mascote", label: "Mascote", color: "#ffb21e", icon: flame },
   { href: "/agenda", label: "Agenda", color: "#f5f5f7", icon: cal },
@@ -43,8 +43,12 @@ const secondary: Item[] = [
 
 const isActive = (path: string, href: string) => (href === "/" ? path === "/" : path.startsWith(href));
 
-export function Nav() {
+/** Rotas que dependem de um módulo: somem do menu se a conta desligou o módulo. */
+const NEEDS: Record<string, string> = { "/espiritual": "espiritual", "/pioneiro": "pioneiro", "/treino": "treino", "/financas": "financas", "/estudos": "estudos", "/agenda": "agenda", "/livros": "livros", "/sonhos": "sonhos", "/mascote": "mascote" };
+export function Nav({ off = [] }: { off?: string[] }) {
   const path = usePathname();
+  const show = (it: Item) => !off.includes(NEEDS[it.href] ?? "");
+  const primary = PRIMARY.filter(show), secondary = SECONDARY.filter(show);
   const moreActive = ["/mais", ...secondary.map((s) => s.href)].some((h) => path.startsWith(h));
   return (
     <>
@@ -81,4 +85,4 @@ export function Nav() {
     </>
   );
 }
-export { secondary as moreItems };
+export { SECONDARY as moreItems };
