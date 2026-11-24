@@ -33,3 +33,14 @@ test("eventos distantes não aparecem", () => {
   const ev = computeEvents({ ...base, today: "2026-09-01" });
   assert.equal(ev.length, 0);
 });
+
+import { computeEvents as ce } from "../src/lib/events.ts";
+test("campanhas sobrepostas não duplicam eventos: vale a ativa", () => {
+  const ph = [{ kind: "acumulacao", name: "Acumulação", weeks: 3, days: { 1: [1] } }, { kind: "intensificacao", name: "Int", weeks: 2, days: { 1: [1] } }];
+  const base = { today: "2026-11-24", workouts: [], meals: [], proteinGoal: 150, sleep: [] };
+  const evs = ce({ ...base, programs: [{ id: "a", name: "Velho", start_date: "2026-11-30", phases: ph, active: false }, { id: "b", name: "Novo", start_date: "2026-11-23", phases: ph, active: true }] } as never);
+  const gen = evs.filter((e) => e.type === "genesis");
+  assert.equal(gen.length, 1); assert.equal(gen[0].program, "Novo");
+  const dup = ce({ ...base, programs: [{ id: "a", name: "A", start_date: "2026-11-23", phases: ph }, { id: "b", name: "B", start_date: "2026-11-23", phases: ph }] } as never);
+  assert.equal(dup.filter((e) => e.type === "genesis").length, 1);
+});

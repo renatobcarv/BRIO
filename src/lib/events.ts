@@ -1,5 +1,5 @@
 // ASCENSION EVENTS: eventos dinâmicos derivados da periodização e dos registros reais. Sem dependências.
-export type EvProgram = { id: string; name: string; start_date: string; phases: { kind: string; name: string; weeks: number; days: Record<string, unknown[]> }[] };
+export type EvProgram = { id: string; name: string; start_date: string; active?: boolean; archived?: boolean; phases: { kind: string; name: string; weeks: number; days: Record<string, unknown[]> }[] };
 export type EvWorkout = { date: string; sets: { exercise: string; kg: number; reps: number; rpe?: number | null }[] };
 export type EvInput = { today: string; programs: EvProgram[]; workouts: EvWorkout[]; meals: { date: string; protein: number }[]; proteinGoal: number; sleep: { date: string; hours: number }[]; travel?: { start: string; end: string }[] };
 
@@ -66,10 +66,16 @@ export function computeEvents(g: EvInput): GameEvent[] {
     const success = ev.objectives.every((o) => o.done);
     const stage = away ? "pausado" : stageOf(g.today, ev.start, ev.end, success);
     const bonus = [...ev.bonusXp.filter((b) => b.date <= g.today), ...(stage === "vitoria" ? [{ date: add(ev.end, 1), xp: ev.rewardXp, label: `${ev.title} vencido` }] : [])];
+    if (out.some((x) => x.type === ev.type && x.start === ev.start)) return; // mesma janela, mesmo evento: uma vez só
     out.push({ ...ev, stage, daysToStart: diff(ev.start, g.today), bonusXp: bonus });
   };
 
-  for (const p of g.programs) {
+  // Campanhas que se sobrepõem (ex.: plano refeito na consulta) duplicavam os eventos.
+  // Vale a campanha ativa; das outras, só as que terminaram antes dela começar (histórico de vitórias/cicatrizes).
+  const act = g.programs.find((p) => p.active);
+  const progEnd = (p: EvProgram) => add(p.start_date, p.phases.reduce((a, f) => a + Math.max(0, f.weeks), 0) * 7 - 1);
+  const programs = act ? g.programs.filter((p) => p.id === act.id || (!p.archived && progEnd(p) < act.start_date)) : g.programs.filter((p) => !p.archived);
+  for (const p of programs) {
     const wins = phaseWindows(p);
     // GENESIS: primeira semana do ciclo
     if (wins[0]) {

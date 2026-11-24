@@ -32,7 +32,7 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
     q<{ date: string; item_key: string; created_at: string }>(sb.from("daily_checks").select("date,item_key,created_at").eq("done", true).limit(20000)),
     q<{ id: string }>(sb.from("journal_entries").select("id").limit(5000)),
     q<{ date: string; slot: string; protein_g: number }>(sb.from("meal_items").select("date,slot,protein_g").limit(20000)),
-    q<EvProgram>(sb.from("training_programs").select("id,name,start_date,phases").limit(50)),
+    q<EvProgram>(sb.from("training_programs").select("id,name,start_date,phases,active,archived").limit(50)),
     q<{ date: string; slot: string }>(sb.from("meals").select("date,slot").eq("done", true).limit(20000)),
   ]);
 
