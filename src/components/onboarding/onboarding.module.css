@@ -45,7 +45,17 @@
 .heroCopy h1:focus { outline: none; }
 .heroCopy > span { display: block; max-width: 25ch; margin-top: .65rem; color: #e0dce7; font-size: .85rem; }
 .heroVisual { position: relative; display: grid; place-items: center; }
-.art { display: block; width: 100%; height: auto; aspect-ratio: 1; object-fit: contain; mix-blend-mode: screen; }
+.art {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  mask-image: linear-gradient(90deg, transparent, black 8%, black 92%, transparent),
+    linear-gradient(transparent, black 8%, black 92%, transparent);
+  mask-composite: intersect;
+}
 .heroVisual .art { width: min(100%, 190px); animation: art-float 3.8s ease-in-out infinite; }
 .content { padding: 1rem 0 0; }
 

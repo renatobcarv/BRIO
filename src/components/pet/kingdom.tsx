@@ -3,6 +3,7 @@
 import { useEffect, useState, type CSSProperties } from "react";
 import { SPECIES, STAGES, speciesOf, type PetStage } from "@/lib/pet";
 import { HABITATS } from "@/lib/pet-habitats";
+import { PetExpedition } from "./expedition";
 import { PetPortrait } from "./portrait";
 
 const PARTICLES = Array.from({ length: 16 }, (_, i) => ({
@@ -59,6 +60,7 @@ export function PetKingdom({ pet, today }: {
   const [visit, setVisit] = useState<string | null>(null);
   const [item, setItem] = useState<number | null>(null);
   const [reaction, setReaction] = useState<{ id: number; kind: "greet" | "seek" | "found"; line: string } | null>(null);
+  const [away, setAway] = useState(false);
   const [search, setSearch] = useState<Search | null>(null);
   const [bond, setBond] = useState(EMPTY_BOND);
   const home = speciesOf(pet?.species ?? "pantera");
@@ -66,6 +68,7 @@ export function PetKingdom({ pet, today }: {
   const habitat = HABITATS[species.key];
   const own = pet && species.key === home.key ? pet : null;
   const stage = own?.stage ?? STAGES[0];
+  const exploring = Boolean(own && away);
   const backdrop = `/mascotes/lares/${species.key}`;
 
   const storageKey = pet ? `brio:mascote:vinculo:${pet.id}` : null;
@@ -107,6 +110,7 @@ export function PetKingdom({ pet, today }: {
 
   function visitHome(key: string | null) {
     setVisit(key);
+    setAway(false);
     setItem(null);
     setSearch(null);
     setReaction(null);
@@ -147,7 +151,8 @@ export function PetKingdom({ pet, today }: {
           <h2 className="font-display text-3xl leading-tight text-white drop-shadow-md sm:text-4xl">{habitat.name}</h2>
           <p className="mt-1 max-w-md text-sm text-white/85">{habitat.description}</p>
         </div>
-        <button type="button" className="pet-habitat-resident absolute left-1/2 z-10 -translate-x-1/2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+        <button type="button" disabled={exploring} data-away={exploring}
+          className="pet-habitat-resident absolute left-1/2 z-10 -translate-x-1/2 rounded-full focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           aria-label={`Cumprimentar ${own?.name ?? species.name}`} onClick={() => react("greet", REACTIONS[species.key])}>
           <span key={reaction?.id ?? 0} data-pet-reaction={reaction?.kind} className="pet-play-motion relative block">
             <PetPortrait species={species.key} stage={stage} alt="" size={300} className="pet-habitat-animal h-auto w-full" />
@@ -175,20 +180,22 @@ export function PetKingdom({ pet, today }: {
             {own && <p className="mt-0.5 text-xs text-white/70">Vínculo · {BOND_LEVELS[bond.days >= 14 ? 3 : bond.days >= 7 ? 2 : bond.days >= 3 ? 1 : 0]} · {bond.days} {bond.days === 1 ? "dia de brincadeira" : "dias de brincadeira"}</p>}
           </div>
           <div className="flex flex-wrap gap-2">
-            <button type="button" className="btn" onClick={() => react("greet", REACTIONS[species.key])}>Cumprimentar</button>
-            {own && bond.days > 0 && <button type="button" className="btn" onClick={() => react("found", TRICKS[species.key])}>Mostrar truque</button>}
+            <button type="button" className="btn" disabled={exploring} onClick={() => react("greet", REACTIONS[species.key])}>Cumprimentar</button>
+            {own && bond.days > 0 && <button type="button" className="btn" disabled={exploring} onClick={() => react("found", TRICKS[species.key])}>Mostrar truque</button>}
           </div>
         </div>
         <p role="status" className="min-h-5 rounded-lg border border-white/10 bg-white/[.04] p-3 text-sm text-white/85">
           {reaction?.line ?? "Toque no mascote para ver como ele reage."}
         </p>
+        {own && <PetExpedition id={own.id} name={own.name} species={species.key} today={today}
+          onDepart={(line) => react("seek", line)} onReturn={(line) => react("found", line)} onTravelChange={setAway} />}
         {own && (
           <div className="rounded-xl border border-white/10 p-3 sm:p-4">
             <p className="font-semibold text-white">Relíquia escondida</p>
             {!search ? (
               <>
                 <p className="mt-1 text-xs text-white/70">{bond.last === today ? "Vocês já brincaram hoje. Dá para procurar a relíquia de novo." : "Use a pista para encontrar o esconderijo. A primeira descoberta libera um truque."}</p>
-                <button type="button" className="btn mt-3 !min-h-10" onClick={startSearch}>Procurar relíquia</button>
+                <button type="button" className="btn mt-3 !min-h-10" disabled={exploring} onClick={startSearch}>Procurar relíquia</button>
               </>
             ) : search.found ? (
               <>
@@ -200,7 +207,7 @@ export function PetKingdom({ pet, today }: {
                 <p className="mt-1 text-sm text-white/80"><strong>Pista:</strong> {habitat.items[search.target][1]}</p>
                 <div className="mt-3 flex flex-wrap gap-2" role="group" aria-label="Esconderijos da relíquia">
                   {habitat.items.map(([label], i) => (
-                    <button key={label} type="button" className="btn !min-h-10" disabled={search.tried.includes(i)} onClick={() => inspect(i)}>{label}</button>
+                    <button key={label} type="button" className="btn !min-h-10" disabled={exploring || search.tried.includes(i)} onClick={() => inspect(i)}>{label}</button>
                   ))}
                 </div>
               </>

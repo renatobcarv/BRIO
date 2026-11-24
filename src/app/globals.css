@@ -878,3 +878,11 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
   .pet-play-motion[data-pet-reaction], [data-habitat] .pet-play-motion[data-pet-reaction] { animation: none; }
   .pet-play-sparks { display: none; }
 }
+
+.pet-habitat-resident[data-away="true"] {
+  opacity: .12;
+  transition: opacity .45s ease .5s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pet-habitat-resident[data-away="true"] { transition: none; }
+}
