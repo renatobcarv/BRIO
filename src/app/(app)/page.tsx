@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Hourglass, MiniBottle } from "@/components/meters";
 import { Verse } from "@/components/ui";
 import { Checklist } from "@/components/home/checklist";
-import { Missions } from "@/components/home/missions";
 import { DailyText } from "@/components/home/daily-text";
 import { Greeting } from "@/components/home/greeting";
 import { Partner } from "@/components/home/partner";
@@ -143,8 +142,7 @@ export default async function Hoje() {
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
       {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
-      <Missions date={today} items={missions} google={googleOn} />
-      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} /></div>
+      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} agenda={missions} google={googleOn} /></div>
       </div>
       <div className="dash-side min-w-0">
       {game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}

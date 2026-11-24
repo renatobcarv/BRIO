@@ -1,4 +1,7 @@
 "use client";
+import Link from "next/link";
+import { addTask, setEventDone } from "@/app/(app)/agenda/actions";
+import type { Mission } from "./missions";
 import Image from "next/image";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
 import { toggleCheck } from "@/app/(app)/home-actions";
@@ -62,7 +65,12 @@ function Editor({ items, onClose }: { items: ChecklistItem[]; onClose: () => voi
   );
 }
 
-export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: string; items: ChecklistItem[]; done: string[]; streak?: number; best?: number }) {
+export function Checklist({ date, items, done, streak = 0, best = 0, agenda = [], google = false }: { date: string; items: ChecklistItem[]; done: string[]; streak?: number; best?: number; agenda?: Mission[]; google?: boolean }) {
+  // Agenda do dia na mesma lista (to-do): marcar aqui marca na agenda; adicionar cria na agenda (e no Google, se conectado).
+  const [ag, toggleAg] = useOptimistic(agenda, (l: Mission[], x: { id: string; done: boolean }) => l.map((m) => (m.id === x.id ? { ...m, done: x.done } : m)));
+  const [nt, setNt] = useState(""), [tm, setTm] = useState(""), [agErr, setAgErr] = useState(""), [agBusy, startAg] = useTransition();
+  const nowHm = new Date(Date.now() - 3 * 36e5).toISOString().slice(11, 16);
+  const agSorted = [...ag].sort((a, b) => Number(a.done) - Number(b.done) || (a.start_time ?? "99").localeCompare(b.start_time ?? "99"));
   const [, start] = useTransition();
   const [editing, setEditing] = useState(false);
   const [opt, setOpt] = useOptimistic(new Set(done), (s: Set<string>, a: { key: string; on: boolean }) => {
@@ -151,6 +159,30 @@ export function Checklist({ date, items, done, streak = 0, best = 0 }: { date: s
             );
           })}
         </ul>
+
+        <div className="flex items-baseline justify-between mt-5 mb-2"><p className="label !text-[9px] min-w-0">Agenda de hoje{google ? " · Google Agenda" : ""}</p><Link href="/agenda" className="label !text-[9px] underline underline-offset-4">agenda</Link></div>
+        <ul className="grid grid-cols-1 min-w-0 gap-px bg-white/[.06] border border-white/[.06]">
+          {agSorted.map((m) => { const late = !m.done && m.start_time && m.start_time.slice(0, 5) < nowHm; return (
+            <li key={m.id} className="bg-[#080808]">
+              <button onClick={() => startAg(async () => { toggleAg({ id: m.id, done: !m.done }); const e = await setEventDone(m.id, !m.done); if (e) setAgErr(e); })} aria-pressed={m.done}
+                className="press w-full flex items-center gap-3 text-left px-3 min-h-[54px] py-2 transition-colors" style={{ background: m.done ? `linear-gradient(90deg, ${SYS}1f, transparent 70%)` : undefined }}>
+                <span className="grid place-items-center h-6 w-6 shrink-0 border" style={{ borderColor: m.done ? SYS : "rgba(255,255,255,.25)", background: m.done ? SYS : "transparent" }}>
+                  {m.done && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={m.done ? "#6b6b70" : "#a1a1a6"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4M15 3v4" /></svg>
+                <span className={`flex-1 min-w-0 text-[14px] leading-snug ${m.done ? "text-[#6b6b70] line-through decoration-1" : "text-[#f5f5f7]"}`}>{m.title}</span>
+                {m.start_time && <span className="font-mono text-[11px] shrink-0 tabular-nums" style={{ color: late ? "#ff8a80" : "#6b6b70" }}>{m.start_time.slice(0, 5)}</span>}
+              </button>
+            </li>); })}
+          <li className="bg-[#080808]">
+            <form className="flex min-w-0 items-center gap-2 px-3 min-h-[54px]" onSubmit={(e) => { e.preventDefault(); const t = nt.trim(); if (!t) return; startAg(async () => { const x = await addTask(t, date, tm || null); if (x) setAgErr(x); else { setNt(""); setTm(""); setAgErr(""); } }); }}>
+              <span aria-hidden className="grid place-items-center h-6 w-6 shrink-0 border border-dashed border-white/25 text-white/40">+</span>
+              <input size={1} className="flex-1 min-w-0 bg-transparent text-[14px] outline-none placeholder:text-white/35" placeholder="Adicionar missão de hoje…" value={nt} onChange={(e) => setNt(e.target.value)} maxLength={120} aria-label="Nova missão" />
+              <input type="time" className="w-[64px] min-w-0 shrink-0 bg-transparent text-[12px] text-white/60 outline-none [&::-webkit-calendar-picker-indicator]:hidden" value={tm} onChange={(e) => setTm(e.target.value)} aria-label="Horário (opcional)" />
+              <button className="label !text-[10px] shrink-0 disabled:opacity-30" disabled={agBusy || !nt.trim()} style={{ color: SYS }}>OK</button>
+            </form>
+          </li>
+        </ul>
+        {agErr && <p className="text-[12px] mt-1.5" style={{ color: "#ffb21e" }}>{agErr}</p>}
 
         <div className="flex items-start justify-between gap-3 mt-4 text-[12px]">
           <p className="text-white/60 leading-snug">{full ? `${streak} ${streak === 1 ? "dia" : "dias"} 100% seguidos · recorde ${best}` : `Incompleta à meia-noite, a sequência de ${streak} ${streak === 1 ? "dia" : "dias"} zera.`}</p>
