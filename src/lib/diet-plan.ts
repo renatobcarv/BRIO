@@ -26,8 +26,10 @@ export const PHASE_ADJ: Record<string, { pct: number; label: string }> = {
   realizacao: { pct: 0, label: "Pico: calorias do plano" },
   deload: { pct: -0.07, label: "Recuperação: −7% (menos treino)" },
 };
-export function adjustForPhase(t: { kcal: number; protein: number; carbs: number; fat: number }, kind?: string | null) {
-  const a = (kind && PHASE_ADJ[kind]) || null;
+/** Em cutting, a fase do treino nunca soma calorias (só o deload reduz); em bulking/manutenção vale o ajuste completo. */
+export function adjustForPhase(t: { kcal: number; protein: number; carbs: number; fat: number }, kind?: string | null, goal?: Goal | null) {
+  const raw = (kind && PHASE_ADJ[kind]) || null;
+  const a = raw && goal === "perder" && raw.pct > 0 ? { pct: 0, label: "Cutting: a fase do treino não soma calorias" } : raw;
   if (!a || !a.pct) return { ...t, note: a?.label ?? null };
   const dk = Math.round((t.kcal * a.pct) / 10) * 10;
   return { kcal: t.kcal + dk, protein: t.protein, fat: t.fat, carbs: Math.max(50, t.carbs + Math.round(dk / 4)), note: a.label };

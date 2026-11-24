@@ -5,6 +5,7 @@ import { Consult } from "./consult";
 import { phaseOf, type Goal } from "@/lib/diet-plan";
 import { weekNutrition, weightRate } from "@/lib/master";
 import { NUTRI } from "@/lib/personas";
+import Image from "next/image";
 
 const G = "#9de3ac";
 type Plan = { kcal: number; protein_g: number; goal: Goal; profile: { kg?: number; targetKg?: number | null; rate?: number | null; weeks?: number | null } } | null;
@@ -18,11 +19,17 @@ export function DietCoach({ plan, weights, today }: { plan: Plan; weights: { dat
   const prog = start0 && tgt && cur != null && start0 !== tgt ? Math.max(0, Math.min(1, (start0 - cur) / (start0 - tgt))) : null;
   const run = (f: () => Promise<string | null>, ok: string) => start(async () => { const e = await f(); setMsg(e ?? ok); });
   return (
-    <section className="hunt-card p-5 mb-4 relative overflow-hidden">
-      <div aria-hidden className="absolute -right-14 -top-14 h-48 w-48 rounded-full" style={{ background: `radial-gradient(circle, ${G}22, transparent 70%)` }} />
-      <div className="relative flex items-end justify-between gap-3">
-        <div><p className="label" style={{ color: G }}>{NUTRI.short} · ajuste da semana</p><p className="font-display text-3xl mt-1">{ph.label}</p></div>
-        <div className="text-right"><p className="text-[26px] font-bold leading-none">{plan.kcal.toLocaleString("pt-BR")}</p><p className="text-[11px] text-white/50">kcal/dia · {plan.protein_g} g proteína</p></div>
+    <section className="hunt-card p-5 mb-4 relative isolate overflow-hidden">
+      {/* Arte da Helena dissolvendo para o fundo (mesmo estilo do Mestre). */}
+      <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[260px] sm:h-[300px] [mask-image:linear-gradient(180deg,#000_40%,transparent)]">
+        <Image src="/cards/nutricionista.webp" fill alt="" unoptimized sizes="(max-width: 768px) 100vw, 1200px" className="object-cover" style={{ objectPosition: "77% 28%" }} />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,#0b0b0c_0%,#0b0b0cf2_32%,#0b0b0c8c_58%,transparent_85%)]" />
+      </div>
+      <div className="relative flex min-h-[120px] sm:min-h-[150px] flex-col justify-end">
+        <div className="flex items-center gap-2"><span className="relative size-9 overflow-hidden rounded-full border-2" style={{ borderColor: G }}><Image src="/cards/nutricionista-avatar.webp" alt="" fill unoptimized sizes="36px" className="object-cover" /></span>
+          <p className="label" style={{ color: G }}>{NUTRI.name} · ajuste da semana</p></div>
+        <p className="font-display text-4xl mt-1">{ph.label}</p>
+        <p className="text-[14px] text-white/70"><b className="text-white text-[20px]">{plan.kcal.toLocaleString("pt-BR")}</b> kcal/dia · {plan.protein_g} g de proteína</p>
       </div>
       {tgt && cur != null && <div className="relative mt-4">
         <div className="flex justify-between text-[12px] text-white/60"><span>{start0} kg</span><span className="font-semibold text-white">agora {cur} kg</span><span>meta {tgt} kg</span></div>

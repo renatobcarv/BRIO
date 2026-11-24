@@ -33,7 +33,7 @@ export function DietPlanCard({ plan, ready, date, doneSlots, intakes, phase }: {
       <DietQuiz open={quiz} onClose={() => setQuiz(false)} onSaved={() => { setQuiz(false); router.refresh(); }} />
     </section>);
 
-  const adj = plan.follow_phase ? adjustForPhase({ kcal: plan.kcal, protein: plan.protein_g, carbs: plan.carbs_g, fat: plan.fat_g }, phase?.kind) : { kcal: plan.kcal, protein: plan.protein_g, carbs: plan.carbs_g, fat: plan.fat_g, note: null };
+  const adj = plan.follow_phase ? adjustForPhase({ kcal: plan.kcal, protein: plan.protein_g, carbs: plan.carbs_g, fat: plan.fat_g }, phase?.kind, plan.goal) : { kcal: plan.kcal, protein: plan.protein_g, carbs: plan.carbs_g, fat: plan.fat_g, note: null };
   const doneMeals = plan.meals.filter((m) => doneSlots.includes(m.key)).length;
   const toggle = (kind: "suplemento" | "remedio", name: string) => {
     const k = `${kind}|${name}`, on = !taken.has(k);
