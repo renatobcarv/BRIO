@@ -9,7 +9,7 @@ import { MESTRE, NUTRI } from "@/lib/personas";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
 
 const A = "#ffb21e";
-type Diet = { sex: "m" | "f"; age: number; cm: number; kg: number; meals: number; likes: string; dislikes: string; restrictions: string; budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito"; dietGoal?: "perder" | "manter" | "ganhar" | "recomp" };
+type Diet = { sex: "m" | "f"; age: number; cm: number; kg: number; meals: number; likes: string; dislikes: string; restrictions: string; budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito"; dietGoal?: "perder" | "manter" | "ganhar" | "recomp"; targetKg?: number; weeks?: number };
 type Opt<T> = { v: T; l: string; d?: string };
 type Q = { who: "treino" | "dieta"; key: string; ask: string; why?: string; opts?: Opt<unknown>[]; multi?: number; input?: "number" | "text"; unit?: string; skip?: boolean; when?: (a: Record<string, unknown>) => boolean };
 
@@ -42,6 +42,8 @@ const Qs: Q[] = [
   { who: "dieta", key: "age", ask: "Idade?", input: "number", unit: "anos" },
   { who: "dieta", key: "cm", ask: "Altura?", input: "number", unit: "cm" },
   { who: "dieta", key: "kg", ask: "Peso atual?", input: "number", unit: "kg" },
+  { who: "dieta", key: "targetKg", skip: true, input: "number", unit: "kg", ask: "Qual o seu peso objetivo?", why: "Com ele eu calculo o déficit (ou superávit) pelo ritmo seguro: perder 0,5–1% do peso por semana, ganhar 0,25–0,5%." },
+  { who: "dieta", key: "weeks", skip: true, input: "number", unit: "semanas", when: (a) => Number(a.targetKg) > 0, ask: "Em quantas semanas você quer chegar lá?", why: "Opcional. Se for rápido demais, eu seguro no ritmo seguro e te mostro o prazo real." },
   { who: "dieta", key: "meals", ask: "Quantas refeições por dia combinam com sua rotina?", opts: [3, 4, 5, 6].map((n) => ({ v: n, l: `${n}` })) },
   { who: "dieta", key: "likes", ask: "O que você gosta de comer?", input: "text", skip: true },
   { who: "dieta", key: "dislikes", ask: "E o que não come de jeito nenhum?", input: "text", skip: true },
@@ -118,7 +120,7 @@ export function Consult() {
     setRes(null); setI(k);
   };
   const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], bench: String(ans.bench ?? "") || undefined, squat: String(ans.squat ?? "") || undefined, deadlift: String(ans.deadlift ?? "") || undefined, start: thisMonday(), focus: (ans.focus as Focus) ?? "geral", style: (ans.style as TrainAnswers["style"]) ?? "moderno", runs: ans.goal === "hibrido" ? (ans.runs as number) : undefined, runGoal: ans.goal === "hibrido" ? (ans.runGoal as TrainAnswers["runGoal"]) : undefined });
-  const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio", dietGoal: ans.dietGoal as Diet["dietGoal"] });
+  const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio", dietGoal: ans.dietGoal as Diet["dietGoal"], targetKg: Number(ans.targetKg) || undefined, weeks: Number(ans.weeks) || undefined });
   const next = async (val: unknown) => {
     if (typing) return;
     const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));

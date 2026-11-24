@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { aiJSON } from "@/lib/ai/providers";
-import { targets, ACTIVITY, GOALS, type Activity, type Goal, type Sex } from "@/lib/diet-plan";
+import { targets, weightPlan, ACTIVITY, GOALS, type Activity, type Goal, type Sex } from "@/lib/diet-plan";
 
 const MISSING = "Rode a migração 20261124000000_plano_dieta.sql no Supabase.";
 const msg = (e: { message: string } | null) => (e ? (/relation|does not exist|schema cache/i.test(e.message) ? MISSING : e.message) : null);
@@ -24,16 +24,21 @@ export type QuizAnswers = {
   sex: Sex; age: number; cm: number; kg: number; activity: Activity; goal: Goal; meals: number; times: string[];
   likes: string; dislikes: string; restrictions: string; budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito";
   supplements: { name: string; dose: string; time: string }[]; meds: { name: string; dose: string; time: string; notes: string }[]; water_ml?: number;
+  /** Peso objetivo (e prazo opcional em semanas): define cutting/bulking e o déficit pelo ritmo seguro. */
+  targetKg?: number | null; weeks?: number | null;
 };
 
 const LABELS = ["Café da manhã", "Lanche da manhã", "Almoço", "Lanche da tarde", "Jantar", "Ceia"];
 const pickLabels = (n: number) => (n <= 3 ? ["Café da manhã", "Almoço", "Jantar"] : n === 4 ? ["Café da manhã", "Almoço", "Lanche da tarde", "Jantar"] : n === 5 ? ["Café da manhã", "Lanche da manhã", "Almoço", "Lanche da tarde", "Jantar"] : LABELS);
 
 /** Gera o plano: metas por fórmula; cardápio pela IA (ou modelo simples sem IA). Não salva: o usuário revisa. */
-export async function generateDietPlan(a: QuizAnswers): Promise<{ plan?: DietPlan; error?: string; ai: boolean }> {
-  const t = targets({ sex: a.sex, kg: a.kg, cm: a.cm, age: a.age, activity: a.activity, goal: a.goal });
+export async function generateDietPlan(input: QuizAnswers): Promise<{ plan?: DietPlan; error?: string; ai: boolean }> {
+  let a = input;
+  const wp = a.targetKg && a.targetKg > 30 && a.goal !== "recomp" ? weightPlan({ sex: a.sex, kg: a.kg, cm: a.cm, age: a.age, activity: a.activity, targetKg: a.targetKg, weeks: a.weeks }) : null;
+  if (wp) a = { ...a, goal: wp.goal };
+  const t = wp ? { tdee: wp.tdee, kcal: wp.kcal, protein: wp.protein, carbs: wp.carbs, fat: wp.fat, water: Math.round((a.kg * 35) / 50) * 50 } : targets({ sex: a.sex, kg: a.kg, cm: a.cm, age: a.age, activity: a.activity, goal: a.goal });
   const labels = pickLabels(Math.min(6, Math.max(3, a.meals)));
-  const base = { goal: a.goal, profile: { sex: a.sex, age: a.age, cm: a.cm, kg: a.kg, activity: a.activity, likes: a.likes, dislikes: a.dislikes, restrictions: a.restrictions, budget: a.budget, cook: a.cook, tdee: t.tdee },
+  const base = { goal: a.goal, profile: { sex: a.sex, age: a.age, cm: a.cm, kg: a.kg, activity: a.activity, targetKg: a.targetKg ?? null, rate: wp?.rate ?? null, weeks: wp?.weeks ?? null, likes: a.likes, dislikes: a.dislikes, restrictions: a.restrictions, budget: a.budget, cook: a.cook, tdee: t.tdee },
     kcal: t.kcal, protein_g: t.protein, carbs_g: t.carbs, fat_g: t.fat, water_ml: a.water_ml || t.water, supplements: a.supplements, meds: a.meds, follow_phase: true, notes: null };
   const r = await aiJSON<{ meals: { label: string; time: string; items: { name: string; qty: string; kcal: number; p: number; c: number; g: number }[] }[] }>(null,
     `Você é nutricionista esportivo brasileiro. Monte um cardápio diário com comida brasileira comum, realista e repetível. Respeite EXATAMENTE as refeições pedidas. Some aproximadamente ${t.kcal} kcal, ${t.protein} g de proteína, ${t.carbs} g de carboidrato e ${t.fat} g de gordura no dia (tolerância 5%). Use quantidades caseiras + gramas (ex.: "150 g (1 escumadeira)"). Valores nutricionais realistas (tabela TACO). Respeite restrições e o que a pessoa não gosta; prefira o que ela gosta. Orçamento: ${a.budget}. Tempo de cozinha: ${a.cook}. Não prescreva suplementos nem remédios.`,
@@ -98,4 +103,42 @@ export async function toggleIntake(date: string, kind: "suplemento" | "remedio",
   const { error } = on ? await sb.from("diet_intakes").upsert({ date, kind, name: name.slice(0, 120) }, { onConflict: "user_id,date,kind,name" })
     : await sb.from("diet_intakes").delete().eq("date", date).eq("kind", kind).eq("name", name);
   refresh(); return msg(error);
+}
+
+
+/** Escala o plano para novas calorias: proteína fica; carboidrato e gordura acompanham a diferença. */
+function rescale(plan: { kcal: number; protein_g: number; carbs_g: number; fat_g: number; meals: { items: { kcal: number; p: number; c: number; g: number; qty: string }[] }[] }, kcal: number) {
+  const nonP = Math.max(1, plan.kcal - plan.protein_g * 4), f = Math.max(0.5, Math.min(1.5, (kcal - plan.protein_g * 4) / nonP));
+  const pct = Math.round((f - 1) * 100);
+  return { kcal, carbs_g: Math.max(50, Math.round(plan.carbs_g * f)), fat_g: Math.max(30, Math.round(plan.fat_g * f)),
+    meals: plan.meals.map((m) => ({ ...m, items: m.items.map((x) => ({ ...x, kcal: Math.round(x.kcal - x.p * 4 + (x.kcal - x.p * 4) * (f - 1) + x.p * 4), c: Math.round(x.c * f), g: Math.round(x.g * f),
+      qty: pct && (x.c > 5 || x.g > 5) ? `${x.qty.replace(/ · [−+]\d+%$/, "")} · ${pct > 0 ? "+" : "−"}${Math.abs(pct)}%` : x.qty })) })) };
+}
+async function updatePlan(kcal: number, extra: Record<string, unknown> = {}): Promise<string | null> {
+  const sb = await createClient();
+  const { data: plan, error } = await sb.from("diet_plans").select("*").maybeSingle();
+  if (error) return msg(error); if (!plan) return "Crie um plano alimentar primeiro.";
+  const r = rescale(plan as never, Math.round(kcal / 10) * 10);
+  const { error: e2 } = await sb.from("diet_plans").update({ ...r, ...extra, updated_at: new Date().toISOString() }).not("user_id", "is", null);
+  if (e2) return msg(e2);
+  await sb.from("settings").update({ kcal_goal: r.kcal, carbs_goal_g: r.carbs_g, fat_goal_g: r.fat_g, ...(extra.protein_g ? { protein_goal_g: extra.protein_g } : {}) }).not("id", "is", null);
+  refresh(); revalidatePath("/dieta"); return null;
+}
+/** Recalcula o plano pelo peso objetivo (cutting/bulking com ritmo seguro). */
+export async function recalcForTarget(targetKg: number, weeks: number | null): Promise<string | null> {
+  const t = z.number().min(30).max(250).safeParse(targetKg); if (!t.success) return "Peso objetivo inválido.";
+  const sb = await createClient();
+  const [{ data: plan }, { data: w }] = await Promise.all([sb.from("diet_plans").select("profile").maybeSingle(), sb.from("weight_logs").select("kg").order("date", { ascending: false }).limit(1).maybeSingle()]);
+  const pr = (plan?.profile ?? {}) as { sex?: Sex; age?: number; cm?: number; kg?: number; activity?: Activity };
+  if (!plan || !pr.sex || !pr.age || !pr.cm) return "Crie o plano pela consulta (com peso, altura e idade) antes de recalcular.";
+  const kg = Number(w?.kg ?? pr.kg);
+  const wp = weightPlan({ sex: pr.sex, kg, cm: pr.cm, age: pr.age, activity: pr.activity ?? "moderado", targetKg: t.data, weeks });
+  return updatePlan(wp.kcal, { goal: wp.goal, protein_g: wp.protein, profile: { ...pr, kg, targetKg: t.data, rate: wp.rate, weeks: wp.weeks } });
+}
+/** Aplica o ajuste semanal sugerido (± kcal) pela tendência do peso. */
+export async function applyDietAdjust(adj: number): Promise<string | null> {
+  const a = z.number().int().min(-400).max(400).safeParse(adj); if (!a.success || !a.data) return "Ajuste inválido.";
+  const sb = await createClient(); const { data: plan } = await sb.from("diet_plans").select("kcal").maybeSingle();
+  if (!plan) return "Crie um plano alimentar primeiro.";
+  return updatePlan(Number(plan.kcal) + a.data);
 }

@@ -32,3 +32,27 @@ export function adjustForPhase(t: { kcal: number; protein: number; carbs: number
   const dk = Math.round((t.kcal * a.pct) / 10) * 10;
   return { kcal: t.kcal + dk, protein: t.protein, fat: t.fat, carbs: Math.max(50, t.carbs + Math.round(dk / 4)), note: a.label };
 }
+
+// ── Calorias pelo peso objetivo (cutting / bulking) ──
+// 1 kg de gordura ≈ 7.700 kcal. Ritmos seguros (Helms 2014; Iraki 2019): perder 0,5–1% do peso/semana; ganhar 0,25–0,5%.
+export const goalFromTarget = (kg: number, target: number): Goal => (target < kg - 0.5 ? "perder" : target > kg + 0.5 ? "ganhar" : "manter");
+export type Phase = { key: "cutting" | "bulking" | "recomp" | "manutencao"; label: string };
+export const phaseOf = (g: Goal): Phase => (g === "perder" ? { key: "cutting", label: "Cutting" } : g === "ganhar" ? { key: "bulking", label: "Bulking limpo" } : g === "recomp" ? { key: "recomp", label: "Recomposição" } : { key: "manutencao", label: "Manutenção" });
+/** Plano por objetivo de peso: ritmo semanal → déficit/superávit diário, com pisos de segurança. */
+export function weightPlan(p: { sex: Sex; kg: number; cm: number; age: number; activity: Activity; targetKg: number; weeks?: number | null }) {
+  const goal = goalFromTarget(p.kg, p.targetKg), diff = Math.abs(p.kg - p.targetKg);
+  // Em cutting, o fator de atividade costuma superestimar o gasto: usa um nível abaixo.
+  const order: Activity[] = ["sedentario", "leve", "moderado", "alto", "atleta"];
+  const act = goal === "perder" ? order[Math.max(0, order.indexOf(p.activity) - 1)] : p.activity;
+  const b = bmr(p.sex, p.kg, p.cm, p.age), tdee = Math.round(b * ACTIVITY[act].f);
+  const [lo, hi] = goal === "perder" ? [0.005, 0.01] : goal === "ganhar" ? [0.0025, 0.005] : [0, 0];
+  const wanted = p.weeks && p.weeks > 0 ? diff / p.weeks : p.kg * (goal === "perder" ? 0.0075 : 0.0035);
+  const rate = goal === "manter" ? 0 : Math.max(p.kg * lo, Math.min(p.kg * hi, wanted)); // kg/semana
+  const delta = Math.round((rate * 7700) / 7 / 10) * 10 * (goal === "perder" ? -1 : 1);
+  const floor = Math.max(p.sex === "m" ? 1500 : 1200, Math.round(b * 1.05));
+  const kcal = Math.max(floor, Math.round((tdee + delta) / 10) * 10);
+  const protein = Math.round(p.kg * (goal === "perder" ? 2.2 : 2.0)), fat = Math.round(Math.max(0.7 * p.kg, (kcal * 0.25) / 9));
+  const carbs = Math.max(50, Math.round((kcal - protein * 4 - fat * 9) / 4));
+  const weeks = rate > 0 ? Math.ceil(diff / rate) : 0;
+  return { goal, phase: phaseOf(goal), tdee, kcal, protein, carbs, fat, rate: Math.round(rate * 100) / 100, weeks, floorHit: kcal === floor && tdee + delta < floor };
+}

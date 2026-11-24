@@ -18,7 +18,8 @@ const N = (v: unknown) => Number(v) || 0;
 
 /** Corpo (hoje, dieta, peso) dentro do Perfil. */
 /** `base` muda o destino das abas (ex.: /dieta?sub=…) quando a tela é usada fora de Status. */
-export async function CorpoView({ sp, base = "/status?aba=corpo&sub=" }: { sp: { aba?: string; d?: string }; base?: string }) {
+export async function CorpoView({ sp, base = "/status?aba=corpo&sub=", only, top }: { sp: { aba?: string; d?: string }; base?: string; only?: string[]; top?: React.ReactNode }) {
+  const TABS_ = only ? TABS.filter(([k]) => only.includes(k)) : TABS;
   if (sp.aba === "treino" || sp.aba === "programa") redirect(sp.aba === "programa" ? "/treino?aba=programa" : "/treino");
   const openProgram = sp.aba === "programa";
   const tab = openProgram ? "treino" : sp.aba ?? "hoje";
@@ -115,8 +116,8 @@ export async function CorpoView({ sp, base = "/status?aba=corpo&sub=" }: { sp: {
         <p className="text-sm text-muted mt-2">{cur.line}</p>
       </header>
       <nav aria-label="Setores do corpo" className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-5 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent md:backdrop-blur-none">
-        <div className="grid grid-cols-4 gap-px bg-white/[.08] border border-white/[.08] rounded-[8px] overflow-hidden">
-          {TABS.map(([k]) => { const x = SECT[k], on = tab === k; return (
+        <div className={`grid ${TABS_.length === 2 ? "grid-cols-2" : TABS_.length === 3 ? "grid-cols-3" : "grid-cols-4"} gap-px bg-white/[.08] border border-white/[.08] rounded-[8px] overflow-hidden`}>
+          {TABS_.map(([k]) => { const x = SECT[k], on = tab === k; return (
             <Link key={k} href={`${base}${k}`} aria-current={on ? "page" : undefined}
               className={`relative min-w-0 px-2 py-2.5 sm:px-3 sm:py-3 transition-colors ${on ? "bg-[#140303]" : "bg-[#080808] hover:bg-[#0e0e0e]"}`}>
               {on && <span aria-hidden className="absolute left-0 right-0 top-0 h-[2px]" style={{ background: "#ffb21e", boxShadow: "0 0 12px #ffb21e" }} />}
@@ -129,6 +130,7 @@ export async function CorpoView({ sp, base = "/status?aba=corpo&sub=" }: { sp: {
             </Link>); })}
         </div>
       </nav>
+      {top}
       {tab === "treino" && warEvent}
       {content}
       <Verse area="corpo" />

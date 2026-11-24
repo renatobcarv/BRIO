@@ -20,6 +20,7 @@ const Diet = z.object({
   sex: z.enum(["m", "f"]), age: z.number().int().min(14).max(90), cm: z.number().min(120).max(230), kg: z.number().min(35).max(250),
   meals: z.number().int().min(3).max(6), likes: z.string().max(300), dislikes: z.string().max(300), restrictions: z.string().max(300),
   budget: z.enum(["economico", "normal", "livre"]), cook: z.enum(["pouco", "medio", "muito"]), dietGoal: z.enum(["perder", "manter", "ganhar", "recomp"]).optional(),
+  targetKg: z.number().min(30).max(250).optional(), weeks: z.number().int().min(1).max(104).optional(),
 });
 
 /** Nível honesto: números de força digitados ou, se não houver, o melhor dos seus treinos registrados. */
@@ -65,7 +66,7 @@ export async function createFromConsult(t: unknown, d: unknown, withDiet: boolea
   const dd = Diet.safeParse(d);
   if (!dd.success) return { programId, dietError: "Respostas da dieta incompletas." };
   const q: QuizAnswers = { sex: dd.data.sex, age: dd.data.age, cm: dd.data.cm, kg: dd.data.kg, activity: activityFor(a.data.days + (a.data.goal === "hibrido" ? Math.ceil((a.data.runs ?? 3) / 2) : 0)), goal: dd.data.dietGoal ?? dietGoalFor(a.data.goal as TrainAnswers["goal"]),
-    meals: dd.data.meals, times: [], likes: dd.data.likes, dislikes: dd.data.dislikes, restrictions: dd.data.restrictions, budget: dd.data.budget, cook: dd.data.cook, supplements: [], meds: [] };
+    meals: dd.data.meals, times: [], likes: dd.data.likes, dislikes: dd.data.dislikes, restrictions: dd.data.restrictions, budget: dd.data.budget, cook: dd.data.cook, supplements: [], meds: [], targetKg: dd.data.targetKg ?? null, weeks: dd.data.weeks ?? null };
   const g = await generateDietPlan(q);
   if (!g.plan) return { programId, dietError: g.error ?? "Não consegui montar a dieta." };
   const e = await saveDietPlan({ ...g.plan, notes: "Criado na consulta com especialistas." });

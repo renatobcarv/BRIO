@@ -131,7 +131,7 @@ export function weekNutrition(goal: DietGoal, kind: string, waveName: string | n
   const tips: Change[] = [];
   let adj = 0;
   const [lo, hi] = BAND[goal];
-  if (rate == null) tips.push({ text: "Pese-se 3+ vezes por semana (mesma hora, em jejum) para o Mestre ajustar as calorias pela média.", ref: "rate" });
+  if (rate == null) tips.push({ text: "Pese-se 3+ vezes por semana (mesma hora, em jejum) para ajustar as calorias pela média da semana.", ref: "rate" });
   else if (rate < lo) { adj = goal === "perder" && rate < -1.2 ? 200 : 150; tips.push({ text: `Peso caindo ${rate.toFixed(2).replace(".", ",")}%/sem, mais rápido que o ideal: +${adj} kcal/dia para proteger o músculo.`, ref: "rate" }); }
   else if (rate > hi) { adj = -150; tips.push({ text: `Peso subindo ${rate.toFixed(2).replace(".", ",")}%/sem, acima do ideal: −150 kcal/dia para limitar gordura.`, ref: "rate" }); }
   else tips.push({ text: `Ritmo do peso ${rate.toFixed(2).replace(".", ",")}%/sem: dentro da faixa ideal, calorias mantidas.`, ref: "rate" });
