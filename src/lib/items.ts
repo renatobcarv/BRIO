@@ -222,3 +222,36 @@ export const tamedPct = (stars: number) => 2 + Math.max(1, Math.min(MAX_STARS, s
 
 /** Troféus: um por fera abatida (sem bônus, pura honra). */
 export const trophyName = (beast: string) => `Troféu: ${beast}`;
+
+// ── Atributos de combate dos itens (orçamento de atributos, estilo "stat budget") ──
+// Cada item tem um orçamento pela raridade, que cresce com o nível. O espaço define o atributo principal (60%) e o secundário (40%).
+export type Combat = { hp: number; atk: number; def: number; spd: number; crit: number; gold: number };
+export const COMBAT_LABEL: Record<keyof Combat, { short: string; long: string; unit: string }> = {
+  hp: { short: "VIDA", long: "Vida", unit: "" }, atk: { short: "ATQ", long: "Ataque", unit: "" }, def: { short: "DEF", long: "Defesa", unit: "" },
+  spd: { short: "VEL", long: "Velocidade", unit: "" }, crit: { short: "CRÍT", long: "Crítico", unit: "%" }, gold: { short: "OURO", long: "Ouro nas masmorras", unit: "%" },
+};
+const BUDGET: Record<Tier, number> = { comum: 10, raro: 16, epico: 24, lendario: 34 };
+/** Quanto 1 ponto do orçamento vale em cada atributo. */
+const WEIGHT: Record<keyof Combat, number> = { hp: 5, atk: 1, def: 0.8, spd: 0.6, crit: 0.5, gold: 1.2 };
+const SLOT_STATS: Record<Attr, [keyof Combat, keyof Combat]> = {
+  forca: ["atk", "crit"], vigor: ["hp", "def"], sabedoria: ["crit", "atk"], servico: ["spd", "hp"], disciplina: ["def", "hp"], ordem: ["gold", "spd"],
+};
+export const ZERO: Combat = { hp: 0, atk: 0, def: 0, spd: 0, crit: 0, gold: 0 };
+export function gearCombat(it: Gear, level = 1): Combat {
+  const b = BUDGET[it.tier] * (1 + 0.12 * (Math.max(1, Math.min(MAX_LEVEL, level)) - 1));
+  const [p, q] = SLOT_STATS[it.slot], out = { ...ZERO };
+  out[p] += Math.round(b * 0.6 * WEIGHT[p]); out[q] += Math.round(b * 0.4 * WEIGHT[q]);
+  if (it.tier === "lendario") (Object.keys(out) as (keyof Combat)[]).forEach((k) => { if (out[k]) out[k] = Math.round(out[k] * 1.1); });
+  return out;
+}
+export const addCombat = (a: Combat, b: Combat): Combat => ({ hp: a.hp + b.hp, atk: a.atk + b.atk, def: a.def + b.def, spd: a.spd + b.spd, crit: a.crit + b.crit, gold: a.gold + b.gold });
+export const diffCombat = (a: Combat, b: Combat): Combat => ({ hp: a.hp - b.hp, atk: a.atk - b.atk, def: a.def - b.def, spd: a.spd - b.spd, crit: a.crit - b.crit, gold: a.gold - b.gold });
+/** Soma dos itens equipados (cada espaço conta uma vez). */
+export function equippedCombat(eq: Equipped, levels: Record<string, number> = {}): Combat {
+  return Object.values(eq).reduce((acc, s) => { const it = s && gearById(s.id); return it ? addCombat(acc, gearCombat(it, levels[it.id])) : acc; }, { ...ZERO });
+}
+/** Descrição legível do efeito do item. */
+export function gearEffect(it: Gear, level = 1) {
+  const c = gearCombat(it, level), parts = (Object.keys(c) as (keyof Combat)[]).filter((k) => c[k]).map((k) => `+${c[k]}${COMBAT_LABEL[k].unit} de ${COMBAT_LABEL[k].long.toLowerCase()}`);
+  return `${parts.join(" e ")} nas masmorras; +${gearPct(it, level)}% de XP em ${({ forca: "Força", vigor: "Vigor", sabedoria: "Sabedoria", servico: "Serviço", disciplina: "Disciplina", ordem: "Ordem" } as Record<Attr, string>)[it.slot]} na vida real.`;
+}

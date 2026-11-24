@@ -4,9 +4,11 @@ import type { BeastId } from "./bestiary.ts";
 export type Stats = { maxHp: number; atk: number; def: number; spd: number; crit: number };
 export const STAGE_KEYS = ["filhote", "jovem", "cacador", "alfa", "sombra", "lenda"] as const;
 /** Atributos pela fase (índice 0–5) + essência acumulada + nível das feras domadas/itens (bônus em %). */
-export function petStats(stage: number, essence: number, bonusPct = 0): Stats {
+/** Atributos base pela fase e essência; `gear` soma os atributos dos itens equipados. */
+export function petStats(stage: number, essence: number, bonusPct = 0, gear?: { hp: number; atk: number; def: number; spd: number; crit: number }): Stats {
   const s = Math.max(0, Math.min(5, stage)), e = Math.max(0, essence), b = 1 + Math.max(0, Math.min(0.5, bonusPct / 100));
-  return { maxHp: Math.round((85 + s * 45 + Math.min(300, e / 60)) * b), atk: Math.round((12 + s * 7 + Math.min(40, e / 400)) * b), def: Math.round(3 + s * 3), spd: 10 + s * 2, crit: 0.05 + s * 0.02 };
+  const g = gear ?? { hp: 0, atk: 0, def: 0, spd: 0, crit: 0 };
+  return { maxHp: Math.round((85 + s * 45 + Math.min(300, e / 60)) * b) + g.hp, atk: Math.round((12 + s * 7 + Math.min(40, e / 400)) * b) + g.atk, def: Math.round(3 + s * 3) + g.def, spd: 10 + s * 2 + g.spd, crit: Math.min(0.6, 0.05 + s * 0.02 + g.crit / 100) };
 }
 
 export type Skill = { key: string; name: string; stage: number; desc: string };

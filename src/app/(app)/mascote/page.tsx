@@ -30,6 +30,6 @@ export default async function Page() {
       hud={pet && dungeon ? { level: dungeon.stage + 1, stageName: pet.stage.name, progress: pet.progress, hp: dungeon.hp, maxHp: dungeon.stats.maxHp, power: power(dungeon.stats), equipped: Object.keys(items?.equipped ?? {}).length } : null} />
     {pet && dungeon && <Dungeons d={dungeon} pet={{ name: pet.name, species: pet.species }} />}
     {pet && items && <Army army={items.army} active={items.active} kills={items.kills} ready={items.ready} pending={items.pending} />}
-    {pet && items && <Arsenal {...items} petName={pet.name} />}
+    {pet && items && <Arsenal {...items} petName={pet.name} pet={dungeon ? { species: pet.species, stage: dungeon.stage } : null} base={dungeon?.base ?? null} />}
   </>;
 }

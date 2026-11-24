@@ -1,7 +1,7 @@
 import { cleanDays as implicitClean, type Mark } from "./clean.ts";
 import { petState } from "./pet.ts";
 import { achievements, xpEvents, type Attr } from "./game";
-import { BEAST_ATTR, tameOpportunities, type TameTries, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
+import { equippedCombat, BEAST_ATTR, tameOpportunities, type TameTries, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
 import { ALL, FERAS, bestiaryRecord } from "./bestiary";
 import { campaignMilestones } from "./coach";
 import { STAGE_KEYS, petStats, regen } from "./dungeon";
@@ -105,9 +105,10 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const dq = await sb.from("pets").select("hp,hp_at,dungeon_gold,dungeon_best,dungeon_runs").maybeSingle();
   const dd = dq.error ? null : dq.data;
   const stageIdx = pet ? Math.max(0, STAGE_KEYS.indexOf((pet as { stage: { key: string } }).stage.key as (typeof STAGE_KEYS)[number])) : 0;
-  const stats = petStats(stageIdx, Number((pet as { essence?: number } | null)?.essence ?? 0), Math.min(30, eco.owned.size));
+  const gearC = equippedCombat(equipped, eco.levels), essence = Number((pet as { essence?: number } | null)?.essence ?? 0);
+  const base = petStats(stageIdx, essence), stats = petStats(stageIdx, essence, 0, gearC);
   const dungeon = pet ? { ready: !dq.error, stage: stageIdx, stats, hp: regen((dd?.hp as number | null) ?? null, (dd?.hp_at as string | null) ?? null, stats.maxHp),
-    best: Number(dd?.dungeon_best ?? 0), runsToday: Number(((dd?.dungeon_runs ?? {}) as Record<string, number>)[today] ?? 0) } : null;
+    base, gear: gearC, best: Number(dd?.dungeon_best ?? 0), runsToday: Number(((dd?.dungeon_runs ?? {}) as Record<string, number>)[today] ?? 0) } : null;
   return { ...summarize(input), events, pet, petReady: !petQ.error, dungeon, items: { owned: Object.fromEntries(eco.owned), levels: eco.levels, gold: eco.gold + Number(dd?.dungeon_gold ?? 0), drops: eco.drops.slice(0, 12), kills: ks.length, equipped, trophies, ready: !eqQ.error, army: army2, active: active?.id ?? null, pending } };
 }
 export type Game = Awaited<ReturnType<typeof loadGame>>;

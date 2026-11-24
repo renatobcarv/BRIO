@@ -73,3 +73,13 @@ test("fera ativa dá bônus no atributo dela, dentro do teto", () => {
   const b = ib([{ date: "2026-11-10", attr: "servico", xp: 1000, label: "campo" }], {}, {}, [{ attr: "servico", pct: 5, at: "2026-11-01", name: "Guardião" }]);
   assert.deepEqual(b, [{ date: "2026-11-10", attr: "servico", xp: 50, label: "Bônus · Guardião" }]);
 });
+import { gearCombat, equippedCombat, gearEffect } from "../src/lib/items.ts";
+test("itens dão atributos de combate pelo orçamento: raridade e nível sobem", () => {
+  const presa = ALLG.find((g) => g.id === "presa-lobo")!, escama = ALLG.find((g) => g.id === "escama-croc")!;
+  const c1 = gearCombat(presa), c5 = gearCombat(presa, 5), lg = gearCombat(escama);
+  assert.ok(c1.atk > 0 && c1.crit > 0 && c1.hp === 0);
+  assert.ok(c5.atk > c1.atk); assert.ok(lg.atk > c1.atk * 2);
+  const all = equippedCombat({ forca: { id: "presa-lobo", at: "2026-11-01" }, vigor: { id: "sangue-frio", at: "2026-11-01" } });
+  assert.ok(all.atk > 0 && all.hp > 0);
+  assert.match(gearEffect(presa), /ataque.*masmorras.*XP em Força/);
+});

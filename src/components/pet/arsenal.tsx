@@ -3,9 +3,11 @@ import Image from "next/image";
 import { useState, useTransition } from "react";
 import { buyItem, equipItem, upgradeItem } from "@/app/(app)/mascote-actions";
 import { CreaturePortrait } from "@/components/body/creature-portrait";
-import { GEAR, ITEM_CAP, MAX_LEVEL, PRICE, SLOTS, TIER, buyable, gearById, gearPct, upgradeCost, type Equipped, type Gear } from "@/lib/items";
+import { COMBAT_LABEL, ZERO, diffCombat, equippedCombat, gearCombat, gearEffect, type Combat, GEAR, ITEM_CAP, MAX_LEVEL, PRICE, SLOTS, TIER, buyable, gearById, gearPct, upgradeCost, type Equipped, type Gear } from "@/lib/items";
 import { ATTRS, type Attr } from "@/lib/game";
 import { Sheet } from "@/components/kit";
+import { PetPortrait } from "./portrait";
+import { STAGES } from "@/lib/pet";
 import { ALL, type BeastId } from "@/lib/bestiary";
 
 const A = "#ffb21e";
@@ -30,10 +32,22 @@ function GearArt({ item, size = 56 }: { item: Gear; size?: number }) {
 }
 
 type Props = { owned: Record<string, string>; levels: Record<string, number>; gold: number; drops: { date: string; beast: BeastId; item: string; dup: boolean }[]; kills: number;
-  equipped: Equipped; trophies: { id: BeastId; won: number }[]; ready: boolean; petName: string };
+  equipped: Equipped; trophies: { id: BeastId; won: number }[]; ready: boolean; petName: string;
+  /** Mascote e atributos para mostrar o efeito real dos itens. */
+  pet?: { species: string; stage: number } | null; base?: { maxHp: number; atk: number; def: number; spd: number; crit: number } | null };
+type St = { maxHp: number; atk: number; def: number; spd: number; crit: number };
+const withGear = (b: St, g: Combat): St => ({ maxHp: b.maxHp + g.hp, atk: b.atk + g.atk, def: b.def + g.def, spd: b.spd + g.spd, crit: Math.min(0.6, b.crit + g.crit / 100) });
+const STAT_ROWS: [keyof St, string, (v: number) => string][] = [["maxHp", "Vida", (v) => String(v)], ["atk", "Ataque", (v) => String(v)], ["def", "Defesa", (v) => String(v)], ["spd", "Veloc.", (v) => String(v)], ["crit", "Crít.", (v) => `${Math.round(v * 100)}%`]];
+/** Chips dos atributos de combate de um item. */
+function StatChips({ c, delta = false }: { c: Combat; delta?: boolean }) {
+  return <span className="flex flex-wrap gap-1 mt-1">{(Object.keys(c) as (keyof Combat)[]).filter((k) => c[k]).map((k) => (
+    <span key={k} className="rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold" style={{ background: delta ? (c[k] > 0 ? "#30d15822" : "#ff453a22") : "rgba(255,255,255,.07)", color: delta ? (c[k] > 0 ? "#30d158" : "#ff8a80") : "#fff" }}>
+      {c[k] > 0 ? "+" : ""}{c[k]}{COMBAT_LABEL[k].unit} {COMBAT_LABEL[k].short}</span>))}</span>;
+}
 const Coin = ({ v }: { v: number }) => <span className="font-semibold" style={{ color: A }}>◉ {v.toLocaleString("pt-BR")}</span>;
 
-export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies, ready, petName }: Props) {
+export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies, ready, petName, pet, base }: Props) {
+  const gearNow = equippedCombat(equipped, levels), now = base ? withGear(base, gearNow) : null;
   const [slot, setSlot] = useState<Attr | null>(null), [tab, setTab] = useState<"equipar" | "loja" | "evoluir">("equipar");
   const [msg, setMsg] = useState(""), [pending, start] = useTransition();
   const has = (id: string) => !!owned[id], lv = (id: string) => levels[id] ?? 1;
@@ -46,7 +60,13 @@ export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies,
         <span className="flex-1 min-w-0">
           <span className="block text-[14px] font-semibold leading-tight">{x.name}</span>
           <span className="block text-[11px]" style={{ color: c }}>{TIER[x.tier].label} · {ATTRS[x.slot].label} · +{gearPct(x, mine ? lv(x.id) : 1)}% XP</span>
-          <span className="block text-[12px] text-white/55 leading-snug">{mine ? x.lore : x.source === "conquista" ? `🔒 ${x.how}` : "Cai das feras · ou compre na loja"}</span>
+          <span className="block text-[12px] text-white/70 leading-snug">{gearEffect(x, mine ? lv(x.id) : 1)}</span>
+          <StatChips c={gearCombat(x, mine ? lv(x.id) : 1)} />
+          {/* Comparação com o que está equipado neste espaço */}
+          {(() => { const curId = equipped[x.slot]?.id; if (curId === x.id) return <span className="block text-[11px] mt-1" style={{ color: A }}>Equipado agora</span>;
+            const cur = curId ? gearById(curId) : null, d = diffCombat(gearCombat(x, mine ? lv(x.id) : 1), cur ? gearCombat(cur, lv(cur.id)) : ZERO);
+            return <span className="block text-[11px] text-white/45 mt-1">Se equipar{cur ? ` no lugar de ${cur.name}` : ""}: <StatChips c={d} delta /></span>; })()}
+          <span className="block text-[11.5px] text-white/40 leading-snug mt-1">{mine ? x.lore : x.source === "conquista" ? `🔒 ${x.how}` : "Cai das feras · ou compre na loja"}</span>
         </span>{children}
       </li>); };
   return (
@@ -56,6 +76,13 @@ export function Arsenal({ owned, levels, gold, drops, kills, equipped, trophies,
         <div className="text-right"><p className="text-[22px] leading-none"><Coin v={gold} /></p><p className="text-[11px] text-white/45 mt-1">Ouro · {Object.keys(owned).length}/{GEAR.length} itens</p></div>
       </div>
       <p className="text-[12.5px] text-white/55 mt-1">Cada treino da campanha derrota a fera da semana, rende Ouro e pode deixar um item (chance maior em feras fortes e chefes). Bônus só no atributo do item, a partir do dia em que equipa; extra total limitado a {Math.round(ITEM_CAP * 100)}%.</p>
+      {pet && base && now && <div className="mt-4 grid grid-cols-[96px_1fr] gap-4 items-center rounded-[16px] border border-white/10 bg-black/30 p-3">
+        <PetPortrait species={pet.species} stage={STAGES[pet.stage]} size={96} />
+        <div><p className="text-[12px] text-white/55">{petName} com o equipamento atual</p>
+          <div className="grid grid-cols-5 gap-1 mt-1 text-center">{STAT_ROWS.map(([k, l, f]) => { const d = now[k] - base[k]; return (
+            <div key={k} className="rounded-[8px] bg-white/[.05] py-1.5"><b className="block text-[14px]">{f(now[k])}</b><span className="block text-[9.5px] text-white/50">{l}</span>{d > 0 && <span className="block text-[9.5px]" style={{ color: "#30d158" }}>+{f(d)}</span>}</div>); })}</div>
+          <p className="text-[11px] text-white/45 mt-1">Em verde, o que os itens somam aos atributos da fase.{gearNow.gold ? ` +${gearNow.gold}% de Ouro nas masmorras.` : ""}</p></div>
+      </div>}
       {!ready && <p className="text-[13px] mt-3" style={{ color: A }}>Para equipar, comprar e evoluir, rode o SQL <b>20261127000000_itens.sql</b> no Supabase.</p>}
 
       <div className="grid grid-cols-3 gap-1 p-1 rounded-[12px] bg-white/[.05] mt-4" role="tablist">

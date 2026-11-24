@@ -133,6 +133,7 @@ export async function runDungeon(id: number) {
   if (d.id > g.dungeon.best + 1) return { error: "Vença o andar anterior primeiro." };
   if (g.dungeon.hp < g.dungeon.stats.maxHp * 0.2) return { error: "Vida baixa demais. Deixe o mascote descansar (regenera 25% por hora)." };
   const r = fight(g.dungeon.stats, g.dungeon.stage, g.dungeon.hp, d, randomInt(1, 2 ** 31 - 1));
+  r.gold = Math.round(r.gold * (1 + (g.dungeon.gear?.gold ?? 0) / 100)); // itens de Ordem: mais Ouro
   const { data: cur } = await sb.from("pets").select("dungeon_gold,dungeon_best,dungeon_runs,bonus_essence").maybeSingle();
   const runs = { ...((cur?.dungeon_runs ?? {}) as Record<string, number>), [todayISO()]: g.dungeon.runsToday + 1 };
   const { error } = await sb.from("pets").update({ hp: r.hp, hp_at: new Date().toISOString(), dungeon_runs: runs,
