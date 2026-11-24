@@ -2,9 +2,10 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, useTransition, type CSSProperties } from "react";
 import { createFromConsult, previewProgram } from "@/app/(app)/treino/coach-actions";
+import { previewDiet, saveDietPlan } from "@/app/(app)/corpo/diet-actions";
 import { ExerciseThumb } from "@/components/body/exercise-media";
 import { FOCUS, REFS, type Focus, type TrainAnswers } from "@/lib/coach";
-import { GREET, HANDOFF, reactTo } from "@/lib/consult-talk";
+import { GREET, GREET_DIET, HANDOFF, reactTo } from "@/lib/consult-talk";
 import { MESTRE, NUTRI } from "@/lib/personas";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
 
@@ -56,6 +57,11 @@ const WHO = {
   dieta: { name: NUTRI.short, role: NUTRI.role, art: "/cards/nutricionista.webp", avatar: "/cards/nutricionista-avatar.webp", pos: "77% 30%", color: "#9de3ac" },
 };
 const FIRST_DIET_STEP = Qs.findIndex((q) => q.who === "dieta");
+/** Conversa só da dieta (página Dieta): a Helena pergunta tudo, inclusive a rotina de treino. */
+const DIET_QS: Q[] = [
+  { who: "dieta", key: "trainDays", ask: "Quantos dias por semana você treina ou faz atividade física?", why: "Entra no seu gasto calórico.", opts: [0, 1, 2, 3, 4, 5, 6].map((n) => ({ v: n, l: n ? `${n} dia${n > 1 ? "s" : ""}` : "Nenhum" })) },
+  ...Qs.filter((q) => q.who === "dieta"),
+];
 type Msg = { id: number; from: "treino" | "dieta" | "me"; text: string };
 let msgId = 0;
 /** Texto da resposta como a pessoa "falaria" no chat. */
@@ -88,12 +94,14 @@ function WeekDayCard({ name, wd, list }: { name: string; wd: string; list: { nam
     </div>);
 }
 
-export function Consult() {
+export function Consult({ kind = "completo" }: { kind?: "completo" | "dieta" }) {
+  const QS = kind === "dieta" ? DIET_QS : Qs, FDS = kind === "dieta" ? 0 : FIRST_DIET_STEP, first: "treino" | "dieta" = kind === "dieta" ? "dieta" : "treino";
+  const [dietRes, setDietRes] = useState<Awaited<ReturnType<typeof previewDiet>> | null>(null);
   const [open, setOpen] = useState(false), [i, setI] = useState(0), [ans, setAns] = useState<Record<string, unknown>>({ priority: [], injuries: "", likes: "", dislikes: "", restrictions: "" });
   const [txt, setTxt] = useState(""), [res, setRes] = useState<Awaited<ReturnType<typeof previewProgram>> | null>(null), [msg, setMsg] = useState(""), [busy, start] = useTransition();
   const dialog = useRef<HTMLDialogElement>(null);
   const heading = useRef<HTMLHeadingElement>(null);
-  const q = Qs[i];
+  const q = QS[i];
   const specialist = WHO[q.who];
   const [chat, setChat] = useState<Msg[]>([]), [typing, setTyping] = useState<"treino" | "dieta" | null>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -111,8 +119,8 @@ export function Consult() {
     heading.current?.focus({ preventScroll: true });
   }, [open, i, res]);
   const goBack = () => {
-    let k = i - 1; while (k > 0 && Qs[k].when && !Qs[k].when!(ans)) k--;
-    const previous = Qs[k];
+    let k = i - 1; while (k > 0 && QS[k].when && !QS[k].when!(ans)) k--;
+    const previous = QS[k];
     if (!previous || typing) return;
     setTxt(previous.input ? String(ans[previous.key] ?? "") : "");
     // Some com a última resposta e o que veio depois dela no chat.
@@ -123,10 +131,10 @@ export function Consult() {
   const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio", dietGoal: ans.dietGoal as Diet["dietGoal"], targetKg: Number(ans.targetKg) || undefined, weeks: Number(ans.weeks) || undefined });
   const next = async (val: unknown) => {
     if (typing) return;
-    const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));
+    const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[QS[i + 1]?.key] ?? ""));
     say("me", said(q, val));
-    let ni = i + 1; while (Qs[ni]?.when && !Qs[ni].when!(a)) ni++;
-    const nq = Qs[ni], r = reactTo(q.key, val);
+    let ni = i + 1; while (QS[ni]?.when && !QS[ni].when!(a)) ni++;
+    const nq = QS[ni], r = reactTo(q.key, val);
     setTyping(q.who); await wait(r ? 650 + Math.min(900, r.length * 12) : 450); setTyping(null);
     if (r) say(q.who, r);
     if (nq && nq.who !== q.who) {
@@ -134,6 +142,7 @@ export function Consult() {
       await wait(400); setTyping(nq.who); await wait(1100); setTyping(null); say(nq.who, GREET[nq.who]);
     }
     if (nq) { await wait(250); setI(ni); }
+    else if (kind === "dieta") start(async () => setDietRes(await previewDiet({ ...diet(), trainDays: Number(a.trainDays ?? 3), dietGoal: a.dietGoal as Diet["dietGoal"], targetKg: Number(a.targetKg) || undefined, weeks: Number(a.weeks) || undefined })));
     else start(async () => setRes(await previewProgram({ ...train(), ...{ goal: a.goal } }, { ...diet(), sex: a.sex, kg: Number(a.kg) || undefined })));
   };
   const finish = () => start(async () => {
@@ -144,10 +153,10 @@ export function Consult() {
   });
   return (
     <>
-      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); setChat([]); setTyping("treino"); setTimeout(() => { setTyping(null); setChat([{ id: ++msgId, from: "treino", text: GREET.treino }]); }, 1300); }}
+      <button type="button" onClick={() => { setOpen(true); setI(0); setTxt(""); setRes(null); setMsg(""); setChat([]); setDietRes(null); setTyping(first); setTimeout(() => { setTyping(null); setChat([{ id: ++msgId, from: first, text: kind === "dieta" ? GREET_DIET : GREET[first] }]); }, 1300); }}
         className="press mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#ffb21e55] bg-[linear-gradient(120deg,#2d2111,#111111_72%)] p-4 text-left">
         <span aria-hidden="true" className="grid size-11 shrink-0 place-items-center rounded-xl bg-[#ffc369] text-xl font-bold text-[#211400]">+</span>
-        <span className="min-w-0"><span className="block font-semibold">Criar plano com especialistas</span><span className="block text-xs text-white/70">Treinador e nutricionista montam seu plano a partir das suas respostas.</span></span>
+        <span className="min-w-0"><span className="block font-semibold">{kind === "dieta" ? `Conversar com a ${NUTRI.short}` : "Criar plano com especialistas"}</span><span className="block text-xs text-white/70">{kind === "dieta" ? "Refazer ou ajustar sua dieta numa conversa: objetivo, peso alvo, rotina e gostos" : "Treinador e nutricionista montam seu plano a partir das suas respostas."}</span></span>
         <span aria-hidden="true" className="ml-auto text-xl text-[#ffc369]">↗</span>
       </button>
       {open && (
@@ -156,16 +165,16 @@ export function Consult() {
           className="fixed inset-0 m-auto h-dvh max-h-dvh w-full max-w-none overflow-y-auto bg-[#101011] text-white backdrop:bg-black/80 sm:h-auto sm:max-h-[92dvh] sm:w-[min(42rem,calc(100%_-_2rem))] sm:rounded-2xl sm:border sm:border-white/15">
           <div className="mx-auto max-w-2xl px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] pt-4 sm:px-6 sm:pt-5">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase tracking-[.16em] text-white/70">Consulta com especialistas</p>
+              <p className="text-xs font-semibold uppercase tracking-[.16em] text-white/70">{kind === "dieta" ? `Conversa com a ${NUTRI.short}` : "Consulta com especialistas"}</p>
               <button type="button" className="min-h-11 rounded-xl border border-white/15 px-3 text-sm font-medium text-white/85 hover:bg-white/10" onClick={() => dialog.current?.close()}>Fechar</button>
             </div>
-            {!res && (
-              <div className="mt-3 grid grid-cols-2 gap-3" role="progressbar" aria-label="Progresso da consulta" aria-valuemin={0} aria-valuemax={Qs.length} aria-valuenow={i + 1} aria-valuetext={`Pergunta ${i + 1} de ${Qs.length}`}>
-                {([[0, FIRST_DIET_STEP, "Treino"], [FIRST_DIET_STEP, Qs.length, "Nutrição"]] as const).map(([from, to, label]) => (
+            {!res && !dietRes && (
+              <div className="mt-3 grid grid-cols-2 gap-3" role="progressbar" aria-label="Progresso da consulta" aria-valuemin={0} aria-valuemax={QS.length} aria-valuenow={i + 1} aria-valuetext={`Pergunta ${i + 1} de ${QS.length}`}>
+                {(kind === "dieta" ? [[0, QS.length, "Nutrição"]] as const : [[0, FDS, "Treino"], [FDS, QS.length, "Nutrição"]] as const).map(([from, to, label]) => (
                   <div key={label}>
                     <div className="mb-1.5 flex justify-between gap-1 text-xs font-medium">
                       <span className={i >= from && i < to ? "text-[var(--consult-accent)]" : "text-white/65"}>{label}</span>
-                      {i >= from && i < to && <span className="tabular-nums text-white/75">{i + 1}/{Qs.length}</span>}
+                      {i >= from && i < to && <span className="tabular-nums text-white/75">{i + 1}/{QS.length}</span>}
                     </div>
                     <div className="flex gap-[3px]" aria-hidden="true">
                       {Qs.slice(from, to).map((item, index) => <span key={item.key} className="h-1 flex-1 rounded-full"
@@ -175,7 +184,7 @@ export function Consult() {
                 ))}
               </div>
             )}
-            {!res && q && (
+            {!res && !dietRes && q && (
               <div className="mt-4">
                 <div className="relative isolate flex min-h-[138px] flex-col justify-end overflow-hidden rounded-xl border border-white/10 p-4 sm:min-h-[168px] sm:p-5">
                   <Image src={specialist.art} fill alt="" unoptimized sizes="(max-width: 640px) 100vw, 630px" className="-z-20 object-cover" style={{ objectPosition: specialist.pos }} />
@@ -199,7 +208,7 @@ export function Consult() {
                 </div>
                 {!typing && <div key={i} className="chat-in mt-3 rounded-xl border border-white/10 bg-[#18181a] p-4 sm:p-5">
                   <div className="mb-2 flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--consult-accent)]">
-                    <span>Pergunta {i + 1} de {Qs.length}</span>
+                    <span>Pergunta {i + 1} de {QS.length}</span>
                     {q.skip && <span className="rounded-full border border-white/15 px-2 py-0.5 text-white/75">Opcional</span>}
                   </div>
                   <h2 ref={heading} tabIndex={-1} className="text-balance text-[clamp(1.35rem,4vw,1.85rem)] font-semibold leading-tight outline-none">{q.ask}</h2>
@@ -244,6 +253,20 @@ export function Consult() {
                 <p className="text-[11.5px] text-white/40">Isto é orientação geral baseada em estudos, não substitui avaliação médica ou de um nutricionista. Com lesão, dor ou condição de saúde, consulte um profissional.</p>
                 {msg && <p className="text-sm" style={{ color: A }}>{msg}</p>}
               </div>)}
+            {dietRes && (dietRes.plan ? (() => { const pl = dietRes.plan!, pr = pl.profile as { targetKg?: number | null; rate?: number | null; weeks?: number | null; kg?: number };
+              const phase = pl.goal === "perder" ? "Cutting" : pl.goal === "ganhar" ? "Bulking limpo" : pl.goal === "recomp" ? "Recomposição" : "Manutenção";
+              return (
+              <div className="mt-6 grid gap-4 chat-in">
+                <div><p className="text-[12px]" style={{ color: WHO.dieta.color }}>{NUTRI.short} · plano proposto <button type="button" className="ml-2 text-white/60 underline underline-offset-2" onClick={() => setDietRes(null)}>← mudar respostas</button></p>
+                  <h2 ref={heading} tabIndex={-1} className="font-display text-3xl leading-tight outline-none">{phase} · {pl.kcal.toLocaleString("pt-BR")} kcal</h2>
+                  {pr.targetKg ? <p className="text-[13px] text-white/60">{pr.kg} kg → {pr.targetKg} kg{pr.rate ? ` · ${String(pr.rate).replace(".", ",")} kg/semana` : ""}{pr.weeks ? ` · ~${pr.weeks} semanas` : ""}</p> : null}</div>
+                <div className="grid grid-cols-3 gap-2 text-center">{([["Proteína", pl.protein_g], ["Carboidrato", pl.carbs_g], ["Gordura", pl.fat_g]] as const).map(([l, v]) => <div key={l} className="rounded-[12px] bg-white/[.05] py-3"><p className="text-[20px] font-bold">{v} g</p><p className="text-[11px] text-white/50">{l}</p></div>)}</div>
+                <div className="grid gap-2">{pl.meals.map((m) => <div key={m.key} className="rounded-[12px] bg-white/[.03] p-3"><p className="text-[13px] font-semibold">{m.label}{m.time ? ` · ${m.time}` : ""} <span className="text-white/45 font-normal">· {m.items.reduce((a, x) => a + x.kcal, 0)} kcal</span></p><p className="text-[12px] text-white/60 mt-0.5">{m.items.map((x) => `${x.name} (${x.qty})`).join(" · ")}</p></div>)}</div>
+                {!dietRes.ai && <p className="text-[12px] text-white/45">Cardápio-base (sem IA no momento): ajuste os alimentos depois na tela de Dieta.</p>}
+                <button type="button" className="min-h-14 rounded-xl font-bold text-[#141414]" style={{ background: WHO.dieta.color }} disabled={busy} onClick={() => start(async () => { const e = await saveDietPlan(pl); if (e) return setMsg(e); setMsg("Plano alimentar ativado."); setTimeout(() => { dialog.current?.close(); location.reload(); }, 1200); })}>{busy ? "Salvando…" : "Ativar este plano"}</button>
+                <p className="text-[11.5px] text-white/45">Orientação baseada em estudos; não substitui avaliação de um nutricionista.</p>
+                {msg && <p className="text-sm" style={{ color: WHO.dieta.color }}>{msg}</p>}
+              </div>); })() : <div className="mt-6" role="alert"><p className="text-sm" style={{ color: A }}>{dietRes.error ?? "Não consegui montar o plano."}</p><button type="button" className="btn mt-3" onClick={() => setDietRes(null)}>Voltar</button></div>)}
             {res && "error" in res && res.error && <div className="mt-6" role="alert"><p className="text-sm" style={{ color: A }}>{res.error}</p><button type="button" className="btn mt-3" onClick={() => setRes(null)}>Voltar à última pergunta</button></div>}
           </div>
         </dialog>)}

@@ -5,6 +5,9 @@ export const GREET: Record<Who, string> = {
   dieta: "Oi, eu sou a Helena, sua nutricionista. Com o treino definido, vou ajustar a comida pra ele render. Prometo que é rápido.",
 };
 
+/** Abertura quando a conversa é só de dieta (página Dieta). */
+export const GREET_DIET = "Oi, eu sou a Helena, sua nutricionista. Vamos montar (ou ajustar) a sua dieta: objetivo, peso alvo, rotina e o que você gosta de comer. É rápido.";
+
 /** Reação curta e humana à resposta (ou null para seguir direto). */
 export function reactTo(key: string, val: unknown): string | null {
   const v = typeof val === "string" ? val.trim() : val;

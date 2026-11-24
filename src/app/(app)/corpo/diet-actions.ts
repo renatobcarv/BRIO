@@ -142,3 +142,13 @@ export async function applyDietAdjust(adj: number): Promise<string | null> {
   if (!plan) return "Crie um plano alimentar primeiro.";
   return updatePlan(Number(plan.kcal) + a.data);
 }
+
+/** Prévia da dieta feita na conversa com a nutricionista (não salva até ativar). */
+export async function previewDiet(d: { sex: Sex; age: number; cm: number; kg: number; meals: number; likes: string; dislikes: string; restrictions: string;
+  budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito"; dietGoal?: Goal; targetKg?: number; weeks?: number; trainDays?: number }) {
+  const days = Math.max(0, Math.min(7, Math.round(d.trainDays ?? 3)));
+  const activity: Activity = days === 0 ? "sedentario" : days <= 2 ? "leve" : days <= 4 ? "moderado" : "alto";
+  const g = await generateDietPlan({ sex: d.sex, age: d.age, cm: d.cm, kg: d.kg, activity, goal: d.dietGoal ?? "manter", meals: d.meals, times: [], likes: d.likes, dislikes: d.dislikes,
+    restrictions: d.restrictions, budget: d.budget, cook: d.cook, supplements: [], meds: [], targetKg: d.targetKg ?? null, weeks: d.weeks ?? null });
+  return g;
+}
