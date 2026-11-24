@@ -8,7 +8,7 @@ import { GREET, HANDOFF, reactTo } from "@/lib/consult-talk";
 import { GOALS, MUSCLES, PHASE_KINDS, type Goal, type Muscle } from "@/lib/training";
 
 const A = "#ffb21e";
-type Diet = { sex: "m" | "f"; age: number; cm: number; kg: number; meals: number; likes: string; dislikes: string; restrictions: string; budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito" };
+type Diet = { sex: "m" | "f"; age: number; cm: number; kg: number; meals: number; likes: string; dislikes: string; restrictions: string; budget: "economico" | "normal" | "livre"; cook: "pouco" | "medio" | "muito"; dietGoal?: "perder" | "manter" | "ganhar" | "recomp" };
 type Opt<T> = { v: T; l: string; d?: string };
 type Q = { who: "treino" | "dieta"; key: string; ask: string; why?: string; opts?: Opt<unknown>[]; multi?: number; input?: "number" | "text"; unit?: string; skip?: boolean; when?: (a: Record<string, unknown>) => boolean };
 
@@ -22,14 +22,21 @@ const Qs: Q[] = [
   { who: "treino", key: "focus", ask: "Quer um foco nos levantamentos básicos?", why: "Especializar = treinar o levantamento mais vezes por semana, com pesado, volume e técnica.", opts: (Object.keys(FOCUS) as Focus[]).map((f) => ({ v: f, l: FOCUS[f].label, d: FOCUS[f].hint })) },
   { who: "treino", key: "level", ask: "Há quanto tempo você treina com consistência?", why: "Define o volume inicial: iniciantes crescem com menos.", opts: [{ v: "iniciante", l: "Menos de 1 ano" }, { v: "intermediario", l: "1 a 3 anos" }, { v: "avancado", l: "Mais de 3 anos" }] },
   { who: "treino", key: "days", ask: "Quantos dias por semana você consegue treinar de verdade?", why: "Melhor um plano que você cumpre do que um perfeito que abandona.", opts: [2, 3, 4, 5, 6].map((n) => ({ v: n, l: `${n} dias` })) },
-  { who: "treino", key: "minutes", ask: "Quanto tempo por treino?", opts: [45, 60, 75, 90].map((n) => ({ v: n, l: `${n} min` })) },
+  { who: "treino", key: "minutes", ask: "Quanto tempo por treino?", why: "Treino curto bem feito vence treino longo pela metade.", opts: [
+    { v: 30, l: "30 min · executivo", d: "Só o essencial: 4 exercícios, básicos primeiro" }, { v: 45, l: "45 min · enxuto", d: "5 exercícios" },
+    { v: 60, l: "60 min · padrão", d: "6 exercícios" }, { v: 75, l: "75 min · completo", d: "7 exercícios" }, { v: 90, l: "90 min · longo", d: "8 exercícios" }] },
+  { who: "treino", key: "bench", skip: true, input: "text", ask: "Seu supino hoje? (carga × repetições, ex.: 80x5)", why: "Pra eu ser sincero sobre seu nível. Sem número, uso seus treinos registrados." },
+  { who: "treino", key: "squat", skip: true, input: "text", ask: "E o agachamento? (ex.: 100x5)" },
   { who: "treino", key: "equipment", ask: "Onde você vai treinar?", opts: [{ v: "academia", l: "Academia completa" }, { v: "halteres", l: "Halteres e banco" }, { v: "casa", l: "Em casa (peso do corpo)" }] },
   { who: "treino", key: "priority", ask: "Algum grupo que você quer priorizar? (até 3)", why: "Prioridade ganha +4 séries por semana. Escolher tudo é o mesmo que não priorizar nada.", multi: 3, opts: (["peito", "costas", "ombro_anterior", "ombro_lateral", "ombro_posterior", "biceps", "triceps", "quadriceps", "posteriores", "gluteos", "panturrilhas", "abdomen"] as Muscle[]).map((m) => ({ v: m, l: MUSCLES[m] })) },
   { who: "treino", key: "sleep", ask: "Quantas horas você dorme por noite, em média?", why: "Sono curto reduz a recuperação: o volume começa menor.", opts: [5, 6, 7, 8, 9].map((n) => ({ v: n, l: `${n}h${n === 9 ? "+" : ""}` })) },
   { who: "treino", key: "stress", ask: "Como está o estresse no dia a dia?", opts: [{ v: "baixo", l: "Baixo" }, { v: "medio", l: "Médio" }, { v: "alto", l: "Alto" }] },
   { who: "treino", key: "injuries", ask: "Alguma lesão ou dor que eu deva saber?", input: "text", skip: true },
   { who: "treino", key: "weeks", ask: "Quanto tempo de campanha?", opts: [8, 12, 16].map((n) => ({ v: n, l: `${n} semanas` })) },
-  { who: "dieta", key: "sex", ask: "Agora é comigo, a nutricionista. Sexo biológico?", why: "Entra na fórmula do gasto calórico (Mifflin–St Jeor).", opts: [{ v: "m", l: "Masculino" }, { v: "f", l: "Feminino" }] },
+  { who: "dieta", key: "dietGoal", ask: "Agora é comigo, a nutricionista. Qual seu objetivo com a alimentação?", opts: [
+    { v: "perder", l: "Emagrecer", d: "Perder gordura com déficit moderado e proteína alta" }, { v: "ganhar", l: "Ganhar músculo", d: "Superávit pequeno para crescer com pouca gordura" },
+    { v: "recomp", l: "Shape estético", d: "Secar e definir mantendo (ou ganhando) músculo" }, { v: "manter", l: "Manter", d: "Comer para render e recuperar" }] },
+  { who: "dieta", key: "sex", ask: "Sexo biológico?", why: "Entra na fórmula do gasto calórico (Mifflin–St Jeor).", opts: [{ v: "m", l: "Masculino" }, { v: "f", l: "Feminino" }] },
   { who: "dieta", key: "age", ask: "Idade?", input: "number", unit: "anos" },
   { who: "dieta", key: "cm", ask: "Altura?", input: "number", unit: "cm" },
   { who: "dieta", key: "kg", ask: "Peso atual?", input: "number", unit: "kg" },
@@ -105,8 +112,8 @@ export function Consult() {
     setTxt(previous.input ? String(ans[previous.key] ?? "") : "");
     setI(i - 1);
   };
-  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], start: thisMonday(), focus: (ans.focus as Focus) ?? "geral", style: (ans.style as TrainAnswers["style"]) ?? "moderno", runs: ans.goal === "hibrido" ? (ans.runs as number) : undefined, runGoal: ans.goal === "hibrido" ? (ans.runGoal as TrainAnswers["runGoal"]) : undefined });
-  const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio" });
+  const train = (): TrainAnswers => ({ goal: ans.goal as Goal, level: ans.level as TrainAnswers["level"], days: ans.days as number, minutes: ans.minutes as number, equipment: ans.equipment as TrainAnswers["equipment"], weeks: ans.weeks as number, priority: ans.priority as Muscle[], injuries: String(ans.injuries ?? ""), sleep: ans.sleep as number, stress: ans.stress as TrainAnswers["stress"], bench: String(ans.bench ?? "") || undefined, squat: String(ans.squat ?? "") || undefined, start: thisMonday(), focus: (ans.focus as Focus) ?? "geral", style: (ans.style as TrainAnswers["style"]) ?? "moderno", runs: ans.goal === "hibrido" ? (ans.runs as number) : undefined, runGoal: ans.goal === "hibrido" ? (ans.runGoal as TrainAnswers["runGoal"]) : undefined });
+  const diet = (): Diet => ({ sex: ans.sex as "m", age: +String(ans.age), cm: +String(ans.cm), kg: +String(ans.kg), meals: ans.meals as number, likes: String(ans.likes), dislikes: String(ans.dislikes), restrictions: String(ans.restrictions), budget: ans.budget as "normal", cook: ans.cook as "medio", dietGoal: ans.dietGoal as Diet["dietGoal"] });
   const next = async (val: unknown) => {
     if (typing) return;
     const a = { ...ans, [q.key]: val }; setAns(a); setTxt(String(a[Qs[i + 1]?.key] ?? ""));
@@ -120,7 +127,7 @@ export function Consult() {
       await wait(400); setTyping(nq.who); await wait(1100); setTyping(null); say(nq.who, GREET[nq.who]);
     }
     if (nq) { await wait(250); setI(ni); }
-    else start(async () => setRes(await previewProgram({ ...train(), ...{ goal: a.goal } })));
+    else start(async () => setRes(await previewProgram({ ...train(), ...{ goal: a.goal } }, { ...diet(), sex: a.sex, kg: Number(a.kg) || undefined })));
   };
   const finish = () => start(async () => {
     const r = await createFromConsult(train(), diet(), true);
@@ -218,6 +225,7 @@ export function Consult() {
             {res && "program" in res && res.program && (
               <div className="mt-6 grid gap-4">
                 <div><p className="text-[12px]" style={{ color: A }}>Treinador · plano proposto</p><h2 ref={heading} tabIndex={-1} className="font-display text-3xl leading-tight outline-none">{res.program.name}</h2><p className="text-[13px] text-white/55">Começa {res.program.start_date.split("-").reverse().join("/")} · o Mestre ajusta cada semana pelo seu registro</p></div>
+                {"assessment" in res && res.assessment && <p className="chat-in rounded-[14px] border p-3 text-[13.5px]" style={{ borderColor: res.assessment.changed ? "#ffb21e88" : "rgba(255,255,255,.1)", background: res.assessment.changed ? "#ffb21e12" : undefined }}><b className="block text-[11px] uppercase tracking-wider" style={{ color: "#ffb21e" }}>Avaliação do treinador</b>{res.assessment.msg}</p>}
                 <div className="flex gap-1">{res.program.phases.map((p) => <div key={p.id} className="rounded-[8px] py-2 text-center text-[11px]" style={{ flex: p.weeks, background: PHASE_KINDS[p.kind].color + "22", color: PHASE_KINDS[p.kind].color }}>{p.name}<br />{p.weeks}s</div>)}</div>
                 <div className="min-w-0"><p className="label mb-2">Semana tipo</p><div className="grid min-w-0 gap-3">
                   {Object.entries(res.program.phases[0].days).map(([d, l]) => <WeekDayCard key={d} name={res.program.phases[0].dayNames?.[d] ?? ""} wd={["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"][+d]} list={l} />)}</div></div>

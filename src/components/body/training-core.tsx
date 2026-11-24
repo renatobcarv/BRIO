@@ -41,7 +41,13 @@ export function lastFor(workouts: Workout[], name: string, beforeDate: string) {
 }
 
 export type Ctx = { programId: string; weekNo: number; phase: string; deload?: boolean } | null;
-const WARM_RE = /agachamento livre|agachamento frontal|agachamento pausado|supino reto com barra|supino inclinado com barra|levantamento terra|terra\b|desenvolvimento com barra|remada curvada com barra/i;
+/** Aquecimento só nos básicos pesados (agachamento, supino, terra). */
+const WARM_RE = /^(agachamento livre|agachamento pausado|agachamento frontal|supino reto com barra|supino com pausa|levantamento terra)/i;
+/** Aquecimento proporcional: carga leve = 2 séries; pesada = até 4. Nunca chega perto da carga de trabalho. */
+export function warmSets(work: number) {
+  const w = warmup(work).filter((x) => x.kg < work * 0.92);
+  return work < 70 ? w.filter((x) => x.kg <= work * 0.6).slice(0, 2) : w.slice(0, 4);
+}
 export function buildSession(date: string, day: SplitDay, plan: Target[], workouts: Workout[], ctx: Ctx = null, bodyweight: number | null = null): Session {
   const warmed = new Set<string>();
   return {
@@ -61,7 +67,7 @@ export function buildSession(date: string, day: SplitDay, plan: Target[], workou
       // Aquecimento automático antes dos levantamentos principais com barra (até ~90% da carga de trabalho).
       const isMain = !timed && WARM_RE.test(p.name) && !warmed.has(p.name) && (loads[0] ?? 0) >= 40;
       if (isMain) warmed.add(p.name);
-      const warm = isMain ? warmup(loads[0]).filter((w) => w.kg < loads[0]).map((w) => ({ kg: String(w.kg), reps: String(w.reps), done: false, rpe: "", auto: false, warm: true })) : [];
+      const warm = isMain ? warmSets(loads[0]).map((w) => ({ kg: String(w.kg), reps: String(w.reps), done: false, rpe: "", auto: false, warm: true })) : [];
       return { name: p.name, target: p, loadNote: note, sets: [...warm, ...work] };
     }),
   };
@@ -107,9 +113,13 @@ export function dayPlan(d: number, plan: WorkoutPlan, program: Program | null, t
 
 /** Depois de uma série feita com RPE, recalcula as próximas séries automáticas do mesmo exercício. */
 export function liveAdjust(ex: LEx, doneIdx: number): LEx {
-  const d = ex.sets[doneIdx], rpe = Number(String(d?.rpe ?? "").replace(",", "."));
-  if (!d || d.warm || !rpe || isTimed(ex.name)) return ex;
+  const d = ex.sets[doneIdx];
+  if (!d || d.warm || isTimed(ex.name)) return ex;
   const reps = firstNum(ex.target?.reps ?? d.reps) || Number(d.reps) || 8;
+  // Sem RPE, lê o esforço pelas repetições: passou do topo da faixa = sobrou força; ficou abaixo do mínimo = pesado.
+  const typed = Number(String(d.rpe ?? "").replace(",", ".")), top = Number((ex.target?.reps ?? "").split("-")[1] ?? reps) || reps, done = Number(d.reps) || 0, tgt = ex.target?.rpe ?? 8;
+  const rpe = typed || (done >= top + 2 ? tgt - 2 : done > top ? tgt - 1 : done && done < reps ? 10 : 0);
+  if (!rpe) return ex;
   return { ...ex, sets: ex.sets.map((x, j) => {
     if (j <= doneIdx || x.done || x.warm || x.auto === false) return x;
     const kg = nextSetKg({ kg: Number(String(d.kg).replace(",", ".")), reps: Number(d.reps), rpe }, { reps, rpe: ex.target?.rpe ?? 8 }, Number(String(x.kg).replace(",", ".")) || 0);

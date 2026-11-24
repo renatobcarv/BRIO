@@ -10,6 +10,8 @@ export function reactTo(key: string, val: unknown): string | null {
   const v = typeof val === "string" ? val.trim() : val;
   switch (key) {
     case "goal": return ({ powerbuilding: "Força e estética juntas. Gosto disso.", forca: "Força. Vamos atrás de número na barra.", hipertrofia: "Hipertrofia: volume bem distribuído é o caminho.", recomposicao: "Recomposição: perder gordura sem perder músculo. Dá, com paciência.", emagrecimento: "Emagrecer preservando músculo: o treino de força é seu seguro.", condicionamento: "Condicionamento: fôlego e força andando juntos.", hibrido: "Híbrido: forte e com fôlego. A gente faz os dois conviverem." } as Record<string, string>)[String(v)] ?? "Anotado.";
+    case "bench": case "squat": return v ? "Anotado. Vou comparar com seu peso pra ser sincero sobre o nível." : null;
+    case "dietGoal": return v === "perder" ? "Emagrecer com déficit moderado: perde gordura sem perder músculo." : v === "ganhar" ? "Ganhar músculo: superávit pequeno, sem virar bulking sujo." : v === "recomp" ? "Shape estético: secar e definir. Proteína alta e paciência." : "Manter: comer bem pra treinar bem.";
     case "runs": return `${v} corridas. Vou deixar a maioria leve e uma forte, longe dos dias de perna.`;
     case "runGoal": return v === "21k" ? "Meia maratona! O longão vai crescendo semana a semana." : v === "saude" ? "Fôlego e saúde: corrida leve é o coração disso." : `${v}: vou incluir tiros no ritmo de prova.`;
     case "style": return v === "oldschool" ? "Old school. Barra, básico pesado e suor. Do jeito clássico." : "Moderno: vou usar o melhor das máquinas e polias.";

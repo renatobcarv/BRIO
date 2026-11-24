@@ -1,17 +1,19 @@
 "use server";
 // Consulta com especialistas: cria a campanha de treino (periodização) e o plano alimentar a partir das respostas.
 import { z } from "zod";
-import { buildProgram, dietGoalFor, activityFor, type TrainAnswers } from "@/lib/coach";
+import { assessLevel, buildProgram, dietGoalFor, activityFor, type Level, type TrainAnswers } from "@/lib/coach";
+import { createClient } from "@/lib/supabase/server";
 import { GOALS, MUSCLES } from "@/lib/training";
 import { saveProgram } from "@/app/(app)/corpo/program-actions";
 import { generateDietPlan, saveDietPlan, type QuizAnswers } from "@/app/(app)/corpo/diet-actions";
 
 const Train = z.object({
   goal: z.enum(Object.keys(GOALS) as [string, ...string[]]), level: z.enum(["iniciante", "intermediario", "avancado"]),
-  days: z.number().int().min(2).max(6), minutes: z.number().int().min(30).max(150), equipment: z.enum(["academia", "halteres", "casa"]),
+  days: z.number().int().min(2).max(6), minutes: z.number().int().min(25).max(150), equipment: z.enum(["academia", "halteres", "casa"]),
   weeks: z.number().int().min(4).max(24), priority: z.array(z.enum(Object.keys(MUSCLES) as [string, ...string[]])).max(3),
   injuries: z.string().max(300), sleep: z.number().min(3).max(12), stress: z.enum(["baixo", "medio", "alto"]), start: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   focus: z.enum(["geral", "big3", "agachamento", "supino", "terra"]).optional(),
+  bench: z.string().max(30).optional(), squat: z.string().max(30).optional(),
   style: z.enum(["moderno", "oldschool"]).optional(), runs: z.number().int().min(1).max(5).optional(), runGoal: z.enum(["saude", "5k", "10k", "21k"]).optional(),
 });
 const Diet = z.object({
@@ -20,18 +22,35 @@ const Diet = z.object({
   budget: z.enum(["economico", "normal", "livre"]), cook: z.enum(["pouco", "medio", "muito"]), dietGoal: z.enum(["perder", "manter", "ganhar", "recomp"]).optional(),
 });
 
-/** Prévia do treino (não salva). */
-export async function previewProgram(t: unknown) {
+/** Nível honesto: números de força digitados ou, se não houver, o melhor dos seus treinos registrados. */
+async function honestLevel(t: z.infer<typeof Train>, d: unknown) {
+  const dd = Diet.partial().safeParse(d ?? {});
+  let bench = t.bench, squat = t.squat;
+  if (!bench || !squat) {
+    const sb = await createClient();
+    const { data } = await sb.from("workout_sets").select("exercise,kg,reps").or("exercise.ilike.supino reto%,exercise.ilike.agachamento livre%").gt("kg", 0).limit(500);
+    const best = (re: RegExp) => (data ?? []).filter((x) => re.test(String(x.exercise)) && Number(x.reps) >= 1 && Number(x.reps) <= 12)
+      .sort((a, b) => Number(b.kg) * (1 + Number(b.reps) / 30) - Number(a.kg) * (1 + Number(a.reps) / 30))[0];
+    const bb = best(/^supino reto/i), sq = best(/^agachamento livre/i);
+    bench ||= bb ? `${bb.kg}x${bb.reps}` : undefined; squat ||= sq ? `${sq.kg}x${sq.reps}` : undefined;
+  }
+  return assessLevel({ self: t.level as Level, sex: dd.success ? dd.data.sex : undefined, bodyweight: dd.success ? dd.data.kg : undefined, bench, squat });
+}
+
+/** Prévia do treino (não salva), com a avaliação sincera do nível. */
+export async function previewProgram(t: unknown, d?: unknown) {
   const a = Train.safeParse(t);
   if (!a.success) return { error: "Respostas do treino incompletas." };
-  return { ...buildProgram(a.data as TrainAnswers) };
+  const lv = await honestLevel(a.data, d);
+  return { ...buildProgram({ ...(a.data as TrainAnswers), level: lv.level }), assessment: lv };
 }
 
 /** Cria tudo: campanha ativa + plano alimentar. Retorna o que deu certo e o que falhou. */
 export async function createFromConsult(t: unknown, d: unknown, withDiet: boolean): Promise<{ programId?: string; diet?: { kcal: number; protein: number; ai: boolean }; error?: string; dietError?: string }> {
   const a = Train.safeParse(t);
   if (!a.success) return { error: "Respostas do treino incompletas." };
-  const r = buildProgram(a.data as TrainAnswers);
+  const lv = await honestLevel(a.data, d);
+  const r = buildProgram({ ...(a.data as TrainAnswers), level: lv.level });
   let programId: string;
   try { programId = await saveProgram(r.program); }
   catch (e) { return { error: e instanceof Error ? e.message : "Não consegui salvar a campanha." }; }

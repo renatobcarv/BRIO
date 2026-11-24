@@ -13,6 +13,8 @@ export type TrainAnswers = {
   style?: "moderno" | "oldschool";
   /** Híbrido: corridas por semana e objetivo da corrida. */
   runs?: number; runGoal?: "saude" | "5k" | "10k" | "21k";
+  /** Números de força para avaliar o nível com sinceridade ("80x5"). */
+  bench?: string; squat?: string;
 };
 export type Focus = "geral" | "big3" | "agachamento" | "supino" | "terra";
 export const FOCUS: Record<Focus, { label: string; hint: string }> = {
@@ -180,7 +182,7 @@ const DROP_ORDER: Muscle[] = ["ombro_anterior", "abdomen", "panturrilhas", "glut
 /** Pares agonista-antagonista (supersets que mantêm o volume, Zhang 2025). Nunca o mesmo músculo. */
 const ANTAGONISTS: [Muscle, Muscle][] = [["biceps", "triceps"], ["peito", "costas"], ["quadriceps", "posteriores"]];
 /** Máximo de exercícios por sessão pelo tempo (bons treinadores raramente passam de 7–8). */
-export const exerciseCap = (minutes: number) => (minutes <= 45 ? 5 : minutes <= 60 ? 6 : minutes <= 75 ? 7 : 8);
+export const exerciseCap = (minutes: number) => (minutes <= 35 ? 4 : minutes <= 45 ? 5 : minutes <= 60 ? 6 : minutes <= 75 ? 7 : 8);
 
 /**
  * Uma sessão como um treinador montaria: compostos primeiro, 2–4 séries duras por exercício (nunca 1 série solta),
@@ -385,4 +387,35 @@ export function campaignMilestones(programs: Prog[], sessions: { program_id: str
     if (allDone && last && (p.phases ?? []).length) out.push({ date: last, xp: 1000, label: "Campanha concluída" });
   }
   return out;
+}
+
+// ── Avaliação honesta do nível (números > autodeclaração) ──
+/** "80x5", "80 x 5", "80kg 5" → { kg, reps }. */
+export function parseLift(t: string): { kg: number; reps: number } | null {
+  const m = String(t ?? "").replace(",", ".").match(/(\d+(?:\.\d+)?)\s*(?:kg)?\s*[x×*\s]\s*(\d{1,2})/i);
+  if (!m) { const k = Number(String(t).replace(",", ".").match(/\d+(?:\.\d+)?/)?.[0]); return k > 0 ? { kg: k, reps: 1 } : null; }
+  return { kg: Number(m[1]), reps: Number(m[2]) };
+}
+const e1 = (x: { kg: number; reps: number }) => (x.reps <= 1 ? x.kg : x.kg * (1 + Math.min(12, x.reps) / 30));
+/** Padrões aproximados de força relativa (1RM ÷ peso corporal) para treino natural. */
+const STD = { m: { supino: [0.75, 1.25], agachamento: [1.0, 1.6] }, f: { supino: [0.45, 0.8], agachamento: [0.75, 1.25] } } as const;
+export function assessLevel(o: { self: Level; sex?: "m" | "f"; bodyweight?: number; bench?: string; squat?: string }) {
+  const bw = o.bodyweight && o.bodyweight > 30 ? o.bodyweight : null, sx = o.sex ?? "m";
+  const scores: Level[] = [], notes: string[] = [];
+  for (const [k, raw] of [["supino", o.bench], ["agachamento", o.squat]] as const) {
+    const p = raw ? parseLift(raw) : null; if (!p || !bw) continue;
+    const rel = e1(p) / bw, [mid, high] = STD[sx][k];
+    scores.push(rel >= high ? "avancado" : rel >= mid ? "intermediario" : "iniciante");
+    notes.push(`${k} ≈ ${rel.toFixed(2).replace(".", ",")}× o seu peso`);
+  }
+  if (!scores.length) return { level: o.self, changed: false, msg: "Sem números de força: montei pelo que você declarou. Registre os treinos e eu reavalio." };
+  const rank = { iniciante: 0, intermediario: 1, avancado: 2 } as const, avg = scores.reduce((a, l) => a + rank[l], 0) / scores.length;
+  const measured: Level = avg >= 1.5 ? "avancado" : avg >= 0.5 ? "intermediario" : "iniciante";
+  // Honesto, mas sem punir: se a autodeclaração for maior, vale o medido; se for menor, sobe um nível no máximo.
+  const level: Level = rank[measured] < rank[o.self] ? measured : rank[measured] > rank[o.self] + 1 ? (["iniciante", "intermediario", "avancado"] as Level[])[rank[o.self] + 1] : measured;
+  const L = { iniciante: "iniciante", intermediario: "intermediário", avancado: "avançado" };
+  const msg = level === o.self ? `Seus números confirmam: ${L[level]} (${notes.join("; ")}).`
+    : rank[level] < rank[o.self] ? `Sendo sincero: você se colocou como ${L[o.self]}, mas pelos números (${notes.join("; ")}) seu treino rende melhor como ${L[level]}. Montei assim: é o que vai te fazer evoluir mais rápido.`
+    : `Você se subestimou: pelos números (${notes.join("; ")}) você está em ${L[level]}. Subi o volume.`;
+  return { level, changed: level !== o.self, msg };
 }

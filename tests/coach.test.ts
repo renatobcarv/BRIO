@@ -111,3 +111,11 @@ test("old school: barra e básicos, poucos exercícios, sem superset", () => {
   const names = Object.values(r.program.phases[0].days).flat().map((e) => e.name);
   assert.ok(names.includes("Supino reto com barra") && names.includes("Remada curvada com barra"));
 });
+import { assessLevel, parseLift } from "../src/lib/coach.ts";
+test("nível honesto: números mandam, sem punir", () => {
+  assert.deepEqual(parseLift("80x5"), { kg: 80, reps: 5 }); assert.deepEqual(parseLift("100 kg 3"), { kg: 100, reps: 3 }); assert.equal(parseLift(""), null);
+  const a = assessLevel({ self: "avancado", bodyweight: 85, bench: "45x8", squat: "60x5" });
+  assert.equal(a.level, "iniciante"); assert.match(a.msg, /Sendo sincero/);
+  assert.equal(assessLevel({ self: "iniciante", bodyweight: 80, bench: "120x5", squat: "160x5" }).level, "intermediario"); // sobe no máx. 1
+  assert.equal(assessLevel({ self: "intermediario" }).level, "intermediario");
+});
