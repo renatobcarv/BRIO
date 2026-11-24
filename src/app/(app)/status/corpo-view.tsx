@@ -17,7 +17,8 @@ const TABS = [["hoje", "Hoje"], ["treino", "Treino"], ["alimentacao", "Dieta"], 
 const N = (v: unknown) => Number(v) || 0;
 
 /** Corpo (hoje, dieta, peso) dentro do Perfil. */
-export async function CorpoView({ sp }: { sp: { aba?: string; d?: string } }) {
+/** `base` muda o destino das abas (ex.: /dieta?sub=…) quando a tela é usada fora de Status. */
+export async function CorpoView({ sp, base = "/status?aba=corpo&sub=" }: { sp: { aba?: string; d?: string }; base?: string }) {
   if (sp.aba === "treino" || sp.aba === "programa") redirect(sp.aba === "programa" ? "/treino?aba=programa" : "/treino");
   const openProgram = sp.aba === "programa";
   const tab = openProgram ? "treino" : sp.aba ?? "hoje";
@@ -116,7 +117,7 @@ export async function CorpoView({ sp }: { sp: { aba?: string; d?: string } }) {
       <nav aria-label="Setores do corpo" className="sticky top-0 z-30 -mx-4 px-4 py-2 mb-5 bg-[#050505]/90 backdrop-blur-xl md:static md:mx-0 md:px-0 md:bg-transparent md:backdrop-blur-none">
         <div className="grid grid-cols-4 gap-px bg-white/[.08] border border-white/[.08] rounded-[8px] overflow-hidden">
           {TABS.map(([k]) => { const x = SECT[k], on = tab === k; return (
-            <Link key={k} href={`/status?aba=corpo&sub=${k}`} aria-current={on ? "page" : undefined}
+            <Link key={k} href={`${base}${k}`} aria-current={on ? "page" : undefined}
               className={`relative min-w-0 px-2 py-2.5 sm:px-3 sm:py-3 transition-colors ${on ? "bg-[#140303]" : "bg-[#080808] hover:bg-[#0e0e0e]"}`}>
               {on && <span aria-hidden className="absolute left-0 right-0 top-0 h-[2px]" style={{ background: "#ffb21e", boxShadow: "0 0 12px #ffb21e" }} />}
               <span className="flex items-center gap-1.5">

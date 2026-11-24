@@ -84,7 +84,7 @@ export const MODULES: Record<ModuleKey, { label: string; hint: string; href: str
   espiritual: { label: "Espiritual", hint: "Bíblia, estudo pessoal e oração", href: "/espiritual" },
   pioneiro: { label: "Ministério (Pioneiro)", hint: "Horas, revisitas e metas de campo", href: "/pioneiro" },
   treino: { label: "Treino", hint: "Campanha, Mestre e cargas", href: "/treino" },
-  dieta: { label: "Dieta", hint: "Plano alimentar e refeições", href: "/status?aba=corpo" },
+  dieta: { label: "Dieta", hint: "Plano alimentar e refeições", href: "/dieta" },
   financas: { label: "Finanças", hint: "Orçamento, extrato e investimentos", href: "/financas" },
   estudos: { label: "Estudos", hint: "Tutor e domínio de matérias", href: "/estudos" },
   agenda: { label: "Agenda", hint: "Compromissos e rotina", href: "/agenda" },

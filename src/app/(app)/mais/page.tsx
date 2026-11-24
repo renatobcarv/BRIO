@@ -3,8 +3,9 @@ import Link from "next/link";
 import { PageHeader } from "@/components/ui";
 
 // Tudo que não cabe na barra de baixo do celular (mesma ordem do menu lateral).
-const MENU: [string, string][] = [["/status", "Status"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/configuracoes", "Configurações"]];
+const MENU: [string, string][] = [["/status", "Status"], ["/dieta", "Dieta"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/configuracoes", "Configurações"]];
 const INFO: Record<string, { sub: string; art?: CardArtName }> = {
+  "/dieta": { sub: "Plano alimentar, refeições do dia, água e peso", art: "corpo" },
   "/status": { sub: "Status, perfil, corpo e mente: nível, patentes, conquistas, dieta, peso e testes cognitivos", art: "conquistas" },
   "/corpo": { sub: "Água, sono, peso e alimentação", art: "corpo" },
   "/mascote": { sub: "Sorteio, coleção e o seu companheiro", art: "mascote" },
