@@ -886,3 +886,8 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 @media (prefers-reduced-motion: reduce) {
   .pet-habitat-resident[data-away="true"] { transition: none; }
 }
+
+/* Masmorras: tremida no golpe */
+@keyframes dg-hit { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+.dg-hit { animation: dg-hit .3s ease; }
+@media (prefers-reduced-motion: reduce) { .dg-hit { animation: none; } }

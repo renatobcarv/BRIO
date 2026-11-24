@@ -4,6 +4,7 @@ import { achievements, xpEvents, type Attr } from "./game";
 import { BEAST_ATTR, tameOpportunities, type TameTries, economy, itemBonus, kills, tamed, tamedLevel, tamedPct, validEquipped } from "./items";
 import { ALL, FERAS, bestiaryRecord } from "./bestiary";
 import { campaignMilestones } from "./coach";
+import { STAGE_KEYS, petStats, regen } from "./dungeon";
 import { mindXp } from "./mind";
 import "server-only";
 import { eaten } from "./meals.ts";
@@ -100,6 +101,13 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   const trophies = FERAS.filter((id) => beasts[id].won > 0).map((id) => ({ id, won: beasts[id].won }));
   const petQ = await sb.from("pets").select("id,name,species,adopted_on,bonus_essence").maybeSingle();
   const pet = petQ.error || !petQ.data ? null : (() => { const st = petState(petQ.data.id, petQ.data.adopted_on, xpEvents(input), today, Number(petQ.data.bonus_essence ?? 0)); input.eventBonus = [...(input.eventBonus ?? []), ...st.bonus.map((b) => ({ ...b, attr: b.attr as Attr }))]; return { ...petQ.data, ...st }; })();
-  return { ...summarize(input), events, pet, petReady: !petQ.error, items: { owned: Object.fromEntries(eco.owned), levels: eco.levels, gold: eco.gold, drops: eco.drops.slice(0, 12), kills: ks.length, equipped, trophies, ready: !eqQ.error, army: army2, active: active?.id ?? null, pending } };
+  // Masmorras: vida, atributos pela fase do mascote e Ouro ganho lá dentro (soma ao Ouro de caça).
+  const dq = await sb.from("pets").select("hp,hp_at,dungeon_gold,dungeon_best,dungeon_runs").maybeSingle();
+  const dd = dq.error ? null : dq.data;
+  const stageIdx = pet ? Math.max(0, STAGE_KEYS.indexOf((pet as { stage: { key: string } }).stage.key as (typeof STAGE_KEYS)[number])) : 0;
+  const stats = petStats(stageIdx, Number((pet as { essence?: number } | null)?.essence ?? 0), Math.min(30, eco.owned.size));
+  const dungeon = pet ? { ready: !dq.error, stage: stageIdx, stats, hp: regen((dd?.hp as number | null) ?? null, (dd?.hp_at as string | null) ?? null, stats.maxHp),
+    best: Number(dd?.dungeon_best ?? 0), runsToday: Number(((dd?.dungeon_runs ?? {}) as Record<string, number>)[today] ?? 0) } : null;
+  return { ...summarize(input), events, pet, petReady: !petQ.error, dungeon, items: { owned: Object.fromEntries(eco.owned), levels: eco.levels, gold: eco.gold + Number(dd?.dungeon_gold ?? 0), drops: eco.drops.slice(0, 12), kills: ks.length, equipped, trophies, ready: !eqQ.error, army: army2, active: active?.id ?? null, pending } };
 }
 export type Game = Awaited<ReturnType<typeof loadGame>>;

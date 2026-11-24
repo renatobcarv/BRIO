@@ -120,3 +120,25 @@ export async function attemptTame(key: string, ok: boolean): Promise<string | nu
   const { error } = await w.sb.from("pets").update({ tame_tries: tries }).not("user_id", "is", null);
   return error ? error.message : doneItems();
 }
+
+/** Envia o mascote para uma masmorra. Tudo é calculado no servidor (atributos, vida, limite diário e luta). */
+export async function runDungeon(id: number) {
+  const { DUNGEONS, RUNS_PER_DAY, fight } = await import("@/lib/dungeon");
+  const d = DUNGEONS.find((x) => x.id === id); if (!d) return { error: "Masmorra inválida." };
+  const sb = await createClient();
+  const g = await loadGame(sb, await getSettings(sb), todayISO());
+  if (!g.dungeon || !g.pet) return { error: "Adote um mascote primeiro." };
+  if (!g.dungeon.ready) return { error: "Rode o SQL 20261203000000_masmorras.sql no Supabase." };
+  if (g.dungeon.runsToday >= RUNS_PER_DAY) return { error: `O mascote já entrou ${RUNS_PER_DAY} vezes hoje. Ele volta amanhã.` };
+  if (d.id > g.dungeon.best + 1) return { error: "Vença o andar anterior primeiro." };
+  if (g.dungeon.hp < g.dungeon.stats.maxHp * 0.2) return { error: "Vida baixa demais. Deixe o mascote descansar (regenera 25% por hora)." };
+  const r = fight(g.dungeon.stats, g.dungeon.stage, g.dungeon.hp, d, randomInt(1, 2 ** 31 - 1));
+  const { data: cur } = await sb.from("pets").select("dungeon_gold,dungeon_best,dungeon_runs,bonus_essence").maybeSingle();
+  const runs = { ...((cur?.dungeon_runs ?? {}) as Record<string, number>), [todayISO()]: g.dungeon.runsToday + 1 };
+  const { error } = await sb.from("pets").update({ hp: r.hp, hp_at: new Date().toISOString(), dungeon_runs: runs,
+    dungeon_gold: Number(cur?.dungeon_gold ?? 0) + r.gold, bonus_essence: Number(cur?.bonus_essence ?? 0) + r.essence,
+    dungeon_best: Math.max(Number(cur?.dungeon_best ?? 0), r.win ? d.id : 0) }).not("user_id", "is", null);
+  if (error) return { error: error.message };
+  revalidatePath("/mascote");
+  return { result: r, dungeon: d.name };
+}
