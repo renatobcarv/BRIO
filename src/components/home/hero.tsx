@@ -103,3 +103,27 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
     </>
   );
 }
+
+/** Perfil fixo no canto superior direito (desktop): iniciais, nível, rank e barra de XP. */
+export function ProfileBadge({ name }: { name: string }) {
+  const { total, today } = useXp();
+  const lv = levelOf(total), rank = rankOf(lv.level);
+  return (
+    <Link href="/status" aria-label={`Perfil: nível ${lv.level}, ${rank.name}`}
+      className="press hidden lg:flex fixed top-4 right-20 z-30 items-center gap-3 rounded-full border pl-1.5 pr-4 py-1.5 backdrop-blur-xl"
+      style={{ borderColor: rank.color + "55", background: "#0d0d0fcc", boxShadow: `0 10px 30px -18px ${rank.color}` }}>
+      <span className="relative grid place-items-center size-10 rounded-full text-sm font-bold" style={{ background: `radial-gradient(circle at 30% 25%, ${rank.color}, #1a1a1d 75%)`, color: "#fff" }}>
+        {name.slice(0, 2).toUpperCase()}
+        <span className="absolute -bottom-1 -right-1 rounded-full px-1.5 text-[10px] font-bold num border" style={{ background: "#0d0d0d", borderColor: rank.color, color: rank.color }}>{lv.level}</span>
+      </span>
+      <span className="grid gap-1 min-w-[150px]">
+        <span className="flex items-baseline justify-between gap-3">
+          <span className="text-sm font-semibold">{name}</span>
+          <span className="text-[10px] font-semibold tracking-[.2em]" style={{ color: rank.color }}>{rank.name.toUpperCase()}</span>
+        </span>
+        <span className="h-1.5 rounded-full bg-white/10 overflow-hidden"><span className="block h-full rounded-full" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd28a)` }} /></span>
+        <span className="flex justify-between text-[10px] text-muted num"><span>{lv.into}/{lv.need} XP</span>{today > 0 && <span style={{ color: "#30d158" }}>+{today} hoje</span>}</span>
+      </span>
+    </Link>
+  );
+}

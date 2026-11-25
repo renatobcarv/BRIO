@@ -20,7 +20,7 @@ import { createClient } from "@/lib/supabase/server";
 import { loadGame } from "@/lib/game-data";
 import { ATTRS, type Attr } from "@/lib/game";
 import { XpProvider } from "@/components/game/xp";
-import { HeroPlayer, QuickActions } from "@/components/home/hero";
+import { HeroPlayer, ProfileBadge, QuickActions } from "@/components/home/hero";
 import { EventCard } from "@/components/events/event-ui";
 import { PetCard, type PetView } from "@/components/pet/pet";
 
@@ -136,6 +136,7 @@ export default async function Hoje() {
     <XpProvider initialTotal={game.total} initialToday={game.today}>
       <div className="stagger home-dash">
       <div className="dash-main min-w-0">
+      <ProfileBadge name={firstName} />
       <Greeting name={firstName} />
       <section className="rise mt-4" aria-label="Quadro dos sonhos">
         <div className="flex items-end justify-between mb-2"><p className="label">Quadro dos sonhos · por quem você caça</p><Link href="/sonhos" className="label !text-[10px] underline underline-offset-4 min-h-11 inline-flex items-center">ver tudo</Link></div>
