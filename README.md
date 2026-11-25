@@ -15,6 +15,14 @@ PWA · Next.js 15 (App Router) · React 19 · TypeScript · Tailwind 4 · Supaba
 - **Mascote e feras:** roleta, evolução, 57 equipamentos, loja, feras domáveis com minigame.
 - **Módulos por conta:** cada pessoa liga só o que usa; preferências livres em `settings.prefs`.
 
+## Por que este projeto
+Projeto de portfólio, construído e mantido por **Renato Barros**. Código aberto sob a licença MIT: use, estude e adapte.
+
+Destaques técnicos:
+- Lógica de domínio pura em `src/lib` (progressão de cargas, periodização, economia de itens, combate, metas), coberta por testes com `node --test`.
+- Server Actions com validação Zod e RLS no Postgres: o cliente nunca recebe chave privilegiada.
+- PWA mobile-first com tema escuro, animações e acessibilidade (alvos de toque, `aria-*`, contraste).
+
 ## Instalação
 
 ### 1. Supabase
@@ -25,7 +33,7 @@ PWA · Next.js 15 (App Router) · React 19 · TypeScript · Tailwind 4 · Supaba
 5. **Authentication → URL Configuration:** *Site URL* e *Redirect URLs* com o domínio de produção.
 
 ### 2. Variáveis de ambiente
-`cp .env.example .env.local` e preencha. Só `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` são obrigatórias; as chaves de IA e Google ficam **apenas no servidor**.
+`cp .env.example .env.local` e preencha. Só `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` são obrigatórias; as chaves de IA e Google ficam **apenas no servidor**. `BRIO_OWNER_EMAILS` (opcional) libera a área de Ministério só para as contas listadas.
 
 ### 3. Deploy
 Importe o repositório na Vercel, adicione as variáveis e faça o deploy. No celular: *Compartilhar → Adicionar à Tela de Início*.
@@ -45,3 +53,6 @@ A lógica de negócio fica em `src/lib/*.ts`, pura e testável (`tests/`). Migra
 - Fotos em bucket **privado** com URLs assinadas temporárias.
 - Nunca use a `service_role` no app; segredos só em variáveis de servidor.
 - Treino e dieta são orientação baseada em estudos, **não substituem** avaliação médica ou nutricional.
+
+## Licença
+[MIT](LICENSE) © 2026 Renato Barros

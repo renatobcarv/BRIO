@@ -1,4 +1,3 @@
-import { isOwner } from "@/lib/edition";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/settings";
@@ -29,7 +28,7 @@ export default async function Status({ searchParams }: { searchParams: Promise<{
   const user = u.user, meta = (user?.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string };
   const name = meta.full_name || meta.name || user?.email?.split("@")[0] || "Caçador";
   const handle = (user?.email?.split("@")[0] ?? "brio").toLowerCase();
-  const full = isOwner(user?.email);
+  const full = true; // projeto aberto: perfil completo para todas as contas
   const pet = !full ? null : g.pet as { name: string; species: string; stage: { key: string; name: string } } | null;
   const avatar = pet ? `/mascotes/${pet.species}/${pet.stage.key}.webp` : meta.avatar_url || "/pantera/sentada.webp";
   const done = g.achievements.filter((a) => a.done), streak = (() => { let n = 0; for (let i = g.week.length - 1; i >= 0 && g.week[i].xp > 0; i--) n++; return n; })();

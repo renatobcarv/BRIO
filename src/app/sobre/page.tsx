@@ -5,7 +5,6 @@ import type { Metadata } from "next";
 import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
-import { FUTURE } from "@/lib/edition";
 import { Chapter, DietMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
 
 import { AchievementGallery, AreaPreview, MoreAreas, StatusPreview } from "@/components/site/product-visuals";
@@ -78,24 +77,6 @@ const FAQ = [
   ["Meus dados ficam com quem?", "Com você. Cada conta só enxerga os próprios dados (bloqueio no banco), e você pode exportar tudo quando quiser."],
   ["O que vem depois?", "O BRIO cresce com quem usa. Novas áreas já estão em desenvolvimento e entram no seu plano sem custo extra quando forem lançadas."],
 ];
-
-/** O que está sendo construído: transparência sem prometer data. */
-function Roadmap() {
-  return (
-    <section className="max-w-6xl mx-auto px-4 pb-20">
-      <p className="in text-[11px] font-bold tracking-[.35em] uppercase text-[#ffb21e]">Em desenvolvimento</p>
-      <h2 className="in font-display text-[clamp(28px,4.5vw,44px)] mt-3">O que vem por aí</h2>
-      <p className="in text-white/70 mt-2 max-w-xl">Áreas em construção. Quem assina hoje recebe cada uma quando for lançada, sem pagar a mais.</p>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-8">
-        {FUTURE.filter((f) => !["/mascote", "/bestiario"].includes(f.href)).map((f, i) => (
-          <div key={f.href} data-i={i} className="in rounded-[8px] border border-white/10 bg-white/[.03] p-5 flex items-center justify-between gap-3">
-            <div><b>{f.label}</b><p className="text-sm text-white/60 mt-0.5">{f.hint}</p></div>
-            <span className="shrink-0 rounded-full border border-[#ff9f0a55] px-2.5 py-1 text-[11px] text-[#ffb21e]">Em breve</span>
-          </div>))}
-      </div>
-    </section>
-  );
-}
 
 export default function Site() {
   const label = "in text-[11px] font-bold tracking-[.35em] uppercase text-[#ffb21e]";
@@ -179,7 +160,6 @@ export default function Site() {
         <Chapter kicker="Evolução" title={<>Constância que<br /><span className={em}>dá para ver.</span></>} text="Tudo o que você registra vira XP: compromisso cumprido, treino, páginas lidas, mês fechado no azul. Suba de nível e enxergue o próprio progresso em vez de só imaginar." visual={<StatusPreview />} />
         <AchievementGallery />
         <MoreAreas />
-        <Roadmap />
       </div>
 
       {/* confiança */}

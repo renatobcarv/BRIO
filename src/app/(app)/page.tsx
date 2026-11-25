@@ -44,8 +44,8 @@ export default async function Hoje() {
   const sb = await createClient();
   // Nome de quem está logado (cadastro grava em user_metadata.name); sem nome, usa o começo do e-mail.
   const { data: me } = await sb.auth.getUser();
-  // Conta do dono vê as áreas em desenvolvimento; as demais, só o pacote.
-  const full = isOwner(me.user?.email);
+  // Tudo aberto; só o Pioneiro é da conta do dono.
+  const full = true, owner = isOwner(me.user?.email);
   const raw = String(me.user?.user_metadata?.name ?? me.user?.email?.split("@")[0].split(/[._\-\d]/)[0] ?? "").trim().split(/\s+/)[0];
   const firstName = raw ? raw[0].toUpperCase() + raw.slice(1) : "você";
   const today = todayISO();
@@ -167,8 +167,8 @@ export default async function Hoje() {
       <div className="dash-side min-w-0">
       {full && game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}
       {full && <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} nextAt={clean.nextAt} />}
-      <div className={`grid ${full ? "grid-cols-3" : "grid-cols-2"} gap-3 mt-4`}>
-        {full && <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />}
+      <div className={`grid ${owner ? "grid-cols-3" : "grid-cols-2"} gap-3 mt-4`}>
+        {owner && <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />}
         <Mini href="/status?aba=corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
         <Mini href="/status?aba=corpo&sub=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
       </div>
