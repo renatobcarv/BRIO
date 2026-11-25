@@ -4,6 +4,8 @@ import Link from "next/link";
 import { Hourglass, MiniBottle } from "@/components/meters";
 import { Verse } from "@/components/ui";
 import { Checklist } from "@/components/home/checklist";
+import type { Mission } from "@/components/home/missions";
+import { accessToken, googleReady, list as listGoogle } from "@/lib/google";
 import { DailyText } from "@/components/home/daily-text";
 import { Greeting } from "@/components/home/greeting";
 import { Partner } from "@/components/home/partner";
@@ -67,6 +69,20 @@ export default async function Hoje() {
   ]);
   const missions = (evQ.error ? [] : evQ.data ?? []).map((e) => ({ id: e.id as string, title: e.title as string, start_time: (e.start_time as string | null) ?? null, end_time: (e.end_time as string | null) ?? null, done: !!e.done, kind: (e.kind as string) ?? "evento", google: !!e.google_id }));
   const googleOn = !gQ.error && !!gQ.data;
+  // Eventos do Google de hoje (os que não vieram do BRIO) e refeições do plano com horário.
+  let gToday: Mission[] = [];
+  if (googleOn && googleReady()) {
+    try {
+      const gc = await sb.from("google_calendar").select("refresh_token,calendar_id").maybeSingle();
+      const gdone = new Set(((s.prefs?.gdone ?? {}) as Record<string, string[]>)[today] ?? []);
+      if (gc.data) gToday = (await listGoogle(await accessToken(gc.data.refresh_token), gc.data.calendar_id, today, today)).filter((e) => !e.fromBrio && e.date === today)
+        .map((e) => ({ id: `g:${e.id}`, title: e.title, start_time: e.start_time, end_time: e.end_time, done: gdone.has(e.id), kind: "evento", google: true, source: "google" as const }));
+    } catch { /* Google fora do ar: segue sem */ }
+  }
+  const mealsQ = await sb.from("meals").select("slot,done").eq("date", today);
+  const mealDone = new Set((mealsQ.data ?? []).filter((m) => m.done).map((m) => m.slot as string));
+  const mealItems: Mission[] = s.meal_slots.map((m) => { const r = /(\d{1,2})(?:h|:)(\d{2})?/i.exec(m.label); return r ? { id: `m:${m.key}`, title: m.label.replace(/\s*[·-]?\s*\d{1,2}(h|:)\d{0,2}\s*$/i, "").trim() || m.label, start_time: `${r[1].padStart(2, "0")}:${(r[2] ?? "00").padStart(2, "0")}`, end_time: null, done: mealDone.has(m.key), kind: "refeicao", google: false, source: "refeicao" as const, slot: m.key } : null; }).filter((x): x is NonNullable<typeof x> => !!x);
+  const agendaAll: Mission[] = [...missions.map((m) => ({ ...m, source: "brio" as const })), ...gToday, ...mealItems];
   const contactsQ = await sb.from("field_contacts").select("id,name,address").neq("status", "encerrado").order("next_visit", { nullsFirst: false }).limit(30);
 
   // Sequência
@@ -142,7 +158,7 @@ export default async function Hoje() {
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
       {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
-      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} agenda={missions} google={googleOn} /></div>
+      <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} agenda={agendaAll} google={googleOn} /></div>
       </div>
       <div className="dash-side min-w-0">
       {game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}

@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
-import { addTask, setEventDone } from "@/app/(app)/agenda/actions";
+import { addTask, setEventDone, setGoogleDone } from "@/app/(app)/agenda/actions";
+import { setMealDone } from "@/app/(app)/corpo/actions";
 import type { Mission } from "./missions";
 import Image from "next/image";
 import { useEffect, useOptimistic, useState, useTransition } from "react";
@@ -164,12 +165,12 @@ export function Checklist({ date, items, done, streak = 0, best = 0, agenda = []
         <ul className="grid grid-cols-1 min-w-0 gap-px bg-white/[.06] border border-white/[.06]">
           {agSorted.map((m) => { const late = !m.done && m.start_time && m.start_time.slice(0, 5) < nowHm; return (
             <li key={m.id} className="bg-[#080808]">
-              <button onClick={() => startAg(async () => { toggleAg({ id: m.id, done: !m.done }); const e = await setEventDone(m.id, !m.done); if (e) setAgErr(e); })} aria-pressed={m.done}
+              <button onClick={() => startAg(async () => { toggleAg({ id: m.id, done: !m.done }); const e = m.source === "google" ? await setGoogleDone(m.id.slice(2), date, !m.done) : m.source === "refeicao" ? (await setMealDone(date, m.slot!, !m.done), null) : await setEventDone(m.id, !m.done); if (e) setAgErr(e); })} aria-pressed={m.done}
                 className="press w-full flex items-center gap-3 text-left px-3 min-h-[54px] py-2 transition-colors" style={{ background: m.done ? `linear-gradient(90deg, ${SYS}1f, transparent 70%)` : undefined }}>
                 <span className="grid place-items-center h-6 w-6 shrink-0 border" style={{ borderColor: m.done ? SYS : "rgba(255,255,255,.25)", background: m.done ? SYS : "transparent" }}>
                   {m.done && <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="3" aria-hidden><path d="M5 12.5l4.5 4.5L19 7.5" /></svg>}</span>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={m.done ? "#6b6b70" : "#a1a1a6"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4M15 3v4" /></svg>
-                <span className={`flex-1 min-w-0 text-[14px] leading-snug ${m.done ? "text-[#6b6b70] line-through decoration-1" : "text-[#f5f5f7]"}`}>{m.title}</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={m.done ? "#6b6b70" : "#a1a1a6"} strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="shrink-0"><path d={m.source === "refeicao" ? "M7 3v8a3 3 0 0 0 6 0V3M10 3v18M17 3c-2 2-2 6 0 8v10" : "M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2zM4 10h16M9 3v4M15 3v4"} /></svg>
+                <span className={`flex-1 min-w-0 text-[14px] leading-snug ${m.done ? "text-[#6b6b70] line-through decoration-1" : "text-[#f5f5f7]"}`}>{m.source === "google" && <b className="mr-1 text-[10px] font-bold text-[#8ab4f8]">G</b>}{m.title}</span>
                 {m.start_time && <span className="font-mono text-[11px] shrink-0 tabular-nums" style={{ color: late ? "#ff8a80" : "#6b6b70" }}>{m.start_time.slice(0, 5)}</span>}
               </button>
             </li>); })}

@@ -199,3 +199,17 @@ export async function addTask(title: string, date: string, time: string | null):
   revalidatePath("/"); revalidatePath("/agenda");
   return null;
 }
+
+/** "Feito" de um evento do Google fica salvo no BRIO (o Google não tem esse conceito). Guarda só os últimos 7 dias. */
+export async function setGoogleDone(id: string, date: string, done: boolean): Promise<string | null> {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date) || id.length > 200) return "Dados inválidos.";
+  const sb = await createClient();
+  const { data, error } = await sb.from("settings").select("prefs").maybeSingle();
+  if (error) return /column|schema cache/i.test(error.message) ? "Rode o SQL das contas (prefs) no Supabase." : error.message;
+  const prefs = (data?.prefs ?? {}) as Record<string, unknown>, g = { ...((prefs.gdone ?? {}) as Record<string, string[]>) };
+  const set = new Set(g[date] ?? []); if (done) set.add(id); else set.delete(id); g[date] = [...set];
+  for (const d of Object.keys(g)) if (d < new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10)) delete g[d];
+  const { error: e2 } = await sb.from("settings").update({ prefs: { ...prefs, gdone: g } }).not("id", "is", null);
+  revalidatePath("/");
+  return e2 ? e2.message : null;
+}

@@ -4,7 +4,8 @@ import { useOptimistic, useState, useTransition } from "react";
 import { addTask, setEventDone } from "@/app/(app)/agenda/actions";
 
 const A = "#ffb21e";
-export type Mission = { id: string; title: string; start_time: string | null; end_time: string | null; done: boolean; kind: string; google: boolean };
+/** source: brio (evento do BRIO), google (evento do Google Agenda), refeicao (refeição do plano; `slot` é a chave). */
+export type Mission = { id: string; title: string; start_time: string | null; end_time: string | null; done: boolean; kind: string; google: boolean; source?: "brio" | "google" | "refeicao"; slot?: string };
 
 /** Missões de hoje: os compromissos e tarefas da agenda viram um to-do. Marcar aqui marca na agenda (e no Google, se conectado). */
 export function Missions({ date, items, google }: { date: string; items: Mission[]; google: boolean }) {
