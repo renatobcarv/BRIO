@@ -20,7 +20,7 @@ export function Greeting({ name }: { name: string }) {
       <div className="relative">
         <p className="label text-gold capitalize">{p?.date ?? " "}</p>
         <h1 className="font-display text-4xl md:text-5xl mt-2 leading-tight">{p ? <>{p.hi},<br className="sm:hidden" /> <span className="text-gold">{name}.</span></> : " "}</h1>
-        <p className="text-muted text-[15px] mt-2 max-w-[22rem]">{p?.line ?? " "}</p>
+        <p className="text-muted text-[14px] sm:text-[15px] mt-2 max-w-[62%] sm:max-w-[22rem]">{p?.line ?? " "}</p>
       </div>
     </header>
   );

@@ -108,7 +108,17 @@ export function QuickActions({ today, contacts, waterMl, waterGoal }: { today: s
 export function ProfileBadge({ name }: { name: string }) {
   const { total, today } = useXp();
   const lv = levelOf(total), rank = rankOf(lv.level);
-  return (
+  return (<>
+    {/* Celular: faixa compacta no topo, acima da saudação */}
+    <Link href="/status" aria-label={`Perfil: nível ${lv.level}, ${rank.name}`} className="press lg:hidden flex items-center gap-3 mb-3 rounded-full border pl-1 pr-3.5 py-1"
+      style={{ borderColor: rank.color + "45", background: "#0d0d0fcc" }}>
+      <span className="relative grid place-items-center size-9 shrink-0 rounded-full text-[13px] font-bold" style={{ background: `radial-gradient(circle at 30% 25%, ${rank.color}, #1a1a1d 75%)` }}>{name.slice(0, 2).toUpperCase()}</span>
+      <span className="grid gap-1 flex-1 min-w-0">
+        <span className="flex items-baseline justify-between gap-2 text-[12px]"><span className="font-semibold truncate">{name} · <span style={{ color: rank.color }}>NV {lv.level}</span></span><span className="text-muted num shrink-0">{lv.into}/{lv.need} XP</span></span>
+        <span className="h-1 rounded-full bg-white/10 overflow-hidden"><span className="block h-full rounded-full" style={{ width: `${Math.max(3, lv.progress * 100)}%`, background: `linear-gradient(90deg, ${rank.color}, #ffd28a)` }} /></span>
+      </span>
+      {today > 0 && <span className="text-[11px] num shrink-0" style={{ color: "#30d158" }}>+{today}</span>}
+    </Link>
     <Link href="/status" aria-label={`Perfil: nível ${lv.level}, ${rank.name}`}
       className="press hidden lg:flex fixed top-4 right-20 z-30 items-center gap-3 rounded-full border pl-1.5 pr-4 py-1.5 backdrop-blur-xl"
       style={{ borderColor: rank.color + "55", background: "#0d0d0fcc", boxShadow: `0 10px 30px -18px ${rank.color}` }}>
@@ -125,5 +135,5 @@ export function ProfileBadge({ name }: { name: string }) {
         <span className="flex justify-between text-[10px] text-muted num"><span>{lv.into}/{lv.need} XP</span>{today > 0 && <span style={{ color: "#30d158" }}>+{today} hoje</span>}</span>
       </span>
     </Link>
-  );
+  </>);
 }

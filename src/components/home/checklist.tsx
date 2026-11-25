@@ -177,7 +177,7 @@ export function Checklist({ date, items, done, streak = 0, best = 0, agenda = []
           <li className="bg-[#080808]">
             <form className="flex min-w-0 items-center gap-2 px-3 min-h-[54px]" onSubmit={(e) => { e.preventDefault(); const t = nt.trim(); if (!t) return; startAg(async () => { const x = await addTask(t, date, tm || null); if (x) setAgErr(x); else { setNt(""); setTm(""); setAgErr(""); } }); }}>
               <span aria-hidden className="grid place-items-center h-6 w-6 shrink-0 border border-dashed border-white/25 text-white/40">+</span>
-              <input size={1} className="flex-1 min-w-0 bg-transparent text-[14px] outline-none placeholder:text-white/35" placeholder="Adicionar missão de hoje…" value={nt} onChange={(e) => setNt(e.target.value)} maxLength={120} aria-label="Nova missão" />
+              <input size={1} className="flex-1 min-w-0 bg-transparent text-[14px] outline-none placeholder:text-white/35" placeholder="Nova missão…" value={nt} onChange={(e) => setNt(e.target.value)} maxLength={120} aria-label="Nova missão" />
               <input type="time" className="w-[64px] min-w-0 shrink-0 bg-transparent text-[12px] text-white/60 outline-none [&::-webkit-calendar-picker-indicator]:hidden" value={tm} onChange={(e) => setTm(e.target.value)} aria-label="Horário (opcional)" />
               <button className="label !text-[10px] shrink-0 disabled:opacity-30" disabled={agBusy || !nt.trim()} style={{ color: SYS }}>OK</button>
             </form>
