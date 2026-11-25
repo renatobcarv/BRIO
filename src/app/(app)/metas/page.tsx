@@ -1,7 +1,9 @@
 import { Verse } from "@/components/ui";
 import { Goals } from "@/components/goals/goals";
 import { monthEnd, monthStart, todayISO } from "@/lib/date";
-import type { GoalRow } from "@/lib/goals";
+import { AREAS, goalStats, type AreaKey, type GoalRow } from "@/lib/goals";
+import { GoalGarden } from "@/components/goals/garden";
+import { grassVigor } from "@/lib/garden";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -18,6 +20,10 @@ export default async function Page() {
     sb.from("bible_reading").select("id", { count: "exact", head: true }),
     sb.from("books").select("id", { count: "exact", head: true }).eq("status", "lido").gte("finished_at", today.slice(0, 4) + "-01-01"),
   ]);
+  // Plantação: grama cresce com estudo e dias de missão nos últimos 30 dias.
+  const from30 = new Date(Date.parse(today + "T12:00:00Z") - 29 * 864e5).toISOString().slice(0, 10);
+  const [st30, ck30] = await Promise.all([sb.from("study_entries").select("minutes").gte("date", from30), sb.from("daily_checks").select("date").eq("done", true).gte("date", from30)]);
+  const studyMin = (st30.data ?? []).reduce((a, e) => a + Number(e.minutes || 0), 0), activeDays = new Set((ck30.data ?? []).map((c) => c.date as string)).size;
   const pioneerH = (pioneer.data ?? []).reduce((a, e) => a + e.minutes, 0) / 60;
   const list: GoalRow[] = (goals.data ?? []).map((g) => {
     const r = { ...g, target: Number(g.target), current: Number(g.current), start_value: Number(g.start_value) } as GoalRow;
@@ -34,6 +40,8 @@ export default async function Page() {
 
   return (
     <div className="goals-page">
+      <GoalGarden today={today} vigor={grassVigor(studyMin, activeDays)} studyH={studyMin / 60} activeDays={activeDays}
+        goals={list.map((g) => ({ id: g.id, title: g.title, pct: goalStats(g, today).pct, color: AREAS[g.area as AreaKey]?.color ?? "#ffb21e", area: String(g.area ?? "padrao"), deadline: g.deadline ?? null }))} />
       <Goals today={today} objectives={obj.data ?? []} goals={list} boxes={(boxes.data ?? []).map(({ id, name }) => ({ id, name }))} />
       <Verse area="metas" />
     </div>

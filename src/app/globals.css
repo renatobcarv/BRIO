@@ -901,3 +901,10 @@ h1.font-display, h2.font-display, h3.font-display, .font-display.text-4xl, .font
 @media (prefers-reduced-motion: reduce) {
   .dg-lunge, .dg-hit { animation: none !important; }
 }
+
+/* Plantação das metas */
+@keyframes garden-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes blade-sway { 0%, 100% { transform: skewX(0deg); } 50% { transform: skewX(-6deg); } }
+.garden-sway { animation: garden-sway 4s ease-in-out infinite; }
+.garden-blade { animation: blade-sway 3s ease-in-out infinite; transform-box: fill-box; transform-origin: bottom; }
+@media (prefers-reduced-motion: reduce) { .garden-sway, .garden-blade { animation: none; } }
