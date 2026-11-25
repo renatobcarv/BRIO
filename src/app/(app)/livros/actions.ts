@@ -90,6 +90,16 @@ export async function saveNote(bookId: string, input: z.infer<typeof Note>, id?:
   else await ok(sb.from("book_notes").insert({ ...p, book_id: Id.parse(bookId) }));
   done(bookId);
 }
+/** Diário de leitura: grava (ou apaga, se vazio) a entrada do dia. */
+export async function saveDiary(bookId: string, date: string, text: string) {
+  const d = z.string().regex(/^\d{4}-\d{2}-\d{2}$/).parse(date), t = z.string().max(10000).parse(text).trim(), b = Id.parse(bookId);
+  const sb = await createClient();
+  const { data: cur } = await sb.from("book_notes").select("id").eq("book_id", b).eq("kind", "diario").eq("date", d).maybeSingle();
+  if (!t) { if (cur) await ok(sb.from("book_notes").delete().eq("id", cur.id)); }
+  else if (cur) await ok(sb.from("book_notes").update({ text: t }).eq("id", cur.id));
+  else await ok(sb.from("book_notes").insert({ book_id: b, kind: "diario", date: d, text: t }));
+  done(bookId);
+}
 export async function deleteNote(id: string, bookId: string) {
   const sb = await createClient(); await ok(sb.from("book_notes").delete().eq("id", Id.parse(id))); done(bookId);
 }

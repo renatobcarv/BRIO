@@ -21,7 +21,7 @@ export default async function Page() {
     getSettings(sb),
     sb.from("books").select("*").order("created_at", { ascending: false }),
     sb.from("reading_sessions").select("id,book_id,date,from_page,to_page,minutes").gte("date", addDays(today, -400)),
-    sb.from("book_notes").select("id,created_at,book_id,kind,page,text,books(id,title,cover_url,authors)").order("created_at", { ascending: false }).limit(500),
+    sb.from("book_notes").select("id,created_at,book_id,kind,page,text,books(id,title,cover_url,authors)").neq("kind", "diario").order("created_at", { ascending: false }).limit(500),
   ]);
   const noteList = (notes.data ?? []).map((x) => { const { books: bk, ...r } = x as unknown as BookNote & { books: Pick<Book, "id" | "title" | "cover_url" | "authors"> }; return { ...r, book: bk }; }).filter((x) => x.book);
   return (

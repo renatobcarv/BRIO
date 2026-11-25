@@ -2,11 +2,11 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { deleteBook, deleteNote, deleteSession, logReading, saveNote, setStatus, updateBook } from "@/app/(app)/livros/actions";
+import { deleteBook, deleteNote, saveDiary, deleteSession, logReading, saveNote, setStatus, updateBook } from "@/app/(app)/livros/actions";
 import { Empty } from "@/components/ui";
 import { Field, Progress, SectionTitle, Segmented, Sheet, fmt, n } from "@/components/kit";
 import { shortDate } from "@/lib/date";
-import { BOOK_COLOR as B, FORMATS, NOTE_KINDS, STATUS, progressOf, type Book, type BookFormat, type BookNote, type BookStatus, type NoteKind, type Session } from "@/lib/books";
+import { BOOK_COLOR as B, FORMATS, NOTE_KINDS, STATUS, progressOf, type Book, type BookFormat, type BookNote, type BookStatus, type NoteKind, type Session, type DiaryEntry } from "@/lib/books";
 import { Cover, Stars } from "./parts";
 import { pace } from "./library";
 
@@ -22,6 +22,41 @@ function AutoText({ id, field, initial, placeholder, rows = 6, display }: { id: 
         onBlur={() => { if (v === initial && saved === "") return; setSaved("salvando"); start(async () => { await updateBook(id, { [field]: v.trim() || null }); setSaved("salvo"); }); }} />
       <p className="text-xs h-4 mt-1" style={{ color: saved === "salvo" ? "#30d158" : "#5d5b56" }}>{saved === "salvando" ? "Salvando…" : saved === "salvo" ? "Salvo ✓" : "Salva automaticamente ao sair do campo"}</p>
     </div>
+  );
+}
+
+/** Diário de leitura: o que li hoje, em poucas linhas. Uma entrada por dia, salva sozinha. */
+function Diary({ bookId, today, entries, sessions }: { bookId: string; today: string; entries: DiaryEntry[]; sessions: Session[] }) {
+  const todayEntry = entries.find((e) => e.date === today);
+  const [day, setDay] = useState(today);
+  const cur = entries.find((e) => e.date === day)?.text ?? "";
+  const [v, setV] = useState(todayEntry?.text ?? "");
+  const [saved, setSaved] = useState<"" | "salvando" | "salvo">("");
+  const [, start] = useTransition();
+  const pagesOn = (d: string) => sessions.filter((s) => s.date === d).reduce((a, s) => a + Math.max(0, s.to_page - s.from_page), 0);
+  const past = entries.filter((e) => e.date !== day);
+  const pick = (d: string) => { setDay(d); setV(entries.find((e) => e.date === d)?.text ?? ""); setSaved(""); };
+  const read = pagesOn(day);
+  return (
+    <section className="glass rise p-5 mt-4">
+      <SectionTitle action={day !== today ? <button className="btn !min-h-9 text-sm" onClick={() => pick(today)}>Voltar para hoje</button> : undefined}>Diário de leitura · {entries.length}</SectionTitle>
+      <p className="label">{day === today ? "Hoje" : shortDate(day)}{read > 0 ? ` · ${read} páginas lidas` : ""}</p>
+      <textarea className="field leading-relaxed mt-2" rows={5} value={v}
+        placeholder="O que você leu hoje? Um resumo curto, uma ideia que ficou, uma dúvida. Duas linhas por dia já constroem memória."
+        onChange={(e) => { setV(e.target.value); setSaved(""); }}
+        onBlur={() => { if (v.trim() === cur.trim()) return; setSaved("salvando"); start(async () => { await saveDiary(bookId, day, v); setSaved("salvo"); }); }} />
+      <p className="text-xs h-4 mt-1" style={{ color: saved === "salvo" ? "#30d158" : "#5d5b56" }}>{saved === "salvando" ? "Salvando…" : saved === "salvo" ? "Salvo ✓" : "Salva automaticamente ao sair do campo"}</p>
+      {past.length > 0 && (
+        <ul className="grid gap-2 mt-4">
+          {past.map((e) => (
+            <li key={e.id}><button className="w-full text-left rounded-[8px] bg-white/[.03] hover:bg-white/[.05] transition-colors p-4 border-l-2" style={{ borderColor: B }} onClick={() => pick(e.date)}>
+              <p className="label">{shortDate(e.date)}{pagesOn(e.date) > 0 ? ` · ${pagesOn(e.date)} págs.` : ""}</p>
+              <p className="mt-1.5 text-[15px] whitespace-pre-line line-clamp-4">{e.text}</p>
+            </button></li>
+          ))}
+        </ul>
+      )}
+    </section>
   );
 }
 
@@ -80,7 +115,7 @@ function EditBook({ b, onDone }: { b: Book; onDone: () => void }) {
   );
 }
 
-export function BookDetail({ book: b, notes, sessions, today }: { book: Book; notes: BookNote[]; sessions: Session[]; today: string }) {
+export function BookDetail({ book: b, notes, sessions, today, diary = [] }: { book: Book; notes: BookNote[]; sessions: Session[]; today: string; diary?: DiaryEntry[] }) {
   const [pending, start] = useTransition();
   const [sheet, setSheet] = useState<null | "edit" | "note" | BookNote>(null);
   const [page, setPage] = useState(String(b.current_page || ""));
@@ -167,6 +202,8 @@ export function BookDetail({ book: b, notes, sessions, today }: { book: Book; no
           ) : <p className="font-display italic text-muted">Sem sinopse. Edite os dados para completar.</p>)}
         </div>
       </section>
+
+      <Diary key={b.id} bookId={b.id} today={today} entries={diary} sessions={sessions} />
 
       <section id="anotacoes" className="glass rise p-5 mt-4 scroll-mt-4">
         <SectionTitle action={<button className="btn !min-h-9 text-sm" onClick={() => setSheet("note")}>+ Anotação</button>}>Anotações · {notes.length}</SectionTitle>

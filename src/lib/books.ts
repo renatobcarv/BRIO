@@ -19,6 +19,8 @@ export type Book = {
   summary: string | null; lessons: string | null; application: string | null; source_id: string | null;
 };
 export type BookNote = { id: string; created_at: string; book_id: string; kind: NoteKind; page: number | null; text: string };
+/** Entrada do diário de leitura (uma por dia). */
+export type DiaryEntry = { id: string; date: string; text: string };
 export type Session = { id: string; book_id: string; date: string; from_page: number; to_page: number; minutes: number | null };
 
 /** Resultado normalizado das APIs de busca. */
