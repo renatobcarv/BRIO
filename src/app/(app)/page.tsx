@@ -23,6 +23,7 @@ import { XpProvider } from "@/components/game/xp";
 import { HeroPlayer, ProfileBadge, QuickActions } from "@/components/home/hero";
 import { EventCard } from "@/components/events/event-ui";
 import { PetCard, type PetView } from "@/components/pet/pet";
+import { isOwner } from "@/lib/edition";
 
 export const dynamic = "force-dynamic";
 const f1 = (v: number) => v.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
@@ -43,6 +44,8 @@ export default async function Hoje() {
   const sb = await createClient();
   // Nome de quem está logado (cadastro grava em user_metadata.name); sem nome, usa o começo do e-mail.
   const { data: me } = await sb.auth.getUser();
+  // Conta do dono vê as áreas em desenvolvimento; as demais, só o pacote.
+  const full = isOwner(me.user?.email);
   const raw = String(me.user?.user_metadata?.name ?? me.user?.email?.split("@")[0].split(/[._\-\d]/)[0] ?? "").trim().split(/\s+/)[0];
   const firstName = raw ? raw[0].toUpperCase() + raw.slice(1) : "você";
   const today = todayISO();
@@ -138,7 +141,7 @@ export default async function Hoje() {
       <div className="dash-main min-w-0">
       <ProfileBadge name={firstName} />
       <Greeting name={firstName} />
-      <section className="rise mt-4" aria-label="Quadro dos sonhos">
+      {full && <section className="rise mt-4" aria-label="Quadro dos sonhos">
         <div className="flex items-end justify-between mb-2"><p className="label">Quadro dos sonhos · por quem você caça</p><Link href="/sonhos" className="label !text-[10px] underline underline-offset-4 min-h-11 inline-flex items-center">ver tudo</Link></div>
         <div className="flex gap-2 overflow-x-auto snap-x pb-1 -mx-1 px-1">
           {s.partner_name && <Link href="/sonhos" className="dream-mini snap-start shrink-0 relative w-[150px] h-[190px] overflow-hidden rounded-[8px] border border-[#3a0000] bg-[#0b0b0b]">
@@ -154,18 +157,18 @@ export default async function Hoje() {
             </Link>))}
           {dreams.length === 0 && <Link href="/sonhos" className="snap-start shrink-0 w-[150px] h-[190px] rounded-[8px] border border-dashed border-white/20 grid place-items-center text-center p-3 text-sm text-white/60">+ Coloque seu primeiro sonho</Link>}
         </div>
-      </section>
+      </section>}
 
       <HeroPlayer attrs={(Object.keys(ATTRS) as Attr[]).map((k) => ({ key: k, label: ATTRS[k].label, color: ATTRS[k].color, value: game.attrs[k] }))} />
-      {(() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
+      {full && (() => { const ev = game.events.find((e) => e.stage === "ativo" || e.stage === "contagem"); return ev ? <Link href="/eventos" className="block mt-4"><EventCard e={ev} compact /></Link> : null; })()}
       <div className="mt-4"><QuickActions today={today} contacts={contactsQ.error ? [] : contactsQ.data ?? []} waterMl={ml} waterGoal={s.water_goal_ml} /></div>
       <div className="mt-4"><Checklist date={today} items={s.checklist} done={[...(byDay.get(today) ?? [])]} streak={count} best={best} agenda={agendaAll} google={googleOn} /></div>
       </div>
       <div className="dash-side min-w-0">
-      {game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}
-      <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} nextAt={clean.nextAt} />
-      <div className="grid grid-cols-3 gap-3 mt-4">
-        <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />
+      {full && game.petReady && <PetCard p={(game.pet as PetView | null) ?? null} />}
+      {full && <Streak count={clean.count} best={clean.best} todayDone={clean.todayDone} week={week} next={clean.next} ready={!cleanQ.error} started={clean.started} nextAt={clean.nextAt} />}
+      <div className={`grid ${full ? "grid-cols-3" : "grid-cols-2"} gap-3 mt-4`}>
+        {full && <Mini href="/pioneiro" label="Pioneiro" color="#f5f5f7" value={toHMM(pMin)} sub={`de ${toHMM(pGoalMin)}`} pct={pGoalMin ? pMin / pGoalMin : 0} meter={<Hourglass pct={pGoalMin ? pMin / pGoalMin : 0} size={24} />} />}
         <Mini href="/status?aba=corpo" label="Água" color="#30d158" value={`${f1(ml / 1000)} L`} sub={`de ${f1(s.water_goal_ml / 1000)} L`} pct={ml / s.water_goal_ml} meter={<MiniBottle pct={ml / s.water_goal_ml} size={22} />} />
         <Mini href="/status?aba=corpo&sub=peso" label="Peso" color="#30d158" value={kg ? f1(kg) : "—"} sub={`meta ${f1(s.weight_goal_kg)} kg`} />
       </div>
@@ -212,7 +215,7 @@ export default async function Hoje() {
         )}
       </Link>
 
-      <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>
+      {full && <div className="mt-4"><DailyText key={dailyText} initial={dailyText} today={today} reflected={(refl.data ?? []).length > 0} /></div>}
       {s.partner_name && <Partner name={s.partner_name} photo={photo} phrase={s.partner_phrase ?? ""} />}
       <Verse area="inicio" />
       </div>

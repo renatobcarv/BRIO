@@ -1,3 +1,4 @@
+import { isOwner } from "@/lib/edition";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/settings";
@@ -28,7 +29,8 @@ export default async function Status({ searchParams }: { searchParams: Promise<{
   const user = u.user, meta = (user?.user_metadata ?? {}) as { full_name?: string; name?: string; avatar_url?: string };
   const name = meta.full_name || meta.name || user?.email?.split("@")[0] || "Caçador";
   const handle = (user?.email?.split("@")[0] ?? "brio").toLowerCase();
-  const pet = g.pet as { name: string; species: string; stage: { key: string; name: string } } | null;
+  const full = isOwner(user?.email);
+  const pet = !full ? null : g.pet as { name: string; species: string; stage: { key: string; name: string } } | null;
   const avatar = pet ? `/mascotes/${pet.species}/${pet.stage.key}.webp` : meta.avatar_url || "/pantera/sentada.webp";
   const done = g.achievements.filter((a) => a.done), streak = (() => { let n = 0; for (let i = g.week.length - 1; i >= 0 && g.week[i].xp > 0; i--) n++; return n; })();
   const nextRank = RANKS.find((r) => r.min > g.level);
@@ -40,7 +42,7 @@ export default async function Status({ searchParams }: { searchParams: Promise<{
       <div className="max-w-xl mx-auto">
       <div className="flex items-center justify-between">
         <Link href="/configuracoes" aria-label="Configurações" className="grid place-items-center h-10 w-10 rounded-full bg-white/[.06]">⚙</Link>
-        <span className="flex items-center gap-2 rounded-full bg-white/[.06] pl-3 pr-1 py-1"><span className="font-semibold" style={{ color: A }}>◉ {(it?.gold ?? 0).toLocaleString("pt-BR")}</span><Link href="/mascote" aria-label="Loja" className="grid place-items-center h-7 w-7 rounded-full text-black font-bold" style={{ background: A }}>+</Link></span>
+        {full && <span className="flex items-center gap-2 rounded-full bg-white/[.06] pl-3 pr-1 py-1"><span className="font-semibold" style={{ color: A }}>◉ {(it?.gold ?? 0).toLocaleString("pt-BR")}</span><Link href="/mascote" aria-label="Loja" className="grid place-items-center h-7 w-7 rounded-full text-black font-bold" style={{ background: A }}>+</Link></span>}
       </div>
 
       <header className="text-center mt-4">
@@ -75,12 +77,12 @@ export default async function Status({ searchParams }: { searchParams: Promise<{
           </div>); })}
       </div>
 
-      <div className="grid grid-cols-[1fr_1.4fr] gap-3 mt-4">
-        <Link href="/mascote" className="rounded-[20px] bg-white/[.04] p-4 text-center">
+      <div className={`grid ${full ? "grid-cols-[1fr_1.4fr]" : ""} gap-3 mt-4`}>
+        {full && <Link href="/mascote" className="rounded-[20px] bg-white/[.04] p-4 text-center">
           <div className="flex justify-center -space-x-4">{(it?.army ?? []).slice(0, 3).map((t) => <div key={t.id} className="h-12 w-12 rounded-full bg-[#141416] border border-black overflow-hidden"><CreaturePortrait id={t.id} className="w-full h-full" /></div>)}
             {!(it?.army ?? []).length && <div className="h-12 w-12 rounded-full bg-white/[.06] grid place-items-center text-white/30">?</div>}</div>
           <p className="font-semibold mt-2">Feras</p><p className="text-[12px]" style={{ color: A }}>{it?.army.length ?? 0} domada(s)</p>
-        </Link>
+        </Link>}
         <div className="rounded-[20px] p-4 relative overflow-hidden" style={{ background: `linear-gradient(135deg, #1a1306, #0b0b0d 70%)` }}>
           <p className="font-semibold">{streak >= 3 ? "Continue assim!" : "Hoje conta."}</p>
           <p className="text-[12.5px] text-white/55 mt-1">{streak ? `${streak} dia(s) seguidos com XP nesta semana.` : "Marque uma missão para acender a semana."}</p>
@@ -106,12 +108,12 @@ export default async function Status({ searchParams }: { searchParams: Promise<{
         <span className="flex-1"><span className="block font-semibold">{pet.name}</span><span className="block text-[12px] text-white/50">{pet.stage.name}{it?.active ? ` · com ${ALL(it.active).name}` : ""}</span></span>
         <span className="text-white/30">›</span></Link>}
 
-      <section className="rounded-[20px] bg-white/[.04] p-4 mt-3">
+      {full && <section className="rounded-[20px] bg-white/[.04] p-4 mt-3">
         <div className="flex justify-between"><p className="font-semibold">Equipamento</p><Link href="/mascote" className="text-[12px]" style={{ color: A }}>{Object.keys(it?.owned ?? {}).length}/{GEAR.length} itens ›</Link></div>
         <div className="grid grid-cols-3 gap-2 mt-3">{(["forca", "vigor", "sabedoria", "servico", "disciplina", "ordem"] as Attr[]).map((k) => { const e = it?.equipped[k], x = e ? gearById(e.id) : null; return (
           <div key={k} className="rounded-[12px] p-2 text-center bg-white/[.03] border" style={{ borderColor: x ? TIER[x.tier].color + "55" : "rgba(255,255,255,.06)" }}>
             <p className="text-[10px] text-white/45">{ATTRS[k].label}</p><p className="text-[11.5px] font-semibold leading-tight mt-0.5 line-clamp-2">{x ? x.name : "—"}</p>{x && <p className="text-[10px]" style={{ color: A }}>+{gearPct(x, it?.levels[x.id])}%</p>}</div>); })}</div>
-      </section>
+      </section>}
 
       <section className="rounded-[20px] bg-white/[.04] p-4 mt-3">
         <div className="flex justify-between"><p className="font-semibold">Conquistas de destaque</p><Link href="/status" className="text-[12px]" style={{ color: A }}>ver todas ›</Link></div>

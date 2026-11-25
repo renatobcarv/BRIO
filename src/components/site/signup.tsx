@@ -8,10 +8,9 @@ import { PLANS, brlPrice, planById } from "@/lib/plans";
 
 const FIRE = "linear-gradient(135deg,#ff9f0a,#b7791f 70%)";
 const AREAS = [
-  { id: "espiritual", e: "📖", t: "Vida espiritual", c: "#ff9f0a" }, { id: "ministerio", e: "💬", t: "Ministério", c: "#ff9f0a" },
   { id: "treino", e: "🏋️", t: "Treino", c: "#ff9f0a" }, { id: "dieta", e: "🥗", t: "Dieta", c: "#ff9f0a" },
   { id: "financas", e: "💰", t: "Finanças", c: "#ff9f0a" }, { id: "estudos", e: "🎓", t: "Estudos", c: "#ff9f0a" },
-  { id: "agenda", e: "📅", t: "Agenda", c: "#ff9f0a" }, { id: "habitos", e: "🔥", t: "Hábitos", c: "#ff9f0a" },
+  { id: "agenda", e: "📅", t: "Agenda", c: "#ff9f0a" }, { id: "livros", e: "📚", t: "Livros", c: "#ff9f0a" },
 ];
 const STEPS = ["Você", "Foco", "Plano"];
 

@@ -5,8 +5,8 @@ import type { Metadata } from "next";
 import { BrioWordmark } from "@/components/brand";
 import { SiteMotion } from "@/components/site/motion";
 import { Pricing } from "@/components/site/pricing";
-import { SPECIES } from "@/lib/pet";
-import { Chapter, DietMock, PetGallery, PetMock, SpiritMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
+import { FUTURE } from "@/lib/edition";
+import { Chapter, DietMock, StudyMock, WorkoutMock } from "@/components/site/chapters";
 
 import { AchievementGallery, AreaPreview, MoreAreas, StatusPreview } from "@/components/site/product-visuals";
 import { missionArt } from "@/components/site/showcase-art";
@@ -63,23 +63,37 @@ const FEATS = [
   ["Estudar com IA", "Um tutor que faz você pensar", "Claude ou Gemini em 7 modos: ensinar, investigar, socrático, praticar, construir, avaliar e revisar. Domínio medido por evidência."],
   ["Conhecimento e Build Lab", "Lembre e construa", "Anotações com revisão espaçada de verdade, cards gerados de qualquer texto e projetos práticos avaliados pela IA."],
   ["Conquistas de estudo", "Certificados que contam", "Medalhas por evidência, certificados do BRIO para imprimir e um índice dos seus certificados com arquivo e link."],
-  ["Espiritual", "Fé com rotina e beleza", "Momento do dia, leitura da Bíblia por capítulo, páginas estilo caderno com capa e imagens, diário e gratidão."],
-  ["Pioneiro", "Horas que fecham o mês", "Registro de campo, revisitas, ritmo do mês e sugestões de como completar as horas que faltam."],
   ["Central de Operações", "Fale e a agenda se organiza", "Linha do tempo do dia, Google Agenda nas duas vias e IA que transforma frase em compromisso."],
   ["Finanças", "Dinheiro sem surpresa", "Saldo do mês, orçamento por categoria, parcelas que fecham no centavo, caixinhas, investimentos e um assistente que lê os seus números."],
   ["Livros", "Leia mais, com medalhas", "Estante, sessões de leitura, notas e 11 medalhas de Bronze a Lenda que dizem exatamente o que fazer."],
-  ["Metas e Sonhos", "Lembre por quem você luta", "Metas com progresso automático e um quadro de sonhos com as fotos de quem você ama."],
-  ["Mascote", "Um companheiro que cresce com você", "Sorteie entre 10 mascotes (o dragão é lendário). Ele come o XP real das suas ações e às vezes te dá bônus."],
-  ["Dias limpos", "Constância que conta sozinha", "Todo dia sem recaída conta, sem precisar marcar. Recomeço honesto quando precisar."],
-  ["Status, eventos e bestiário", "Veja a sua evolução", "Patentes, atributos, 42 conquistas, eventos semanais e um bestiário de vitórias. Constância vira prova."],
+  ["Metas", "Objetivos que andam sozinhos", "Metas com progresso automático puxado do treino, da dieta, das finanças e dos livros. Você vê a plantação crescer."],
+  ["XP e patentes", "Veja sua evolução", "Cada ação registrada vira XP. Suba de nível, conquiste patentes e acompanhe seus atributos."],
 ];
 const FAQ = [
   ["Preciso de cartão para testar?", "Não. Você cria a conta, usa 14 dias com tudo liberado e decide depois."],
   ["Funciona no celular?", "Foi feito primeiro para o celular. Abra no navegador e toque em “Adicionar à Tela de Início”: vira um app, sem loja."],
   ["De onde vem o XP?", "Só do que você registra de verdade: treino feito, refeição marcada, estudo com tempo. Clique vazio não vale ponto."],
   ["Meus dados ficam com quem?", "Com você. Cada conta só enxerga os próprios dados (bloqueio no banco), e você pode exportar tudo quando quiser."],
-  ["E a parte espiritual?", "Leitura da Bíblia, estudo pessoal, diário e registro de ministério com metas de pioneiro. Textos bíblicos na Tradução do Novo Mundo."],
+  ["O que vem depois?", "O BRIO cresce com quem usa. Novas áreas já estão em desenvolvimento e entram no seu plano sem custo extra quando forem lançadas."],
 ];
+
+/** O que está sendo construído: transparência sem prometer data. */
+function Roadmap() {
+  return (
+    <section className="max-w-6xl mx-auto px-4 pb-20">
+      <p className="in text-[11px] font-bold tracking-[.35em] uppercase text-[#ffb21e]">Em desenvolvimento</p>
+      <h2 className="in font-display text-[clamp(28px,4.5vw,44px)] mt-3">O que vem por aí</h2>
+      <p className="in text-white/70 mt-2 max-w-xl">Áreas em construção. Quem assina hoje recebe cada uma quando for lançada, sem pagar a mais.</p>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mt-8">
+        {FUTURE.filter((f) => !["/mascote", "/bestiario"].includes(f.href)).map((f, i) => (
+          <div key={f.href} data-i={i} className="in rounded-[8px] border border-white/10 bg-white/[.03] p-5 flex items-center justify-between gap-3">
+            <div><b>{f.label}</b><p className="text-sm text-white/60 mt-0.5">{f.hint}</p></div>
+            <span className="shrink-0 rounded-full border border-[#ff9f0a55] px-2.5 py-1 text-[11px] text-[#ffb21e]">Em breve</span>
+          </div>))}
+      </div>
+    </section>
+  );
+}
 
 export default function Site() {
   const label = "in text-[11px] font-bold tracking-[.35em] uppercase text-[#ffb21e]";
@@ -111,7 +125,7 @@ export default function Site() {
           <div>
             <span className="in inline-flex items-center gap-2 rounded-full border border-[#ff9f0a66] bg-black/60 px-3 py-1.5 text-xs text-white/80" data-i="0"><i className="h-2 w-2 rounded-full bg-[#ffb21e] shadow-[0_0_10px_#ffb21e]" />14 dias grátis · sem cartão</span>
             <h1 className="in font-display text-[clamp(42px,8.5vw,84px)] leading-[.98] mt-5" data-i="1">Pare de começar.<br /><span className={em}>Comece a continuar</span><span className="text-[#ffb21e]">.</span></h1>
-            <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Motivação acaba na quarta-feira. A pantera não caça por motivação, caça por instinto. O BRIO transforma fé, treino, dieta, dinheiro e estudos numa rotina que você repete até virar quem você é.</p>
+            <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Motivação acaba na quarta-feira. A pantera não caça por motivação, caça por instinto. O BRIO transforma treino, dieta, agenda, dinheiro e estudos numa rotina que você repete até virar quem você é.</p>
             <div className="in flex flex-col sm:flex-row gap-3 mt-8" data-i="3">
               <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-black press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #ff9f0a" }}>Quero minha rotina de pantera →</Link>
               <a href="#produto" className="min-h-14 px-8 rounded-[8px] grid place-items-center border border-white/15 bg-black/40 press">Ver o que tem dentro</a>
@@ -123,7 +137,7 @@ export default function Site() {
         <div className="max-w-6xl mx-auto px-4 pb-14">
           <p className="text-center text-[11px] tracking-[.3em] uppercase text-white/50 mb-4">O dia que você já entende</p>
           <div className="flex flex-wrap justify-center gap-2">
-            {["Oração", "Leitura da Bíblia", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Sono"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#ff9f0a", background: "#ff9f0a22" } : i === 5 ? { borderColor: "#ffb21e", color: "#ffb21e" } : undefined}>{p}</span>)}
+            {["Agenda", "Leitura", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Metas"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#ff9f0a", background: "#ff9f0a22" } : i === 5 ? { borderColor: "#ffb21e", color: "#ffb21e" } : undefined}>{p}</span>)}
           </div>
         </div>
       </section>
@@ -145,7 +159,7 @@ export default function Site() {
             <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-[8px] font-semibold text-black press" style={{ background: FIRE }}>Começar hoje →</Link>
           </div>
           <div className="in relative mx-auto w-full max-w-[440px] aspect-[4/5]">
-            <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o mascote do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[10px] border border-white/10" />
+            <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o símbolo do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[10px] border border-white/10" />
             <div className="absolute inset-0 rounded-[10px]" style={{ background: "radial-gradient(60% 40% at 50% 100%, rgba(255,178,30,.35), transparent 70%)" }} />
             {[["21 dias", "sequência", "left-[-6%] top-[14%]"], ["+40 XP", "treino feito", "right-[-6%] top-[42%]"], ["6/6", "missões hoje", "left-[4%] bottom-[8%]"]].map(([b, t, pos]) => (
               <span key={t} className={`absolute ${pos} rounded-[8px] border border-[#ff9f0a66] bg-black/75 backdrop-blur px-4 py-2.5`}><b className="num block text-xl text-[#ffb21e]">{b}</b><span className="text-xs text-white/70">{t}</span></span>))}
@@ -157,15 +171,13 @@ export default function Site() {
         <Chapter kicker="Status · Ascension" title={<>Veja sua evolução<br /><span className={em}>tomar forma.</span></>} text="Registre o que você fez e acompanhe seu XP, seus atributos e sua próxima patente. Cada etapa tem seu próprio brasão." visual={<StatusPreview />} />
         <AchievementGallery />
         <Chapter flip kicker="Agenda · Central de Operações" title={<>Da conversa<br /><span className={em}>para a agenda.</span></>} text="Escreva “reunião quinta às 14h e estudo às 19h30”. A IA organiza os compromissos em uma linha do tempo, com integração ao Google Agenda nos dois sentidos." visual={<AreaPreview cover="agenda" />} />
-        <Chapter kicker="Sonhos e metas" title={<>Dê um lugar<br /><span className={em}>aos seus sonhos.</span></>} text="Reúna fotos e ideias em um quadro privado. Acompanhe seus objetivos em Metas e volte ao quadro para lembrar o que você quer construir." visual={<AreaPreview cover="sonhos" />} />
+        <Chapter kicker="Metas" title={<>Metas que você<br /><span className={em}>vê crescer.</span></>} text="Defina o objetivo e o BRIO acompanha sozinho: quilos, páginas, reais guardados, horas de estudo. Cada avanço faz a sua plantação crescer." visual={<AreaPreview cover="sonhos" />} />
         <Chapter flip kicker="Livros" title={<>Uma estante que<br /><span className={em}>cresce com você.</span></>} text="Organize o que está lendo, registre páginas e guarde suas notas. As 11 medalhas de leitura mostram o próximo objetivo, do Bronze à Lenda." visual={<AreaPreview cover="livros" />} />
         <Chapter kicker="Treino · Covil" title={<>Chegue à academia<br /><span className={em}>com um plano.</span></>} text="Campanha em fases, foto de cada exercício, músculos do dia, carga sugerida e treino guiado com descanso. Se o aparelho estiver ocupado, troque o exercício na hora." visual={<WorkoutMock />} />
         <Chapter flip kicker="Plano alimentar" title={<>Um plano alimentar<br /><span className={em}>para a sua rotina.</span></>} text="Informe seu objetivo, sua rotina e suas preferências. A IA monta o cardápio, as calorias acompanham a fase do treino e você registra as refeições com um toque." visual={<DietMock />} />
         <Chapter kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Use Claude ou Gemini em sete modos, do socrático à avaliação. Faça revisões espaçadas, construa projetos e acompanhe seu domínio pelas evidências do que aprendeu." visual={<StudyMock />} />
-        <Chapter flip kicker="Vida espiritual" title={<>Um espaço para<br /><span className="text-[#9fd0f5]">fé e reflexão.</span></>} text="Leia a Bíblia por capítulo, crie páginas com capas e imagens e guarde suas anotações, orações e registros de gratidão." visual={<SpiritMock />} />
-        <Chapter kicker="Reino dos Mascotes" title={<>Ele cresce com<br /><span className={em}>o que você faz.</span></>} text={`Sorteie entre ${SPECIES.length} espécies, cada uma com seu lar animado. Seu mascote cresce com o XP das suas ações, evolui em seis fases e pode dar bônus de XP.`} visual={<PetMock />} />
-        <PetGallery />
         <MoreAreas />
+        <Roadmap />
       </div>
 
       {/* confiança */}

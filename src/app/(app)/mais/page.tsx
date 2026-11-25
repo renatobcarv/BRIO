@@ -1,6 +1,8 @@
 import { CardArt, type CardArtName } from "@/components/card-art";
 import Link from "next/link";
 import { PageHeader } from "@/components/ui";
+import { createClient } from "@/lib/supabase/server";
+import { isFutureRoute, isOwner } from "@/lib/edition";
 
 // Tudo que não cabe na barra de baixo do celular (mesma ordem do menu lateral).
 const MENU: [string, string][] = [["/status", "Status"], ["/dieta", "Dieta"], ["/mascote", "Mascote"], ["/agenda", "Agenda"], ["/sonhos", "Sonhos"], ["/estudos", "Estudos"], ["/eventos", "Eventos"], ["/financas", "Finanças"], ["/livros", "Livros"], ["/configuracoes", "Configurações"]];
@@ -22,8 +24,10 @@ const EXTRA: { href: string; label: string; color: string; sub: string; art?: Ca
   { href: "/bestiario", label: "Bestiário", color: "#ffb21e", sub: "Feras, anjos e a Clareira" },
 ];
 
-export default function Mais() {
-  const items = [...MENU.map(([href, label]) => ({ href, label, color: "#ffb21e", ...INFO[href] })), ...EXTRA];
+export default async function Mais() {
+  const { data: me } = await (await createClient()).auth.getUser();
+  const owner = isOwner(me.user?.email);
+  const items = [...MENU.map(([href, label]) => ({ href, label, color: "#ffb21e", ...INFO[href] })), ...EXTRA].filter((it) => owner || !isFutureRoute(it.href));
   return (
     <>
       <PageHeader eyebrow="Mais" title="Outras áreas" />

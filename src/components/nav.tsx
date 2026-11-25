@@ -47,9 +47,9 @@ const isActive = (path: string, href: string) => (href === "/" ? path === "/" : 
 
 /** Rotas que dependem de um módulo: somem do menu se a conta desligou o módulo. */
 const NEEDS: Record<string, string> = { "/espiritual": "espiritual", "/pioneiro": "pioneiro", "/treino": "treino", "/dieta": "dieta", "/financas": "financas", "/estudos": "estudos", "/agenda": "agenda", "/livros": "livros", "/sonhos": "sonhos", "/mascote": "mascote" };
-export function Nav({ off = [] }: { off?: string[] }) {
+export function Nav({ off = [], hide = [] }: { off?: string[]; hide?: string[] }) {
   const path = usePathname();
-  const show = (it: Item) => !off.includes(NEEDS[it.href] ?? "");
+  const show = (it: Item) => !off.includes(NEEDS[it.href] ?? "") && !hide.includes(it.href);
   const primary = PRIMARY.filter(show), secondary = SECONDARY.filter(show);
   const moreActive = ["/mais", ...secondary.map((s) => s.href)].some((h) => path.startsWith(h));
   return (

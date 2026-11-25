@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { SUPABASE_URL, SUPABASE_KEY } from "@/lib/supabase/env";
+import { isFutureRoute, isOwner } from "@/lib/edition";
 
 export async function middleware(req: NextRequest) {
   const isLogin = req.nextUrl.pathname.startsWith("/login");
@@ -31,6 +32,8 @@ export async function middleware(req: NextRequest) {
     // Visitante na raiz vê o site de vendas; nas outras rotas, o login.
     if (!user && !isLogin) return NextResponse.redirect(new URL(req.nextUrl.pathname === "/" ? "/sobre" : "/login", req.url));
     if (user && isLogin) return NextResponse.redirect(new URL("/", req.url));
+    // Áreas futuras: só a conta do dono entra; as demais veem o aviso de "em breve".
+    if (user && isFutureRoute(req.nextUrl.pathname) && !isOwner(data?.claims?.email as string | undefined)) return NextResponse.redirect(new URL("/em-breve", req.url));
     return res;
   } catch {
     // Falha ao falar com o Supabase: bloqueia por segurança.

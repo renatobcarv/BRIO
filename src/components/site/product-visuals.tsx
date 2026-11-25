@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ACHIEVEMENT_ART, RANK_ART, beastArt, criticArt, eventArt, libraryArt, pageArt, streakArt, studyArt, studyCertificateArt, xpArt } from "./showcase-art";
+import { ACHIEVEMENT_ART, RANK_ART, criticArt, libraryArt, pageArt, streakArt, studyArt, studyCertificateArt, xpArt } from "./showcase-art";
 import { ATTRS, RANKS, RARITY, achievements, type Achievement } from "@/lib/game";
 
 const EMPTY_RECORDS = {
@@ -143,10 +143,7 @@ export function AreaPreview({ cover }: { cover: "agenda" | "sonhos" | "livros" }
 const MORE_AREAS = [
   { title: "Finanças", description: "Saiba quanto entrou, quanto saiu e o que falta pagar. Organize parcelas, caixinhas e investimentos.", cover: "financas" },
   { title: "Corpo", description: "Registre água, sono e peso e acompanhe a tendência em relação à sua meta.", cover: "corpo" },
-  { title: "Pioneiro", description: "Registre a pregação e as revisitas. Veja quantas horas faltam para a meta do mês.", cover: "pioneiro" },
-  { title: "Eventos", description: "Complete as missões de cada evento da campanha e conquiste seus brasões.", art: eventArt },
-  { title: "Dias limpos", description: "Acompanhe sua sequência de dias e registre um recomeço quando precisar.", art: ACHIEVEMENT_ART.limpo7 },
-  { title: "Bestiário", description: "Encontre criaturas durante o treino e reveja seus encontros e vitórias na clareira.", art: beastArt },
+  { title: "Livros", description: "Estante, diário de leitura por dia, anotações e medalhas do Bronze à Lenda.", cover: "livros" },
 ] as const;
 
 export function MoreAreas() {
@@ -156,11 +153,7 @@ export function MoreAreas() {
       <div className="mt-7 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {MORE_AREAS.map((area) => (
           <article key={area.title} className="overflow-hidden rounded-xl border border-white/10 bg-white/[.03]">
-            {"cover" in area ? <CoverImage cover={area.cover} /> : (
-              <div className="grid aspect-[16/9] place-items-center bg-[radial-gradient(ellipse_at_center,#ad7f3f2e,transparent_68%)]">
-                <Image src={area.art} alt="" width={190} height={190} unoptimized className="h-[85%] w-auto object-contain" />
-              </div>
-            )}
+            <CoverImage cover={area.cover} />
             <div className="p-4">
               <h3 className="text-xl font-semibold">{area.title}</h3>
               <p className="mt-1 text-sm text-white/65">{area.description}</p>
