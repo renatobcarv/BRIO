@@ -79,6 +79,12 @@ export async function loadGame(sb: SupabaseClient, s: Settings, today: string) {
   // Mente: cada teste/treino cognitivo vale XP de Sabedoria.
   const mq = await sb.from("mind_sessions").select("date,kind,total,correct").limit(2000);
   if (!mq.error) input.eventBonus = [...(input.eventBonus ?? []), ...(mq.data ?? []).map((m) => ({ date: m.date as string, attr: "sabedoria" as const, xp: mindXp(m.kind as "teste" | "treino", m.correct as number, m.total as number), label: m.kind === "teste" ? "Teste cognitivo completo" : "Treino da Mente" }))];
+  // Agenda: cada compromisso concluído (BRIO ou Google) vale 10 XP de Disciplina, até 8 por dia.
+  const aq = await sb.from("calendar_events").select("date").eq("done", true).limit(5000);
+  const agDays = new Map<string, number>();
+  for (const r of aq.error ? [] : aq.data ?? []) agDays.set(r.date as string, (agDays.get(r.date as string) ?? 0) + 1);
+  for (const [d, ids] of Object.entries(((s as { prefs?: { gdone?: Record<string, string[]> } }).prefs?.gdone) ?? {})) agDays.set(d, (agDays.get(d) ?? 0) + (Array.isArray(ids) ? ids.length : 0));
+  input.eventBonus = [...(input.eventBonus ?? []), ...[...agDays].filter(([, n]) => n > 0).map(([date, n]) => ({ date, attr: "disciplina" as const, xp: Math.min(n, 8) * 10, label: `${n} compromisso${n > 1 ? "s" : ""} da agenda cumprido${n > 1 ? "s" : ""}` }))];
   // Itens do mascote: conquistas + saque das feras + loja (Ouro de caça). Bônus limitado a 15%, sem retroativo.
   const eqQ = await sb.from("pets").select("equipped,bought,levels,spent,active_beast,tame_tries").maybeSingle();
   const bq = await sb.from("workouts").select("program_id,week_no,date").not("program_id", "is", null).limit(3000);
