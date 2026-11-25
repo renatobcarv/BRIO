@@ -25,6 +25,8 @@ export type Session = { id: string; book_id: string; date: string; from_page: nu
 export type SearchHit = {
   source_id: string; title: string; authors: string; cover_url: string | null; isbn: string | null;
   publisher: string | null; year: number | null; pages: number | null; description: string | null; categories: string[];
+  /** Idioma da edição ("pt", "en"…), quando a fonte informa. */
+  lang?: string | null;
 };
 
 export const progressOf = (b: Pick<Book, "pages" | "current_page" | "status">) =>

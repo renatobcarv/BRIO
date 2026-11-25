@@ -113,7 +113,7 @@ export function AddBook({ onDone }: { onDone: () => void }) {
           <input className="field" placeholder="Título, autor ou ISBN" value={q} onChange={(e) => setQ(e.target.value)} autoFocus />
           {loading && <p className="text-sm text-muted">Buscando…</p>}
           {err && <p role="alert" className="text-sm text-[#ff453a]">{err}</p>}
-          {hits && hits.length === 0 && !loading && <p className="font-display italic text-muted">Nada encontrado. Tente outro termo ou cadastre manualmente.</p>}
+          {hits && hits.length === 0 && !loading && <div className="grid gap-2"><p className="font-display italic text-muted">Nada encontrado. Tente só o título ou o autor — ou cadastre você mesmo.</p><button className="btn" onClick={() => setMode("manual")}>Cadastrar manualmente</button></div>}
           <ul className="grid gap-1">
             {(hits ?? []).map((h) => (
               <li key={h.source_id}><button className="row-hover w-full flex gap-3 p-2 text-left" onClick={() => setPick(h)}>
