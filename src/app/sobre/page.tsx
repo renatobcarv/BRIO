@@ -31,7 +31,7 @@ function Phone() {
             <div className="grid grid-cols-3 gap-1.5 mt-2.5 text-center">
               {[["5", "dias 100%"], ["12", "recorde"], ["4/6", "hoje"]].map(([v, l]) => <div key={l} className="rounded-lg bg-white/5 py-1.5"><p className="num text-base text-[#ffb21e]">{v}</p><p className="text-[8px] text-white/60">{l}</p></div>)}
             </div>
-            {["Oração + estudo pessoal", "Treino feito", "Meta de água"].map((t, i) => (
+            {["Revisar a agenda", "Treino feito", "Meta de água"].map((t, i) => (
               <div key={t} className="flex items-center justify-between mt-1.5 rounded-lg px-2 py-1.5 bg-white/[.04] text-[11px]"><span className={i < 2 ? "line-through text-white/50" : ""}>{t}</span><span className="font-mono text-[10px]" style={{ color: i < 2 ? "#ffb21e" : "#ffffff66" }}>[{i < 2 ? 1 : 0}/1]</span></div>))}
           </div>
           <div className="grid grid-cols-2 gap-2">
@@ -71,8 +71,10 @@ const FEATS = [
 ];
 const FAQ = [
   ["Preciso de cartão para testar?", "Não. Você cria a conta, usa 14 dias com tudo liberado e decide depois."],
+  ["Já uso Google Agenda. Vou ter que largar?", "Não. O BRIO conecta com o Google Agenda nos dois sentidos: o que você cria em um aparece no outro."],
+  ["Não uso todas as áreas. Vale a pena?", "Vale. Você liga só o que usa nas Configurações e o resto some do menu. Dá para começar só com agenda e finanças, por exemplo."],
   ["Funciona no celular?", "Foi feito primeiro para o celular. Abra no navegador e toque em “Adicionar à Tela de Início”: vira um app, sem loja."],
-  ["De onde vem o XP?", "Só do que você registra de verdade: treino feito, refeição marcada, estudo com tempo. Clique vazio não vale ponto."],
+  ["Quanto tempo leva por dia?", "Poucos minutos. A tela inicial já mostra as missões do dia, e a maioria dos registros é um toque."],
   ["Meus dados ficam com quem?", "Com você. Cada conta só enxerga os próprios dados (bloqueio no banco), e você pode exportar tudo quando quiser."],
   ["O que vem depois?", "O BRIO cresce com quem usa. Novas áreas já estão em desenvolvimento e entram no seu plano sem custo extra quando forem lançadas."],
 ];
@@ -107,7 +109,7 @@ export default function Site() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <Link href="/sobre" aria-label="BRIO, início"><BrioWordmark height={26} /></Link>
           <nav aria-label="Seções" className="hidden md:flex gap-6 text-sm text-white/70">
-            <a href="#produto" className="hover:text-white">Produto</a><a href="#conquistas" className="hover:text-white">Conquistas</a><a href="#pantera" className="hover:text-white">Por que</a><a href="#planos" className="hover:text-white">Planos</a><a href="#faq" className="hover:text-white">Dúvidas</a>
+            <a href="#produto" className="hover:text-white">Produto</a><a href="#pantera" className="hover:text-white">Por que</a><a href="#conquistas" className="hover:text-white">Evolução</a><a href="#planos" className="hover:text-white">Planos</a><a href="#faq" className="hover:text-white">Dúvidas</a>
           </nav>
           <div className="flex items-center gap-1 sm:gap-2">
             <Link href="/login" className="min-h-11 inline-flex items-center px-3 text-sm">Entrar</Link>
@@ -125,17 +127,17 @@ export default function Site() {
           <div>
             <span className="in inline-flex items-center gap-2 rounded-full border border-[#ff9f0a66] bg-black/60 px-3 py-1.5 text-xs text-white/80" data-i="0"><i className="h-2 w-2 rounded-full bg-[#ffb21e] shadow-[0_0_10px_#ffb21e]" />14 dias grátis · sem cartão</span>
             <h1 className="in font-display text-[clamp(42px,8.5vw,84px)] leading-[.98] mt-5" data-i="1">Pare de começar.<br /><span className={em}>Comece a continuar</span><span className="text-[#ffb21e]">.</span></h1>
-            <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Motivação acaba na quarta-feira. A pantera não caça por motivação, caça por instinto. O BRIO transforma treino, dieta, agenda, dinheiro e estudos numa rotina que você repete até virar quem você é.</p>
+            <p className="in text-lg text-white/75 mt-6 max-w-xl" data-i="2">Agenda num app, treino em outro, gastos numa planilha, anotações perdidas no celular. O BRIO junta agenda, metas, finanças, estudos, leitura, treino e dieta num lugar só e te mostra, todo dia, a próxima coisa a fazer.</p>
             <div className="in flex flex-col sm:flex-row gap-3 mt-8" data-i="3">
-              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-black press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #ff9f0a" }}>Quero minha rotina de pantera →</Link>
+              <Link href="/cadastro?plano=essencial" className="min-h-14 px-8 rounded-[8px] grid place-items-center font-semibold text-black press" style={{ background: FIRE, boxShadow: "0 18px 40px -14px #ff9f0a" }}>Organizar minha vida →</Link>
               <a href="#produto" className="min-h-14 px-8 rounded-[8px] grid place-items-center border border-white/15 bg-black/40 press">Ver o que tem dentro</a>
             </div>
-            <ul className="in flex flex-wrap gap-x-5 gap-y-2 mt-6 text-sm text-white/65" data-i="4">{["A partir de R$ 0", "Celular e computador", "Seus dados só seus"].map((t) => <li key={t} className="flex items-center gap-1.5"><span className="text-[#ffb21e]">✓</span>{t}</li>)}</ul>
+            <ul className="in flex flex-wrap gap-x-5 gap-y-2 mt-6 text-sm text-white/65" data-i="4">{["Um app no lugar de seis", "Celular e computador", "Seus dados só seus"].map((t) => <li key={t} className="flex items-center gap-1.5"><span className="text-[#ffb21e]">✓</span>{t}</li>)}</ul>
           </div>
           <div className="in" data-i="2"><Phone /></div>
         </div>
         <div className="max-w-6xl mx-auto px-4 pb-14">
-          <p className="text-center text-[11px] tracking-[.3em] uppercase text-white/50 mb-4">O dia que você já entende</p>
+          <p className="text-center text-[11px] tracking-[.3em] uppercase text-white/50 mb-4">Tudo o que o seu dia pede, num lugar só</p>
           <div className="flex flex-wrap justify-center gap-2">
             {["Agenda", "Leitura", "Treino", "Água", "Refeições", "Estudo", "Orçamento", "Metas"].map((p, i) => <span key={p} className="rounded-full border border-white/10 bg-white/[.04] px-4 py-2 text-sm" style={i === 2 ? { borderColor: "#ff9f0a", background: "#ff9f0a22" } : i === 5 ? { borderColor: "#ffb21e", color: "#ffb21e" } : undefined}>{p}</span>)}
           </div>
@@ -153,10 +155,10 @@ export default function Site() {
       <section id="pantera" className="relative scroll-mt-20 overflow-hidden">
         <div className="max-w-6xl mx-auto px-4 py-24 grid lg:grid-cols-2 gap-10 items-center">
           <div>
-            <p className={label}>Instinto, não humor</p>
-            <h2 className={h2}>Enquanto você espera vontade,<br /><span className={em}>a pantera já caçou.</span></h2>
-            <p className="in text-lg text-white/75 mt-6">Ela não pensa se está a fim. Ela observa, espera o momento e age. O BRIO faz o mesmo com você: mostra a próxima ação, conta o tempo até a meia-noite e transforma cada dia cumprido em sequência. Disciplina repetida vira caráter.</p>
-            <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-[8px] font-semibold text-black press" style={{ background: FIRE }}>Começar hoje →</Link>
+            <p className={label}>Por que o BRIO</p>
+            <h2 className={h2}>Organização não falha por falta de app.<br /><span className={em}>Falha por excesso deles.</span></h2>
+            <p className="in text-lg text-white/75 mt-6">Cada área da vida num app diferente significa seis lugares para lembrar de abrir. O BRIO conecta tudo: o treino conta para a meta, o livro lido sobe seu nível, o compromisso da agenda vira missão do dia. Você abre um app, vê o que importa hoje e faz.</p>
+            <Link href="/cadastro?plano=essencial" className="in inline-grid place-items-center min-h-14 px-8 mt-8 rounded-[8px] font-semibold text-black press" style={{ background: FIRE }}>Testar 14 dias grátis →</Link>
           </div>
           <div className="in relative mx-auto w-full max-w-[440px] aspect-[4/5]">
             <img src="/pantera/sentada.webp" alt="Pantera negra sentada, olhar fixo: o símbolo do BRIO" loading="lazy" className="absolute inset-0 h-full w-full object-cover rounded-[10px] border border-white/10" />
@@ -168,14 +170,14 @@ export default function Site() {
       </section>
 
       <div id="produto" className="scroll-mt-20">
-        <Chapter kicker="Status · Ascension" title={<>Veja sua evolução<br /><span className={em}>tomar forma.</span></>} text="Registre o que você fez e acompanhe seu XP, seus atributos e sua próxima patente. Cada etapa tem seu próprio brasão." visual={<StatusPreview />} />
-        <AchievementGallery />
-        <Chapter flip kicker="Agenda · Central de Operações" title={<>Da conversa<br /><span className={em}>para a agenda.</span></>} text="Escreva “reunião quinta às 14h e estudo às 19h30”. A IA organiza os compromissos em uma linha do tempo, com integração ao Google Agenda nos dois sentidos." visual={<AreaPreview cover="agenda" />} />
-        <Chapter kicker="Metas" title={<>Metas que você<br /><span className={em}>vê crescer.</span></>} text="Defina o objetivo e o BRIO acompanha sozinho: quilos, páginas, reais guardados, horas de estudo. Cada avanço faz a sua plantação crescer." visual={<AreaPreview cover="sonhos" />} />
+        <Chapter kicker="Agenda · Central de Operações" title={<>Da conversa<br /><span className={em}>para a agenda.</span></>} text="Escreva “reunião quinta às 14h e estudo às 19h30”. A IA organiza os compromissos em uma linha do tempo, com integração ao Google Agenda nos dois sentidos." visual={<AreaPreview cover="agenda" />} />
+        <Chapter flip kicker="Metas" title={<>Metas que você<br /><span className={em}>vê crescer.</span></>} text="Defina o objetivo e o BRIO acompanha sozinho: quilos, páginas, reais guardados, horas de estudo. Cada avanço faz a sua plantação crescer." visual={<AreaPreview cover="sonhos" />} />
+        <Chapter kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Use Claude ou Gemini em sete modos, do socrático à avaliação. Faça revisões espaçadas, construa projetos e acompanhe seu domínio pelas evidências do que aprendeu." visual={<StudyMock />} />
         <Chapter flip kicker="Livros" title={<>Uma estante que<br /><span className={em}>cresce com você.</span></>} text="Organize o que está lendo, registre páginas e guarde suas notas. As 11 medalhas de leitura mostram o próximo objetivo, do Bronze à Lenda." visual={<AreaPreview cover="livros" />} />
         <Chapter kicker="Treino · Covil" title={<>Chegue à academia<br /><span className={em}>com um plano.</span></>} text="Campanha em fases, foto de cada exercício, músculos do dia, carga sugerida e treino guiado com descanso. Se o aparelho estiver ocupado, troque o exercício na hora." visual={<WorkoutMock />} />
         <Chapter flip kicker="Plano alimentar" title={<>Um plano alimentar<br /><span className={em}>para a sua rotina.</span></>} text="Informe seu objetivo, sua rotina e suas preferências. A IA monta o cardápio, as calorias acompanham a fase do treino e você registra as refeições com um toque." visual={<DietMock />} />
-        <Chapter kicker="Estudar com IA" title={<>Um tutor que<br /><span className={em}>te faz pensar.</span></>} text="Use Claude ou Gemini em sete modos, do socrático à avaliação. Faça revisões espaçadas, construa projetos e acompanhe seu domínio pelas evidências do que aprendeu." visual={<StudyMock />} />
+        <Chapter kicker="Evolução" title={<>Constância que<br /><span className={em}>dá para ver.</span></>} text="Tudo o que você registra vira XP: compromisso cumprido, treino, páginas lidas, mês fechado no azul. Suba de nível e enxergue o próprio progresso em vez de só imaginar." visual={<StatusPreview />} />
+        <AchievementGallery />
         <MoreAreas />
         <Roadmap />
       </div>
@@ -195,7 +197,7 @@ export default function Site() {
       {/* planos */}
       <section id="planos" className="max-w-6xl mx-auto px-4 py-20 scroll-mt-20">
         <p className={`${label} text-center`}>Planos</p>
-        <h2 className={`${h2} text-center`}>Preço de hábito, <span className={em}>não de luxo.</span></h2>
+        <h2 className={`${h2} text-center`}>Menos que um app, <span className={em}>no lugar de vários.</span></h2>
         <p className="in text-center text-white/70 mt-2">Comece de graça. Suba de plano quando fizer sentido.</p>
         <div className="mt-8"><Pricing /></div>
       </section>
@@ -218,7 +220,7 @@ export default function Site() {
           <img src="/pantera/olhar.webp" alt="" aria-hidden loading="lazy" className="absolute inset-0 h-full w-full object-cover opacity-25 -z-0" />
           <div className="relative">
             <p className="text-xs uppercase tracking-[.3em] text-white/60">14 dias grátis · sem cartão · cancele quando quiser</p>
-            <h2 className="font-display text-[clamp(32px,6vw,60px)] mt-4 leading-tight">A próxima versão de você <span className={em}>começa com seu e-mail.</span></h2>
+            <h2 className="font-display text-[clamp(32px,6vw,60px)] mt-4 leading-tight">Sua vida em ordem <span className={em}>começa com seu e-mail.</span></h2>
             <form action="/cadastro" method="get" className="mt-8 mx-auto max-w-lg flex flex-col sm:flex-row gap-2 rounded-[8px] sm:rounded-full border border-white/15 bg-black/70 p-2">
               <input type="hidden" name="plano" value="essencial" />
               <label htmlFor="cta-email" className="sr-only">E-mail</label>

@@ -7,8 +7,10 @@ const EMPTY_RECORDS = {
   workouts: [], waterDays: [], waterGoal: 0, sleep: [], readingPages: [], booksFinished: [],
   finance: [], weights: [],
 };
-const CATALOG = achievements(EMPTY_RECORDS);
-const FEATURED_IDS = ["dia1", "livro50", "total600", "campo12", "limpo365", "babilonia12"];
+// Só conquistas das áreas do pacote (sem espiritual, ministério e dias limpos).
+const HIDDEN = /^(limpo|assuma|biblia|campo|diario)/;
+const CATALOG = achievements(EMPTY_RECORDS).filter((a) => !HIDDEN.test(a.id));
+const FEATURED_IDS = ["dia1", "livro50", "total600", "seq30", "pesometa", "babilonia12"];
 
 function AchievementTile({ award }: { award: Achievement }) {
   const rarity = RARITY[award.rarity];
